@@ -1,0 +1,100 @@
+---
+---
+
+<script>
+  import AOS from "aos";
+  import "aos/dist/aos.css";
+
+  const initGlobalScripts = () => {
+    // Initialize AOS animations
+    AOS.init({
+      duration: 700,
+      easing: "ease-out",
+      once: true,
+    });
+
+    // Horizontal wheel scroll
+    document.querySelectorAll<HTMLElement>("*").forEach((e) => {
+      if (e.scrollWidth > e.clientWidth) {
+        e.addEventListener(
+          "wheel",
+          function (t) {
+            if (t.shiftKey) {
+              t.preventDefault();
+              this.scrollBy({ left: t.deltaY * 3, behavior: "smooth" });
+            }
+          },
+          { passive: false }
+        );
+      }
+    });
+
+    // Creative hover background effect
+    document.addEventListener("mouseover", (e) => {
+      const target = (e.target as HTMLElement)?.closest(".creative-hover-anim");
+      if (target) {
+        const hoverBg = target.querySelector<HTMLElement>(".hover-bg");
+        if (hoverBg) {
+          const rect = target.getBoundingClientRect();
+          const top = e.clientY - rect.top;
+          const left = e.clientX - rect.left;
+          hoverBg.style.setProperty("--creative-hover-top", `${top}px`);
+          hoverBg.style.setProperty("--creative-hover-left", `${left}px`);
+        }
+      }
+    });
+
+    // Magnetic hover animation
+    let animationFrameId: number;
+
+    const clamp = (val: number, max: number) => Math.max(-max, Math.min(val, max));
+
+    const applyMagneticHover = (el: HTMLElement) => {
+      let isHovered = false;
+
+      const onMouseMove = (e: MouseEvent) => {
+        if (!isHovered) return;
+        const rect = el.getBoundingClientRect();
+        const deltaX = (e.clientX - rect.left - rect.width / 2) * 0.3;
+        const deltaY = (e.clientY - rect.top - rect.height / 2) * 0.3;
+
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(() => {
+          el.style.transform = `translate(${clamp(deltaX, 30)}px, ${clamp(deltaY, 30)}px)`;
+        });
+      };
+
+      const onMouseLeave = () => {
+        isHovered = false;
+        cancelAnimationFrame(animationFrameId);
+        el.style.transition = "transform 0.2s ease-out";
+        el.style.transform = "translate(0, 0)";
+      };
+
+      el.style.willChange = "transform";
+      el.addEventListener("mouseenter", () => {
+        isHovered = true;
+        el.style.transition = "transform 0.2s ease-out";
+      });
+      el.addEventListener("mousemove", onMouseMove);
+      el.addEventListener("mouseleave", onMouseLeave);
+    };
+
+    document.querySelectorAll<HTMLElement>(".magnetic-hover-anim").forEach(applyMagneticHover);
+
+    window.addEventListener("mouseout", (e) => {
+      if (!e.relatedTarget && !(e as any).toElement) {
+        document.querySelectorAll<HTMLElement>(".magnetic-hover-anim").forEach((el) => {
+          el.style.transition = "transform 0.2s ease-out";
+          el.style.transform = "translate(0, 0)";
+        });
+      }
+    });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initGlobalScripts);
+  } else {
+    initGlobalScripts();
+  }
+</script>

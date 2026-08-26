@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import GlobalSearch from "../components/GlobalSearch.astro";
+import GlobalScripts from "../components/GlobalScripts.astro";
 
 interface Props {
   title?: string;
@@ -34,7 +35,6 @@ const {
     <link rel="alternate" hreflang="en" href={canonical} />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
-    <script defer src="/assets/stella-astro.pages.dev/umami.is-8d3c440c.js" data-website-id="" is:inline></script>
 
     <meta property="og:image" content={ogImage} />
     <meta property="og:title" content={title} />
@@ -93,6 +93,6 @@ const {
   <body>
     <slot />
     <GlobalSearch />
-    <script type="module" src="/_astro/GlobalScripts.astro_astro_type_script_index_0_lang.BB11i9V9-95043c7a.js" is:inline></script>
+    <GlobalScripts />
   </body>
 </html>

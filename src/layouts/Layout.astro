@@ -54,33 +54,37 @@ const {
     <meta name="msapplication-TileColor" content="#2b5797" />
     <meta name="apple-mobile-web-app-title" content="GoPocket" />
 
-    <script type="application/ld+json" set:html={JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      "name": title,
-      "description": description,
-      "image": ogImage,
-      "url": canonical,
-      "inLanguage": "en",
-      "isPartOf": {
-        "@type": "WebSite",
-        "name": title,
-        "description": "GoPocket is a SEBI-registered online trading and demat account platform for stocks, F&O, mutual funds, commodities and IPOs.",
-        "url": "https://gopocket.in/"
-      },
-      "publisher": {
-        "@type": "Organization",
-        "name": "GoPocket",
-        "url": "https://gopocket.in/",
-        "sameAs": [
-          "https://www.facebook.com",
-          "https://twitter.com",
-          "https://www.instagram.com",
-          "https://www.linkedin.com"
-        ],
-        "logo": { "@type": "ImageObject", "url": "https://gopocket.in/gopocket-logo.svg" }
-      }
-    })} />
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: title,
+        description: description,
+        image: ogImage,
+        url: canonical,
+        inLanguage: "en",
+        isPartOf: {
+          "@type": "WebSite",
+          name: title,
+          description:
+            "GoPocket is a SEBI-registered online trading and demat account platform for stocks, F&O, mutual funds, commodities and IPOs.",
+          url: "https://gopocket.in/",
+        },
+        publisher: {
+          "@type": "Organization",
+          name: "GoPocket",
+          url: "https://gopocket.in/",
+          sameAs: [
+            "https://www.facebook.com",
+            "https://twitter.com",
+            "https://www.instagram.com",
+            "https://www.linkedin.com",
+          ],
+          logo: { "@type": "ImageObject", url: "https://gopocket.in/gopocket-logo.svg" },
+        },
+      })}
+    />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

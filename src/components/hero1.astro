@@ -1,4 +1,5 @@
 ---
+
 ---
 
 <section class="home-hero overflow-hidden">
@@ -18,13 +19,8 @@
             >
             </div>
             <div class="flex items-center rounded-full bg-white">
-              <span
-                class="bg-dark inline-block gap-1 rounded-full px-3 py-1 text-sm font-normal text-white"
-                >New</span
-              >
-              <div
-                class="text-text-default ms-3 flex items-center rounded-full py-px font-normal"
-              >
+              <span class="bg-dark inline-block gap-1 rounded-full px-3 py-1 text-sm font-normal text-white">New</span>
+              <div class="text-text-default ms-3 flex items-center rounded-full py-px font-normal">
                 Open a Free Demat Account in 5 Minutes
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -42,10 +38,8 @@
                   <path d="m9 18 6-6-6-6"></path>
                 </svg>
               </div>
-              <a
-                title="Open a Free Demat Account in 5 Minutes"
-                class="absolute inset-0 size-full"
-                href="/changelog/"></a>
+              <a title="Open a Free Demat Account in 5 Minutes" class="absolute inset-0 size-full" href="/changelog/"
+              ></a>
             </div>
           </div>
           <h1>
@@ -57,9 +51,7 @@
               style="--animated-text-duration:0.6s;--animated-text-delay:0.1s;--animated-text-stagger:0.1s;"
             >
               <span class="word" style="--word-index:0">The</span>
-              <span class="word" style="--word-index:1"
-                ><strong>Smartest</strong></span
-              ><strong>
+              <span class="word" style="--word-index:1"><strong>Smartest</strong></span><strong>
                 <span class="word" style="--word-index:2">Way</span></strong
               >
               <span class="word" style="--word-index:3">to</span>
@@ -73,24 +65,20 @@
               if (window.matchMedia("(max-width: 767px)").matches)
                 r.forEach((t) => {
                   t.querySelectorAll(".word").forEach((e) => {
-                    (e.style.opacity = "1"),
-                      (e.style.filter = "none"),
-                      (e.style.transform = "none");
+                    ((e.style.opacity = "1"), (e.style.filter = "none"), (e.style.transform = "none"));
                   });
                 });
               else {
                 const t = new IntersectionObserver(
                   (e, a) => {
                     e.forEach((s) => {
-                      s.isIntersecting &&
-                        (s.target.classList.add("is-animated"),
-                        a.unobserve(s.target));
+                      s.isIntersecting && (s.target.classList.add("is-animated"), a.unobserve(s.target));
                     });
                   },
                   { threshold: 0.1 },
                 );
                 r.forEach((e) => {
-                  e.classList.add("is-ready"), t.observe(e);
+                  (e.classList.add("is-ready"), t.observe(e));
                 });
               }
             </script>
@@ -132,9 +120,7 @@
             class="btn btn-primary text-flip-hover-anim magnetic-hover-anim btn-md"
             href="/contact/"
             style="will-change: transform;"
-            ><span class="text-flip-inner" data-content="OPEN FREE ACCOUNT"
-              >OPEN FREE ACCOUNT</span
-            ><span
+            ><span class="text-flip-inner" data-content="OPEN FREE ACCOUNT">OPEN FREE ACCOUNT</span><span
               class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
               ><svg
                 class="gradient-shape"
@@ -154,9 +140,7 @@
       </div>
     </div>
     <!-- Banner Image -->
-    <div
-      class="relative mx-6 mt-12 hidden max-w-425 rounded-b-[6.25rem] md:m-0 md:mx-auto md:mt-20 md:block"
-    >
+    <div class="relative mx-6 mt-12 hidden max-w-425 rounded-b-[6.25rem] md:m-0 md:mx-auto md:mt-20 md:block">
       <div class="banner-image container" style="zoom: 1;">
         <img
           src="/assets/product-for-hero.xrrzmDxI_Z1AYpbt-2215db13.webp"
@@ -176,36 +160,30 @@
       </div>
       <script type="module" is:inline={true}>
         function r() {
-          document
-            .querySelectorAll(".marquee-element-width-auto")
-            .forEach((o) => {
-              o.querySelectorAll("img").forEach((e) => {
-                e.complete ? s(e) : e.addEventListener("load", () => s(e));
-              });
-              const a = o.scrollWidth;
-              o.style.setProperty("--total-width", `${a / 2}px`);
+          document.querySelectorAll(".marquee-element-width-auto").forEach((o) => {
+            o.querySelectorAll("img").forEach((e) => {
+              e.complete ? s(e) : e.addEventListener("load", () => s(e));
             });
+            const a = o.scrollWidth;
+            o.style.setProperty("--total-width", `${a / 2}px`);
+          });
         }
         function s(t) {
           const o = getComputedStyle(t),
             i = parseFloat(o.height),
             a = t.naturalWidth / t.naturalHeight,
             e = i * a;
-          t.setAttribute("height", i.toString()),
-            t.setAttribute("width", e.toString());
+          (t.setAttribute("height", i.toString()), t.setAttribute("width", e.toString()));
         }
         let n;
         window.addEventListener("resize", () => {
-          clearTimeout(n), (n = window.setTimeout(r, 100));
+          (clearTimeout(n), (n = window.setTimeout(r, 100)));
         });
         r();
       </script><div class="prose-p:text-light pt-8 pb-8 md:pt-24 md:pb-16">
         <div class="container">
           <div class="mx-auto text-center">
-            <p
-              data-aos="fade-up-sm"
-              class="text-center text-lg font-normal md:text-xl aos-init aos-animate"
-            >
+            <p data-aos="fade-up-sm" class="text-center text-lg font-normal md:text-xl aos-init aos-animate">
               Trusted by thousands of investors across India.
             </p>
             <div
@@ -466,10 +444,7 @@
           height="620"
           class="hidden h-full w-full object-cover opacity-80 mix-blend-multiply md:block"
         />
-        <div
-          class="to-primary absolute inset-0 -z-10 bg-linear-to-b from-transparent"
-        >
-        </div>
+        <div class="to-primary absolute inset-0 -z-10 bg-linear-to-b from-transparent"></div>
       </div>
     </div>
   </div>

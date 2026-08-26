@@ -1,93 +1,673 @@
 ---
+
 ---
 
 <div id="global-search-modal" class="global-search-modal" aria-hidden="true">
-<div class="global-search-backdrop" data-search-close></div>
-<div class="global-search-panel" role="dialog" aria-modal="true" aria-label="Search">
-<div class="global-search-input-row">
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-<input type="text" id="global-search-input" placeholder="Search stocks, F&amp;O, mutual funds..." autocomplete="off">
-<button type="button" class="global-search-close" data-search-close aria-label="Close search"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+  <div class="global-search-backdrop" data-search-close></div>
+  <div class="global-search-panel" role="dialog" aria-modal="true" aria-label="Search">
+    <div class="global-search-input-row">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="w-5"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg
+      >
+      <input
+        type="text"
+        id="global-search-input"
+        placeholder="Search stocks, F&O, mutual funds..."
+        autocomplete="off"
+      />
+      <button type="button" class="global-search-close" data-search-close aria-label="Close search"
+        ><svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="w-4"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg
+        ></button
+      >
+    </div>
+    <div class="global-search-tabs" role="tablist">
+      <button type="button" class="global-search-tab is-active" data-category="all">All</button>
+      <button type="button" class="global-search-tab" data-category="stocks">Stocks</button>
+      <button type="button" class="global-search-tab" data-category="fno">F&amp;O</button>
+      <button type="button" class="global-search-tab" data-category="mf">Mutual Funds</button>
+      <button type="button" class="global-search-tab" data-category="etf">ETF</button>
+      <button type="button" class="global-search-tab" data-category="faq">FAQs</button>
+    </div>
+    <div class="global-search-results">
+      <div id="global-search-recent-section" class="global-search-section" hidden>
+        <p class="global-search-label">Recent</p>
+        <ul id="global-search-recent-list"></ul>
+      </div>
+      <div class="global-search-section">
+        <p class="global-search-label">Trending Searches</p>
+        <ul id="global-search-list">
+          <li class="global-search-item" data-key="RELIANCE" data-name="Reliance Industries Ltd" data-category="stocks">
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Reliance Industries Ltd</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="TCS"
+            data-name="Tata Consultancy Services Ltd"
+            data-category="stocks"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Tata Consultancy Services Ltd</span></a>
+          </li><li class="global-search-item" data-key="HDFCBANK" data-name="HDFC Bank Ltd" data-category="stocks">
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">HDFC Bank Ltd</span></a>
+          </li><li class="global-search-item" data-key="INFY" data-name="Infosys Ltd" data-category="stocks">
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Infosys Ltd</span></a>
+          </li><li class="global-search-item" data-key="ICICIBANK" data-name="ICICI Bank Ltd" data-category="stocks">
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">ICICI Bank Ltd</span></a>
+          </li><li class="global-search-item" data-key="SBIN" data-name="State Bank of India" data-category="stocks">
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">State Bank of India</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="BHARTIARTL"
+            data-name="Bharti Airtel Ltd"
+            data-category="stocks"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Bharti Airtel Ltd</span></a>
+          </li><li class="global-search-item" data-key="ITC" data-name="ITC Ltd" data-category="stocks">
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">ITC Ltd</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="NIFTY50"
+            data-name="Nifty 50 Index Futures & Options"
+            data-category="fno"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Nifty 50 Index Futures & Options</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="BANKNIFTY"
+            data-name="Bank Nifty Futures & Options"
+            data-category="fno"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Bank Nifty Futures & Options</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="FINNIFTY"
+            data-name="Nifty Financial Services F&O"
+            data-category="fno"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Nifty Financial Services F&O</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="RELIANCEFUT"
+            data-name="Reliance Industries Futures"
+            data-category="fno"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Reliance Industries Futures</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="AXISBLUECHIP"
+            data-name="Axis Bluechip Fund - Large Cap"
+            data-category="mf"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Axis Bluechip Fund - Large Cap</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="PARAGFLEXICAP"
+            data-name="Parag Parikh Flexi Cap Fund"
+            data-category="mf"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Parag Parikh Flexi Cap Fund</span></a>
+          </li><li class="global-search-item" data-key="SBISMALLCAP" data-name="SBI Small Cap Fund" data-category="mf">
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">SBI Small Cap Fund</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="HDFCINDEXNIFTY"
+            data-name="HDFC Index Fund - Nifty 50 Plan"
+            data-category="mf"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">HDFC Index Fund - Nifty 50 Plan</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="NIFTYBEES"
+            data-name="Nippon India ETF Nifty 50 BeES"
+            data-category="etf"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Nippon India ETF Nifty 50 BeES</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="GOLDBEES"
+            data-name="Nippon India ETF Gold BeES"
+            data-category="etf"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Nippon India ETF Gold BeES</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="BANKBEES"
+            data-name="Nippon India ETF Bank BeES"
+            data-category="etf"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Nippon India ETF Bank BeES</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="JUNIORBEES"
+            data-name="Nippon India ETF Nifty Next 50"
+            data-category="etf"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
+                ></polyline></svg
+              ><span class="item-name">Nippon India ETF Nifty Next 50</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="FAQ1"
+            data-name="How do I open a free demat account?"
+            data-category="faq"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path
+                  d="M12 17h.01"></path></svg
+              ><span class="item-name">How do I open a free demat account?</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="FAQ2"
+            data-name="What are GoPocket's brokerage charges?"
+            data-category="faq"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path
+                  d="M12 17h.01"></path></svg
+              ><span class="item-name">What are GoPocket's brokerage charges?</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="FAQ3"
+            data-name="How do I add funds to my trading account?"
+            data-category="faq"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path
+                  d="M12 17h.01"></path></svg
+              ><span class="item-name">How do I add funds to my trading account?</span></a>
+          </li><li
+            class="global-search-item"
+            data-key="FAQ4"
+            data-name="What documents are required for KYC?"
+            data-category="faq"
+          >
+            <a href="#"
+              ><svg
+                class="item-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="item-icon"
+                ><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path
+                  d="M12 17h.01"></path></svg
+              ><span class="item-name">What documents are required for KYC?</span></a>
+          </li>
+        </ul>
+      </div>
+      <p id="global-search-empty" class="global-search-empty" hidden>No results found</p>
+    </div>
+  </div>
 </div>
-<div class="global-search-tabs" role="tablist">
-<button type="button" class="global-search-tab is-active" data-category="all">All</button>
-<button type="button" class="global-search-tab" data-category="stocks">Stocks</button>
-<button type="button" class="global-search-tab" data-category="fno">F&amp;O</button>
-<button type="button" class="global-search-tab" data-category="mf">Mutual Funds</button>
-<button type="button" class="global-search-tab" data-category="etf">ETF</button>
-<button type="button" class="global-search-tab" data-category="faq">FAQs</button>
-</div>
-<div class="global-search-results">
-<div id="global-search-recent-section" class="global-search-section" hidden>
-<p class="global-search-label">Recent</p>
-<ul id="global-search-recent-list"></ul>
-</div>
-<div class="global-search-section">
-<p class="global-search-label">Trending Searches</p>
-<ul id="global-search-list"><li class="global-search-item" data-key="RELIANCE" data-name="Reliance Industries Ltd" data-category="stocks"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Reliance Industries Ltd</span></a></li><li class="global-search-item" data-key="TCS" data-name="Tata Consultancy Services Ltd" data-category="stocks"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Tata Consultancy Services Ltd</span></a></li><li class="global-search-item" data-key="HDFCBANK" data-name="HDFC Bank Ltd" data-category="stocks"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">HDFC Bank Ltd</span></a></li><li class="global-search-item" data-key="INFY" data-name="Infosys Ltd" data-category="stocks"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Infosys Ltd</span></a></li><li class="global-search-item" data-key="ICICIBANK" data-name="ICICI Bank Ltd" data-category="stocks"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">ICICI Bank Ltd</span></a></li><li class="global-search-item" data-key="SBIN" data-name="State Bank of India" data-category="stocks"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">State Bank of India</span></a></li><li class="global-search-item" data-key="BHARTIARTL" data-name="Bharti Airtel Ltd" data-category="stocks"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Bharti Airtel Ltd</span></a></li><li class="global-search-item" data-key="ITC" data-name="ITC Ltd" data-category="stocks"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">ITC Ltd</span></a></li><li class="global-search-item" data-key="NIFTY50" data-name="Nifty 50 Index Futures & Options" data-category="fno"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Nifty 50 Index Futures & Options</span></a></li><li class="global-search-item" data-key="BANKNIFTY" data-name="Bank Nifty Futures & Options" data-category="fno"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Bank Nifty Futures & Options</span></a></li><li class="global-search-item" data-key="FINNIFTY" data-name="Nifty Financial Services F&O" data-category="fno"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Nifty Financial Services F&O</span></a></li><li class="global-search-item" data-key="RELIANCEFUT" data-name="Reliance Industries Futures" data-category="fno"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Reliance Industries Futures</span></a></li><li class="global-search-item" data-key="AXISBLUECHIP" data-name="Axis Bluechip Fund - Large Cap" data-category="mf"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Axis Bluechip Fund - Large Cap</span></a></li><li class="global-search-item" data-key="PARAGFLEXICAP" data-name="Parag Parikh Flexi Cap Fund" data-category="mf"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Parag Parikh Flexi Cap Fund</span></a></li><li class="global-search-item" data-key="SBISMALLCAP" data-name="SBI Small Cap Fund" data-category="mf"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">SBI Small Cap Fund</span></a></li><li class="global-search-item" data-key="HDFCINDEXNIFTY" data-name="HDFC Index Fund - Nifty 50 Plan" data-category="mf"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">HDFC Index Fund - Nifty 50 Plan</span></a></li><li class="global-search-item" data-key="NIFTYBEES" data-name="Nippon India ETF Nifty 50 BeES" data-category="etf"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Nippon India ETF Nifty 50 BeES</span></a></li><li class="global-search-item" data-key="GOLDBEES" data-name="Nippon India ETF Gold BeES" data-category="etf"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Nippon India ETF Gold BeES</span></a></li><li class="global-search-item" data-key="BANKBEES" data-name="Nippon India ETF Bank BeES" data-category="etf"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Nippon India ETF Bank BeES</span></a></li><li class="global-search-item" data-key="JUNIORBEES" data-name="Nippon India ETF Nifty Next 50" data-category="etf"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg><span class="item-name">Nippon India ETF Nifty Next 50</span></a></li><li class="global-search-item" data-key="FAQ1" data-name="How do I open a free demat account?" data-category="faq"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg><span class="item-name">How do I open a free demat account?</span></a></li><li class="global-search-item" data-key="FAQ2" data-name="What are GoPocket's brokerage charges?" data-category="faq"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg><span class="item-name">What are GoPocket's brokerage charges?</span></a></li><li class="global-search-item" data-key="FAQ3" data-name="How do I add funds to my trading account?" data-category="faq"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg><span class="item-name">How do I add funds to my trading account?</span></a></li><li class="global-search-item" data-key="FAQ4" data-name="What documents are required for KYC?" data-category="faq"><a href="#"><svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="item-icon"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg><span class="item-name">What documents are required for KYC?</span></a></li></ul>
-</div>
-<p id="global-search-empty" class="global-search-empty" hidden>No results found</p>
-</div>
-</div>
-</div>
-<script type="module" is:inline>(function(){
-const m=document.getElementById("global-search-modal");
-if(!m)return;
-const i=document.getElementById("global-search-input"),
-  list=document.getElementById("global-search-list"),
-  empty=document.getElementById("global-search-empty"),
-  tabs=[...m.querySelectorAll(".global-search-tab")],
-  recentSection=document.getElementById("global-search-recent-section"),
-  recentList=document.getElementById("global-search-recent-list"),
-  items=[...list.querySelectorAll(".global-search-item")];
-let activeCategory="all";
-const ICON_HISTORY='<svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>';
+<script type="module" is:inline>
+  (function () {
+    const m = document.getElementById("global-search-modal");
+    if (!m) return;
+    const i = document.getElementById("global-search-input"),
+      list = document.getElementById("global-search-list"),
+      empty = document.getElementById("global-search-empty"),
+      tabs = [...m.querySelectorAll(".global-search-tab")],
+      recentSection = document.getElementById("global-search-recent-section"),
+      recentList = document.getElementById("global-search-recent-list"),
+      items = [...list.querySelectorAll(".global-search-item")];
+    let activeCategory = "all";
+    const ICON_HISTORY =
+      '<svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>';
 
-function getRecent(){try{return JSON.parse(localStorage.getItem("gopocket_recent_searches")||"[]")}catch{return[]}}
-function saveRecent(arr){try{localStorage.setItem("gopocket_recent_searches",JSON.stringify(arr))}catch{}}
-function addRecent(key,name,category){
-  let arr=getRecent().filter(r=>r.key!==key);
-  arr.unshift({key,name,category});
-  arr=arr.slice(0,5);
-  saveRecent(arr);
-  renderRecent();
-}
-function renderRecent(){
-  const arr=getRecent();
-  if(!arr.length){recentSection.hidden=true;recentList.innerHTML="";return}
-  recentSection.hidden=false;
-  recentList.innerHTML=arr.map(r=>'<li class="global-search-item" data-key="'+r.key+'" data-name="'+r.name+'" data-category="'+r.category+'"><a href="#">'+ICON_HISTORY+'<span class="item-name">'+r.name+'</span></a></li>').join("");
-}
+    function getRecent() {
+      try {
+        return JSON.parse(localStorage.getItem("gopocket_recent_searches") || "[]");
+      } catch {
+        return [];
+      }
+    }
+    function saveRecent(arr) {
+      try {
+        localStorage.setItem("gopocket_recent_searches", JSON.stringify(arr));
+      } catch {}
+    }
+    function addRecent(key, name, category) {
+      let arr = getRecent().filter((r) => r.key !== key);
+      arr.unshift({ key, name, category });
+      arr = arr.slice(0, 5);
+      saveRecent(arr);
+      renderRecent();
+    }
+    function renderRecent() {
+      const arr = getRecent();
+      if (!arr.length) {
+        recentSection.hidden = true;
+        recentList.innerHTML = "";
+        return;
+      }
+      recentSection.hidden = false;
+      recentList.innerHTML = arr
+        .map(
+          (r) =>
+            '<li class="global-search-item" data-key="' +
+            r.key +
+            '" data-name="' +
+            r.name +
+            '" data-category="' +
+            r.category +
+            '"><a href="#">' +
+            ICON_HISTORY +
+            '<span class="item-name">' +
+            r.name +
+            "</span></a></li>",
+        )
+        .join("");
+    }
 
-function applyFilters(){
-  const q=i.value.trim().toLowerCase();
-  let visible=0;
-  items.forEach(li=>{
-    const key=(li.dataset.key||"").toLowerCase(),name=(li.dataset.name||"").toLowerCase(),cat=li.dataset.category;
-    const catOk=activeCategory==="all"||cat===activeCategory;
-    const qOk=!q||key.includes(q)||name.includes(q);
-    const ok=catOk&&qOk;
-    li.hidden=!ok;
-    if(ok)visible++;
-  });
-  empty.hidden=visible!==0;
-}
+    function applyFilters() {
+      const q = i.value.trim().toLowerCase();
+      let visible = 0;
+      items.forEach((li) => {
+        const key = (li.dataset.key || "").toLowerCase(),
+          name = (li.dataset.name || "").toLowerCase(),
+          cat = li.dataset.category;
+        const catOk = activeCategory === "all" || cat === activeCategory;
+        const qOk = !q || key.includes(q) || name.includes(q);
+        const ok = catOk && qOk;
+        li.hidden = !ok;
+        if (ok) visible++;
+      });
+      empty.hidden = visible !== 0;
+    }
 
-function open(){m.classList.add("is-open");m.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";i.value="";activeCategory="all";tabs.forEach(t=>t.classList.toggle("is-active",t.dataset.category==="all"));renderRecent();applyFilters();setTimeout(()=>i.focus(),50)}
-function close(){m.classList.remove("is-open");m.setAttribute("aria-hidden","true");document.body.style.overflow=""}
+    function open() {
+      m.classList.add("is-open");
+      m.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      i.value = "";
+      activeCategory = "all";
+      tabs.forEach((t) => t.classList.toggle("is-active", t.dataset.category === "all"));
+      renderRecent();
+      applyFilters();
+      setTimeout(() => i.focus(), 50);
+    }
+    function close() {
+      m.classList.remove("is-open");
+      m.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    }
 
-document.querySelectorAll(".search-toggle-btn").forEach(b=>b.addEventListener("click",open));
-m.querySelectorAll("[data-search-close]").forEach(el=>el.addEventListener("click",close));
-document.addEventListener("keydown",ev=>{if(ev.key==="Escape"&&m.classList.contains("is-open"))close()});
-i.addEventListener("input",applyFilters);
-tabs.forEach(t=>t.addEventListener("click",()=>{activeCategory=t.dataset.category;tabs.forEach(x=>x.classList.toggle("is-active",x===t));applyFilters()}));
-m.addEventListener("click",ev=>{
-  const a=ev.target.closest(".global-search-item a");
-  if(!a)return;
-  ev.preventDefault();
-  const li=a.closest(".global-search-item");
-  addRecent(li.dataset.key,li.dataset.name,li.dataset.category);
-  close();
-});
-})();</script>
-
+    document.querySelectorAll(".search-toggle-btn").forEach((b) => b.addEventListener("click", open));
+    m.querySelectorAll("[data-search-close]").forEach((el) => el.addEventListener("click", close));
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape" && m.classList.contains("is-open")) close();
+    });
+    i.addEventListener("input", applyFilters);
+    tabs.forEach((t) =>
+      t.addEventListener("click", () => {
+        activeCategory = t.dataset.category;
+        tabs.forEach((x) => x.classList.toggle("is-active", x === t));
+        applyFilters();
+      }),
+    );
+    m.addEventListener("click", (ev) => {
+      const a = ev.target.closest(".global-search-item a");
+      if (!a) return;
+      ev.preventDefault();
+      const li = a.closest(".global-search-item");
+      addRecent(li.dataset.key, li.dataset.name, li.dataset.category);
+      close();
+    });
+  })();
+</script>

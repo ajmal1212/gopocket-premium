@@ -20,16 +20,8 @@
           />
           <span class="logo-text">GoPocket</span>
         </a>
-        <p>
-          Investing and trading is made simple, affordable and accessible for
-          every Indian.
-        </p>
-        <form
-          action="#"
-          id="mc-embedded-subscribe-form"
-          method="post"
-          class="relative mb-0"
-        >
+        <p>Investing and trading is made simple, affordable and accessible for every Indian.</p>
+        <form action="#" id="mc-embedded-subscribe-form" method="post" class="relative mb-0">
           <div class="relative">
             <label for="mce-EMAIL" class="sr-only">Email</label>
             <input
@@ -65,150 +57,87 @@
             </button>
           </div>
           <div class="form-check mt-4">
-            <input
-              class="form-checkbox"
-              type="checkbox"
-              required=""
-              name="agree-privacy"
-              id="agree-privacy"
-            />
-            <label for="agree-privacy"
-              >I agree with <a href="/privacy-policy/">privacy policy</a></label
-            >
+            <input class="form-checkbox" type="checkbox" required="" name="agree-privacy" id="agree-privacy" />
+            <label for="agree-privacy">I agree with <a href="/privacy-policy/">privacy policy</a></label>
           </div>
-          <div
-            id="mce-responses"
-            class="clear absolute top-[105%] left-0 w-full text-sm opacity-60"
-          >
-            <div
-              class="message message-error"
-              id="mce-error-response"
-              style="display: none"
-            >
-            </div>
-            <div
-              class="message message-success"
-              id="mce-success-response"
-              style="display: none"
-            >
-            </div>
+          <div id="mce-responses" class="clear absolute top-[105%] left-0 w-full text-sm opacity-60">
+            <div class="message message-error" id="mce-error-response" style="display: none"></div>
+            <div class="message message-success" id="mce-success-response" style="display: none"></div>
           </div>
           <div style="position: absolute; left: -312.5rem" aria-hidden="true">
-            <input
-              type="text"
-              name="b_436cb8647d746fe81825f1efc_18a007239a"
-              tabindex="-1"
-              value=""
-            />
+            <input type="text" name="b_436cb8647d746fe81825f1efc_18a007239a" tabindex="-1" value="" />
           </div>
-          <input
-            type="hidden"
-            name="EMAILTYPE"
-            id="mce-EMAILTYPE-0"
-            value="html"
-          />
+          <input type="hidden" name="EMAILTYPE" id="mce-EMAILTYPE-0" value="html" />
         </form>
         <script type="module" is:inline={true}>
-          document
-            .querySelector("#mc-embedded-subscribe-form")
-            ?.addEventListener("submit", async (n) => {
-              n.preventDefault();
-              const c = n.target,
-                i = new FormData(c),
-                a = c.getAttribute("action");
-              if (!a) {
-                console.error("Form action URL is missing.");
-                return;
-              }
-              const l = new URLSearchParams(i).toString(),
-                e = document.querySelector("#mce-error-response"),
-                o = document.querySelector("#mce-success-response");
-              if (!e || !o) {
-                console.error(
-                  "Error or success response containers are missing.",
-                );
-                return;
-              }
-              ((e.style.display = "none"), (o.style.display = "none"));
-              try {
-                const r = document.createElement("script"),
-                  s = `jsonpCallback_${Date.now()}`;
-                ((window[s] = (t) => {
-                  (t.result === "success"
-                    ? ((o.textContent = t.msg || "Thank you for subscribing!"),
-                      (o.style.display = "block"))
-                    : ((e.textContent =
-                        t.msg || "An error occurred. Please try again."),
-                      (e.style.display = "block")),
-                    delete window[s],
-                    r.remove());
+          document.querySelector("#mc-embedded-subscribe-form")?.addEventListener("submit", async (n) => {
+            n.preventDefault();
+            const c = n.target,
+              i = new FormData(c),
+              a = c.getAttribute("action");
+            if (!a) {
+              console.error("Form action URL is missing.");
+              return;
+            }
+            const l = new URLSearchParams(i).toString(),
+              e = document.querySelector("#mce-error-response"),
+              o = document.querySelector("#mce-success-response");
+            if (!e || !o) {
+              console.error("Error or success response containers are missing.");
+              return;
+            }
+            ((e.style.display = "none"), (o.style.display = "none"));
+            try {
+              const r = document.createElement("script"),
+                s = `jsonpCallback_${Date.now()}`;
+              ((window[s] = (t) => {
+                (t.result === "success"
+                  ? ((o.textContent = t.msg || "Thank you for subscribing!"), (o.style.display = "block"))
+                  : ((e.textContent = t.msg || "An error occurred. Please try again."), (e.style.display = "block")),
+                  delete window[s],
+                  r.remove());
+              }),
+                (r.src = `${a}&c=${s}&${l}`),
+                (r.onerror = () => {
+                  ((e.textContent = "There was an error processing your request. Please try again later."),
+                    (e.style.display = "block"),
+                    console.error("Error loading JSONP script."));
                 }),
-                  (r.src = `${a}&c=${s}&${l}`),
-                  (r.onerror = () => {
-                    ((e.textContent =
-                      "There was an error processing your request. Please try again later."),
-                      (e.style.display = "block"),
-                      console.error("Error loading JSONP script."));
-                  }),
-                  document.body.appendChild(r));
-              } catch (r) {
-                ((e.textContent =
-                  "There was an error processing your request. Please try again later."),
-                  (e.style.display = "block"),
-                  console.error("Error:", r));
-              }
-            });
+                document.body.appendChild(r));
+            } catch (r) {
+              ((e.textContent = "There was an error processing your request. Please try again later."),
+                (e.style.display = "block"),
+                console.error("Error:", r));
+            }
+          });
         </script>
       </div>
 
       <!-- Navigation Columns -->
-      <div
-        class="col-span-2 grid gap-y-10 sm:grid-cols-2 md:grid-cols-4 xl:ps-12"
-      >
+      <div class="col-span-2 grid gap-y-10 sm:grid-cols-2 md:grid-cols-4 xl:ps-12">
         <div>
           <h3 class="text-dark mb-4 text-xl md:mb-6 font-semibold">Company</h3>
           <ul class="flex flex-col gap-y-1.5 text-sm">
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/company/">About Us</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/company/">About Us</a>
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/products/">Products</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/products/">Products</a>
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/blog/">Blog</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/blog/">Blog</a>
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/emi-calculator/">EMI Calculator</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/emi-calculator/">EMI Calculator</a>
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/sip-calculator/">SIP Calculator</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/sip-calculator/">SIP Calculator</a>
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/swp-calculator/">SWP Calculator</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/swp-calculator/">SWP Calculator</a>
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/contact/">Contact Us</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/contact/">Contact Us</a>
             </li>
           </ul>
         </div>
@@ -217,16 +146,10 @@
           <h3 class="text-dark mb-4 text-xl md:mb-6 font-semibold">Support</h3>
           <ul class="flex flex-col gap-y-1.5 text-sm">
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/downloads/">Downloads</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/downloads/">Downloads</a>
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/gopocket-api/">API for Developers</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/gopocket-api/">API for Developers</a>
             </li>
             <li>
               <a
@@ -237,27 +160,17 @@
               >
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/refer-and-earn/">Refer &amp; Earn</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/refer-and-earn/">Refer &amp; Earn</a>
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/partner-with-us/">Partner with Us</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/partner-with-us/">Partner with Us</a>
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/research-equity/">Market Research</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/research-equity/">Market Research</a>
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/research-learn/">Online/Offline Courses</a
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/research-learn/"
+                >Online/Offline Courses</a
               >
             </li>
           </ul>
@@ -267,22 +180,13 @@
           <h3 class="text-dark mb-4 text-xl md:mb-6 font-semibold">Policy</h3>
           <ul class="flex flex-col gap-y-1.5 text-sm">
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/api-usage/">API Usage Policy</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/api-usage/">API Usage Policy</a>
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/privacy-policy/">Privacy Policy</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/privacy-policy/">Privacy Policy</a>
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/funds-policy/">Funds Policy</a
-              >
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/funds-policy/">Funds Policy</a>
             </li>
             <li>
               <a
@@ -349,9 +253,8 @@
               >
             </li>
             <li>
-              <a
-                class="has-underline-anim inline-block py-px text-inherit"
-                href="/fraud-prevention-policy/">Fraud Prevention</a
+              <a class="has-underline-anim inline-block py-px text-inherit" href="/fraud-prevention-policy/"
+                >Fraud Prevention</a
               >
             </li>
             <li>
@@ -369,44 +272,28 @@
           <h3 class="text-dark mb-4 text-xl md:mb-6 font-semibold">Contact</h3>
           <ul class="flex flex-col gap-3 text-sm">
             <li>
-              <span
-                class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
-                >Location:</span
-              >
+              <span class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider">Location:</span>
               <span class="block text-inherit"
-                >40-49, IG Towers, Devangapet 3rd Street, Flower Market,
-                Coimbatore – 641 001, Tamil Nadu, India</span
+                >40-49, IG Towers, Devangapet 3rd Street, Flower Market, Coimbatore – 641 001, Tamil Nadu, India</span
               >
             </li>
             <li>
-              <span
-                class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
+              <span class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
                 >Phone Number:</span
               >
-              <a
-                href="tel:+919585395753"
-                class="block text-inherit hover:underline">+91 95853 95753</a
-              >
+              <a href="tel:+919585395753" class="block text-inherit hover:underline">+91 95853 95753</a>
             </li>
             <li>
-              <span
-                class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
+              <span class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
                 >Support Email:</span
               >
-              <a
-                href="mailto:support@gopocket.in"
-                class="block text-inherit hover:underline"
-                >support@gopocket.in</a
-              >
+              <a href="mailto:support@gopocket.in" class="block text-inherit hover:underline">support@gopocket.in</a>
             </li>
             <li>
-              <span
-                class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
+              <span class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
                 >Compliance Email:</span
               >
-              <a
-                href="mailto:compliance@gopocket.in"
-                class="block text-inherit hover:underline"
+              <a href="mailto:compliance@gopocket.in" class="block text-inherit hover:underline"
                 >compliance@gopocket.in</a
               >
             </li>
@@ -416,14 +303,9 @@
     </div>
 
     <!-- Social Links & Copyright Bar -->
-    <div
-      class="flex flex-wrap items-center justify-between gap-x-8 gap-y-6 border-t border-border-light/60 py-8"
-    >
+    <div class="flex flex-wrap items-center justify-between gap-x-8 gap-y-6 border-t border-border-light/60 py-8">
       <div class="prose-styles opacity-80 text-sm">
-        <p>
-          © Made with ❤️ in Coimbatore, India | Copyright © 2023 onwards,
-          GoPocket.
-        </p>
+        <p>© Made with ❤️ in Coimbatore, India | Copyright © 2023 onwards, GoPocket.</p>
       </div>
 
       <ul class="flex flex-wrap items-center gap-4 *:h-6 *:w-6">
@@ -446,11 +328,7 @@
               xmlns="http://www.w3.org/2000/svg"
             >
               <g clip-path="url(#clip0_1299_11302)">
-                <rect
-                  width="25"
-                  height="25"
-                  fill="url(#paint0_linear_1299_11302)"
-                  fill-opacity="0.02"></rect>
+                <rect width="25" height="25" fill="url(#paint0_linear_1299_11302)" fill-opacity="0.02"></rect>
                 <path
                   fill-rule="evenodd"
                   clip-rule="evenodd"
@@ -556,29 +434,21 @@
     </div>
 
     <!-- Regulatory Disclaimers & Disclosures -->
-    <div
-      class="border-t border-border-light/60 pt-8 space-y-4 text-xs leading-relaxed opacity-75"
-    >
+    <div class="border-t border-border-light/60 pt-8 space-y-4 text-xs leading-relaxed opacity-75">
       <p>
-        GoPocket Invest Tech Private Limited (formerly SKY Commodities India
-        Private Limited) is a member of NSE, BSE and MCX - SEBI Registration No.
-        INZ000049235, NSE Member Code 90221, BSE Clearing Code 6745 | ARN:
-        136818, MCX Membership No. 46365, CDSL Depository service via GoPocket
-        Invest Tech Private Limited under SEBI having Registration No.
-        INDP5882021. The Registered Office at 40-49, IG Towers, Devangapet 3rd
-        Street, Flower Market, Coimbatore – 641 001, Tamil Nadu, INDIA. For any
-        complaints pertaining to securities broking please write to <a
+        GoPocket Invest Tech Private Limited (formerly SKY Commodities India Private Limited) is a member of NSE, BSE
+        and MCX - SEBI Registration No. INZ000049235, NSE Member Code 90221, BSE Clearing Code 6745 | ARN: 136818, MCX
+        Membership No. 46365, CDSL Depository service via GoPocket Invest Tech Private Limited under SEBI having
+        Registration No. INDP5882021. The Registered Office at 40-49, IG Towers, Devangapet 3rd Street, Flower Market,
+        Coimbatore – 641 001, Tamil Nadu, INDIA. For any complaints pertaining to securities broking please write to <a
           href="mailto:compliance@gopocket.in"
-          class="underline hover:text-primary transition"
-          >compliance@gopocket.in</a
+          class="underline hover:text-primary transition">compliance@gopocket.in</a
         >, for account opening related queries <a
           href="mailto:hello@gopocket.in"
           class="underline hover:text-primary transition">hello@gopocket.in</a
-        > &amp; for DP related to <a
-          href="mailto:dp@gopocket.in"
-          class="underline hover:text-primary transition">dp@gopocket.in</a
-        >. Please ensure you carefully read the Risk Disclosure Document as
-        prescribed by SEBI | ICF.
+        > &amp; for DP related to <a href="mailto:dp@gopocket.in" class="underline hover:text-primary transition"
+          >dp@gopocket.in</a
+        >. Please ensure you carefully read the Risk Disclosure Document as prescribed by SEBI | ICF.
       </p>
 
       <p>
@@ -592,47 +462,36 @@
           target="_blank"
           rel="noopener noreferrer"
           class="underline hover:text-primary transition">SMART ODR</a
-        >. Register on SCORES portal. Mandatory details for filing complaints on
-        SCORES: Name, PAN, Address, Mobile Number, E-mail ID. Benefits:
-        Effective Communication, Speedy redressal of the grievances.
+        >. Register on SCORES portal. Mandatory details for filing complaints on SCORES: Name, PAN, Address, Mobile
+        Number, E-mail ID. Benefits: Effective Communication, Speedy redressal of the grievances.
+      </p>
+
+      <p>The brand name GoPocket and logo are the registered copyrights of GoPocket Invest Tech Private Limited.</p>
+
+      <p>
+        Investments in securities market are subject to market risks; read all the related documents carefully before
+        investing.
       </p>
 
       <p>
-        The brand name GoPocket and logo are the registered copyrights of
-        GoPocket Invest Tech Private Limited.
+        Disclaimer: Ensure that no unauthorized transactions occur in your account. Kindly update your mobile number
+        /email IDs with your stock brokers to receive information of your transactions directly from Exchange on your
+        mobile/email at the end of the day.
       </p>
 
       <p>
-        Investments in securities market are subject to market risks; read all
-        the related documents carefully before investing.
-      </p>
-
-      <p>
-        Disclaimer: Ensure that no unauthorized transactions occur in your
-        account. Kindly update your mobile number /email IDs with your stock
-        brokers to receive information of your transactions directly from
-        Exchange on your mobile/email at the end of the day.
-      </p>
-
-      <p>
-        Stock Brokers can accept securities as margin from clients only by way
-        of pledge in the depository system w.e.f. September 1, 2020. Check your
-        securities / MF / bonds in the consolidated account statement issued by
-        NSDL/CDSL every month. KYC is one time exercise while dealing in
-        securities markets - once KYC is done through a SEBI registered
-        intermediary (broker, DP, Mutual Fund etc.), you need not undergo the
-        same process again when you approach another intermediary. Dear
-        Investor, if you are subscribing to an IPO, there is no need to issue a
-        cheque. Please write the Bank account number and sign the IPO
-        application form to authorize your bank to make payment in case of
-        allotment. In case of non allotment the funds will remain in your bank
-        account. As a business we don't give stock tips, and have not authorized
-        anyone to trade on behalf of others.
+        Stock Brokers can accept securities as margin from clients only by way of pledge in the depository system w.e.f.
+        September 1, 2020. Check your securities / MF / bonds in the consolidated account statement issued by NSDL/CDSL
+        every month. KYC is one time exercise while dealing in securities markets - once KYC is done through a SEBI
+        registered intermediary (broker, DP, Mutual Fund etc.), you need not undergo the same process again when you
+        approach another intermediary. Dear Investor, if you are subscribing to an IPO, there is no need to issue a
+        cheque. Please write the Bank account number and sign the IPO application form to authorize your bank to make
+        payment in case of allotment. In case of non allotment the funds will remain in your bank account. As a business
+        we don't give stock tips, and have not authorized anyone to trade on behalf of others.
       </p>
 
       <div class="pt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span class="font-semibold text-dark opacity-100">Important Links:</span
-        >
+        <span class="font-semibold text-dark opacity-100">Important Links:</span>
         <a
           href="https://www.sebi.gov.in/"
           target="_blank"
@@ -686,58 +545,37 @@
           href="https://evoting.cdslindia.com/Evoting/EvotingLogin"
           target="_blank"
           rel="noopener noreferrer"
-          class="hover:underline hover:text-primary transition"
-          >e-Voting for Share Holders</a
+          class="hover:underline hover:text-primary transition">e-Voting for Share Holders</a
         >
         <span>|</span>
         <a
           href="https://cdn.gopocket.in/downloads/ODR_Master_Circular.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          class="hover:underline hover:text-primary transition"
-          >ODR Master Circular</a
+          class="hover:underline hover:text-primary transition">ODR Master Circular</a
         >
       </div>
 
       <div class="pt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span class="font-semibold text-dark opacity-100"
-          >Important Information:</span
-        >
+        <span class="font-semibold text-dark opacity-100">Important Information:</span>
         <a
           href="https://www.mcxindia.com/inspection-and-audit#typesmemberships"
           target="_blank"
           rel="noopener noreferrer"
-          class="hover:underline hover:text-primary transition"
-          >VERNACULAR LANGUAGES</a
+          class="hover:underline hover:text-primary transition">VERNACULAR LANGUAGES</a
         >
         <span>|</span>
-        <a
-          href="/terms-conditions/"
-          class="hover:underline hover:text-primary transition"
-          >TERMS &amp; CONDITIONS</a
-        >
+        <a href="/terms-conditions/" class="hover:underline hover:text-primary transition">TERMS &amp; CONDITIONS</a>
         <span>|</span>
-        <a
-          href="/investors-attention/"
-          class="hover:underline hover:text-primary transition"
-          >INVESTOR'S ATTENTION</a
-        >
+        <a href="/investors-attention/" class="hover:underline hover:text-primary transition">INVESTOR'S ATTENTION</a>
         <span>|</span>
-        <a
-          href="/investors-charter/"
-          class="hover:underline hover:text-primary transition"
-          >INVESTOR CHARTER</a
-        >
+        <a href="/investors-charter/" class="hover:underline hover:text-primary transition">INVESTOR CHARTER</a>
         <span>|</span>
-        <a
-          href="/risk-disclosure-documentation/"
-          class="hover:underline hover:text-primary transition"
+        <a href="/risk-disclosure-documentation/" class="hover:underline hover:text-primary transition"
           >RISK DISCLOSURE</a
         >
         <span>|</span>
-        <a
-          href="/rights-and-obligation/"
-          class="hover:underline hover:text-primary transition"
+        <a href="/rights-and-obligation/" class="hover:underline hover:text-primary transition"
           >RIGHTS &amp; OBLIGATION</a
         >
         <span>|</span>
@@ -745,29 +583,24 @@
           href="https://cdn.gopocket.in/downloads/standard_documents_commodities.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          class="hover:underline hover:text-primary transition"
-          >STANDARD DOCUMENTS (Commodities)</a
+          class="hover:underline hover:text-primary transition">STANDARD DOCUMENTS (Commodities)</a
         >
         <span>|</span>
         <a
           href="https://cdn.gopocket.in/downloads/standard_documents_securities.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          class="hover:underline hover:text-primary transition"
-          >STANDARD DOCUMENTS (Securities)</a
+          class="hover:underline hover:text-primary transition">STANDARD DOCUMENTS (Securities)</a
         >
         <span>|</span>
         <a
           href="https://cdn.gopocket.in/downloads/Advisory-KYC_Compliance.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          class="hover:underline hover:text-primary transition"
-          >ADVISORY-KYC COMPLIANCE</a
+          class="hover:underline hover:text-primary transition">ADVISORY-KYC COMPLIANCE</a
         >
         <span>|</span>
-        <a
-          href="/mandatory-member-details/"
-          class="hover:underline hover:text-primary transition"
+        <a href="/mandatory-member-details/" class="hover:underline hover:text-primary transition"
           >MANDATORY MEMBER DETAILS</a
         >
       </div>
@@ -782,9 +615,7 @@
     >
       GoPocket
     </div>
-    <div
-      class="pointer-events-none absolute right-0 bottom-0 left-0 z-10 h-[calc(70%+1.5rem)] w-full"
-    >
+    <div class="pointer-events-none absolute right-0 bottom-0 left-0 z-10 h-[calc(70%+1.5rem)] w-full">
       <div
         class="absolute inset-0 z-70 mask-[linear-gradient(rgba(0,0,0,0),rgba(0,0,0,1)_10%,rgba(0,0,0,1)_30%,rgba(0,0,0,0)_40%)] backdrop-blur-[1px]"
       >
@@ -830,8 +661,6 @@
       }
       (window.addEventListener("resize", n), n());
     }
-    document
-      .querySelectorAll(".responsive-brand-text")
-      .forEach((t) => l(t, { minSize: 20, maxSize: 800 }));
+    document.querySelectorAll(".responsive-brand-text").forEach((t) => l(t, { minSize: 20, maxSize: 800 }));
   </script>
 </footer>

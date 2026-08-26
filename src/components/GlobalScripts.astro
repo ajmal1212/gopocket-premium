@@ -1,4 +1,5 @@
 ---
+
 ---
 
 <script>
@@ -32,7 +33,7 @@
             }
           });
         },
-        { threshold: 0.15 }
+        { threshold: 0.15 },
       );
 
       textElements.forEach((el) => {
@@ -52,7 +53,7 @@
               this.scrollBy({ left: t.deltaY * 3, behavior: "smooth" });
             }
           },
-          { passive: false }
+          { passive: false },
         );
       }
     });

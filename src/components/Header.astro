@@ -53,8 +53,9 @@ const { currentPath = "/" } = Astro.props;
             </svg>
           </span>
           <div
-            class="hs-dropdown-menu mega-menu hs-dropdown-open:pointer-events-auto hs-dropdown-open:opacity-100 hs-dropdown-open:mt-2! pointer-events-none top-0 mt-4 hidden max-h-[90vh] overflow-auto overflow-x-hidden rounded-xl border bg-white opacity-0 transition-[opacity,margin] max-lg:static! max-lg:transform-none! lg:absolute lg:left-0 lg:h-fit lg:w-fit"
+            class="hs-dropdown-menu mega-menu hs-dropdown-open:pointer-events-auto hs-dropdown-open:opacity-100 hs-dropdown-open:mt-2! pointer-events-none lg:top-full lg:mt-2 top-0 mt-4 hidden max-h-[90vh] overflow-auto overflow-x-hidden rounded-xl border bg-white opacity-0 transition-[opacity,margin] max-lg:static! max-lg:transform-none! lg:absolute lg:left-0 lg:h-fit lg:w-fit"
             role="menu"
+
             tabindex="-1"
           >
             <div class="md:flex">
@@ -286,8 +287,9 @@ const { currentPath = "/" } = Astro.props;
             </svg>
           </span>
           <ul
-            class="nav-dropdown-list hs-dropdown-menu hs-dropdown-open:mt-2! hs-dropdown-open:pointer-events-auto hs-dropdown-open:opacity-100 pointer-events-none absolute top-0 mt-4 hidden opacity-0 transition-[opacity,margin] max-lg:m-0! max-lg:transform-none!"
+            class="nav-dropdown-list hs-dropdown-menu hs-dropdown-open:mt-2! hs-dropdown-open:pointer-events-auto hs-dropdown-open:opacity-100 pointer-events-none absolute lg:top-full lg:mt-2 top-0 mt-4 hidden opacity-0 transition-[opacity,margin] max-lg:m-0! max-lg:transform-none!"
             role="menu"
+
             tabindex="-1"
           >
             <li class="nav-dropdown-item"><a href="/company/" class="nav-dropdown-link block"> Company </a></li><li
@@ -527,34 +529,122 @@ const { currentPath = "/" } = Astro.props;
     </nav>
   </div>
   <script type="module" is:inline={true}>
-    function c() {
-      const s = document.querySelector(".sticky-header");
-      if (!s) return;
-      let e = window.scrollY,
-        r = !1;
-      e > 0 && s.classList.add("scroll-up");
-      const o = () => {
-        const l = Math.max(0, window.scrollY);
-        if (l === e) {
-          r = !1;
-          return;
+    function initHeader() {
+      // 1. Sticky header scroll tracking
+      const header = document.querySelector(".sticky-header");
+      if (header) {
+        let lastScrollY = window.scrollY;
+        let ticking = false;
+        if (lastScrollY > 0) header.classList.add("scroll-up");
+        const updateHeader = () => {
+          const scrollY = Math.max(0, window.scrollY);
+          if (scrollY === 0) {
+            header.classList.remove("scroll-up", "scroll-down");
+          } else if (lastScrollY > scrollY) {
+            header.classList.remove("scroll-down");
+            header.classList.add("scroll-up");
+          } else if (lastScrollY < scrollY) {
+            header.classList.remove("scroll-up");
+            header.classList.add("scroll-down");
+          }
+          lastScrollY = scrollY;
+          ticking = false;
+        };
+        window.addEventListener(
+          "scroll",
+          () => {
+            if (!ticking) {
+              window.requestAnimationFrame(updateHeader);
+              ticking = true;
+            }
+          },
+          { passive: true },
+        );
+      }
+
+      // 2. Mobile Nav Toggler
+      const toggler = document.querySelector(".nav-toggler");
+      const navContainer = toggler ? toggler.closest("nav.hs-dropdown") : null;
+      const navMenu = document.getElementById("nav-menu");
+      if (toggler) {
+        toggler.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isOpen = toggler.classList.toggle("open");
+          if (navContainer) navContainer.classList.toggle("open", isOpen);
+          if (navMenu) {
+            navMenu.classList.toggle("open", isOpen);
+            navMenu.classList.toggle("expanded", isOpen);
+          }
+          toggler.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+      }
+
+      // 3. Dropdown Item Toggles (Features, Pages, Nested Menu, Language Switcher)
+      const dropdownToggles = document.querySelectorAll(".hs-dropdown-toggle:not(.nav-toggler)");
+      dropdownToggles.forEach((toggle) => {
+        toggle.addEventListener("click", (e) => {
+          const parentDropdown = toggle.closest("li.hs-dropdown, .language-switcher.hs-dropdown, .nav-dropdown-item.hs-dropdown");
+          e.preventDefault();
+          e.stopPropagation();
+
+
+          // Toggle open class
+          const isOpen = parentDropdown.classList.toggle("open");
+          toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+
+          // Close sibling dropdowns at the same level
+          const parentContainer = parentDropdown.parentElement;
+          if (parentContainer) {
+            const siblings = parentContainer.querySelectorAll(":scope > .hs-dropdown");
+            siblings.forEach((sibling) => {
+              if (sibling !== parentDropdown) {
+                sibling.classList.remove("open");
+                const siblingToggle = sibling.querySelector(".hs-dropdown-toggle");
+                if (siblingToggle) siblingToggle.setAttribute("aria-expanded", "false");
+              }
+            });
+          }
+        });
+      });
+
+      // 4. Close dropdowns on click outside
+      document.addEventListener("click", (e) => {
+        const target = e.target;
+        if (target && !target.closest(".header")) {
+          document.querySelectorAll("li.hs-dropdown.open, nav.hs-dropdown.open, .language-switcher.hs-dropdown.open").forEach((dropdown) => {
+            dropdown.classList.remove("open");
+          });
+          if (navMenu) {
+            navMenu.classList.remove("open", "expanded");
+          }
+          if (toggler) {
+            toggler.classList.remove("open");
+            toggler.setAttribute("aria-expanded", "false");
+          }
         }
-        (l === 0
-          ? s.classList.remove("scroll-up", "scroll-down")
-          : e > l
-            ? (s.classList.remove("scroll-down"), s.classList.add("scroll-up"))
-            : e < l && (s.classList.remove("scroll-up"), s.classList.add("scroll-down")),
-          (e = l),
-          (r = !1));
-      };
-      window.addEventListener(
-        "scroll",
-        () => {
-          r || (window.requestAnimationFrame(o), (r = !0));
-        },
-        { passive: !0 },
-      );
+      });
+
+      // 5. Close on Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          document.querySelectorAll("li.hs-dropdown.open, nav.hs-dropdown.open, .language-switcher.hs-dropdown.open").forEach((dropdown) => {
+            dropdown.classList.remove("open");
+          });
+          if (navMenu) {
+            navMenu.classList.remove("open", "expanded");
+          }
+          if (toggler) {
+            toggler.classList.remove("open");
+            toggler.setAttribute("aria-expanded", "false");
+          }
+        }
+      });
     }
-    c();
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initHeader);
+    } else {
+      initHeader();
+    }
   </script>
 </header>

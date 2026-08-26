@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "aos/dist/aos.css";
 
+@custom-variant hs-dropdown-open (&:where(.open, .open *, .active, .active *));
+
+
 @theme {
   --color-primary: #6b1aff;
   --color-theme-light: #f8f8f8;
@@ -840,6 +843,140 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
   .header.scroll-up .hs-dropdown-menu.mega-menu {
     pointer-events: auto;
   }
+
+  /* Sticky Header Scroll & Fade Animations */
+  .header.sticky-header {
+    position: sticky;
+    top: calc(var(--spacing) * 5);
+    z-index: 50;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    will-change: transform, opacity;
+  }
+
+  .header.sticky-header.scroll-down {
+    transform: translateY(-160%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .header.sticky-header.scroll-up {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  /* Desktop Dropdowns (>= 1024px) */
+  @media (min-width: 1024px) {
+    .navbar {
+      display: flex !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+      transform: none !important;
+    }
+
+    .hs-dropdown-menu:not(.navbar) {
+      transform: translateY(8px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s ease;
+    }
+
+    /* Primary top-level dropdowns position directly below nav items */
+    .navbar > li.hs-dropdown > .hs-dropdown-menu,
+    .header .language-switcher > .hs-dropdown-menu {
+      top: 100% !important;
+      bottom: auto !important;
+      margin-top: 0.5rem !important;
+    }
+
+    li.hs-dropdown.open > .hs-dropdown-menu,
+    .hs-dropdown.nav-dropdown.open > .hs-dropdown-menu,
+    .language-switcher.hs-dropdown.open > .hs-dropdown-menu {
+      display: block !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+      transform: translateY(0) !important;
+    }
+
+    li.hs-dropdown.open > .hs-dropdown-toggle svg,
+    .hs-dropdown.open > .hs-dropdown-toggle svg {
+      transform: rotate(180deg);
+    }
+
+
+    /* Nested flyout menus position to the side */
+    .nav-dropdown-item.hs-dropdown > .hs-dropdown-menu {
+      position: absolute !important;
+      left: 100% !important;
+      top: 0 !important;
+      margin-top: 0 !important;
+      margin-left: 0.25rem !important;
+      transform: translateX(0) !important;
+    }
+  }
+
+
+  /* Mobile Layout Dropdowns & Navigation (< 1024px) */
+  @media (max-width: 1023px) {
+    nav.hs-dropdown.open #nav-menu.navbar,
+    nav.hs-dropdown.open .navbar,
+    .navbar.open,
+    .navbar.expanded {
+      display: flex !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+      position: absolute !important;
+      top: 100% !important;
+      left: 0 !important;
+      width: 100% !important;
+      background-color: #ffffff !important;
+      margin-top: 0.5rem !important;
+      border-radius: 1.25rem !important;
+      border: 1px solid #eceef1 !important;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15) !important;
+      animation: navSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes navSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    li.hs-dropdown.open > .hs-dropdown-menu {
+      display: block !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+      position: static !important;
+      width: 100% !important;
+      transform: none !important;
+      margin-top: 0.5rem !important;
+    }
+
+    li.hs-dropdown.open > .hs-dropdown-toggle svg {
+      transform: rotate(180deg);
+    }
+
+    .nav-toggler.open .hs-dropdown-open\:translate-y-2 {
+      transform: translateY(0.5rem) rotate(0deg) !important;
+    }
+
+    .nav-toggler.open .hs-dropdown-open\:translate-y-6 {
+      transform: translateY(1.5rem) !important;
+    }
+  }
+
+
+
 }
 @layer components {
   @media (min-width: 1024px) {

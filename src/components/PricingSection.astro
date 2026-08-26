@@ -99,7 +99,7 @@
                 </div>
                 <script
                   type="module"
-                  src="/assets/AnimatedNumber.astro_astro_type_script_index_0_lang.CEtnLnbG-64a55f01.js"
+                  src="/assets/js/animated-number.js"
                 ></script>
               </span>
               <span class="pricing-type pb-3 text-sm">per order</span>
@@ -2157,35 +2157,48 @@
           </a>
         </div>
       </div>
-    </div>
-  </div>
-  <script type="module">
-    document.addEventListener("DOMContentLoaded", () => {
-      const i = (e) => e.replace(/\d/g, "0"),
-        s = document.querySelectorAll("[data-plan-btn]"),
-        r = (e) => {
-          document.querySelectorAll("[data-plan]").forEach((o) => {
-            const c = o,
-              n = c.querySelector("[data-count]");
-            (n && (n.textContent = i(n.dataset.count || "")),
-              c.dataset.plan !== e && (c.classList.add("hidden"), c.classList.remove("active")));
-          });
-        },
-        l = (e) => {
-          document.querySelectorAll(`[data-plan="${e}"]`).forEach((o) => {
-            const c = o,
-              n = c.querySelector("[data-count]");
-            (n && (n.textContent = n.dataset.count || ""), c.classList.remove("hidden"), c.classList.add("active"));
-          });
-        };
-      s.forEach((e) => {
-        e.addEventListener("click", () => {
-          const o = e.dataset.planBtn,
-            c = document.querySelector("[data-plan].active")?.getAttribute("data-plan");
-          !o || c === o || (r(o), l(o));
+      <script type="module">
+    const updatePlan = (plan) => {
+      document.querySelectorAll("[data-plan]").forEach((container) => {
+        const isTarget = container.dataset.plan === plan;
+        if (isTarget) {
+          container.classList.remove("hidden");
+          container.classList.add("active");
+          const odometerEl = container.querySelector(".odometer");
+          if (odometerEl) {
+            const count = odometerEl.getAttribute("data-count") || "";
+            if (odometerEl.odometer) {
+              odometerEl.odometer.update(count);
+            } else if (window.Odometer) {
+              new window.Odometer({ el: odometerEl, value: 0 }).update(count);
+            }
+          }
+        } else {
+          container.classList.add("hidden");
+          container.classList.remove("active");
+        }
+      });
+    };
+
+    const initPricingPlanToggle = () => {
+      const planBtns = document.querySelectorAll("[data-plan-btn]");
+      planBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const targetPlan = btn.dataset.planBtn;
+          if (targetPlan) updatePlan(targetPlan);
         });
       });
-    });
+    };
+
+    if (document.readyState !== "loading") {
+      initPricingPlanToggle();
+    } else {
+      document.addEventListener("DOMContentLoaded", initPricingPlanToggle);
+    }
+    window.addEventListener("load", initPricingPlanToggle);
+  </script>
+  </div>
+  <script type="module">
     function L({ selector: i, highlightElementSelector: s, triggerEvent: r = "hover", activeClass: l = "active" }) {
       const e = document.querySelector(s),
         o = document.querySelectorAll(i),

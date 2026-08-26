@@ -127,7 +127,7 @@ import Footer from "../components/Footer.astro";
                       </div>
                       <script
                         type="module"
-                        src="/assets/AnimatedNumber.astro_astro_type_script_index_0_lang.CEtnLnbG-64a55f01.js"
+                        src="/assets/js/animated-number.js"
                         is:inline></script>
                     </span>
                     <span class="pricing-type pb-3 text-sm">Per Month</span>
@@ -1907,34 +1907,46 @@ import Footer from "../components/Footer.astro";
           </div>
         </div>
         <script type="module" is:inline>
-          document.addEventListener("DOMContentLoaded", () => {
-            const i = (e) => e.replace(/\d/g, "0"),
-              s = document.querySelectorAll("[data-plan-btn]"),
-              r = (e) => {
-                document.querySelectorAll("[data-plan]").forEach((o) => {
-                  const c = o,
-                    n = c.querySelector("[data-count]");
-                  (n && (n.textContent = i(n.dataset.count || "")),
-                    c.dataset.plan !== e && (c.classList.add("hidden"), c.classList.remove("active")));
-                });
-              },
-              l = (e) => {
-                document.querySelectorAll(`[data-plan="${e}"]`).forEach((o) => {
-                  const c = o,
-                    n = c.querySelector("[data-count]");
-                  (n && (n.textContent = n.dataset.count || ""),
-                    c.classList.remove("hidden"),
-                    c.classList.add("active"));
-                });
-              };
-            s.forEach((e) => {
-              e.addEventListener("click", () => {
-                const o = e.dataset.planBtn,
-                  c = document.querySelector("[data-plan].active")?.getAttribute("data-plan");
-                !o || c === o || (r(o), l(o));
+          const updatePlan = (plan) => {
+            document.querySelectorAll("[data-plan]").forEach((container) => {
+              const isTarget = container.dataset.plan === plan;
+              if (isTarget) {
+                container.classList.remove("hidden");
+                container.classList.add("active");
+                const odometerEl = container.querySelector(".odometer");
+                if (odometerEl) {
+                  const count = odometerEl.getAttribute("data-count") || "";
+                  if (odometerEl.odometer) {
+                    odometerEl.odometer.update(count);
+                  } else if (window.Odometer) {
+                    new window.Odometer({ el: odometerEl, value: 0 }).update(count);
+                  }
+                }
+              } else {
+                container.classList.add("hidden");
+                container.classList.remove("active");
+              }
+            });
+          };
+
+          const initPricingPlanToggle = () => {
+            const planBtns = document.querySelectorAll("[data-plan-btn]");
+            planBtns.forEach((btn) => {
+              btn.addEventListener("click", () => {
+                const targetPlan = btn.dataset.planBtn;
+                if (targetPlan) updatePlan(targetPlan);
               });
             });
-          });
+          };
+
+          if (document.readyState !== "loading") {
+            initPricingPlanToggle();
+          } else {
+            document.addEventListener("DOMContentLoaded", initPricingPlanToggle);
+          }
+          window.addEventListener("load", initPricingPlanToggle);
+        </script>
+        <script type="module" is:inline>
           function L({
             selector: i,
             highlightElementSelector: s,
@@ -2043,8 +2055,8 @@ import Footer from "../components/Footer.astro";
                 >
                   <div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/1.CMegNOro_ZMLrS2-ad8a7b26.webp"
-                      srcset="/assets/1.CMegNOro_ZMLrS2-ad8a7b26.webp 161w"
+                      src="/assets/images/pricing-avatar-1.webp"
+                      srcset="/assets/images/pricing-avatar-1.webp 161w"
                       alt="Quotient"
                       loading="lazy"
                       decoding="async"
@@ -2058,8 +2070,8 @@ import Footer from "../components/Footer.astro";
                     />
                   </div><div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/2.B6ooQL5a_AnGav-a44ad85f.webp"
-                      srcset="/assets/2.B6ooQL5a_AnGav-a44ad85f.webp 169w"
+                      src="/assets/images/pricing-avatar-2.webp"
+                      srcset="/assets/images/pricing-avatar-2.webp 169w"
                       alt="Catalog"
                       loading="lazy"
                       decoding="async"
@@ -2073,8 +2085,8 @@ import Footer from "../components/Footer.astro";
                     />
                   </div><div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/3.z1w0BT7G_1Srwk6-d305a5f4.webp"
-                      srcset="/assets/3.z1w0BT7G_1Srwk6-d305a5f4.webp 176w"
+                      src="/assets/images/pricing-avatar-3.webp"
+                      srcset="/assets/images/pricing-avatar-3.webp 176w"
                       alt="Sisphus"
                       loading="lazy"
                       decoding="async"
@@ -2088,8 +2100,8 @@ import Footer from "../components/Footer.astro";
                     />
                   </div><div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/4.TnnOCi_V_1JSnqg-98d3bd0c.webp"
-                      srcset="/assets/4.TnnOCi_V_1JSnqg-98d3bd0c.webp 195w"
+                      src="/assets/images/pricing-avatar-4.webp"
+                      srcset="/assets/images/pricing-avatar-4.webp 195w"
                       alt="Hourglass"
                       loading="lazy"
                       decoding="async"
@@ -2103,8 +2115,8 @@ import Footer from "../components/Footer.astro";
                     />
                   </div><div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/5.DvuWf3Ca_ZqD2e8-395e75fd.webp"
-                      srcset="/assets/5.DvuWf3Ca_ZqD2e8-395e75fd.webp 159w"
+                      src="/assets/images/pricing-avatar-5.webp"
+                      srcset="/assets/images/pricing-avatar-5.webp 159w"
                       alt="Layers"
                       loading="lazy"
                       decoding="async"
@@ -2118,8 +2130,8 @@ import Footer from "../components/Footer.astro";
                     />
                   </div><div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/1.CMegNOro_ZMLrS2-ad8a7b26.webp"
-                      srcset="/assets/1.CMegNOro_ZMLrS2-ad8a7b26.webp 161w"
+                      src="/assets/images/pricing-avatar-1.webp"
+                      srcset="/assets/images/pricing-avatar-1.webp 161w"
                       alt="Quotient"
                       loading="lazy"
                       decoding="async"
@@ -2133,8 +2145,8 @@ import Footer from "../components/Footer.astro";
                     />
                   </div><div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/2.B6ooQL5a_AnGav-a44ad85f.webp"
-                      srcset="/assets/2.B6ooQL5a_AnGav-a44ad85f.webp 169w"
+                      src="/assets/images/pricing-avatar-2.webp"
+                      srcset="/assets/images/pricing-avatar-2.webp 169w"
                       alt="Catalog"
                       loading="lazy"
                       decoding="async"
@@ -2148,8 +2160,8 @@ import Footer from "../components/Footer.astro";
                     />
                   </div><div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/1.CMegNOro_ZMLrS2-ad8a7b26.webp"
-                      srcset="/assets/1.CMegNOro_ZMLrS2-ad8a7b26.webp 161w"
+                      src="/assets/images/pricing-avatar-1.webp"
+                      srcset="/assets/images/pricing-avatar-1.webp 161w"
                       alt="Quotient"
                       loading="lazy"
                       decoding="async"
@@ -2163,8 +2175,8 @@ import Footer from "../components/Footer.astro";
                     />
                   </div><div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/2.B6ooQL5a_AnGav-a44ad85f.webp"
-                      srcset="/assets/2.B6ooQL5a_AnGav-a44ad85f.webp 169w"
+                      src="/assets/images/pricing-avatar-2.webp"
+                      srcset="/assets/images/pricing-avatar-2.webp 169w"
                       alt="Catalog"
                       loading="lazy"
                       decoding="async"
@@ -2178,8 +2190,8 @@ import Footer from "../components/Footer.astro";
                     />
                   </div><div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/3.z1w0BT7G_1Srwk6-d305a5f4.webp"
-                      srcset="/assets/3.z1w0BT7G_1Srwk6-d305a5f4.webp 176w"
+                      src="/assets/images/pricing-avatar-3.webp"
+                      srcset="/assets/images/pricing-avatar-3.webp 176w"
                       alt="Sisphus"
                       loading="lazy"
                       decoding="async"
@@ -2193,8 +2205,8 @@ import Footer from "../components/Footer.astro";
                     />
                   </div><div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/4.TnnOCi_V_1JSnqg-98d3bd0c.webp"
-                      srcset="/assets/4.TnnOCi_V_1JSnqg-98d3bd0c.webp 195w"
+                      src="/assets/images/pricing-avatar-4.webp"
+                      srcset="/assets/images/pricing-avatar-4.webp 195w"
                       alt="Hourglass"
                       loading="lazy"
                       decoding="async"
@@ -2208,8 +2220,8 @@ import Footer from "../components/Footer.astro";
                     />
                   </div><div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/5.DvuWf3Ca_ZqD2e8-395e75fd.webp"
-                      srcset="/assets/5.DvuWf3Ca_ZqD2e8-395e75fd.webp 159w"
+                      src="/assets/images/pricing-avatar-5.webp"
+                      srcset="/assets/images/pricing-avatar-5.webp 159w"
                       alt="Layers"
                       loading="lazy"
                       decoding="async"
@@ -2223,8 +2235,8 @@ import Footer from "../components/Footer.astro";
                     />
                   </div><div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/1.CMegNOro_ZMLrS2-ad8a7b26.webp"
-                      srcset="/assets/1.CMegNOro_ZMLrS2-ad8a7b26.webp 161w"
+                      src="/assets/images/pricing-avatar-1.webp"
+                      srcset="/assets/images/pricing-avatar-1.webp 161w"
                       alt="Quotient"
                       loading="lazy"
                       decoding="async"
@@ -2238,8 +2250,8 @@ import Footer from "../components/Footer.astro";
                     />
                   </div><div class="px-4 md:px-8 min-w-fit">
                     <img
-                      src="/assets/2.B6ooQL5a_AnGav-a44ad85f.webp"
-                      srcset="/assets/2.B6ooQL5a_AnGav-a44ad85f.webp 169w"
+                      src="/assets/images/pricing-avatar-2.webp"
+                      srcset="/assets/images/pricing-avatar-2.webp 169w"
                       alt="Catalog"
                       loading="lazy"
                       decoding="async"
@@ -3406,8 +3418,8 @@ import Footer from "../components/Footer.astro";
                 </div>
                 <div class="mt-auto flex items-center gap-4">
                   <img
-                    src="/assets/1.nIy8sTuK_2vDfXj-60673945.webp"
-                    srcset="/assets/1.nIy8sTuK_2vDfXj-60673945.webp 144w"
+                    src="/assets/images/testimonial-avatar-1-1.webp"
+                    srcset="/assets/images/testimonial-avatar-1-1.webp 144w"
                     alt="Jane Smith"
                     loading="lazy"
                     decoding="async"
@@ -3501,8 +3513,8 @@ import Footer from "../components/Footer.astro";
                 </div>
                 <div class="mt-auto flex items-center gap-4">
                   <img
-                    src="/assets/2.Bh_EtLGD_2eruCX-e6b17e48.webp"
-                    srcset="/assets/2.Bh_EtLGD_2eruCX-e6b17e48.webp 144w"
+                    src="/assets/images/testimonial-avatar-2.webp"
+                    srcset="/assets/images/testimonial-avatar-2.webp 144w"
                     alt="Kowsi Han"
                     loading="lazy"
                     decoding="async"
@@ -3597,8 +3609,8 @@ import Footer from "../components/Footer.astro";
                 </div>
                 <div class="mt-auto flex items-center gap-4">
                   <img
-                    src="/assets/3.CefifI2L_PPwY-0e31aaf7.webp"
-                    srcset="/assets/3.CefifI2L_PPwY-0e31aaf7.webp 144w"
+                    src="/assets/images/testimonial-avatar-3.webp"
+                    srcset="/assets/images/testimonial-avatar-3.webp 144w"
                     alt="Raj Patel"
                     loading="lazy"
                     decoding="async"
@@ -3868,7 +3880,7 @@ import Footer from "../components/Footer.astro";
                 </div>
                 <script
                   type="module"
-                  src="/assets/AccordionList.astro_astro_type_script_index_0_lang.Bb6YqRTa-fe039448.js"
+                  src="/assets/js/accordion-list.js"
                   is:inline></script>
               </div><div
                 role="tabpanel"
@@ -4615,13 +4627,13 @@ import Footer from "../components/Footer.astro";
         </div>
         <script
           type="module"
-          src="/assets/CallToAction.astro_astro_type_script_index_0_lang.C7_99YrK-920d549f.js"
+          src="/assets/js/call-to-action.js"
           is:inline></script>
       </section>
     </main>
     <script
       type="module"
-      src="/assets/GlobalScripts.astro_astro_type_script_index_0_lang.BB11i9V9-95043c7a.js"
+      src="/assets/js/global-scripts.js"
       is:inline></script>
     <div
       id="action-buttons"

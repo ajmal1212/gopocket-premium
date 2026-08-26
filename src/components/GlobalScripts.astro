@@ -5,8 +5,26 @@
 <script>
   import AOS from "aos";
   import "aos/dist/aos.css";
+  import SmoothScroll from "smoothscroll-for-websites";
 
   const initGlobalScripts = () => {
+    // Initialize smooth scrolling (kinetic momentum scroll)
+    try {
+      SmoothScroll({
+        animationTime: 800,
+        stepSize: 100,
+        accelerationDelta: 50,
+        accelerationMax: 3,
+        pulseAlgorithm: true,
+        pulseScale: 4,
+        pulseNormalize: 1,
+        keyboardSupport: true,
+        arrowScroll: 50,
+      });
+    } catch (err) {
+      console.error("SmoothScroll init error:", err);
+    }
+
     // Strip hardcoded static pre-rendered AOS classes so AOS can observe them dynamically
     document.querySelectorAll("[data-aos]").forEach((el) => {
       el.classList.remove("aos-init", "aos-animate");

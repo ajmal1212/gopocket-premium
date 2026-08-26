@@ -11,7 +11,11 @@
       duration: 700,
       easing: "ease-out",
       once: true,
+      startEvent: "DOMContentLoaded",
     });
+    AOS.refresh();
+    window.addEventListener("load", () => AOS.refresh());
+    setTimeout(() => AOS.refresh(), 300);
 
     // Horizontal wheel scroll
     document.querySelectorAll<HTMLElement>("*").forEach((e) => {

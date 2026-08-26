@@ -1,0 +1,34 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import Hero1 from "../components/hero1.astro";
+import PowerfulTools from "../components/PowerfulTools.astro";
+import TradingJourney from "../components/TradingJourney.astro";
+import InnovatorsTeam from "../components/InnovatorsTeam.astro";
+import SpecialBenefits from "../components/SpecialBenefits.astro";
+import GlobalMap from "../components/GlobalMap.astro";
+import PricingSection from "../components/PricingSection.astro";
+import TestimonialsSection from "../components/TestimonialsSection.astro";
+import LatestInsights from "../components/LatestInsights.astro";
+import SeamlessConnections from "../components/SeamlessConnections.astro";
+import FinalCTA from "../components/FinalCTA.astro";
+---
+
+<Layout>
+  <Header currentPath="/" />
+  <main class="has-section-spacing-lg">
+    <Hero1 />
+    <PowerfulTools />
+    <TradingJourney />
+    <InnovatorsTeam />
+    <SpecialBenefits />
+    <GlobalMap />
+    <PricingSection />
+    <TestimonialsSection />
+    <LatestInsights />
+    <SeamlessConnections />
+    <FinalCTA />
+  </main>
+  <Footer />
+</Layout>

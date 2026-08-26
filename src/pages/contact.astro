@@ -1,0 +1,118 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import ContactForm from "../components/ContactForm.astro";
+---
+
+<Layout title="Contact Us - GoPocket" description="Get in touch with us! Reach out for inquiries, support, or feedback.">
+  <Header currentPath="/contact/" />
+  
+  <main class="has-section-spacing-lg py-12 md:py-20">
+    <section class="relative">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 gap-12 lg:grid-cols-2 items-start">
+          
+          <!-- Left Column: Info & Testimonial -->
+          <div class="flex flex-col lg:sticky lg:top-32 space-y-10">
+            <div>
+              <h1 class="text-3xl sm:text-4xl md:text-5xl font-semibold text-gray-900 tracking-tight leading-tight">
+                Have questions?<br />
+                <span class="text-primary font-normal italic">Send Us a Message</span>
+              </h1>
+              <p class="mt-6 text-gray-600 text-base/relaxed max-w-lg">
+                Fill out the form below, and we'll get back to you as soon as possible. We're committed to providing excellent customer service and addressing any inquiries you may have.
+              </p>
+            </div>
+
+            <!-- Testimonial card -->
+            <div class="pt-6 border-t border-gray-100 space-y-6">
+              <div class="flex gap-1 text-yellow-400">
+                <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                </svg>
+                <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                </svg>
+                <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                </svg>
+                <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                </svg>
+                <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                </svg>
+              </div>
+              <blockquote class="text-base sm:text-lg text-gray-800 font-medium leading-relaxed italic">
+                "Our remote collaboration improved drastically, saving countless hours every single week."
+              </blockquote>
+              <div class="flex items-center gap-4 pt-2">
+                <img
+                  src="/assets/stella-astro.pages.dev/1.nIy8sTuK_2vDfXj-60673945.webp"
+                  alt="Kowsi Han"
+                  class="h-11 w-11 rounded-full object-cover border-2 border-white shadow-sm"
+                />
+                <div>
+                  <div class="text-gray-900 font-semibold text-sm">Kowsi Han</div>
+                  <p class="text-xs text-gray-500">Marketing Director</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Contact Form Component -->
+          <div class="lg:ms-auto w-full">
+            <ContactForm />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Office Locations Section -->
+    <section class="mt-20 md:mt-32 border-t border-gray-100 pt-16 md:pt-24">
+      <div class="container mx-auto px-4">
+        <h2 class="text-2xl sm:text-3xl font-semibold text-gray-900 mb-12">
+          Discover the <span class="font-normal italic">Office Location</span>
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+          
+          <!-- Office 1 -->
+          <div class="space-y-4 bg-gray-50/60 p-6 rounded-3xl border border-gray-100">
+            <img
+              src="/assets/stella-astro.pages.dev/1.BXbVqb1T_Z1HpQzz-2394218c.webp"
+              alt="Singapore HQ"
+              class="w-full h-56 object-cover rounded-2xl mb-4"
+            />
+            <h3 class="text-xl font-semibold text-gray-900">Singapore HQ</h3>
+            <div class="text-sm text-gray-600 space-y-1">
+              <p>123 Lowe Street, Green City, State, 12345</p>
+              <p>Phone: (123) 456-7890</p>
+              <p>Email: <a href="mailto:hq@stella.com" class="text-primary hover:underline">hq@stella.com</a></p>
+              <p>Hours: Monday - Friday: 9:00 AM - 6:00 PM</p>
+            </div>
+          </div>
+
+          <!-- Office 2 -->
+          <div class="space-y-4 bg-gray-50/60 p-6 rounded-3xl border border-gray-100">
+            <img
+              src="/assets/stella-astro.pages.dev/2.CBIt_kCN_Z1X5wl1-4d96a61e.webp"
+              alt="London HQ"
+              class="w-full h-56 object-cover rounded-2xl mb-4"
+            />
+            <h3 class="text-xl font-semibold text-gray-900">London HQ</h3>
+            <div class="text-sm text-gray-600 space-y-1">
+              <p>123 Lowe Street, Green City, State, 12345</p>
+              <p>Phone: (123) 456-7890</p>
+              <p>Email: <a href="mailto:hq@stella.com" class="text-primary hover:underline">hq@stella.com</a></p>
+              <p>Hours: Monday - Friday: 9:00 AM - 6:00 PM</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <Footer />
+</Layout>

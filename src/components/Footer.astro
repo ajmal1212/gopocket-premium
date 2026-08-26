@@ -1,0 +1,837 @@
+---
+
+---
+
+<footer class="relative has-call-to-action">
+  <div class="container space-y-8 md:space-y-16">
+    <div class="grid gap-y-12 lg:grid-cols-2 xl:grid-cols-3">
+      <!-- Brand & Newsletter -->
+      <div class="space-y-8 xl:pe-12">
+        <a href="/" class="logo-wrapper">
+          <img
+            src="/gopocket-logo.svg"
+            alt="Brand logo of GoPocket"
+            loading="lazy"
+            decoding="async"
+            width="134"
+            height="32"
+            style="width:134px;height:32px"
+            class="logo"
+          />
+          <span class="logo-text">GoPocket</span>
+        </a>
+        <p>
+          Investing and trading is made simple, affordable and accessible for
+          every Indian.
+        </p>
+        <form
+          action="#"
+          id="mc-embedded-subscribe-form"
+          method="post"
+          class="relative mb-0"
+        >
+          <div class="relative">
+            <label for="mce-EMAIL" class="sr-only">Email</label>
+            <input
+              required=""
+              type="email"
+              name="EMAIL"
+              id="mce-EMAIL"
+              aria-required="true"
+              placeholder="Email Address"
+              class="border-border-light focus:ring-primary/4 size-full rounded-lg bg-white py-4 pl-5 shadow-none outline-0 placeholder:opacity-90 focus:ring-4"
+            />
+            <button
+              type="submit"
+              name="subscribe"
+              id="mc-embedded-subscribe"
+              class="absolute top-1 right-1 flex h-[calc(100%-0.5rem)] w-10 items-center justify-center rounded-lg"
+            >
+              <span class="sr-only">Subscribe</span>
+              <svg
+                class="text-2xl"
+                stroke="currentColor"
+                fill="currentColor"
+                stroke-width="0"
+                viewBox="0 0 448 512"
+                height="1em"
+                width="1em"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M446.7 98.6l-67.6 318.8c-5.1 22.5-18.4 28.1-37.3 17.5l-103-75.9-49.7 47.8c-5.5 5.5-10.1 10.1-20.7 10.1l7.4-104.9 190.9-172.5c8.3-7.4-1.8-11.5-12.9-4.1L117.8 284 16.2 252.2c-22.1-6.9-22.5-22.1 4.6-32.7L418.2 66.4c18.4-6.9 34.5 4.1 28.5 32.2z"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div class="form-check mt-4">
+            <input
+              class="form-checkbox"
+              type="checkbox"
+              required=""
+              name="agree-privacy"
+              id="agree-privacy"
+            />
+            <label for="agree-privacy"
+              >I agree with <a href="/privacy-policy/">privacy policy</a></label
+            >
+          </div>
+          <div
+            id="mce-responses"
+            class="clear absolute top-[105%] left-0 w-full text-sm opacity-60"
+          >
+            <div
+              class="message message-error"
+              id="mce-error-response"
+              style="display: none"
+            >
+            </div>
+            <div
+              class="message message-success"
+              id="mce-success-response"
+              style="display: none"
+            >
+            </div>
+          </div>
+          <div style="position: absolute; left: -312.5rem" aria-hidden="true">
+            <input
+              type="text"
+              name="b_436cb8647d746fe81825f1efc_18a007239a"
+              tabindex="-1"
+              value=""
+            />
+          </div>
+          <input
+            type="hidden"
+            name="EMAILTYPE"
+            id="mce-EMAILTYPE-0"
+            value="html"
+          />
+        </form>
+        <script type="module" is:inline={true}>
+          document
+            .querySelector("#mc-embedded-subscribe-form")
+            ?.addEventListener("submit", async (n) => {
+              n.preventDefault();
+              const c = n.target,
+                i = new FormData(c),
+                a = c.getAttribute("action");
+              if (!a) {
+                console.error("Form action URL is missing.");
+                return;
+              }
+              const l = new URLSearchParams(i).toString(),
+                e = document.querySelector("#mce-error-response"),
+                o = document.querySelector("#mce-success-response");
+              if (!e || !o) {
+                console.error(
+                  "Error or success response containers are missing.",
+                );
+                return;
+              }
+              ((e.style.display = "none"), (o.style.display = "none"));
+              try {
+                const r = document.createElement("script"),
+                  s = `jsonpCallback_${Date.now()}`;
+                ((window[s] = (t) => {
+                  (t.result === "success"
+                    ? ((o.textContent = t.msg || "Thank you for subscribing!"),
+                      (o.style.display = "block"))
+                    : ((e.textContent =
+                        t.msg || "An error occurred. Please try again."),
+                      (e.style.display = "block")),
+                    delete window[s],
+                    r.remove());
+                }),
+                  (r.src = `${a}&c=${s}&${l}`),
+                  (r.onerror = () => {
+                    ((e.textContent =
+                      "There was an error processing your request. Please try again later."),
+                      (e.style.display = "block"),
+                      console.error("Error loading JSONP script."));
+                  }),
+                  document.body.appendChild(r));
+              } catch (r) {
+                ((e.textContent =
+                  "There was an error processing your request. Please try again later."),
+                  (e.style.display = "block"),
+                  console.error("Error:", r));
+              }
+            });
+        </script>
+      </div>
+
+      <!-- Navigation Columns -->
+      <div
+        class="col-span-2 grid gap-y-10 sm:grid-cols-2 md:grid-cols-4 xl:ps-12"
+      >
+        <div>
+          <h3 class="text-dark mb-4 text-xl md:mb-6 font-semibold">Company</h3>
+          <ul class="flex flex-col gap-y-1.5 text-sm">
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/company/">About Us</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/products/">Products</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/blog/">Blog</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/emi-calculator/">EMI Calculator</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/sip-calculator/">SIP Calculator</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/swp-calculator/">SWP Calculator</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/contact/">Contact Us</a
+              >
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-dark mb-4 text-xl md:mb-6 font-semibold">Support</h3>
+          <ul class="flex flex-col gap-y-1.5 text-sm">
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/downloads/">Downloads</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/gopocket-api/">API for Developers</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="https://www.youtube.com/playlist?list=PLrYyePLIggbAruYyabCqaGG7vQHG2gzoq"
+                target="_blank"
+                rel="noopener noreferrer">Demo Videos</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/refer-and-earn/">Refer &amp; Earn</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/partner-with-us/">Partner with Us</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/research-equity/">Market Research</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/research-learn/">Online/Offline Courses</a
+              >
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-dark mb-4 text-xl md:mb-6 font-semibold">Policy</h3>
+          <ul class="flex flex-col gap-y-1.5 text-sm">
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/api-usage/">API Usage Policy</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/privacy-policy/">Privacy Policy</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/funds-policy/">Funds Policy</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="https://cdn.gopocket.in/downloads/RMS_POLICY_Securities_n_Commodities.pdf"
+                target="_blank"
+                rel="noopener noreferrer">RMS Policy</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="https://cdn.gopocket.in/downloads/PMLA_Policy.pdf"
+                target="_blank"
+                rel="noopener noreferrer">PMLA Policy</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="https://cdn.gopocket.in/downloads/Investor_Grievance_Policy_n_Redressal_Mechanism.pdf"
+                target="_blank"
+                rel="noopener noreferrer">Investor Grievance Policy</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="https://cdn.gopocket.in/downloads/dormant-account.pdf"
+                target="_blank"
+                rel="noopener noreferrer">Dormant Account Policy</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="https://cdn.gopocket.in/downloads/KYC-change-request.pdf"
+                target="_blank"
+                rel="noopener noreferrer">KYC Change Request</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="https://cdn.gopocket.in/downloads/Surveillance_Policy.pdf"
+                target="_blank"
+                rel="noopener noreferrer">Surveillance Policy</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="https://cdn.gopocket.in/downloads/pre-funded-instrument.pdf"
+                target="_blank"
+                rel="noopener noreferrer">Prefunded Instrument Policy</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="https://cdn.gopocket.in/downloads/Policies_and_Procedure_Sec.pdf"
+                target="_blank"
+                rel="noopener noreferrer">Policies &amp; Procedure</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="/fraud-prevention-policy/">Fraud Prevention</a
+              >
+            </li>
+            <li>
+              <a
+                class="has-underline-anim inline-block py-px text-inherit"
+                href="https://cdn.gopocket.in/downloads/Unpaid_Securities_Policy.pdf"
+                target="_blank"
+                rel="noopener noreferrer">Unpaid Securities Policy</a
+              >
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-dark mb-4 text-xl md:mb-6 font-semibold">Contact</h3>
+          <ul class="flex flex-col gap-3 text-sm">
+            <li>
+              <span
+                class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
+                >Location:</span
+              >
+              <span class="block text-inherit"
+                >40-49, IG Towers, Devangapet 3rd Street, Flower Market,
+                Coimbatore – 641 001, Tamil Nadu, India</span
+              >
+            </li>
+            <li>
+              <span
+                class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
+                >Phone Number:</span
+              >
+              <a
+                href="tel:+919585395753"
+                class="block text-inherit hover:underline">+91 95853 95753</a
+              >
+            </li>
+            <li>
+              <span
+                class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
+                >Support Email:</span
+              >
+              <a
+                href="mailto:support@gopocket.in"
+                class="block text-inherit hover:underline"
+                >support@gopocket.in</a
+              >
+            </li>
+            <li>
+              <span
+                class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
+                >Compliance Email:</span
+              >
+              <a
+                href="mailto:compliance@gopocket.in"
+                class="block text-inherit hover:underline"
+                >compliance@gopocket.in</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Social Links & Copyright Bar -->
+    <div
+      class="flex flex-wrap items-center justify-between gap-x-8 gap-y-6 border-t border-border-light/60 py-8"
+    >
+      <div class="prose-styles opacity-80 text-sm">
+        <p>
+          © Made with ❤️ in Coimbatore, India | Copyright © 2023 onwards,
+          GoPocket.
+        </p>
+      </div>
+
+      <ul class="flex flex-wrap items-center gap-4 *:h-6 *:w-6">
+        <li>
+          <a
+            aria-label="facebook"
+            href="https://www.facebook.com/Gopocketoffical/"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            class="group relative flex items-center justify-center transition duration-300 text-dark hover:scale-110"
+          >
+            <span class="sr-only">facebook</span>
+            <svg
+              data-icon="true"
+              class="text-dark relative z-10 transition duration-300 h-5 w-5"
+              width="25"
+              height="25"
+              viewBox="0 0 25 25"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g clip-path="url(#clip0_1299_11302)">
+                <rect
+                  width="25"
+                  height="25"
+                  fill="url(#paint0_linear_1299_11302)"
+                  fill-opacity="0.02"></rect>
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M0.5 12.567C0.5 18.533 4.833 23.494 10.5 24.5V15.833H7.5V12.5H10.5V9.833C10.5 6.833 12.433 5.167 15.167 5.167C16.033 5.167 16.967 5.3 17.833 5.433V8.5H16.3C14.833 8.5 14.5 9.233 14.5 10.167V12.5H17.7L17.167 15.833H14.5V24.5C20.167 23.494 24.5 18.534 24.5 12.567C24.5 5.93 19.1 0.5 12.5 0.5C5.9 0.5 0.5 5.93 0.5 12.567Z"
+                  fill="#F9FBFF"></path>
+              </g>
+              <defs>
+                <linearGradient
+                  id="paint0_linear_1299_11302"
+                  x1="12.5"
+                  y1="0"
+                  x2="12.5"
+                  y2="25"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stop-color="white"></stop>
+                  <stop offset="1" stop-color="white" stop-opacity="0"></stop>
+                </linearGradient>
+                <clipPath id="clip0_1299_11302">
+                  <rect width="25" height="25" fill="white"></rect>
+                </clipPath>
+              </defs>
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a
+            aria-label="twitter"
+            href="https://x.com/GoPocket_offl"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            class="group relative flex items-center justify-center transition duration-300 text-dark hover:scale-110"
+          >
+            <span class="sr-only">twitter</span>
+            <svg
+              data-icon="true"
+              class="text-dark relative z-10 transition duration-300 h-5 w-5"
+              width="25"
+              height="25"
+              viewBox="0 0 25 25"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g>
+                <path
+                  d="M19.6875 1.17188H23.5214L15.1464 10.7683L25 23.829H17.2857L11.2393 15.9094L4.32857 23.829H0.491071L9.44821 13.5612L0 1.17366H7.91071L13.3679 8.41116L19.6875 1.17188ZM18.3393 21.529H20.4643L6.75 3.35223H4.47143L18.3393 21.529Z"
+                  fill="#fff"></path>
+              </g>
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a
+            aria-label="instagram"
+            href="https://www.instagram.com/gopocket_official/"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            class="group relative flex items-center justify-center transition duration-300 text-dark hover:scale-110"
+          >
+            <span class="sr-only">instagram</span>
+            <svg
+              data-icon="true"
+              class="text-dark relative z-10 transition duration-300 h-5 w-5"
+              width="25"
+              height="25"
+              viewBox="0 0 25 25"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M13.5682 2.08008C14.74 2.0832 15.3348 2.08945 15.8484 2.10404L16.0505 2.11133C16.2838 2.11966 16.514 2.13008 16.7921 2.14258C17.9005 2.19466 18.6567 2.36966 19.3203 2.62695C20.0078 2.89154 20.5869 3.24987 21.1661 3.82799C21.696 4.34855 22.1059 4.97849 22.3671 5.67383C22.6244 6.33737 22.7994 7.09362 22.8515 8.20299C22.864 8.48008 22.8744 8.71029 22.8828 8.94466L22.889 9.14674C22.9046 9.65924 22.9109 10.254 22.913 11.4259L22.914 12.203V13.5676C22.9165 14.3274 22.9086 15.0872 22.89 15.8467L22.8838 16.0488C22.8755 16.2832 22.865 16.5134 22.8525 16.7905C22.8005 17.8999 22.6234 18.6551 22.3671 19.3197C22.1059 20.015 21.696 20.6449 21.1661 21.1655C20.6455 21.6954 20.0156 22.1053 19.3203 22.3665C18.6567 22.6238 17.9005 22.7988 16.7921 22.8509L16.0505 22.8822L15.8484 22.8884C15.3348 22.903 14.74 22.9103 13.5682 22.9124L12.7911 22.9134H11.4275C10.6674 22.9161 9.90726 22.9081 9.14734 22.8895L8.94525 22.8832C8.69797 22.8738 8.45075 22.8631 8.20359 22.8509C7.09525 22.7988 6.339 22.6238 5.67442 22.3665C4.97945 22.1051 4.34988 21.6953 3.82963 21.1655C3.29936 20.645 2.88912 20.0151 2.62755 19.3197C2.37025 18.6561 2.19525 17.8999 2.14317 16.7905L2.11192 16.0488L2.10671 15.8467C2.08751 15.0872 2.07883 14.3274 2.08067 13.5676V11.4259C2.07779 10.6661 2.08543 9.90632 2.10359 9.14674L2.11088 8.94466C2.11921 8.71029 2.12963 8.48008 2.14213 8.20299C2.19421 7.09362 2.36921 6.33841 2.6265 5.67383C2.88869 4.9782 3.29965 4.34824 3.83067 3.82799C4.35062 3.29836 4.97982 2.88849 5.67442 2.62695C6.339 2.36966 7.09421 2.19466 8.20359 2.14258C8.48067 2.13008 8.71192 2.11966 8.94525 2.11133L9.14734 2.10508C9.90691 2.08657 10.6667 2.07858 11.4265 2.08112L13.5682 2.08008ZM12.4973 7.28841C11.116 7.28841 9.79124 7.83714 8.81449 8.8139C7.83774 9.79065 7.289 11.1154 7.289 12.4967C7.289 13.8781 7.83774 15.2028 8.81449 16.1796C9.79124 17.1563 11.116 17.7051 12.4973 17.7051C13.8787 17.7051 15.2034 17.1563 16.1802 16.1796C17.1569 15.2028 17.7057 13.8781 17.7057 12.4967C17.7057 11.1154 17.1569 9.79065 16.1802 8.8139C15.2034 7.83714 13.8787 7.28841 12.4973 7.28841ZM12.4973 9.37174C12.9077 9.37168 13.3141 9.45244 13.6933 9.60942C14.0724 9.7664 14.417 9.99653 14.7072 10.2867C14.9974 10.5768 15.2277 10.9213 15.3848 11.3004C15.5419 11.6795 15.6228 12.0858 15.6229 12.4962C15.6229 12.9066 15.5422 13.313 15.3852 13.6921C15.2282 14.0713 14.9981 14.4159 14.7079 14.7061C14.4178 14.9963 14.0733 15.2266 13.6942 15.3837C13.3151 15.5408 12.9088 15.6217 12.4984 15.6217C11.6696 15.6217 10.8747 15.2925 10.2887 14.7065C9.70262 14.1204 9.37338 13.3255 9.37338 12.4967C9.37338 11.6679 9.70262 10.8731 10.2887 10.287C10.8747 9.70098 11.6696 9.37174 12.4984 9.37174M17.9671 5.72591C17.6218 5.72591 17.2906 5.86309 17.0464 6.10728C16.8022 6.35147 16.665 6.68266 16.665 7.02799C16.665 7.37333 16.8022 7.70452 17.0464 7.94871C17.2906 8.19289 17.6218 8.33008 17.9671 8.33008C18.3125 8.33008 18.6437 8.19289 18.8878 7.94871C19.132 7.70452 19.2692 7.37333 19.2692 7.02799C19.2692 6.68266 19.132 6.35147 18.8878 6.10728C18.6437 5.86309 18.3125 5.72591 17.9671 5.72591Z"
+                fill="#fff"></path>
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a
+            aria-label="youtube"
+            href="https://www.youtube.com/channel/UCe1lyV5JAWvPUkLcXVWYoQQ"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            class="group relative flex items-center justify-center transition duration-300 text-dark hover:scale-110"
+          >
+            <span class="sr-only">youtube</span>
+            <svg
+              data-icon="true"
+              class="text-dark relative z-10 transition duration-300 h-5 w-5"
+              width="25"
+              height="25"
+              viewBox="0 0 25 25"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M21.8184 6.41973C22.6814 6.65053 23.3545 7.32626 23.5879 8.1892C24.1982 10.6511 24.1585 15.3056 23.6007 17.8059C23.3699 18.6689 22.6942 19.342 21.8312 19.5754C19.395 20.1781 8.48322 20.1037 6.18803 19.5754C5.32509 19.3446 4.65192 18.6689 4.41855 17.8059C3.84283 15.4595 3.88258 10.4972 4.40573 8.20203C4.63653 7.33909 5.31226 6.66591 6.17521 6.43255C9.43207 5.75297 20.6593 5.97223 21.8184 6.41973ZM12.0735 9.9974L17.305 12.9978L12.0735 15.9982V9.9974Z"
+                fill="#F9FBFF"></path>
+            </svg>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Regulatory Disclaimers & Disclosures -->
+    <div
+      class="border-t border-border-light/60 pt-8 space-y-4 text-xs leading-relaxed opacity-75"
+    >
+      <p>
+        GoPocket Invest Tech Private Limited (formerly SKY Commodities India
+        Private Limited) is a member of NSE, BSE and MCX - SEBI Registration No.
+        INZ000049235, NSE Member Code 90221, BSE Clearing Code 6745 | ARN:
+        136818, MCX Membership No. 46365, CDSL Depository service via GoPocket
+        Invest Tech Private Limited under SEBI having Registration No.
+        INDP5882021. The Registered Office at 40-49, IG Towers, Devangapet 3rd
+        Street, Flower Market, Coimbatore – 641 001, Tamil Nadu, INDIA. For any
+        complaints pertaining to securities broking please write to <a
+          href="mailto:compliance@gopocket.in"
+          class="underline hover:text-primary transition"
+          >compliance@gopocket.in</a
+        >, for account opening related queries <a
+          href="mailto:hello@gopocket.in"
+          class="underline hover:text-primary transition">hello@gopocket.in</a
+        > &amp; for DP related to <a
+          href="mailto:dp@gopocket.in"
+          class="underline hover:text-primary transition">dp@gopocket.in</a
+        >. Please ensure you carefully read the Risk Disclosure Document as
+        prescribed by SEBI | ICF.
+      </p>
+
+      <p>
+        Procedure to file a complaint on <a
+          href="https://scores.sebi.gov.in/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="underline hover:text-primary transition">SEBI SCORES</a
+        > | <a
+          href="https://smartodr.in/login"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="underline hover:text-primary transition">SMART ODR</a
+        >. Register on SCORES portal. Mandatory details for filing complaints on
+        SCORES: Name, PAN, Address, Mobile Number, E-mail ID. Benefits:
+        Effective Communication, Speedy redressal of the grievances.
+      </p>
+
+      <p>
+        The brand name GoPocket and logo are the registered copyrights of
+        GoPocket Invest Tech Private Limited.
+      </p>
+
+      <p>
+        Investments in securities market are subject to market risks; read all
+        the related documents carefully before investing.
+      </p>
+
+      <p>
+        Disclaimer: Ensure that no unauthorized transactions occur in your
+        account. Kindly update your mobile number /email IDs with your stock
+        brokers to receive information of your transactions directly from
+        Exchange on your mobile/email at the end of the day.
+      </p>
+
+      <p>
+        Stock Brokers can accept securities as margin from clients only by way
+        of pledge in the depository system w.e.f. September 1, 2020. Check your
+        securities / MF / bonds in the consolidated account statement issued by
+        NSDL/CDSL every month. KYC is one time exercise while dealing in
+        securities markets - once KYC is done through a SEBI registered
+        intermediary (broker, DP, Mutual Fund etc.), you need not undergo the
+        same process again when you approach another intermediary. Dear
+        Investor, if you are subscribing to an IPO, there is no need to issue a
+        cheque. Please write the Bank account number and sign the IPO
+        application form to authorize your bank to make payment in case of
+        allotment. In case of non allotment the funds will remain in your bank
+        account. As a business we don't give stock tips, and have not authorized
+        anyone to trade on behalf of others.
+      </p>
+
+      <div class="pt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span class="font-semibold text-dark opacity-100">Important Links:</span
+        >
+        <a
+          href="https://www.sebi.gov.in/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline hover:text-primary transition">SEBI</a
+        >
+        <span>|</span>
+        <a
+          href="https://www.bseindia.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline hover:text-primary transition">BSE</a
+        >
+        <span>|</span>
+        <a
+          href="https://www.nseindia.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline hover:text-primary transition">NSE</a
+        >
+        <span>|</span>
+        <a
+          href="https://www.mcxindia.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline hover:text-primary transition">MCX</a
+        >
+        <span>|</span>
+        <a
+          href="https://www.cdslindia.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline hover:text-primary transition">CDSL</a
+        >
+        <span>|</span>
+        <a
+          href="https://scores.sebi.gov.in/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline hover:text-primary transition">SCORES</a
+        >
+        <span>|</span>
+        <a
+          href="https://smartodr.in/login"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline hover:text-primary transition">ODR</a
+        >
+        <span>|</span>
+        <a
+          href="https://evoting.cdslindia.com/Evoting/EvotingLogin"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline hover:text-primary transition"
+          >e-Voting for Share Holders</a
+        >
+        <span>|</span>
+        <a
+          href="https://cdn.gopocket.in/downloads/ODR_Master_Circular.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline hover:text-primary transition"
+          >ODR Master Circular</a
+        >
+      </div>
+
+      <div class="pt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span class="font-semibold text-dark opacity-100"
+          >Important Information:</span
+        >
+        <a
+          href="https://www.mcxindia.com/inspection-and-audit#typesmemberships"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline hover:text-primary transition"
+          >VERNACULAR LANGUAGES</a
+        >
+        <span>|</span>
+        <a
+          href="/terms-conditions/"
+          class="hover:underline hover:text-primary transition"
+          >TERMS &amp; CONDITIONS</a
+        >
+        <span>|</span>
+        <a
+          href="/investors-attention/"
+          class="hover:underline hover:text-primary transition"
+          >INVESTOR'S ATTENTION</a
+        >
+        <span>|</span>
+        <a
+          href="/investors-charter/"
+          class="hover:underline hover:text-primary transition"
+          >INVESTOR CHARTER</a
+        >
+        <span>|</span>
+        <a
+          href="/risk-disclosure-documentation/"
+          class="hover:underline hover:text-primary transition"
+          >RISK DISCLOSURE</a
+        >
+        <span>|</span>
+        <a
+          href="/rights-and-obligation/"
+          class="hover:underline hover:text-primary transition"
+          >RIGHTS &amp; OBLIGATION</a
+        >
+        <span>|</span>
+        <a
+          href="https://cdn.gopocket.in/downloads/standard_documents_commodities.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline hover:text-primary transition"
+          >STANDARD DOCUMENTS (Commodities)</a
+        >
+        <span>|</span>
+        <a
+          href="https://cdn.gopocket.in/downloads/standard_documents_securities.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline hover:text-primary transition"
+          >STANDARD DOCUMENTS (Securities)</a
+        >
+        <span>|</span>
+        <a
+          href="https://cdn.gopocket.in/downloads/Advisory-KYC_Compliance.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:underline hover:text-primary transition"
+          >ADVISORY-KYC COMPLIANCE</a
+        >
+        <span>|</span>
+        <a
+          href="/mandatory-member-details/"
+          class="hover:underline hover:text-primary transition"
+          >MANDATORY MEMBER DETAILS</a
+        >
+      </div>
+    </div>
+  </div>
+
+  <!-- Brand Name -->
+  <div class="relative overflow-hidden text-[clamp(1rem,90%,25rem)]">
+    <div
+      class="text-primary responsive-brand-text mx-auto text-center leading-[0.8] uppercase max-md:py-5"
+      style="font-size: 414.388px;"
+    >
+      GoPocket
+    </div>
+    <div
+      class="pointer-events-none absolute right-0 bottom-0 left-0 z-10 h-[calc(70%+1.5rem)] w-full"
+    >
+      <div
+        class="absolute inset-0 z-70 mask-[linear-gradient(rgba(0,0,0,0),rgba(0,0,0,1)_10%,rgba(0,0,0,1)_30%,rgba(0,0,0,0)_40%)] backdrop-blur-[1px]"
+      >
+      </div>
+      <div
+        class="absolute inset-0 z-60 mask-[linear-gradient(rgba(0,0,0,0)_10%,rgba(0,0,0,1)_20%,rgba(0,0,0,1)_40%,rgba(0,0,0,0)_50%)] backdrop-blur-[2px]"
+      >
+      </div>
+      <div
+        class="absolute inset-0 z-50 mask-[linear-gradient(rgba(0,0,0,0)_15%,rgba(0,0,0,1)_30%,rgba(0,0,0,1)_50%,rgba(0,0,0,0)_60%)] backdrop-blur-xs"
+      >
+      </div>
+      <div
+        class="absolute inset-0 z-40 mask-[linear-gradient(rgba(0,0,0,0)_20%,rgba(0,0,0,1)_40%,rgba(0,0,0,1)_60%,rgba(0,0,0,0)_70%)] backdrop-blur-sm"
+      >
+      </div>
+      <div
+        class="absolute inset-0 z-30 mask-[linear-gradient(rgba(0,0,0,0)_40%,rgba(0,0,0,1)_60%,rgba(0,0,0,1)_80%,rgba(0,0,0,0)_90%)] backdrop-blur-lg"
+      >
+      </div>
+      <div
+        class="absolute inset-0 z-20 mask-[linear-gradient(rgba(0,0,0,0)_60%,rgba(0,0,0,1)_80%)] backdrop-blur-[32px]"
+      >
+      </div>
+      <div
+        class="absolute inset-0 z-10 mask-[linear-gradient(rgba(0,0,0,0)_70%,rgba(0,0,0,1)_100%)] backdrop-blur-[52px]"
+      >
+      </div>
+    </div>
+  </div>
+
+  <script type="module" is:inline={true}>
+    const r = document.querySelector(".cta-section"),
+      a = document.querySelector("footer");
+    r || a.classList.add("has-call-to-action");
+    function l(t, { minSize: o = 12, maxSize: e = 500 } = {}) {
+      const c = t.parentElement;
+      function n() {
+        t.style.fontSize = `${e}px`;
+        const i = c.clientWidth / t.scrollWidth,
+          s = Math.max(o, Math.min(e, e * i));
+        t.style.fontSize = `${s}px`;
+      }
+      (window.addEventListener("resize", n), n());
+    }
+    document
+      .querySelectorAll(".responsive-brand-text")
+      .forEach((t) => l(t, { minSize: 20, maxSize: 800 }));
+  </script>
+</footer>

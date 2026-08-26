@@ -1,0 +1,98 @@
+---
+import "../styles/global.css";
+import GlobalSearch from "../components/GlobalSearch.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  keywords?: string;
+  canonical?: string;
+  ogImage?: string;
+}
+
+const {
+  title = "GoPocket - Open a Free Demat Account | Online Stock Trading App",
+  description = "GoPocket is a SEBI-registered online trading and demat account platform. Trade stocks, F&O, mutual funds, commodities and IPOs at flat ₹20 per order or 0.03%, whichever is lower.",
+  keywords = "demat account, online trading, stock broker India, discount broker, GoPocket, F&O trading, mutual funds, IPO",
+  canonical = "https://gopocket.in/",
+  ogImage = "https://gopocket.in/favicon.png",
+} = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <meta name="theme" content="gopocket" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="keywords" content={keywords} />
+    <meta name="author" content="GoPocket" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={canonical} item-prop="url" />
+    <link rel="alternate" hreflang="en" href={canonical} />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
+    <script defer src="/assets/stella-astro.pages.dev/umami.is-8d3c440c.js" data-website-id="" is:inline></script>
+
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:title" content={title} />
+    <meta property="og:site_name" content="GoPocket" />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImage} />
+
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="shortcut icon" href="/favicon.png" />
+    <meta name="msapplication-TileColor" content="#2b5797" />
+    <meta name="apple-mobile-web-app-title" content="GoPocket" />
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": title,
+      "description": description,
+      "image": ogImage,
+      "url": canonical,
+      "inLanguage": "en",
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": title,
+        "description": "GoPocket is a SEBI-registered online trading and demat account platform for stocks, F&O, mutual funds, commodities and IPOs.",
+        "url": "https://gopocket.in/"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "GoPocket",
+        "url": "https://gopocket.in/",
+        "sameAs": [
+          "https://www.facebook.com",
+          "https://twitter.com",
+          "https://www.instagram.com",
+          "https://www.linkedin.com"
+        ],
+        "logo": { "@type": "ImageObject", "url": "https://gopocket.in/gopocket-logo.svg" }
+      }
+    })} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <slot />
+    <GlobalSearch />
+    <script type="module" src="/_astro/GlobalScripts.astro_astro_type_script_index_0_lang.BB11i9V9-95043c7a.js" is:inline></script>
+  </body>
+</html>

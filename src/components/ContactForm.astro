@@ -1,0 +1,164 @@
+---
+---
+
+<form
+  id="contact-form"
+  action="https://formsubmit.co/temp.gats@gmail.com"
+  method="post"
+  class="bg-white/80 backdrop-blur-md grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-3xl p-6 sm:p-8 md:p-10 shadow-sm border border-gray-100/80 w-full max-w-xl mx-auto"
+>
+  <input type="hidden" name="_subject" value="New form submission from GoPocket contact form" />
+  <input type="hidden" name="_template" value="table" />
+
+  <!-- First Name -->
+  <div class="col-span-1">
+    <label for="first-name" class="sr-only">First Name</label>
+    <input
+      type="text"
+      id="first-name"
+      name="First Name"
+      placeholder="John *"
+      class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+      required
+    />
+  </div>
+
+  <!-- Last Name -->
+  <div class="col-span-1">
+    <label for="last-name" class="sr-only">Last Name</label>
+    <input
+      type="text"
+      id="last-name"
+      name="Last Name"
+      placeholder="Doe *"
+      class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+      required
+    />
+  </div>
+
+  <!-- Email Address -->
+  <div class="col-span-1 sm:col-span-2">
+    <label for="email" class="sr-only">Email Address</label>
+    <input
+      type="email"
+      id="email"
+      name="Email Address"
+      placeholder="john@ko.eoo *"
+      class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+      required
+    />
+  </div>
+
+  <!-- Subject Dropdown -->
+  <div class="col-span-1">
+    <label for="subject" class="sr-only">Subject</label>
+    <div class="relative">
+      <select
+        id="subject"
+        name="Subject"
+        class="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-gray-900 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer pr-10"
+        required
+      >
+        <option value="" disabled selected hidden>Subject *</option>
+        <option value="General Inquiry">General Inquiry</option>
+        <option value="Partnership">Partnership</option>
+        <option value="Investment">Investment</option>
+      </select>
+      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-gray-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subject With Search Dropdown -->
+  <div class="col-span-1">
+    <label for="subject-search" class="sr-only">Subject With Search</label>
+    <div class="relative">
+      <select
+        id="subject-search"
+        name="Subject With Search"
+        class="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-gray-900 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer pr-10 truncate"
+      >
+        <option value="" disabled selected hidden>Subject With Search *</option>
+        <option value="General Inquiry">General Inquiry</option>
+        <option value="Partnership">Partnership</option>
+        <option value="Career">Career</option>
+        <option value="Investment">Investment</option>
+        <option value="Media Inquiry">Media Inquiry</option>
+      </select>
+      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-gray-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Textarea -->
+  <div class="col-span-1 sm:col-span-2">
+    <label for="message" class="sr-only">How can we help you</label>
+    <textarea
+      id="message"
+      name="Message"
+      rows="4"
+      placeholder="How can we help you *"
+      class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-y"
+      required
+    ></textarea>
+  </div>
+
+  <!-- Radio Group: How did you hear about us? -->
+  <div class="col-span-1 sm:col-span-2 space-y-2 mt-1">
+    <span class="block text-sm font-medium text-gray-800">How did you hear about us?</span>
+    <div class="space-y-2">
+      <label class="flex items-center gap-3 text-sm text-gray-700 cursor-pointer select-none">
+        <input
+          type="radio"
+          name="User Source"
+          value="Google Search"
+          class="w-4 h-4 text-primary accent-primary focus:ring-primary border-gray-300"
+          required
+        />
+        <span>Google Search</span>
+      </label>
+      <label class="flex items-center gap-3 text-sm text-gray-700 cursor-pointer select-none">
+        <input
+          type="radio"
+          name="User Source"
+          value="Social Media"
+          class="w-4 h-4 text-primary accent-primary focus:ring-primary border-gray-300"
+          required
+        />
+        <span>Social Media</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Terms & Privacy Checkbox -->
+  <div class="col-span-1 sm:col-span-2 mt-2">
+    <label class="flex items-center gap-3 text-sm text-gray-700 cursor-pointer select-none">
+      <input
+        type="checkbox"
+        name="Agreed Privacy"
+        value="Agreed"
+        class="w-4 h-4 rounded text-primary accent-primary focus:ring-primary border-gray-300"
+        required
+      />
+      <span>
+        I agree to the terms and conditions and <a href="/privacy-policy/" class="text-primary underline hover:opacity-80">privacy policy</a>.
+      </span>
+    </label>
+  </div>
+
+  <!-- Submit Button -->
+  <div class="col-span-1 sm:col-span-2 mt-4">
+    <button
+      type="submit"
+      class="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white font-medium py-3.5 px-6 rounded-full tracking-wider text-sm shadow-md transition-all duration-300 uppercase cursor-pointer"
+    >
+      SEND MESSAGE
+    </button>
+  </div>
+</form>

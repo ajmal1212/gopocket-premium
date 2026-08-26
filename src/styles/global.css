@@ -844,21 +844,16 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
     pointer-events: auto;
   }
 
+
   /* Sticky Header Scroll & Fade Animations */
   .header.sticky-header {
     position: sticky;
     top: calc(var(--spacing) * 5);
     z-index: 50;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-    will-change: transform, opacity;
   }
 
-  .header.sticky-header.scroll-down {
-    transform: translateY(-160%);
-    opacity: 0;
-    pointer-events: none;
-  }
-
+  .header.sticky-header.scroll-down,
   .header.sticky-header.scroll-up {
     transform: translateY(0);
     opacity: 1;

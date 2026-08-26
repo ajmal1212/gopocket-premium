@@ -6,16 +6,40 @@
   import "aos/dist/aos.css";
 
   const initGlobalScripts = () => {
+    // Strip hardcoded static pre-rendered AOS classes so AOS can observe them dynamically
+    document.querySelectorAll("[data-aos]").forEach((el) => {
+      el.classList.remove("aos-init", "aos-animate");
+    });
+
     // Initialize AOS animations
     AOS.init({
       duration: 700,
       easing: "ease-out",
       once: true,
-      startEvent: "DOMContentLoaded",
+      offset: 40,
     });
-    AOS.refresh();
-    window.addEventListener("load", () => AOS.refresh());
-    setTimeout(() => AOS.refresh(), 300);
+    AOS.refreshHard();
+
+    // Intersection Observer for heading word reveal animations (.animated-text)
+    const textElements = document.querySelectorAll<HTMLElement>(".animated-text");
+    if (textElements.length > 0) {
+      const textObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-animated");
+              textObserver.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.15 }
+      );
+
+      textElements.forEach((el) => {
+        el.classList.add("is-ready");
+        textObserver.observe(el);
+      });
+    }
 
     // Horizontal wheel scroll
     document.querySelectorAll<HTMLElement>("*").forEach((e) => {

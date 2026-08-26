@@ -10,6 +10,7 @@
     "format": "prettier --write \"src/**/*.{astro,js,ts,jsx,tsx,css,json}\""
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^12.6.13",
     "@astrojs/react": "^6.0.4",
     "@hookform/resolvers": "^5.9.1",
     "@radix-ui/react-accordion": "^1.2.20",
@@ -62,6 +63,7 @@
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.3",
     "vaul": "^1.1.2",
+    "wrangler": "^4.126.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

@@ -1,0 +1,164 @@
+---
+const faqs = [
+  {
+    id: "faq-1",
+    category: "General",
+    question: "What is GoPocket?",
+    answer: "GoPocket is a next-generation online stock broking platform designed for Indian retail traders and investors. We provide lightning-fast order execution across Equities, Futures & Options (F&O), Commodities, Currencies, and IPOs with powerful charting tools and flat ₹20 brokerage."
+  },
+  {
+    id: "faq-2",
+    category: "Account",
+    question: "How do I open a Demat & Trading account with GoPocket?",
+    answer: "Opening an account with GoPocket is 100% digital and paperless! Click 'Open Account', submit your Aadhaar-linked mobile number, upload your PAN card and bank proof for instant e-KYC, and complete Aadhaar e-sign. Your account will be activated within a few hours."
+  },
+  {
+    id: "faq-3",
+    category: "Charges",
+    question: "What are the account opening and AMC charges?",
+    answer: "GoPocket charges ₹0 for Demat & Trading Account Opening. We also offer Zero Annual Maintenance Charges (AMC) for life. You only pay flat ₹20 per executed order for Intraday and F&O trades."
+  },
+  {
+    id: "faq-4",
+    category: "Charges",
+    question: "What is the brokerage fee per trade?",
+    answer: "We follow a transparent flat pricing model: Equity Delivery is ₹0 (Free). Equity Intraday, Futures & Options (F&O), and Commodities are charged flat ₹20 per executed order or 0.03% (whichever is lower)."
+  },
+  {
+    id: "faq-5",
+    category: "Security",
+    question: "Is GoPocket registered with SEBI?",
+    answer: "Yes, GoPocket is registered with the Securities and Exchange Board of India (SEBI) and is an active member of NSE, BSE, MCX, and CDSL depository. All your securities are stored safely directly with CDSL/NSDL in your demat account."
+  },
+  {
+    id: "faq-6",
+    category: "Account",
+    question: "How can I deposit and withdraw funds?",
+    answer: "Fund transfers can be made 24/7 instantly via UPI, IMPS, or Net Banking without any hassle. Withdrawals placed before 8:00 PM on trading days are processed and credited to your registered bank account on the same day."
+  },
+  {
+    id: "faq-7",
+    category: "General",
+    question: "Does GoPocket offer API access for Algorithmic Trading?",
+    answer: "Yes! GoPocket provides free, developer-grade REST & WebSocket APIs for algo traders, quantitative funds, and strategy builders to place orders, fetch real-time ticks, and manage portfolios programmatically."
+  }
+];
+---
+
+<section class="relative py-16 md:py-24 overflow-hidden bg-theme-light/60" data-aos="fade-up">
+  <div class="container mx-auto px-4 max-w-5xl">
+    <!-- Header -->
+    <div class="text-center max-w-3xl mx-auto mb-12">
+      <span class="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary mb-3">
+        Got Questions?
+      </span>
+      <h2 class="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
+        Frequently Asked Questions
+      </h2>
+      <p class="text-lg text-gray-600">
+        Everything you need to know about trading, opening an account, charges, and security on GoPocket.
+      </p>
+    </div>
+
+    <!-- Accordion List -->
+    <div class="space-y-4 max-w-4xl mx-auto">
+      {faqs.map((faq, index) => (
+        <div class="faq-item rounded-2xl bg-white border border-gray-200/80 shadow-xs transition-all duration-300 hover:border-primary/30 overflow-hidden">
+          <button
+            type="button"
+            class="faq-trigger flex w-full items-center justify-between p-6 text-left text-lg md:text-xl font-semibold text-gray-900 focus:outline-none cursor-pointer"
+            aria-expanded={index === 0 ? "true" : "false"}
+            data-target={faq.id}
+          >
+            <span class="pr-4">{faq.question}</span>
+            <span class={`faq-icon-wrapper shrink-0 flex items-center justify-center w-8 h-8 rounded-full transition-colors duration-300 ${index === 0 ? "bg-primary text-white" : "bg-gray-100 text-gray-700"}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="faq-icon transition-transform duration-300" style={index === 0 ? "transform: rotate(45deg)" : "transform: rotate(0deg)"}>
+                <path d="M12 5v14"></path>
+                <path d="M5 12h14"></path>
+              </svg>
+            </span>
+          </button>
+          <div
+            id={faq.id}
+            class={`faq-content px-6 transition-all duration-300 ease-in-out ${index === 0 ? "max-h-96 pb-6 opacity-100" : "max-h-0 pb-0 opacity-0 overflow-hidden"}`}
+          >
+            <p class="text-gray-600 text-base md:text-lg leading-relaxed border-t border-gray-100 pt-4">
+              {faq.answer}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  function initFaqAccordion() {
+    const triggers = document.querySelectorAll<HTMLElement>(".faq-trigger");
+
+    triggers.forEach((trigger) => {
+      trigger.addEventListener("click", () => {
+        const targetId = trigger.getAttribute("data-target");
+        if (!targetId) return;
+
+        const content = document.getElementById(targetId);
+        const icon = trigger.querySelector<HTMLElement>(".faq-icon");
+        const iconWrapper = trigger.querySelector<HTMLElement>(".faq-icon-wrapper");
+        const isExpanded = trigger.getAttribute("aria-expanded") === "true";
+
+        // Close all other accordions
+        triggers.forEach((otherTrigger) => {
+          if (otherTrigger !== trigger) {
+            otherTrigger.setAttribute("aria-expanded", "false");
+            const otherId = otherTrigger.getAttribute("data-target");
+            if (otherId) {
+              const otherContent = document.getElementById(otherId);
+              if (otherContent) {
+                otherContent.classList.add("max-h-0", "pb-0", "opacity-0", "overflow-hidden");
+                otherContent.classList.remove("max-h-96", "pb-6", "opacity-100");
+              }
+            }
+            const otherIcon = otherTrigger.querySelector<HTMLElement>(".faq-icon");
+            const otherWrapper = otherTrigger.querySelector<HTMLElement>(".faq-icon-wrapper");
+            if (otherIcon) otherIcon.style.transform = "rotate(0deg)";
+            if (otherWrapper) {
+              otherWrapper.classList.remove("bg-primary", "text-white");
+              otherWrapper.classList.add("bg-gray-100", "text-gray-700");
+            }
+          }
+        });
+
+        // Toggle current accordion
+        if (isExpanded) {
+          trigger.setAttribute("aria-expanded", "false");
+          if (content) {
+            content.classList.add("max-h-0", "pb-0", "opacity-0", "overflow-hidden");
+            content.classList.remove("max-h-96", "pb-6", "opacity-100");
+          }
+          if (icon) icon.style.transform = "rotate(0deg)";
+          if (iconWrapper) {
+            iconWrapper.classList.remove("bg-primary", "text-white");
+            iconWrapper.classList.add("bg-gray-100", "text-gray-700");
+          }
+        } else {
+          trigger.setAttribute("aria-expanded", "true");
+          if (content) {
+            content.classList.remove("max-h-0", "pb-0", "opacity-0", "overflow-hidden");
+            content.classList.add("max-h-96", "pb-6", "opacity-100");
+          }
+          if (icon) icon.style.transform = "rotate(45deg)";
+          if (iconWrapper) {
+            iconWrapper.classList.add("bg-primary", "text-white");
+            iconWrapper.classList.remove("bg-gray-100", "text-gray-700");
+          }
+        }
+      });
+    });
+  }
+
+  if (document.readyState !== "loading") {
+    initFaqAccordion();
+  } else {
+    document.addEventListener("DOMContentLoaded", initFaqAccordion);
+  }
+</script>

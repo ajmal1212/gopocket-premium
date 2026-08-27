@@ -107,33 +107,50 @@
             <span class="word" style="--word-index:17">order.</span>
           </div>
         </div>
-        <div
+        <form
           data-aos="fade-up-sm"
           data-aos-delay="1000"
           data-aos-duration="1000"
-          class="has-video-modal flex flex-wrap items-center justify-center gap-5 aos-init aos-animate"
+          class="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto w-full aos-init aos-animate px-4 sm:px-0"
+          onsubmit="event.preventDefault()"
         >
-          <a
-            class="btn btn-primary text-flip-hover-anim magnetic-hover-anim btn-md"
-            href="/contact/"
-            style="will-change: transform;"
-            ><span class="text-flip-inner" data-content="OPEN FREE ACCOUNT">OPEN FREE ACCOUNT</span><span
+          <div class="relative w-full sm:w-auto flex-1 min-w-[240px]">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <input
+              type="tel"
+              placeholder="Enter mobile number"
+              class="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-300 rounded-full text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base shadow-xs transition-all"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            class="btn btn-primary text-flip-hover-anim btn-md whitespace-nowrap cursor-pointer w-full sm:w-auto flex items-center justify-center"
+          >
+            <span class="text-flip-inner" data-content="SIGNUP NOW">SIGNUP NOW</span>
+            <span
               class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
-              ><svg
+            >
+              <svg
                 class="gradient-shape"
                 width="150"
                 height="28"
                 viewBox="0 0 147 11"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                ><path
+              >
+                <path
                   d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
                   stroke="currentColor"
-                  stroke-width="8"></path></svg
-              ></span
-            ></a
-          >
-        </div>
+                  stroke-width="8"></path>
+              </svg>
+            </span>
+          </button>
+        </form>
       </div>
     </div>
     <!-- Banner Image -->
@@ -445,8 +462,5 @@
       </div>
     </div>
   </div>
-  <script
-    type="module"
-    src="/assets/js/home-hero.js"
-    is:inline={true}></script>
+  <script type="module" src="/assets/js/home-hero.js" is:inline={true}></script>
 </section>

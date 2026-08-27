@@ -1,0 +1,413 @@
+---
+// Footer2 Component
+---
+
+<footer class="relative has-call-to-action">
+  <div class="container space-y-8 md:space-y-16">
+    <div class="grid gap-x-2 gap-y-px lg:grid-cols-12">
+      <div class="bg-primary/5 flex flex-col justify-between rounded-3xl px-4 py-6 md:p-8 lg:col-span-4 xl:col-span-3">
+        <div class="space-y-4">
+          <a href="/" class="logo-wrapper">
+            <img
+              src="/assets/finzo-astro.pages.dev/logo.C5Y-pMzY_ZFediN-6f9b347a.svg"
+              srcset="/assets/finzo-astro.pages.dev/logo.C5Y-pMzY_ZFediN-6f9b347a.svg 32w"
+              style="height:32px;width:32px"
+              alt="Brand logo of finzo"
+              loading="lazy"
+              decoding="async"
+              sizes="(min-width: 32px) 32px, 100vw"
+              data-astro-image="constrained"
+              data-astro-image-fit="cover"
+              data-astro-image-pos="center"
+              width="32"
+              height="32"
+              class="logo"
+            />
+            <span class="logo-text">Finzo</span>
+          </a>
+          <p>We provide seamless solutions to Small and Medium Businesses.</p>
+        </div>
+        <div class="mt-10 flex gap-2">
+          <a
+            href="https://play.google.com/store/apps?hl=en"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-block"
+          >
+            <img
+              src="/assets/finzo-astro.pages.dev/play-store.DGk8g9al_1PgIcH-eb711912.svg"
+              alt="download"
+              loading="lazy"
+              decoding="async"
+              sizes="(min-width: 150px) 150px, 100vw"
+              data-astro-image="constrained"
+              data-astro-image-fit="cover"
+              data-astro-image-pos="center"
+              width="150"
+              height="48"
+              class="z-10 w-full"
+            />
+          </a><a href="https://www.apple.com/store" target="_blank" rel="noopener noreferrer" class="inline-block">
+            <img
+              src="/assets/finzo-astro.pages.dev/apple-store.CR4K1v5e_1PgIcH-679621d8.svg"
+              alt="download"
+              loading="lazy"
+              decoding="async"
+              sizes="(min-width: 150px) 150px, 100vw"
+              data-astro-image="constrained"
+              data-astro-image-fit="cover"
+              data-astro-image-pos="center"
+              width="150"
+              height="48"
+              class="z-10 w-full"
+            />
+          </a>
+        </div>
+      </div>
+      <div
+        class="bg-primary/5 grid gap-y-5 rounded-3xl px-4 py-6 md:gap-y-10 md:p-8 lg:col-span-8 xl:col-span-9 xl:grid-cols-12"
+      >
+        <div class="flex flex-col max-md:pb-4 col-span-4">
+          <div>
+            <h3 class="text-dark mb-4 text-xl md:mb-6">Join Our Newsletter</h3>
+            <p class="mt-4 mb-5 text-sm">
+              Subscribe to our newsletter to receive the latest updates, new theme releases.
+            </p>
+          </div>
+          <form
+            action="https://gmail.us11.list-manage.com/subscribe/post?u=d870b06d86c16269e4b1f9b39&amp;id=12cf0c6ac2&amp;f_id=007e61e1f0"
+            id="mc-embedded-subscribe-form"
+            method="post"
+            class="relative mt-auto"
+          >
+            <div class="relative flex">
+              <label for="mce-EMAIL" class="sr-only">Email</label>
+              <input
+                required=""
+                type="email"
+                name="EMAIL"
+                id="mce-EMAIL"
+                aria-required="true"
+                placeholder="Email Address"
+                autocomplete="email"
+                class="border-border-light focus:ring-primary/4 size-full rounded-full bg-white py-4 pl-5 shadow-none outline-0 placeholder:opacity-90 focus:ring-4 focus-visible:bg-white"
+              />
+              <button
+                type="submit"
+                name="subscribe"
+                id="mc-embedded-subscribe"
+                class="bg-primary flex w-16 items-center justify-center rounded-full text-white transition-opacity hover:opacity-70"
+              >
+                <span class="sr-only">Subscribe</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  data-lucide="ArrowUpRight"
+                  class="text-2xl"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg
+                >
+              </button>
+            </div>
+            <div
+              id="mce-responses"
+              class="clear absolute left-5 w-full text-sm opacity-60 max-xl:top-[110%] xl:bottom-[110%]"
+            >
+              <div class="message message-error" id="mce-error-response" style="display: none"></div>
+              <div class="message message-success" id="mce-success-response" style="display: none"></div>
+            </div>
+            <div style="position: absolute; left: -312.5rem" aria-hidden="true">
+              <input type="text" name="b_436cb8647d746fe81825f1efc_18a007239a" tabindex="-1" value="" />
+            </div>
+            <input type="hidden" name="EMAILTYPE" id="mce-EMAILTYPE-0" value="html" />
+            <script type="module" is:inline>
+              document.querySelector("#mc-embedded-subscribe-form")?.addEventListener("submit", async (n) => {
+                n.preventDefault();
+                const c = n.target,
+                  i = new FormData(c),
+                  a = c.getAttribute("action");
+                if (!a) {
+                  console.error("Form action URL is missing.");
+                  return;
+                }
+                const l = new URLSearchParams(i).toString(),
+                  e = document.querySelector("#mce-error-response"),
+                  o = document.querySelector("#mce-success-response");
+                if (!e || !o) {
+                  console.error("Error or success response containers are missing.");
+                  return;
+                }
+                ((e.style.display = "none"), (o.style.display = "none"));
+                try {
+                  const r = document.createElement("script"),
+                    s = `jsonpCallback_${Date.now()}`;
+                  ((window[s] = (t) => {
+                    (t.result === "success"
+                      ? ((o.textContent = t.msg || "Thank you for subscribing!"), (o.style.display = "block"))
+                      : ((e.textContent = t.msg || "An error occurred. Please try again."),
+                        (e.style.display = "block")),
+                      delete window[s],
+                      r.remove());
+                  }),
+                    (r.src = `${a}&c=${s}&${l}`),
+                    (r.onerror = () => {
+                      ((e.textContent = "There was an error processing your request. Please try again later."),
+                        (e.style.display = "block"),
+                        console.error("Error loading JSONP script."));
+                    }),
+                    document.body.appendChild(r));
+                } catch (r) {
+                  ((e.textContent = "There was an error processing your request. Please try again later."),
+                    (e.style.display = "block"),
+                    console.error("Error:", r));
+                }
+              });
+            </script>
+          </form>
+        </div>
+        <div class="col-span-8 grid gap-x-4 gap-y-5 md:grid-cols-3 md:gap-y-10 xl:ps-28">
+          <div>
+            <h3 class="text-dark mb-4 text-xl md:mb-6">Services</h3>
+            <ul class="flex flex-col gap-y-1.5">
+              <li><a class="has-underline-anim inline-block py-1 text-inherit" href="/"> Cards </a></li><li>
+                <a class="has-underline-anim inline-block py-1 text-inherit" href="/"> Accounts </a>
+              </li><li><a class="has-underline-anim inline-block py-1 text-inherit" href="/"> FAQs </a></li><li>
+                <a class="has-underline-anim inline-block py-1 text-inherit" href="/"> Branches </a>
+              </li><li><a class="has-underline-anim inline-block py-1 text-inherit" href="/"> Finance </a></li><li>
+                <a class="has-underline-anim inline-block py-1 text-inherit" href="/"> Investments </a>
+              </li>
+            </ul>
+          </div><div>
+            <h3 class="text-dark mb-4 text-xl md:mb-6">Company</h3>
+            <ul class="flex flex-col gap-y-1.5">
+              <li><a class="has-underline-anim inline-block py-1 text-inherit" href="/company/"> About </a></li><li>
+                <a class="has-underline-anim inline-block py-1 text-inherit" href="/career/"> Blog </a>
+              </li><li><a class="has-underline-anim inline-block py-1 text-inherit" href="/blog/"> Press </a></li><li>
+                <a class="has-underline-anim inline-block py-1 text-inherit" href="/"> Media </a>
+              </li><li><a class="has-underline-anim inline-block py-1 text-inherit" href="/"> Careers </a></li><li>
+                <a class="has-underline-anim inline-block py-1 text-inherit" href="/contact/"> Contact </a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-dark mb-4 text-xl md:mb-6">Contact</h3>
+            <ul class="flex flex-col gap-3">
+              <li>
+                <span class="mb-1.5 inline-block text-sm/none font-medium tracking-widest text-black"> Location: </span>
+                <span class="text-base-sm block md:text-base"> 2627 Park Street, San Francisco, CA </span>
+              </li>
+              <li>
+                <span class="mb-1.5 inline-block text-sm/none font-medium tracking-widest text-black">
+                  Phone Number:
+                </span>
+                <span class="text-base-sm block md:text-base"> 925-465-3762 </span>
+              </li>
+              <li>
+                <span class="mb-1.5 inline-block text-sm/none font-medium tracking-widest text-black"> Email: </span>
+                <span class="text-base-sm block md:text-base"> finzo@example.com </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Brand Name -->
+  <div
+    class="relative after:absolute after:inset-0 after:h-full after:bg-linear-to-b after:from-transparent after:to-white md:mt-16"
+  >
+    <div class="overflow-hidden text-[clamp(1rem,90%,25rem)]">
+      <div
+        class="text-primary responsive-brand-text mx-auto text-center leading-[0.8] font-bold uppercase max-md:py-5"
+        style="font-size: 450px;"
+      >
+        Finzo
+      </div>
+      <div class="pointer-events-none absolute right-0 bottom-0 left-0 z-10 h-[calc(70%+1.5rem)] w-full">
+        <div
+          class="absolute inset-0 z-70 mask-[linear-gradient(rgba(0,0,0,0),rgba(0,0,0,1)_10%,rgba(0,0,0,1)_30%,rgba(0,0,0,0)_40%)] backdrop-blur-[1px]"
+        >
+        </div>
+        <div
+          class="absolute inset-0 z-60 mask-[linear-gradient(rgba(0,0,0,0)_10%,rgba(0,0,0,1)_20%,rgba(0,0,0,1)_40%,rgba(0,0,0,0)_50%)] backdrop-blur-[2px]"
+        >
+        </div>
+        <div
+          class="absolute inset-0 z-50 mask-[linear-gradient(rgba(0,0,0,0)_15%,rgba(0,0,0,1)_30%,rgba(0,0,0,1)_50%,rgba(0,0,0,0)_60%)] backdrop-blur-xs"
+        >
+        </div>
+        <div
+          class="absolute inset-0 z-40 mask-[linear-gradient(rgba(0,0,0,0)_20%,rgba(0,0,0,1)_40%,rgba(0,0,0,1)_60%,rgba(0,0,0,0)_70%)] backdrop-blur-sm"
+        >
+        </div>
+        <div
+          class="absolute inset-0 z-30 mask-[linear-gradient(rgba(0,0,0,0)_40%,rgba(0,0,0,1)_60%,rgba(0,0,0,1)_80%,rgba(0,0,0,0)_90%)] backdrop-blur-lg"
+        >
+        </div>
+        <div
+          class="absolute inset-0 z-20 mask-[linear-gradient(rgba(0,0,0,0)_60%,rgba(0,0,0,1)_80%)] backdrop-blur-[32px]"
+        >
+        </div>
+        <div
+          class="absolute inset-0 z-10 mask-[linear-gradient(rgba(0,0,0,0)_70%,rgba(0,0,0,1)_100%)] backdrop-blur-[52px]"
+        >
+        </div>
+      </div>
+    </div>
+    <div
+      class="sm:translate-x-centered text-text-default z-10 container flex w-full flex-wrap justify-between gap-x-8 gap-y-3 pb-6 sm:absolute sm:bottom-0 sm:py-8"
+    >
+      <div class="prose-styles z-10 sm:opacity-80"><p>Copyright © 2024 Finzo. All Rights Reserved.</p></div>
+      <ul class="flex flex-wrap items-center gap-4 *:h-6 *:w-6">
+        <li>
+          <a
+            aria-label="facebook"
+            href="https://www.facebook.com"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            class="group relative flex items-center justify-center transition duration-300 text-dark hover:scale-110"
+            ><span class="sr-only">facebook</span><svg
+              data-icon="true"
+              class="text-dark relative z-10 transition duration-300 h-5 w-5"
+              width="25"
+              height="25"
+              viewBox="0 0 25 25"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g clip-path="url(#clip0_1299_11302)">
+                <rect width="25" height="25" fill="url(#paint0_linear_1299_11302)" fill-opacity="0.02"></rect>
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M0.5 12.567C0.5 18.533 4.833 23.494 10.5 24.5V15.833H7.5V12.5H10.5V9.833C10.5 6.833 12.433 5.167 15.167 5.167C16.033 5.167 16.967 5.3 17.833 5.433V8.5H16.3C14.833 8.5 14.5 9.233 14.5 10.167V12.5H17.7L17.167 15.833H14.5V24.5C20.167 23.494 24.5 18.534 24.5 12.567C24.5 5.93 19.1 0.5 12.5 0.5C5.9 0.5 0.5 5.93 0.5 12.567Z"
+                  fill="#F9FBFF"></path>
+              </g>
+              <defs>
+                <linearGradient
+                  id="paint0_linear_1299_11302"
+                  x1="12.5"
+                  y1="0"
+                  x2="12.5"
+                  y2="25"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stop-color="white"></stop>
+                  <stop offset="1" stop-color="white" stop-opacity="0"></stop>
+                </linearGradient>
+                <clipPath id="clip0_1299_11302">
+                  <rect width="25" height="25" fill="white"></rect>
+                </clipPath>
+              </defs>
+            </svg>
+          </a>
+        </li><li class="sr-only">gats-fgatsinzo</li><li>
+          <a
+            aria-label="twitter"
+            href="https://twitter.com"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            class="group relative flex items-center justify-center transition duration-300 text-dark hover:scale-110"
+            ><span class="sr-only">twitter</span><svg
+              data-icon="true"
+              class="text-dark relative z-10 transition duration-300 h-5 w-5"
+              width="25"
+              height="25"
+              viewBox="0 0 25 25"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g>
+                <path
+                  d="M19.6875 1.17188H23.5214L15.1464 10.7683L25 23.829H17.2857L11.2393 15.9094L4.32857 23.829H0.491071L9.44821 13.5612L0 1.17366H7.91071L13.3679 8.41116L19.6875 1.17188ZM18.3393 21.529H20.4643L6.75 3.35223H4.47143L18.3393 21.529Z"
+                  fill="#fff"></path>
+              </g>
+            </svg></a>
+        </li><li class="sr-only">gats-fgatsinzo</li><li>
+          <a
+            aria-label="instagram"
+            href="https://www.instagram.com"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            class="group relative flex items-center justify-center transition duration-300 text-dark hover:scale-110"
+            ><span class="sr-only">instagram</span><svg
+              data-icon="true"
+              class="text-dark relative z-10 transition duration-300 h-5 w-5"
+              width="25"
+              height="25"
+              viewBox="0 0 25 25"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M13.5682 2.08008C14.74 2.0832 15.3348 2.08945 15.8484 2.10404L16.0505 2.11133C16.2838 2.11966 16.514 2.13008 16.7921 2.14258C17.9005 2.19466 18.6567 2.36966 19.3203 2.62695C20.0078 2.89154 20.5869 3.24987 21.1661 3.82799C21.696 4.34855 22.1059 4.97849 22.3671 5.67383C22.6244 6.33737 22.7994 7.09362 22.8515 8.20299C22.864 8.48008 22.8744 8.71029 22.8828 8.94466L22.889 9.14674C22.9046 9.65924 22.9109 10.254 22.913 11.4259L22.914 12.203V13.5676C22.9165 14.3274 22.9086 15.0872 22.89 15.8467L22.8838 16.0488C22.8755 16.2832 22.865 16.5134 22.8525 16.7905C22.8005 17.8999 22.6234 18.6551 22.3671 19.3197C22.1059 20.015 21.696 20.6449 21.1661 21.1655C20.6455 21.6954 20.0156 22.1053 19.3203 22.3665C18.6567 22.6238 17.9005 22.7988 16.7921 22.8509L16.0505 22.8822L15.8484 22.8884C15.3348 22.903 14.74 22.9103 13.5682 22.9124L12.7911 22.9134H11.4275C10.6674 22.9161 9.90726 22.9081 9.14734 22.8895L8.94525 22.8832C8.69797 22.8738 8.45075 22.8631 8.20359 22.8509C7.09525 22.7988 6.339 22.6238 5.67442 22.3665C4.97945 22.1051 4.34988 21.6953 3.82963 21.1655C3.29936 20.645 2.88912 20.0151 2.62755 19.3197C2.37025 18.6561 2.19525 17.8999 2.14317 16.7905L2.11192 16.0488L2.10671 15.8467C2.08751 15.0872 2.07883 14.3274 2.08067 13.5676V11.4259C2.07779 10.6661 2.08543 9.90632 2.10359 9.14674L2.11088 8.94466C2.11921 8.71029 2.12963 8.48008 2.14213 8.20299C2.19421 7.09362 2.36921 6.33841 2.6265 5.67383C2.88869 4.9782 3.29965 4.34824 3.83067 3.82799C4.35062 3.29836 4.97982 2.88849 5.67442 2.62695C6.339 2.36966 7.09421 2.19466 8.20359 2.14258C8.48067 2.13008 8.71192 2.11966 8.94525 2.11133L9.14734 2.10508C9.90691 2.08657 10.6667 2.07858 11.4265 2.08112L13.5682 2.08008ZM12.4973 7.28841C11.116 7.28841 9.79124 7.83714 8.81449 8.8139C7.83774 9.79065 7.289 11.1154 7.289 12.4967C7.289 13.8781 7.83774 15.2028 8.81449 16.1796C9.79124 17.1563 11.116 17.7051 12.4973 17.7051C13.8787 17.7051 15.2034 17.1563 16.1802 16.1796C17.1569 15.2028 17.7057 13.8781 17.7057 12.4967C17.7057 11.1154 17.1569 9.79065 16.1802 8.8139C15.2034 7.83714 13.8787 7.28841 12.4973 7.28841ZM12.4973 9.37174C12.9077 9.37168 13.3141 9.45244 13.6933 9.60942C14.0724 9.7664 14.417 9.99653 14.7072 10.2867C14.9974 10.5768 15.2277 10.9213 15.3848 11.3004C15.5419 11.6795 15.6228 12.0858 15.6229 12.4962C15.6229 12.9066 15.5422 13.313 15.3852 13.6921C15.2282 14.0713 14.9981 14.4159 14.7079 14.7061C14.4178 14.9963 14.0733 15.2266 13.6942 15.3837C13.3151 15.5408 12.9088 15.6217 12.4984 15.6217C11.6696 15.6217 10.8747 15.2925 10.2887 14.7065C9.70262 14.1204 9.37338 13.3255 9.37338 12.4967C9.37338 11.6679 9.70262 10.8731 10.2887 10.287C10.8747 9.70098 11.6696 9.37174 12.4984 9.37174M17.9671 5.72591C17.6218 5.72591 17.2906 5.86309 17.0464 6.10728C16.8022 6.35147 16.665 6.68266 16.665 7.02799C16.665 7.37333 16.8022 7.70452 17.0464 7.94871C17.2906 8.19289 17.6218 8.33008 17.9671 8.33008C18.3125 8.33008 18.6437 8.19289 18.8878 7.94871C19.132 7.70452 19.2692 7.37333 19.2692 7.02799C19.2692 6.68266 19.132 6.35147 18.8878 6.10728C18.6437 5.86309 18.3125 5.72591 17.9671 5.72591Z"
+                fill="#fff"></path>
+            </svg></a>
+        </li><li class="sr-only">gats-fgatsinzo</li><li>
+          <a
+            aria-label="linkedin"
+            href="https://www.linkedin.com"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            class="group relative flex items-center justify-center transition duration-300 text-dark hover:scale-110"
+            ><span class="sr-only">linkedin</span><svg
+              data-icon="true"
+              class="text-dark relative z-10 transition duration-300 h-5 w-5"
+              width="25"
+              height="25"
+              viewBox="0 0 25 25"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect width="25" height="25" fill="url(#paint0_linear_1299_11300)" fill-opacity="0.02"></rect>
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M1.5 3.338C1.5 2.85053 1.69365 2.38303 2.03834 2.03834C2.38303 1.69365 2.85053 1.5 3.338 1.5H21.66C21.9016 1.49961 22.1409 1.54687 22.3641 1.63907C22.5874 1.73127 22.7903 1.86661 22.9612 2.03734C23.1322 2.20807 23.2677 2.41083 23.3602 2.63401C23.4526 2.8572 23.5001 3.09643 23.5 3.338V21.66C23.5003 21.9016 23.4529 22.1409 23.3606 22.3642C23.2683 22.5875 23.1328 22.7904 22.962 22.9613C22.7912 23.1322 22.5884 23.2678 22.3651 23.3602C22.1419 23.4526 21.9026 23.5001 21.661 23.5H3.338C3.09655 23.5 2.85746 23.4524 2.6344 23.36C2.41134 23.2676 2.20867 23.1321 2.03798 22.9613C1.8673 22.7905 1.73193 22.5878 1.63962 22.3647C1.54731 22.1416 1.49987 21.9025 1.5 21.661V3.338ZM10.208 9.888H13.187V11.384C13.617 10.524 14.717 9.75 16.37 9.75C19.539 9.75 20.29 11.463 20.29 14.606V20.428H17.083V15.322C17.083 13.532 16.653 12.522 15.561 12.522C14.046 12.522 13.416 13.611 13.416 15.322V20.428H10.208V9.888ZM4.708 20.291H7.916V9.75H4.708V20.29V20.291ZM8.375 6.312C8.38105 6.58667 8.33217 6.85979 8.23124 7.11532C8.13031 7.37084 7.97935 7.60364 7.78723 7.80003C7.59511 7.99643 7.3657 8.15248 7.11246 8.25901C6.85921 8.36554 6.58724 8.42042 6.3125 8.42042C6.03776 8.42042 5.76579 8.36554 5.51255 8.25901C5.2593 8.15248 5.02989 7.99643 4.83777 7.80003C4.64565 7.60364 4.49469 7.37084 4.39376 7.11532C4.29283 6.85979 4.24395 6.58667 4.25 6.312C4.26187 5.77286 4.48439 5.25979 4.86989 4.88269C5.25539 4.50558 5.77322 4.29442 6.3125 4.29442C6.85178 4.29442 7.36961 4.50558 7.75512 4.88269C8.14062 5.25979 8.36313 5.77286 8.375 6.312V6.312Z"
+                fill="#F9FBFF"></path>
+              <defs>
+                <linearGradient
+                  id="paint0_linear_1299_11300"
+                  x1="12.5"
+                  y1="0"
+                  x2="12.5"
+                  y2="25"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stop-color="white"></stop>
+                  <stop offset="1" stop-color="white" stop-opacity="0"></stop>
+                </linearGradient>
+              </defs>
+            </svg>
+          </a>
+        </li><li class="sr-only">gats-fgatsinzo</li>
+      </ul>
+    </div>
+  </div>
+  <script type="module" is:inline>
+    const r = document.querySelector(".cta-section"),
+      a = document.querySelector("footer");
+    r || a.classList.add("has-call-to-action");
+    function l(t, { minSize: o = 12, maxSize: e = 500 } = {}) {
+      const c = t.parentElement;
+      function n() {
+        t.style.fontSize = `${e}px`;
+        const i = c.clientWidth / t.scrollWidth,
+          s = Math.max(o, Math.min(e, e * i));
+        t.style.fontSize = `${s}px`;
+      }
+      (window.addEventListener("resize", n), n());
+    }
+    document.querySelectorAll(".responsive-brand-text").forEach((t) => l(t, { minSize: 20, maxSize: 450 }));
+  </script>
+</footer>
+<script
+  type="module"
+  src="/assets/finzo-astro.pages.dev/GlobalScripts.astro_astro_type_script_index_0_lang.CU2ksVGJ-dad85b09.js"
+  is:inline></script>
+

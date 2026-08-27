@@ -97,10 +97,7 @@
                     </div>
                   </span>
                 </div>
-                <script
-                  type="module"
-                  src="/assets/js/animated-number.js"
-                ></script>
+                <script type="module" src="/assets/js/animated-number.js"></script>
               </span>
               <span class="pricing-type pb-3 text-sm">per order</span>
             </div>
@@ -2158,104 +2155,105 @@
         </div>
       </div>
       <script type="module">
-    const updatePlan = (plan) => {
-      document.querySelectorAll("[data-plan]").forEach((container) => {
-        const isTarget = container.dataset.plan === plan;
-        if (isTarget) {
-          container.classList.remove("hidden");
-          container.classList.add("active");
-          const odometerEl = container.querySelector(".odometer");
-          if (odometerEl) {
-            const count = odometerEl.getAttribute("data-count") || "";
-            if (odometerEl.odometer) {
-              odometerEl.odometer.update(count);
-            } else if (window.Odometer) {
-              new window.Odometer({ el: odometerEl, value: 0 }).update(count);
+        const updatePlan = (plan) => {
+          document.querySelectorAll("[data-plan]").forEach((container) => {
+            const isTarget = container.dataset.plan === plan;
+            if (isTarget) {
+              container.classList.remove("hidden");
+              container.classList.add("active");
+              const odometerEl = container.querySelector(".odometer");
+              if (odometerEl) {
+                const count = odometerEl.getAttribute("data-count") || "";
+                if (odometerEl.odometer) {
+                  odometerEl.odometer.update(count);
+                } else if (window.Odometer) {
+                  new window.Odometer({ el: odometerEl, value: 0 }).update(count);
+                }
+              }
+            } else {
+              container.classList.add("hidden");
+              container.classList.remove("active");
             }
-          }
-        } else {
-          container.classList.add("hidden");
-          container.classList.remove("active");
-        }
-      });
-    };
-
-    const initPricingPlanToggle = () => {
-      const planBtns = document.querySelectorAll("[data-plan-btn]");
-      planBtns.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const targetPlan = btn.dataset.planBtn;
-          if (targetPlan) updatePlan(targetPlan);
-        });
-      });
-    };
-
-    if (document.readyState !== "loading") {
-      initPricingPlanToggle();
-    } else {
-      document.addEventListener("DOMContentLoaded", initPricingPlanToggle);
-    }
-    window.addEventListener("load", initPricingPlanToggle);
-  </script>
-  </div>
-  <script type="module">
-    function L({ selector: i, highlightElementSelector: s, triggerEvent: r = "hover", activeClass: l = "active" }) {
-      const e = document.querySelector(s),
-        o = document.querySelectorAll(i),
-        c = e?.parentElement;
-      if (!e || !c) {
-        console.error(`Highlight element or its container not found for selector: ${s}`);
-        return;
-      }
-      let n = null;
-      const a = (t) => {
-          const d = c.getBoundingClientRect(),
-            u = t.getBoundingClientRect(),
-            v = u.left - d.left,
-            f = u.top - d.top,
-            y = u.width,
-            E = u.height;
-          ((e.style.left = `${v}px`),
-            (e.style.top = `${f}px`),
-            (e.style.width = `${y}px`),
-            (e.style.height = `${E}px`),
-            (e.style.display = "block"),
-            (n = t));
-        },
-        g = () => {
-          const t = document.querySelector(`${i}.${l}`);
-          t ? (a(t), (n = t)) : (e.style.display = "none");
-        },
-        h = (t) => {
-          (o.forEach((d) => {
-            d.classList.remove(l);
-          }),
-            t.classList.add(l));
-        },
-        p = (t) => {
-          r === "hover"
-            ? (t.addEventListener("mouseenter", () => {
-                (a(t), h(t));
-              }),
-              t.addEventListener("mouseleave", () => {
-                n && a(n);
-              }))
-            : r === "click" &&
-              t.addEventListener("click", () => {
-                (a(t), h(t));
-              });
+          });
         };
-      (o.forEach(p), g());
-      const m = () => {
-        n && a(n);
-      };
-      window.addEventListener("resize", m);
-    }
-    L({
-      selector: ".pricing-plan-btn",
-      highlightElementSelector: ".pricing-plan-highlighter",
-      triggerEvent: "click",
-      activeClass: "active",
-    });
-  </script>
+
+        const initPricingPlanToggle = () => {
+          const planBtns = document.querySelectorAll("[data-plan-btn]");
+          planBtns.forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const targetPlan = btn.dataset.planBtn;
+              if (targetPlan) updatePlan(targetPlan);
+            });
+          });
+        };
+
+        if (document.readyState !== "loading") {
+          initPricingPlanToggle();
+        } else {
+          document.addEventListener("DOMContentLoaded", initPricingPlanToggle);
+        }
+        window.addEventListener("load", initPricingPlanToggle);
+      </script>
+    </div>
+    <script type="module">
+      function L({ selector: i, highlightElementSelector: s, triggerEvent: r = "hover", activeClass: l = "active" }) {
+        const e = document.querySelector(s),
+          o = document.querySelectorAll(i),
+          c = e?.parentElement;
+        if (!e || !c) {
+          console.error(`Highlight element or its container not found for selector: ${s}`);
+          return;
+        }
+        let n = null;
+        const a = (t) => {
+            const d = c.getBoundingClientRect(),
+              u = t.getBoundingClientRect(),
+              v = u.left - d.left,
+              f = u.top - d.top,
+              y = u.width,
+              E = u.height;
+            ((e.style.left = `${v}px`),
+              (e.style.top = `${f}px`),
+              (e.style.width = `${y}px`),
+              (e.style.height = `${E}px`),
+              (e.style.display = "block"),
+              (n = t));
+          },
+          g = () => {
+            const t = document.querySelector(`${i}.${l}`);
+            t ? (a(t), (n = t)) : (e.style.display = "none");
+          },
+          h = (t) => {
+            (o.forEach((d) => {
+              d.classList.remove(l);
+            }),
+              t.classList.add(l));
+          },
+          p = (t) => {
+            r === "hover"
+              ? (t.addEventListener("mouseenter", () => {
+                  (a(t), h(t));
+                }),
+                t.addEventListener("mouseleave", () => {
+                  n && a(n);
+                }))
+              : r === "click" &&
+                t.addEventListener("click", () => {
+                  (a(t), h(t));
+                });
+          };
+        (o.forEach(p), g());
+        const m = () => {
+          n && a(n);
+        };
+        window.addEventListener("resize", m);
+      }
+      L({
+        selector: ".pricing-plan-btn",
+        highlightElementSelector: ".pricing-plan-highlighter",
+        triggerEvent: "click",
+        activeClass: "active",
+      });
+    </script>
+  </div>
 </section>

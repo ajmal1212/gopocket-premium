@@ -1,0 +1,292 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+
+const { id } = Astro.params;
+
+// Webinar details mapping by date ID
+const webinarsMap: Record<string, {
+  title: string;
+  language: string;
+  dateStr: string;
+  timeStr: string;
+  image: string;
+  description: string;
+}> = {
+  "20260825-2030": {
+    title: "Options Super Trader Program ONLINE (Free)",
+    language: "Tamil",
+    dateStr: "August 25, 2026",
+    timeStr: "08:30 PM",
+    image: "/assets/images/learn1.jpeg",
+    description: "Two-day intensive program covering option buying, selling strategies, and comprehensive risk control techniques."
+  },
+  "20260827-2030": {
+    title: "Crude Oil and Natural Gas Options for Beginners (Tamil)",
+    language: "Tamil",
+    dateStr: "August 27, 2026",
+    timeStr: "08:30 PM",
+    image: "/assets/images/learn2.jpeg",
+    description: "Learn MCX energy commodities trading, futures contracts, and options hedging step-by-step with GoPocket experts."
+  }
+};
+
+// Fallback if ID is different
+const webinar = webinarsMap[id || ""] || {
+  title: "Crude Oil and Natural Gas Options for Beginners (Tamil)",
+  language: "Tamil",
+  dateStr: "August 27, 2026",
+  timeStr: "08:30 PM",
+  image: "/assets/images/learn2.jpeg",
+  description: "Learn MCX energy commodities trading, futures contracts, and options hedging step-by-step with GoPocket experts."
+};
+---
+
+<Layout
+  title={`${webinar.title} - GoPocket Webinar Registration`}
+  description={`Register for ${webinar.title} on ${webinar.dateStr} at ${webinar.timeStr}. Free stock market & options trading masterclass.`}
+>
+  <Header currentPath="/research-learn/" />
+
+  <main class="pt-20 md:pt-32 pb-16 md:pb-24 bg-gradient-to-b from-gray-50/50 via-white to-gray-50/30 min-h-screen">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 space-y-8 md:space-y-12">
+      
+
+      <!-- Page Header Title & Subtitle -->
+      <div data-aos="fade-up" data-aos-delay="150" class="max-w-4xl mx-auto text-center space-y-4">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold tracking-wide uppercase">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+          </span>
+          Live Webinar Registration
+        </div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-dark tracking-tight leading-tight">
+          {webinar.title}
+        </h1>
+        <p class="text-lg md:text-xl font-medium text-primary flex items-center justify-center gap-2 pt-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+            <line x1="16" x2="16" y1="2" y2="6"></line>
+            <line x1="8" x2="8" y1="2" y2="6"></line>
+            <line x1="3" x2="21" y1="10" y2="10"></line>
+          </svg>
+          <span>{webinar.dateStr}</span>
+          <span class="opacity-40">•</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span>Time: {webinar.timeStr}</span>
+        </p>
+      </div>
+
+      <!-- Main Registration Container (UI/UX Matching Website Standard) -->
+      <div
+        data-aos="fade-up"
+        data-aos-delay="200"
+        class="max-w-6xl mx-auto bg-theme-light rounded-4xl p-6 sm:p-8 md:p-10 border border-border-light shadow-xl"
+        style="display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start;"
+      >
+        <!-- LEFT COLUMN: Poster Image & Feature Pills -->
+        <div style="flex: 0 0 400px; max-width: 100%; margin: 0 auto;" class="space-y-6">
+          <div
+            class="rounded-3xl overflow-hidden bg-white border border-border-light shadow-md"
+            style="width: 400px; max-width: 100%; aspect-ratio: 500 / 625;"
+          >
+            <img
+              src={webinar.image}
+              alt={webinar.title}
+              class="w-full h-full object-cover rounded-3xl"
+              loading="eager"
+            />
+          </div>
+
+          <div class="space-y-2.5" style="width: 400px; max-width: 100%;">
+            <div class="flex items-center justify-between text-xs sm:text-sm p-3.5 bg-white/90 rounded-2xl border border-border-light/80 shadow-2xs">
+              <span class="text-text-default opacity-75 font-medium">Mode</span>
+              <span class="font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200/60">ONLINE (Zoom)</span>
+            </div>
+            <div class="flex items-center justify-between text-xs sm:text-sm p-3.5 bg-white/90 rounded-2xl border border-border-light/80 shadow-2xs">
+              <span class="text-text-default opacity-75 font-medium">Fee</span>
+              <span class="font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">100% FREE</span>
+            </div>
+            <div class="flex items-center justify-between text-xs sm:text-sm p-3.5 bg-white/90 rounded-2xl border border-border-light/80 shadow-2xs">
+              <span class="text-text-default opacity-75 font-medium">Language</span>
+              <span class="font-semibold text-dark">{webinar.language}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Modern Shadcn-Style Form -->
+        <div style="flex: 1 1 380px; min-width: 0;" class="space-y-6">
+          <div class="space-y-2 border-b border-border-light/80 pb-4">
+            <h2 class="text-2xl font-bold text-dark">Reserve Your Free Spot</h2>
+            <p class="text-text-default opacity-80 text-sm">
+              Fill in your contact details to receive your personalized webinar access link.
+            </p>
+          </div>
+
+          <form id="webinar-register-form" class="space-y-4">
+            <!-- Field 1: Client Code / New -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-dark uppercase tracking-wider">
+                Client Code / New
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
+                    <path d="M7 7h10"></path>
+                    <path d="M7 12h10"></path>
+                    <path d="M7 17h6"></path>
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  name="clientCode"
+                  placeholder="Client Code / New"
+                  class="w-full pl-11 pr-4 py-3.5 bg-white border border-border-light rounded-xl text-dark placeholder-gray-400 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-xs"
+                />
+              </div>
+            </div>
+
+            <!-- Field 2: Name -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-dark uppercase tracking-wider">
+                Full Name <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  name="fullName"
+                  required
+                  placeholder="Enter your full name"
+                  class="w-full pl-11 pr-4 py-3.5 bg-white border border-border-light rounded-xl text-dark placeholder-gray-400 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-xs"
+                />
+              </div>
+            </div>
+
+            <!-- Field 3: Mobile Number -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-dark uppercase tracking-wider">
+                Mobile Number <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                  </svg>
+                </div>
+                <input
+                  type="tel"
+                  name="mobile"
+                  required
+                  placeholder="Enter 10-digit mobile number"
+                  pattern="[0-9]{10}"
+                  class="w-full pl-11 pr-4 py-3.5 bg-white border border-border-light rounded-xl text-dark placeholder-gray-400 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-xs"
+                />
+              </div>
+            </div>
+
+            <!-- Field 4: City -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-dark uppercase tracking-wider">
+                City <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  name="city"
+                  required
+                  placeholder="Enter your city"
+                  class="w-full pl-11 pr-4 py-3.5 bg-white border border-border-light rounded-xl text-dark placeholder-gray-400 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-xs"
+                />
+              </div>
+            </div>
+
+            <!-- Field 5: Clean Custom reCAPTCHA Component -->
+            <div class="p-3.5 bg-white border border-border-light rounded-2xl flex items-center justify-between shadow-2xs">
+              <label class="flex items-center gap-3 cursor-pointer select-none">
+                <input type="checkbox" required class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-purple-600 cursor-pointer" />
+                <span class="text-sm font-medium text-dark">I'm not a robot</span>
+              </label>
+              <div class="flex items-center gap-1.5 text-gray-400 text-xs font-mono">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <span>reCAPTCHA</span>
+              </div>
+            </div>
+
+            <!-- Submit Button (Website UI/UX Flip CTA Button) -->
+            <button
+              type="submit"
+              class="btn btn-primary text-flip-hover-anim w-full py-4 text-base font-semibold justify-center shadow-lg cursor-pointer mt-2"
+            >
+              <span class="text-flip-inner" data-content="Register Now">Register Now</span>
+              <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
+                <svg class="gradient-shape" width="150" height="28" viewBox="0 0 147 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433" stroke="currentColor" stroke-width="8"></path>
+                </svg>
+              </span>
+            </button>
+
+            <!-- DND Disclaimer Box -->
+            <div class="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 text-emerald-900 text-xs leading-relaxed mt-4">
+              <strong>Note:</strong> By submitting above details, you are authorizing GoPocket / its sub-brokers / agents to call you, send promotional communication even though you being registered under DND.
+            </div>
+          </form>
+
+          <!-- Success Alert Message (Hidden by default) -->
+          <div id="success-alert" class="hidden p-5 rounded-2xl bg-emerald-100 border border-emerald-300 text-emerald-950 space-y-2">
+            <h4 class="font-bold text-base flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-700">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              Registration Successful!
+            </h4>
+            <p class="text-sm">
+              Thank you for registering. We have sent the webinar joining link to your registered mobile number.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('webinar-register-form');
+    const alert = document.getElementById('success-alert');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (alert) {
+          alert.classList.remove('hidden');
+          form.reset();
+          alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+    }
+  });
+</script>

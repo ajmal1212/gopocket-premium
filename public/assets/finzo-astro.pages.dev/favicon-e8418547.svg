@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="35" height="35"><svg width="35" height="35" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_17158_2098)">
+<rect width="35" height="35" rx="17.5" fill="url(#paint0_linear_17158_2098)"></rect>
+<line x1="3" y1="-3" x2="39.0211" y2="-3" transform="matrix(-0.538439 0.842665 0.842665 0.538439 28.7031 14.8203)" stroke="white" stroke-width="6" stroke-linecap="round"></line>
+<line x1="3" y1="-3" x2="23.8095" y2="-3" transform="matrix(-0.538439 0.842665 0.842665 0.538438 15.4756 16.4746)" stroke="white" stroke-width="6" stroke-linecap="round"></line>
+</g>
+<defs>
+<linearGradient id="SvgjsLinearGradient1003" x1="17.5" y1="0" x2="17.5" y2="35" gradientUnits="userSpaceOnUse">
+<stop stop-color="#6B1AFF"></stop>
+<stop offset="0.471154" stop-color="#4586FF"></stop>
+<stop offset="1" stop-color="#28DBFF"></stop>
+</linearGradient>
+<clipPath id="SvgjsClipPath1002">
+<rect width="35" height="35" rx="17.5" fill="white"></rect>
+</clipPath>
+</defs>
+</svg><style>@media (prefers-color-scheme: light) { :root { filter: none; } }
+@media (prefers-color-scheme: dark) { :root { filter: none; } }
+</style></svg>

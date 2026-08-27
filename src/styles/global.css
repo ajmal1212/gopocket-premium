@@ -3195,6 +3195,12 @@ html {
 }
 
 /* ===== Quill Editor Content Styling (.ql-editor) ===== */
+.ql-editor {
+  width: 100%;
+  max-width: 100%;
+  padding: 0 !important;
+}
+
 .ql-editor p {
   margin-bottom: 1.25rem;
   font-size: 1.125rem;

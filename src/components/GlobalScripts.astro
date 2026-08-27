@@ -6,8 +6,11 @@
   import AOS from "aos";
   import "aos/dist/aos.css";
   import SmoothScroll from "smoothscroll-for-websites";
+  import { initAnimatedNumbers } from "../scripts/counter";
 
   const initGlobalScripts = () => {
+    // Initialize animated number counters
+    initAnimatedNumbers();
     // Initialize smooth scrolling (kinetic momentum scroll)
     try {
       SmoothScroll({

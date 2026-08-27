@@ -809,94 +809,46 @@
       </div>
     </div>
   </div>
-  <script type="module" is:inline="">
-    document.addEventListener("DOMContentLoaded", () => {
-      const f = (l) => l.replace(/\d/g, "0");
-      document.querySelectorAll("[data-pricing-group]").forEach((a) => {
-        const i = a.closest("section"),
-          s = i.querySelectorAll("[data-plan-btn]"),
-          u = (c) => {
-            i.querySelectorAll("[data-plan]").forEach((t) => {
-              const o = t,
-                n = o.querySelector("[data-count]");
-              (n && (n.textContent = f(n.dataset.count || "")),
-                o.dataset.plan !== c && (o.classList.add("hidden"), o.classList.remove("active")));
-            });
-          },
-          h = (c) => {
-            i.querySelectorAll(`[data-plan="${c}"]`).forEach((t) => {
-              const o = t,
-                n = o.querySelector("[data-count]");
-              (n && (n.textContent = n.dataset.count || ""), o.classList.remove("hidden"), o.classList.add("active"));
-            });
-          };
-        s.forEach((c) => {
-          c.addEventListener("click", () => {
-            const t = c.dataset.planBtn;
-            t && (u(t), h(t));
+  <script>
+    import { animateNumber } from "../scripts/counter";
+
+    const updatePricingGroup = () => {
+      document.querySelectorAll<HTMLElement>("[data-pricing-group]").forEach((group) => {
+        const section = group.closest("section");
+        if (!section) return;
+        const btns = section.querySelectorAll<HTMLElement>("[data-plan-btn]");
+
+        const showPlan = (plan: string) => {
+          section.querySelectorAll<HTMLElement>("[data-plan]").forEach((el) => {
+            const isTarget = el.dataset.plan === plan;
+            if (isTarget) {
+              el.classList.remove("hidden");
+              el.classList.add("active");
+              const countEl = el.querySelector<HTMLElement>("[data-count]");
+              if (countEl) {
+                const count = parseFloat(countEl.getAttribute("data-count") || "0");
+                if (!isNaN(count)) animateNumber(countEl, count);
+              }
+            } else {
+              el.classList.add("hidden");
+              el.classList.remove("active");
+            }
+          });
+        };
+
+        btns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const targetPlan = btn.dataset.planBtn;
+            if (targetPlan) showPlan(targetPlan);
           });
         });
       });
-      function v({ selector: l, highlightElementSelector: a, triggerEvent: i = "hover", activeClass: s = "active" }) {
-        document.querySelectorAll("[data-highlighter-group]").forEach((h) => {
-          const c = h,
-            t = c.querySelector(a);
-          if (!t) {
-            console.error(`Highlight element not found in group for selector: ${a}`);
-            return;
-          }
-          const o = c.querySelectorAll(l);
-          let n = null;
-          const r = (e) => {
-              const d = c.getBoundingClientRect(),
-                g = e.getBoundingClientRect(),
-                L = g.left - d.left,
-                q = g.top - d.top,
-                S = g.width,
-                A = g.height;
-              ((t.style.left = `${L}px`),
-                (t.style.top = `${q}px`),
-                (t.style.width = `${S}px`),
-                (t.style.height = `${A}px`),
-                (t.style.display = "block"),
-                (n = e));
-            },
-            m = () => {
-              const e = c.querySelector(`${l}.${s}`);
-              e ? (r(e), (n = e)) : (t.style.display = "none");
-            },
-            p = (e) => {
-              (o.forEach((d) => {
-                d.classList.remove(s);
-              }),
-                e.classList.add(s));
-            },
-            E = (e) => {
-              i === "hover"
-                ? (e.addEventListener("mouseenter", () => {
-                    (r(e), p(e));
-                  }),
-                  e.addEventListener("mouseleave", () => {
-                    n && r(n);
-                  }))
-                : i === "click" &&
-                  e.addEventListener("click", () => {
-                    (r(e), p(e));
-                  });
-            };
-          (o.forEach(E), m());
-          const y = () => {
-            n && r(n);
-          };
-          window.addEventListener("resize", y);
-        });
-      }
-      v({
-        selector: ".pricing-plan-btn",
-        highlightElementSelector: ".pricing-plan-highlighter",
-        triggerEvent: "click",
-        activeClass: "active",
-      });
-    });
+    };
+
+    if (document.readyState !== "loading") {
+      updatePricingGroup();
+    } else {
+      document.addEventListener("DOMContentLoaded", updatePricingGroup);
+    }
   </script>
 </section>

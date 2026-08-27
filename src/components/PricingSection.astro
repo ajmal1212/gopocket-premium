@@ -2153,21 +2153,19 @@
           </a>
         </div>
       </div>
-      <script type="module">
-        const updatePlan = (plan) => {
-          document.querySelectorAll("[data-plan]").forEach((container) => {
+      <script>
+        import { animateNumber } from "../scripts/counter";
+
+        const updatePlan = (plan: string) => {
+          document.querySelectorAll<HTMLElement>("[data-plan]").forEach((container) => {
             const isTarget = container.dataset.plan === plan;
             if (isTarget) {
               container.classList.remove("hidden");
               container.classList.add("active");
-              const odometerEl = container.querySelector(".odometer");
+              const odometerEl = container.querySelector<HTMLElement>("[data-count]");
               if (odometerEl) {
-                const count = odometerEl.getAttribute("data-count") || "";
-                if (odometerEl.odometer) {
-                  odometerEl.odometer.update(count);
-                } else if (window.Odometer) {
-                  new window.Odometer({ el: odometerEl, value: 0 }).update(count);
-                }
+                const count = parseFloat(odometerEl.getAttribute("data-count") || "0");
+                if (!isNaN(count)) animateNumber(odometerEl, count);
               }
             } else {
               container.classList.add("hidden");
@@ -2177,7 +2175,7 @@
         };
 
         const initPricingPlanToggle = () => {
-          const planBtns = document.querySelectorAll("[data-plan-btn]");
+          const planBtns = document.querySelectorAll<HTMLElement>("[data-plan-btn]");
           planBtns.forEach((btn) => {
             btn.addEventListener("click", () => {
               const targetPlan = btn.dataset.planBtn;
@@ -2191,7 +2189,6 @@
         } else {
           document.addEventListener("DOMContentLoaded", initPricingPlanToggle);
         }
-        window.addEventListener("load", initPricingPlanToggle);
       </script>
     </div>
     <script type="module">

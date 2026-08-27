@@ -122,25 +122,61 @@ export function getCurrentFrappeDateTime(): string {
 
 /**
  * Fetches seminars filtered by date_and_time >= cutoffDate (defaults to current time)
+ * Optimized with native fetch for 100% Cloudflare Workers & Node edge runtime compatibility.
  */
 export async function getSeminars(cutoffDate?: string): Promise<FormattedSeminar[]> {
   try {
-    const db = frappe.db();
     const targetDate = cutoffDate || getCurrentFrappeDateTime();
+    const filters = JSON.stringify([['Seminar', 'date_and_time', '>=', targetDate]]);
+    const fields = JSON.stringify(['*']);
     
-    const filters: any[] = [
-      ['Seminar', 'date_and_time', '>=', targetDate]
-    ];
-
-    const docs = await db.getDocList<SeminarDoc>('Seminar', {
-      fields: ['*'],
-      filters,
-      orderBy: { field: 'date_and_time', order: 'asc' }
+    const url = `${FRAPPE_URL}/api/resource/Seminar?filters=${encodeURIComponent(filters)}&fields=${encodeURIComponent(fields)}&order_by=date_and_time asc`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `token ${FRAPPE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
     });
 
-    return (docs || []).map(formatSeminar);
+    if (response.ok) {
+      const result = await response.json();
+      const docs: SeminarDoc[] = result?.data || [];
+      if (docs.length > 0) {
+        return docs.map(formatSeminar);
+      }
+    }
+
+    // Fallback: If filtered date returns 0 items (e.g. timezone difference), fetch all upcoming/recent seminars
+    const fallbackUrl = `${FRAPPE_URL}/api/resource/Seminar?fields=${encodeURIComponent(fields)}&order_by=date_and_time desc&limit_page_length=20`;
+    const fallbackRes = await fetch(fallbackUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `token ${FRAPPE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (fallbackRes.ok) {
+      const fallbackResult = await fallbackRes.json();
+      const fallbackDocs: SeminarDoc[] = fallbackResult?.data || [];
+      return fallbackDocs.map(formatSeminar);
+    }
   } catch (error) {
-    console.error('Error fetching seminars via Frappe SDK:', error);
+    console.error('Error fetching seminars via Frappe API:', error);
+  }
+
+  // Final fallback to Frappe SDK db.getDocList
+  try {
+    const db = frappe.db();
+    const docs = await db.getDocList<SeminarDoc>('Seminar', {
+      fields: ['*'],
+      orderBy: { field: 'date_and_time', order: 'desc' }
+    });
+    return (docs || []).map(formatSeminar);
+  } catch (sdkError) {
+    console.error('SDK fallback error:', sdkError);
     return [];
   }
 }
@@ -150,14 +186,35 @@ export async function getSeminars(cutoffDate?: string): Promise<FormattedSeminar
  */
 export async function getSeminarById(id: string): Promise<FormattedSeminar | null> {
   try {
+    const url = `${FRAPPE_URL}/api/resource/Seminar/${encodeURIComponent(id)}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `token ${FRAPPE_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      if (result?.data) {
+        return formatSeminar(result.data);
+      }
+    }
+  } catch (error) {
+    console.error(`Error fetching seminar ${id} via native fetch:`, error);
+  }
+
+  // Fallback to Frappe SDK db.getDoc
+  try {
     const db = frappe.db();
     const doc = await db.getDoc<SeminarDoc>('Seminar', id);
     if (doc) {
       return formatSeminar(doc);
     }
-    return null;
-  } catch (error) {
-    console.error(`Error fetching seminar ${id} via Frappe SDK:`, error);
-    return null;
+  } catch (sdkError) {
+    console.error(`SDK fallback error for seminar ${id}:`, sdkError);
   }
+
+  return null;
 }

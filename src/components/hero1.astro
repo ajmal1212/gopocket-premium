@@ -185,6 +185,39 @@
           class="mx-auto rounded-3xl border-8 border-white/35 md:rounded-[2.25rem] md:border-[1.25rem]"
         />
       </div>
+      <script>
+        const heroSec = document.querySelector<HTMLElement>(".home-hero");
+        const bannerImg = document.querySelector<HTMLElement>(".banner-image");
+
+        if (heroSec && bannerImg) {
+          const updateHeroTilt = () => {
+            if (window.innerWidth < 1024) {
+              bannerImg.style.transform = "none";
+              return;
+            }
+
+            const scrollY = window.scrollY || window.pageYOffset;
+            const threshold = 350; // Image becomes 100% straight after scrolling 350px
+            const progress = Math.max(0, Math.min(1, scrollY / threshold));
+            
+            // 3D perspective rotation tilt from 20deg down to 0deg (straight)
+            const rotateX = 20 * (1 - progress);
+            const scale = 0.88 + 0.12 * progress;
+
+            if (progress >= 1) {
+              bannerImg.style.transform = "perspective(75em) rotateX(0deg) scale(1)";
+            } else {
+              bannerImg.style.transform = `perspective(75em) rotateX(${rotateX.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+            }
+            bannerImg.style.transformOrigin = "center top";
+            bannerImg.style.willChange = "transform";
+          };
+
+          window.addEventListener("scroll", updateHeroTilt, { passive: true });
+          window.addEventListener("resize", updateHeroTilt, { passive: true });
+          updateHeroTilt();
+        }
+      </script>
       <script type="module" is:inline={true}>
         function r() {
           document.querySelectorAll(".marquee-element-width-auto").forEach((o) => {

@@ -64,17 +64,18 @@ export interface FormattedSeminar {
 }
 
 export function getFullImageUrl(imagePath?: string | null): string {
+  const baseUrl = getFrappeUrl();
   if (!imagePath) {
     return '/assets/images/learn1.jpeg';
   }
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     if (imagePath.includes('192.168.')) {
-      return imagePath.replace(/^http:\/\/[^/]+/, 'https://www.gopocket.in');
+      return imagePath.replace(/^http:\/\/[^/]+/, baseUrl);
     }
     return imagePath;
   }
   const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-  return `https://www.gopocket.in${cleanPath}`;
+  return `${baseUrl}${cleanPath}`;
 }
 
 export function formatSeminar(doc: SeminarDoc): FormattedSeminar {

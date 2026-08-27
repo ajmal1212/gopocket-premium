@@ -228,7 +228,7 @@ if (!post) {
     editor.querySelectorAll("p").forEach((p) => {
       const text = p.textContent?.trim() || "";
       if (/^\/(?:private\/)?files\/[^\s]+\.(?:jpg|jpeg|png|webp|gif|svg)/i.test(text) && !p.querySelector("img")) {
-        const imgUrl = text.startsWith("http") ? text : `https://www.gopocket.in${text.startsWith("/") ? "" : "/"}${text}`;
+        const imgUrl = text.startsWith("http") ? text : `https://hrms.gopocket.in${text.startsWith("/") ? "" : "/"}${text}`;
         p.innerHTML = `<img src="${imgUrl}" class="w-full h-auto object-cover rounded-3xl my-6 border border-border-light shadow-lg" loading="lazy" alt="Blog Image" />`;
       }
     });
@@ -237,7 +237,7 @@ if (!post) {
     editor.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
       const src = img.getAttribute("src");
       if (src && (src.startsWith("/files/") || src.startsWith("/private/files/"))) {
-        img.src = `https://www.gopocket.in${src}`;
+        img.src = `https://hrms.gopocket.in${src}`;
       }
       img.classList.add("w-full", "h-auto", "object-cover", "rounded-3xl", "my-6", "border", "border-border-light", "shadow-lg");
     });

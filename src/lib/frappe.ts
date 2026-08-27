@@ -107,21 +107,35 @@ export function formatSeminar(doc: SeminarDoc): FormattedSeminar {
 }
 
 /**
- * Fetches seminars filtered by date_and_time >= cutoffDate
+ * Formats current Date to Frappe datetime string (YYYY-MM-DD HH:mm:ss)
+ */
+export function getCurrentFrappeDateTime(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * Fetches seminars filtered by date_and_time >= cutoffDate (defaults to current time)
  */
 export async function getSeminars(cutoffDate?: string): Promise<FormattedSeminar[]> {
   try {
     const db = frappe.db();
-    const filters: any[] = [];
+    const targetDate = cutoffDate || getCurrentFrappeDateTime();
     
-    if (cutoffDate) {
-      filters.push(['Seminar', 'date_and_time', '>=', cutoffDate]);
-    }
+    const filters: any[] = [
+      ['Seminar', 'date_and_time', '>=', targetDate]
+    ];
 
     const docs = await db.getDocList<SeminarDoc>('Seminar', {
       fields: ['*'],
-      filters: filters.length ? filters : undefined,
-      orderBy: { field: 'date_and_time', order: 'desc' }
+      filters,
+      orderBy: { field: 'date_and_time', order: 'asc' }
     });
 
     return (docs || []).map(formatSeminar);

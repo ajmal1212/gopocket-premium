@@ -1,0 +1,91 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+import FinalCTA from "../../components/FinalCTA.astro";
+import { getBlogPostBySlugOrId } from "../../lib/frappe";
+
+const { slug } = Astro.params;
+
+// Fetch individual blog post from Frappe with fields=["*"]
+const post = slug ? await getBlogPostBySlugOrId(slug) : null;
+
+if (!post) {
+  return Astro.redirect("/blog/");
+}
+---
+
+<Layout
+  title={`${post.title} - GoPocket Blog`}
+  description={post.description || post.summary}
+>
+  <Header currentPath="/blog/" />
+
+  <main class="has-section-spacing-lg pt-8 md:pt-16">
+    <!-- Article Header -->
+    <section class="relative z-10 py-8 md:py-14">
+      <div class="container">
+        <div class="max-w-4xl mx-auto text-center space-y-5">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold tracking-wide uppercase">
+            <span>{post.category}</span>
+            <span class="opacity-40">•</span>
+            <span>{post.formattedDate}</span>
+          </div>
+
+          <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-dark tracking-tight leading-tight">
+            {post.title}
+          </h1>
+
+          {post.description && (
+            <p class="text-lg md:text-xl text-text-default opacity-80 max-w-3xl mx-auto leading-relaxed">
+              {post.description}
+            </p>
+          )}
+        </div>
+
+        <!-- Main Featured Image -->
+        {post.mainImage && (
+          <div class="max-w-4xl mx-auto mt-8 md:mt-12 rounded-3xl overflow-hidden border border-border-light shadow-lg">
+            <img
+              src={post.mainImage}
+              alt={post.title}
+              class="w-full h-auto max-h-[520px] object-cover rounded-3xl"
+              loading="eager"
+            />
+          </div>
+        )}
+      </div>
+    </section>
+
+    <!-- Article Content (Rich Text Body from Frappe) -->
+    <section class="py-6 md:py-10">
+      <div class="container">
+        <article class="max-w-3xl mx-auto bg-theme-light p-6 sm:p-10 md:p-12 rounded-3xl border border-border-light shadow-xs">
+          {post.postBody ? (
+            <div class="ql-editor read-mode" set:html={post.postBody} />
+          ) : (
+            <div class="text-center py-12 text-gray-500">
+              <p>No content available for this article.</p>
+            </div>
+          )}
+
+          <!-- Back to Blog Button -->
+          <div class="pt-8 mt-10 border-t border-border-light/80 flex items-center justify-between">
+            <a href="/blog/" class="btn btn-outline text-flip-hover-anim btn-sm cursor-pointer">
+              <span class="text-flip-inner" data-content="← Back to All Articles">← Back to All Articles</span>
+              <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
+                <svg class="gradient-shape" width="150" height="28" viewBox="0 0 147 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433" stroke="currentColor" stroke-width="8"></path>
+                </svg>
+              </span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <FinalCTA />
+  </main>
+
+  <Footer />
+</Layout>

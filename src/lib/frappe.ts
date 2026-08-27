@@ -261,3 +261,219 @@ export async function getSeminarById(id: string): Promise<FormattedSeminar | nul
 
   return null;
 }
+
+/* ============================================================================
+   BLOG DOCTYPE FUNCTIONS
+   ============================================================================ */
+
+export interface BlogDoc {
+  name: string | number;
+  meta_tittle?: string;
+  meta_title?: string;
+  meta_description?: string;
+  slug?: string;
+  post_body?: string;
+  post_summary?: string | null;
+  main_image?: string | null;
+  thumbnail_image?: string | null;
+  blog_category?: string;
+  owner?: string;
+  creation?: string;
+  modified?: string;
+  docstatus?: number;
+}
+
+export interface FormattedBlog {
+  id: string;
+  title: string;
+  description: string;
+  slug: string;
+  summary: string;
+  mainImage: string;
+  thumbnailImage: string;
+  category: string;
+  formattedDate: string;
+  creation: string;
+  postBody?: string;
+}
+
+export function formatBlog(doc: BlogDoc): FormattedBlog {
+  const title = doc.meta_tittle || doc.meta_title || 'Untitled Article';
+  const description = (doc.meta_description || doc.post_summary || '').trim();
+  const slug = doc.slug || String(doc.name);
+  const creation = doc.creation || '';
+  
+  let formattedDate = 'Recent';
+  if (creation) {
+    try {
+      const dt = new Date(creation.replace(' ', 'T'));
+      if (!isNaN(dt.getTime())) {
+        formattedDate = dt.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      }
+    } catch {
+      formattedDate = creation.split(' ')[0] || creation;
+    }
+  }
+
+  return {
+    id: String(doc.name),
+    title,
+    description,
+    slug,
+    summary: doc.post_summary || description,
+    mainImage: getFullImageUrl(doc.main_image || doc.thumbnail_image),
+    thumbnailImage: getFullImageUrl(doc.thumbnail_image || doc.main_image),
+    category: doc.blog_category || 'Finance',
+    formattedDate,
+    creation,
+    postBody: doc.post_body
+  };
+}
+
+/**
+ * Fetches blog collection list with limit_page_length = 20 (without post_body)
+ */
+export async function getBlogPosts(limit = 20): Promise<FormattedBlog[]> {
+  const fields = [
+    'name',
+    'meta_tittle',
+    'meta_description',
+    'slug',
+    'post_summary',
+    'main_image',
+    'thumbnail_image',
+    'blog_category',
+    'creation',
+    'modified'
+  ];
+
+  // 1. Try SDK
+  try {
+    const frappe = getFrappeInstance();
+    const db = frappe.db();
+    const docs = await db.getDocList<BlogDoc>('Blog', {
+      fields: fields as any,
+      limit,
+      orderBy: { field: 'creation', order: 'desc' }
+    });
+
+    if (docs && docs.length > 0) {
+      return docs.map(formatBlog);
+    }
+  } catch (error) {
+    console.warn('Frappe SDK getBlogPosts failed, trying native fetch...', error);
+  }
+
+  // 2. Native fetch
+  try {
+    const baseUrl = getFrappeUrl();
+    const token = getFrappeToken();
+    const url = `${baseUrl}/api/resource/Blog?fields=${encodeURIComponent(JSON.stringify(fields))}&limit_page_length=${limit}&order_by=creation desc`;
+
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data && json.data.length > 0) {
+        return json.data.map(formatBlog);
+      }
+    }
+  } catch (error) {
+    console.error('Native fetch getBlogPosts failed:', error);
+  }
+
+  return [];
+}
+
+/**
+ * Fetches a single blog post by slug or name (ID) with fields=["*"]
+ */
+export async function getBlogPostBySlugOrId(identifier: string): Promise<FormattedBlog | null> {
+  const baseUrl = getFrappeUrl();
+  const token = getFrappeToken();
+
+  // 1. Try getDoc by name
+  try {
+    const frappe = getFrappeInstance();
+    const db = frappe.db();
+    const doc = await db.getDoc<BlogDoc>('Blog', identifier);
+    if (doc) {
+      return formatBlog(doc);
+    }
+  } catch {
+    // ignore
+  }
+
+  // 2. Try native fetch by name endpoint
+  try {
+    const res = await fetch(`${baseUrl}/api/resource/Blog/${encodeURIComponent(identifier)}`, {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data) {
+        return formatBlog(json.data);
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  // 3. Try filter by slug
+  try {
+    const filters = [
+      ["Blog", "slug", "=", identifier]
+    ];
+    const url = `${baseUrl}/api/resource/Blog?filters=${encodeURIComponent(JSON.stringify(filters))}&fields=["*"]`;
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data && json.data.length > 0) {
+        return formatBlog(json.data[0]);
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  // 4. Try filter by name
+  try {
+    const filters = [
+      ["Blog", "name", "=", identifier]
+    ];
+    const url = `${baseUrl}/api/resource/Blog?filters=${encodeURIComponent(JSON.stringify(filters))}&fields=["*"]`;
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data && json.data.length > 0) {
+        return formatBlog(json.data[0]);
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  return null;
+}

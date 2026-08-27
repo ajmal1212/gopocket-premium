@@ -64,18 +64,17 @@ export interface FormattedSeminar {
 }
 
 export function getFullImageUrl(imagePath?: string | null): string {
-  const baseUrl = getFrappeUrl();
   if (!imagePath) {
     return '/assets/images/learn1.jpeg';
   }
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     if (imagePath.includes('192.168.')) {
-      return imagePath.replace(/^http:\/\/[^/]+/, baseUrl);
+      return imagePath.replace(/^http:\/\/[^/]+/, 'https://www.gopocket.in');
     }
     return imagePath;
   }
   const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-  return `${baseUrl}${cleanPath}`;
+  return `https://www.gopocket.in${cleanPath}`;
 }
 
 export function formatSeminar(doc: SeminarDoc): FormattedSeminar {
@@ -302,32 +301,20 @@ export function formatPostBody(rawBody?: string): string {
 
   let html = rawBody;
 
-  // 1. Convert <p>/files/xxx.jpg</p> or <p>/private/files/xxx.jpg</p> into full image card markup
+  // 1. Convert plain text file paths inside <p>/files/xxx.jpg</p> or <p>/private/files/xxx.jpg</p> into a clean <img> element inside <p>
   html = html.replace(
     /<p>\s*(\/(?:private\/)?files\/[^\s<>]+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>]*)?)\s*<\/p>/gi,
-    (match, imgPath) => {
+    (_match, imgPath) => {
       const fullUrl = getFullImageUrl(imgPath);
-      return `<div class="my-6 rounded-3xl overflow-hidden border border-border-light shadow-lg w-full bg-white"><img src="${fullUrl}" class="w-full h-auto object-cover rounded-3xl" loading="lazy" alt="Blog Post Image" /></div>`;
+      return `<p class="my-6"><img src="${fullUrl}" alt="Blog Image" class="w-full h-auto object-cover rounded-3xl border border-border-light shadow-lg" loading="lazy" /></p>`;
     }
   );
 
-  // 2. Convert plain text file paths /files/xxx.jpg not inside src=""
-  html = html.replace(
-    /(?<!src=["'])\b(\/(?:private\/)?files\/[^\s<>"']+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>"']*)?)/gi,
-    (match, imgPath) => {
-      const fullUrl = getFullImageUrl(imgPath);
-      return `<div class="my-6 rounded-3xl overflow-hidden border border-border-light shadow-lg w-full bg-white"><img src="${fullUrl}" class="w-full h-auto object-cover rounded-3xl" loading="lazy" alt="Blog Post Image" /></div>`;
-    }
-  );
-
-  // 3. Convert existing relative <img> tags
-  html = html.replace(
-    /<img\s+([^>]*?)src=["'](\/(?:private\/)?files\/[^"']+)["']([^>]*?)>/gi,
-    (match, p1, imgPath, p2) => {
-      const fullUrl = getFullImageUrl(imgPath);
-      return `<img ${p1}src="${fullUrl}"${p2} class="w-full h-auto object-cover rounded-3xl my-6 border border-border-light shadow-lg" loading="lazy" />`;
-    }
-  );
+  // 2. Fix src attribute of existing <img> tags: src="/files/..." or src="/private/files/..."
+  html = html.replace(/src=["'](\/(?:private\/)?files\/[^"']+)["']/gi, (_match, imgPath) => {
+    const fullUrl = getFullImageUrl(imgPath);
+    return `src="${fullUrl}"`;
+  });
 
   return html;
 }

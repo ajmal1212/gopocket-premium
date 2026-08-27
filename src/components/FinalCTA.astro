@@ -79,5 +79,18 @@
       <div class="from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5 bg-linear-to-t"></div>
     </div>
   </div>
-  <script type="module" src="/assets/js/call-to-action.js"></script>
+  <script>
+    const pattern = document.querySelector<HTMLElement>(".call-to-action .pattern-shape");
+    if (pattern) {
+      const updatePattern = () => {
+        const rect = pattern.parentElement?.getBoundingClientRect();
+        if (rect && rect.top < window.innerHeight && rect.bottom > 0) {
+          const progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
+          pattern.style.transform = `translateX(${-1000 + progress * 200}px)`;
+        }
+      };
+      window.addEventListener("scroll", updatePattern, { passive: true });
+      updatePattern();
+    }
+  </script>
 </section>

@@ -1,1 +1,0 @@
-import{A as t}from"./aos-2.js";import{HSAccordion as n}from"./index-B82NBZtc.js";document.addEventListener("DOMContentLoaded",()=>{document.querySelectorAll(".hs-accordion")?.forEach(e=>{setTimeout(()=>{const{element:o}=n.getInstance(`#${e.getAttribute("id")}`,!0);o.on("open",()=>{t.refresh()})},1e3)})});

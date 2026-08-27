@@ -21,15 +21,15 @@ const tagParam = Astro.url.searchParams.get("tag") || "Menu";
   <Header currentPath="/open-account-call-back" />
 
   <main class="has-section-spacing-lg">
-    <!-- Hero Call-Back Section (Ungrouped Background, Bigger Image) -->
+    <!-- Hero Call-Back Section with Smooth Entrance Animations -->
     <section class="relative z-10 pt-8 pb-16 md:pt-14 md:pb-24 overflow-hidden">
       <div class="container max-w-7xl">
         
         <!-- Top Animated Badge Pill -->
         <div
           data-aos="fade-up-sm"
-          data-aos-delay="200"
-          class="group relative mx-auto mb-6 max-w-fit overflow-hidden rounded-full border border-border-light p-px aos-init aos-animate"
+          data-aos-delay="100"
+          class="group relative mx-auto mb-6 max-w-fit overflow-hidden rounded-full border border-border-light p-px transition-transform duration-300 hover:scale-105"
         >
           <div
             class="translate-y-centered to-primary absolute left-1/2 -z-10 h-6 w-1/2 origin-left rotate-90 animate-spin rounded-full bg-linear-to-b from-white [animation-duration:10000ms]"
@@ -42,27 +42,39 @@ const tagParam = Astro.url.searchParams.get("tag") || "Menu";
           </div>
         </div>
 
-        <!-- Main Title -->
-        <h1 class="has-italic-text text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-center text-dark tracking-tight leading-tight max-w-4xl mx-auto mb-10 sm:mb-16">
+        <!-- Main Title with Smooth Entrance -->
+        <h1
+          data-aos="fade-up-sm"
+          data-aos-delay="200"
+          class="has-italic-text text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-center text-dark tracking-tight leading-tight max-w-4xl mx-auto mb-10 sm:mb-16"
+        >
           Open your Free Demat Account with <span class="text-[#7c3aed]">GoPocket</span>
         </h1>
 
-        <!-- 2-Column Hero Grid (Left: Image, Right: Standalone Form) -->
+        <!-- 2-Column Hero Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
-          <!-- LEFT SIDE: Mobile App Image -->
-          <div class="lg:col-span-6 flex justify-center items-center">
+          <!-- LEFT SIDE: Mobile App Image with Smooth Floating Entrance -->
+          <div
+            data-aos="fade-up-sm"
+            data-aos-delay="300"
+            class="lg:col-span-6 flex justify-center items-center"
+          >
             <img
               src="/assets/images/gopocket/open account call back.png"
               alt="GoPocket Mobile App Open Account"
-              class="w-full h-auto max-w-md lg:max-w-lg object-contain mx-auto transition-transform duration-500 hover:scale-105"
+              class="w-full h-auto max-w-md lg:max-w-lg object-contain mx-auto transition-all duration-700 ease-out hover:scale-105 hover:-translate-y-1"
               loading="eager"
             />
           </div>
 
-          <!-- RIGHT SIDE: Standalone Signup Form Card -->
-          <div class="lg:col-span-6 w-full">
-            <div class="bg-white p-6 sm:p-10 rounded-3xl border border-border-light space-y-6">
+          <!-- RIGHT SIDE: Standalone Signup Form Card with Smooth Entrance -->
+          <div
+            data-aos="fade-up-sm"
+            data-aos-delay="400"
+            class="lg:col-span-6 w-full"
+          >
+            <div class="bg-white p-6 sm:p-10 rounded-3xl border border-border-light space-y-6 transition-all duration-300">
               <div class="space-y-2">
                 <h2 class="text-3xl sm:text-4xl font-bold text-dark tracking-tight">
                   Signup now
@@ -92,23 +104,23 @@ const tagParam = Astro.url.searchParams.get("tag") || "Menu";
                     <input
                       type="tel"
                       placeholder="Your Mobile Number"
-                      class="w-full pl-16 pr-4 py-4 bg-white border border-border-light focus:border-[#7c3aed] focus:ring-2 focus:ring-[#7c3aed]/20 rounded-2xl text-dark placeholder-gray-400 text-base focus:outline-none transition-all font-medium"
+                      class="w-full pl-16 pr-4 py-4 bg-white border border-border-light focus:border-[#7c3aed] focus:ring-4 focus:ring-[#7c3aed]/10 rounded-2xl text-dark placeholder-gray-400 text-base focus:outline-none transition-all duration-300 font-medium"
                       required
                     />
                   </div>
                 </div>
 
-                <!-- Open Account Submit Button -->
+                <!-- Open Account Submit Button with Smooth Micro-Interaction -->
                 <button
                   type="submit"
-                  class="w-full py-4 bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-lg rounded-2xl transition duration-300 cursor-pointer flex items-center justify-center"
+                  class="w-full py-4 bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-lg rounded-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer flex items-center justify-center"
                 >
                   Open Account
                 </button>
               </form>
 
               <!-- Disclaimer Note (Green Box matching Screenshot) -->
-              <div class="p-4 sm:p-5 rounded-2xl bg-[#dcfce7] border border-[#bbf7d0] text-emerald-900 text-xs sm:text-sm leading-relaxed font-medium">
+              <div class="p-4 sm:p-5 rounded-2xl bg-[#dcfce7] border border-[#bbf7d0] text-emerald-900 text-xs sm:text-sm leading-relaxed font-medium transition-all duration-300">
                 Note: By submitting above details, you are authorizing GoPocket / its sub-brokers / agents to call you send promotional communication even though you being registered under DND.
               </div>
             </div>

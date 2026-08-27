@@ -38,7 +38,7 @@ const regularPosts = posts.length > 1 ? posts.slice(1) : posts;
       <section>
         <div class="container">
           <article class="bg-theme-light rounded-4xl p-6 md:p-8 flex flex-col items-start gap-6 md:flex-row md:items-center md:gap-10 border border-border-light shadow-xs hover:border-black/20 transition-all duration-300">
-            <div class="group relative flex items-center justify-center overflow-hidden rounded-3xl w-full md:w-1/2 aspect-video shrink-0 border border-border-light bg-white">
+            <div class="group relative flex items-center justify-center overflow-hidden rounded-3xl w-full md:w-1/2 aspect-[640/550] shrink-0 border border-border-light bg-white">
               <img
                 src={featuredPost.thumbnailImage}
                 alt={featuredPost.title}
@@ -93,7 +93,7 @@ const regularPosts = posts.length > 1 ? posts.slice(1) : posts;
             {regularPosts.map((post) => (
               <article class="bg-theme-light rounded-3xl p-6 border border-border-light hover:border-black/20 transition-all duration-300 shadow-xs flex flex-col justify-between">
                 <div>
-                  <div class="group relative flex items-center justify-center overflow-hidden rounded-2xl aspect-video bg-white border border-border-light">
+                  <div class="group relative flex items-center justify-center overflow-hidden rounded-2xl aspect-[640/550] bg-white border border-border-light">
                     <img
                       src={post.thumbnailImage}
                       alt={post.title}

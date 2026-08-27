@@ -45,11 +45,11 @@ if (!post) {
 
         <!-- Main Featured Image -->
         {post.mainImage && (
-          <div class="max-w-4xl mx-auto mt-8 md:mt-12 rounded-3xl overflow-hidden border border-border-light shadow-lg">
+          <div class="max-w-5xl mx-auto mt-8 md:mt-12 rounded-3xl overflow-hidden border border-border-light shadow-lg aspect-[1150/500] w-full bg-white">
             <img
               src={post.mainImage}
               alt={post.title}
-              class="w-full h-auto max-h-[520px] object-cover rounded-3xl"
+              class="w-full h-full object-cover rounded-3xl"
               loading="eager"
             />
           </div>

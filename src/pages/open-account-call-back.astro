@@ -21,23 +21,34 @@ const tagParam = Astro.url.searchParams.get("tag") || "Menu";
   <Header currentPath="/open-account-call-back" />
 
   <main class="has-section-spacing-lg">
-    <!-- Hero Call-Back Section -->
-    <section class="relative z-10 pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden">
+    <!-- Hero Call-Back Section matching index.astro & hero1.astro UI/UX -->
+    <section class="home-hero overflow-hidden py-10 md:py-16">
       <div class="container max-w-6xl">
-        <!-- Top Green Pill Badge -->
-        <div class="flex justify-center mb-6">
-          <span class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-100 text-emerald-800 text-sm font-semibold tracking-wide border border-emerald-300/60 shadow-2xs">
-            Start your trading journey
-          </span>
+        
+        <!-- Top Animated Badge Pill -->
+        <div
+          data-aos="fade-up-sm"
+          data-aos-delay="200"
+          class="group relative mx-auto mb-6 max-w-fit overflow-hidden rounded-full border border-border-light p-px aos-init aos-animate"
+        >
+          <div
+            class="translate-y-centered to-primary absolute left-1/2 -z-10 h-6 w-1/2 origin-left rotate-90 animate-spin rounded-full bg-linear-to-b from-white [animation-duration:10000ms]"
+          ></div>
+          <div class="flex items-center rounded-full bg-white px-1.5 py-1">
+            <span class="bg-primary inline-block rounded-full px-3 py-0.5 text-xs font-semibold text-white">Start</span>
+            <div class="text-text-default ms-2.5 flex items-center rounded-full py-px text-sm font-medium pr-3">
+              Start your trading journey
+            </div>
+          </div>
         </div>
 
-        <!-- Main Heading -->
-        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-center text-dark tracking-tight leading-tight max-w-4xl mx-auto mb-10 sm:mb-14">
-          Open your Free Demat Account with <span class="text-[#7c3aed]">GoPocket</span>
+        <!-- Main Title with Site Typography -->
+        <h1 class="has-italic-text text-h2 md:text-h1 lg:text-display-2 mb-10 md:mb-14 text-center leading-[1.15] font-normal capitalize">
+          Open your Free Demat Account with <strong class="text-primary font-bold">GoPocket</strong>
         </h1>
 
-        <!-- 2-Column Hero Grid: Image on Left, Form on Right -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <!-- 2-Column Main Hero Card (Left: Image, Right: Form) -->
+        <div class="bg-theme-light rounded-4xl p-6 sm:p-10 md:p-12 border border-border-light shadow-xs grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
           <!-- LEFT SIDE: Image (open account call back.png) -->
           <div class="lg:col-span-6 flex justify-center items-center">
@@ -45,60 +56,65 @@ const tagParam = Astro.url.searchParams.get("tag") || "Menu";
               <img
                 src="/assets/images/gopocket/open account call back.png"
                 alt="GoPocket Mobile App Open Account"
-                class="w-full h-auto object-contain mx-auto drop-shadow-xl"
+                class="w-full h-auto object-contain mx-auto drop-shadow-md transition-transform duration-500 hover:scale-[1.02]"
                 loading="eager"
               />
             </div>
           </div>
 
-          <!-- RIGHT SIDE: Form -->
-          <div class="lg:col-span-6 bg-white p-6 sm:p-10 rounded-3xl border border-border-light shadow-xl space-y-6">
+          <!-- RIGHT SIDE: Form matching Theme Component Styling -->
+          <div class="lg:col-span-6 bg-white p-6 sm:p-8 rounded-3xl border border-border-light shadow-md space-y-6">
             <div class="space-y-2">
-              <h2 class="text-3xl sm:text-4xl font-bold text-dark tracking-tight">
+              <h2 class="text-2xl sm:text-3xl font-bold text-dark tracking-tight">
                 Signup now
               </h2>
-              <p class="text-text-default opacity-85 text-base sm:text-lg leading-relaxed font-normal">
+              <p class="text-text-default opacity-80 text-sm sm:text-base leading-relaxed">
                 One account to invest in stocks, derivatives, commodities, mutual funds, IPOs, and more.
               </p>
             </div>
 
-            <form class="space-y-5" onsubmit="event.preventDefault()">
-              <!-- Hidden Query Parameters for Tracking -->
+            <form class="space-y-4" onsubmit="event.preventDefault()">
+              <!-- Hidden Tracking Query Parameters -->
               <input type="hidden" name="src" value={srcParam} />
               <input type="hidden" name="tag" value={tagParam} />
 
-              <div class="space-y-2">
-                <label class="block text-sm font-semibold text-dark">
-                  Mobile
+              <div class="space-y-1.5">
+                <label class="block text-xs font-semibold text-text-default uppercase tracking-wider ms-1">
+                  Mobile Number
                 </label>
                 <div class="relative flex items-center">
-                  <!-- Indian Flag Icon -->
-                  <div class="absolute left-3.5 flex items-center gap-1.5 pointer-events-none text-gray-700 font-medium text-sm">
-                    <span class="text-xl">🇮🇳</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <!-- Indian Flag Badge -->
+                  <div class="absolute left-3.5 flex items-center gap-1.5 pointer-events-none text-dark font-medium text-sm z-10">
+                    <span class="text-base">🇮🇳</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
                   <input
                     type="tel"
                     placeholder="Your Mobile Number"
-                    class="w-full pl-16 pr-4 py-4 bg-white border-2 border-[#f97316] focus:border-[#7c3aed] rounded-2xl text-dark placeholder-gray-400 text-base focus:outline-none transition-all shadow-2xs font-medium"
+                    class="w-full pl-14 pr-4 py-3.5 bg-slate-50 border border-border-light focus:border-primary focus:bg-white rounded-xl text-dark placeholder-gray-400 text-sm focus:outline-none transition-all shadow-2xs font-medium"
                     required
                   />
                 </div>
               </div>
 
-              <!-- Open Account Submit Button -->
+              <!-- Open Account Submit Button with Theme Flip Animation -->
               <button
                 type="submit"
-                class="w-full py-4 bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-lg rounded-2xl transition duration-300 shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center"
+                class="btn btn-primary text-flip-hover-anim btn-md w-full justify-center text-sm font-bold cursor-pointer shadow-sm mt-2"
               >
-                Open Account
+                <span class="text-flip-inner" data-content="Open Account">Open Account</span>
+                <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
+                  <svg class="gradient-shape" width="150" height="28" viewBox="0 0 147 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433" stroke="currentColor" stroke-width="8"></path>
+                  </svg>
+                </span>
               </button>
             </form>
 
-            <!-- Disclaimer Note (Green Box from Screenshot) -->
-            <div class="p-4 sm:p-5 rounded-2xl bg-[#dcfce7] border border-[#bbf7d0] text-emerald-900 text-xs sm:text-sm leading-relaxed font-medium">
+            <!-- Disclaimer Note (Theme Styled Green Box) -->
+            <div class="p-4 rounded-2xl bg-emerald-50/90 border border-emerald-200/80 text-emerald-900 text-xs leading-relaxed font-medium">
               Note: By submitting above details, you are authorizing GoPocket / its sub-brokers / agents to call you send promotional communication even though you being registered under DND.
             </div>
           </div>
@@ -107,7 +123,7 @@ const tagParam = Astro.url.searchParams.get("tag") || "Menu";
       </div>
     </section>
 
-    <!-- Additional Index.astro Sections for Rich Aesthetics -->
+    <!-- Additional Index.astro Sections for Complete UI/UX Alignment -->
     <PowerfulTools />
     <TradingJourney />
     <SpecialBenefits />

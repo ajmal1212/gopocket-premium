@@ -8,10 +8,7 @@
   "assets": {
     "directory": "./dist"
   },
-  "vars": {
-    "FRAPPE_URL": "https://hrms.gopocket.in",
-    "FRAPPE_TOKEN": "ca55fb5157bea03:39f7391028b27b9"
-  },
+
   "observability": {
     "enabled": true
   },

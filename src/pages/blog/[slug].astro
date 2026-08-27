@@ -24,7 +24,7 @@ if (!post) {
   <main class="has-section-spacing-lg pt-8 md:pt-16">
     <!-- Article Header -->
     <section class="relative z-10 py-8 md:py-14">
-      <div class="container max-w-6xl">
+      <div class="container max-w-7xl">
         <div class="max-w-4xl mx-auto text-center space-y-5">
           <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold tracking-wide uppercase">
             <span>{post.category}</span>
@@ -45,7 +45,7 @@ if (!post) {
 
         <!-- Main Featured Image -->
         {post.mainImage && (
-          <div class="max-w-6xl mx-auto mt-8 md:mt-12 rounded-3xl overflow-hidden border border-border-light shadow-lg aspect-[1150/500] w-full bg-white">
+          <div class="max-w-7xl mx-auto mt-8 md:mt-12 rounded-3xl overflow-hidden border border-border-light shadow-lg aspect-[1150/500] w-full bg-white">
             <img
               src={post.mainImage}
               alt={post.title}
@@ -59,11 +59,11 @@ if (!post) {
 
     <!-- Article Content & Always Sticky Right Sidebar CTA -->
     <section class="py-6 md:py-10">
-      <div class="container max-w-6xl">
+      <div class="container max-w-7xl">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           
-          <!-- LEFT COLUMN: Expanded Post Content Body (8 Columns) -->
-          <article class="lg:col-span-8 bg-theme-light p-6 sm:p-10 md:p-12 rounded-3xl border border-border-light shadow-xs w-full overflow-hidden">
+          <!-- LEFT COLUMN: Expanded Post Content Body (9 Columns) -->
+          <article class="lg:col-span-9 bg-theme-light p-6 sm:p-10 md:p-12 rounded-3xl border border-border-light shadow-xs w-full overflow-hidden">
             {post.postBody ? (
               <div class="ql-editor read-mode w-full" set:html={post.postBody} />
             ) : (
@@ -85,9 +85,9 @@ if (!post) {
             </div>
           </article>
 
-          <!-- RIGHT COLUMN: Always Sticky Sidebar CTA (4 Columns) -->
-          <aside class="lg:col-span-4 lg:sticky lg:top-28 space-y-6 w-full">
-            <div class="bg-theme-light rounded-3xl p-6 sm:p-8 border border-border-light shadow-md space-y-6">
+          <!-- RIGHT COLUMN: Compact Sticky Sidebar CTA (3 Columns) -->
+          <aside class="lg:col-span-3 lg:sticky lg:top-28 space-y-6 w-full max-w-[340px] mx-auto lg:mx-0">
+            <div class="bg-theme-light rounded-3xl p-5 sm:p-6 border border-border-light shadow-md space-y-5">
               <div class="space-y-3">
                 <div class="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full uppercase">
                   <span>GoPocket Trading</span>

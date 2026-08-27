@@ -224,16 +224,17 @@ if (!post) {
     const editor = document.querySelector<HTMLElement>(".ql-editor");
     if (!editor) return;
 
-    // 1. Convert plain text file paths inside <p>/files/xxx.jpg</p> or <p>/private/files/xxx.jpg</p> into <img> elements
-    editor.querySelectorAll("p").forEach((p) => {
-      const text = p.textContent?.trim() || "";
-      if (/^\/(?:private\/)?files\/[^\s]+\.(?:jpg|jpeg|png|webp|gif|svg)/i.test(text) && !p.querySelector("img")) {
-        const imgUrl = text.startsWith("http") ? text : `https://hrms.gopocket.in${text.startsWith("/") ? "" : "/"}${text}`;
-        p.innerHTML = `<img src="${imgUrl}" class="w-full h-auto object-cover rounded-3xl my-6 border border-border-light shadow-lg" loading="lazy" alt="Blog Image" />`;
-      }
-    });
+    // Replace any raw /files/ or /private/files/ text paths in the DOM with <img>
+    const fileRegex = /(?<!src=["'])\b(\/(?:private\/)?files\/[^\s<>"']+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>"']*)?)/gi;
 
-    // 2. Ensure all <img> tags have full domain URL and proper styles
+    if (fileRegex.test(editor.innerHTML)) {
+      editor.innerHTML = editor.innerHTML.replace(
+        fileRegex,
+        (match) => `<img src="https://hrms.gopocket.in${match.startsWith("/") ? "" : "/"}${match}" class="w-full h-auto object-cover rounded-3xl my-6 border border-border-light shadow-lg" loading="lazy" alt="Blog Image" />`
+      );
+    }
+
+    // Ensure all <img> tags have full domain URL and proper styles
     editor.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
       const src = img.getAttribute("src");
       if (src && (src.startsWith("/files/") || src.startsWith("/private/files/"))) {

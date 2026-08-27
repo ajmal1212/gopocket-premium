@@ -302,16 +302,17 @@ export function formatPostBody(rawBody?: string): string {
 
   let html = rawBody;
 
-  // 1. Convert plain text file paths inside <p>/files/xxx.jpg</p> or <p>/private/files/xxx.jpg</p> into a clean <img> element inside <p>
+  // 1. Replace any raw image file paths (e.g. /files/xxx.jpg or /private/files/xxx.png) NOT inside src="..."
+  // Works inside <p>, <span>, <div>, or any HTML container!
   html = html.replace(
-    /<p>\s*(\/(?:private\/)?files\/[^\s<>]+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>]*)?)\s*<\/p>/gi,
+    /(?<!src=["'])\b(\/(?:private\/)?files\/[^\s<>"']+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>"']*)?)/gi,
     (_match, imgPath) => {
       const fullUrl = getFullImageUrl(imgPath);
-      return `<p class="my-6"><img src="${fullUrl}" alt="Blog Image" class="w-full h-auto object-cover rounded-3xl border border-border-light shadow-lg" loading="lazy" /></p>`;
+      return `<img src="${fullUrl}" alt="Blog Image" class="w-full h-auto object-cover rounded-3xl my-6 border border-border-light shadow-lg" loading="lazy" />`;
     }
   );
 
-  // 2. Fix src attribute of existing <img> tags: src="/files/..." or src="/private/files/..."
+  // 2. Fix relative src="..." attributes on existing <img> tags
   html = html.replace(/src=["'](\/(?:private\/)?files\/[^"']+)["']/gi, (_match, imgPath) => {
     const fullUrl = getFullImageUrl(imgPath);
     return `src="${fullUrl}"`;

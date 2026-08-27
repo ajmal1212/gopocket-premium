@@ -1,13 +1,35 @@
 import { FrappeApp } from 'frappe-js-sdk';
 
-const FRAPPE_URL = import.meta.env.FRAPPE_URL || 'https://hrms.gopocket.in';
-const FRAPPE_TOKEN = import.meta.env.FRAPPE_TOKEN || 'ca55fb5157bea03:39f7391028b27b9';
+export const DEFAULT_FRAPPE_URL = 'https://hrms.gopocket.in';
+export const DEFAULT_FRAPPE_TOKEN = 'ca55fb5157bea03:39f7391028b27b9';
 
-export const frappe = new FrappeApp(FRAPPE_URL, {
-  useToken: true,
-  token: () => FRAPPE_TOKEN,
-  type: 'token'
-});
+export function getFrappeUrl(): string {
+  if (typeof process !== 'undefined' && process.env?.FRAPPE_URL) {
+    return process.env.FRAPPE_URL;
+  }
+  if (import.meta.env?.FRAPPE_URL) {
+    return import.meta.env.FRAPPE_URL;
+  }
+  return DEFAULT_FRAPPE_URL;
+}
+
+export function getFrappeToken(): string {
+  if (typeof process !== 'undefined' && process.env?.FRAPPE_TOKEN) {
+    return process.env.FRAPPE_TOKEN;
+  }
+  if (import.meta.env?.FRAPPE_TOKEN) {
+    return import.meta.env.FRAPPE_TOKEN;
+  }
+  return DEFAULT_FRAPPE_TOKEN;
+}
+
+export function getFrappeInstance(): FrappeApp {
+  return new FrappeApp(getFrappeUrl(), {
+    useToken: true,
+    token: () => getFrappeToken(),
+    type: 'token'
+  });
+}
 
 export interface SeminarDoc {
   name: string;
@@ -39,26 +61,21 @@ export interface FormattedSeminar {
   rawImage?: string | null;
 }
 
-/**
- * Normalizes image URL from Frappe
- */
 export function getFullImageUrl(imagePath?: string | null): string {
+  const baseUrl = getFrappeUrl();
   if (!imagePath) {
     return '/assets/images/learn1.jpeg';
   }
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     if (imagePath.includes('192.168.')) {
-      return imagePath.replace(/^http:\/\/[^/]+/, FRAPPE_URL);
+      return imagePath.replace(/^http:\/\/[^/]+/, baseUrl);
     }
     return imagePath;
   }
   const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-  return `${FRAPPE_URL}${cleanPath}`;
+  return `${baseUrl}${cleanPath}`;
 }
 
-/**
- * Formats raw Seminar doc from Frappe to clean frontend structure
- */
 export function formatSeminar(doc: SeminarDoc): FormattedSeminar {
   const title = doc.tittle || doc.title || 'Untitled Masterclass';
   const description = (doc.description || '').trim();
@@ -106,9 +123,6 @@ export function formatSeminar(doc: SeminarDoc): FormattedSeminar {
   };
 }
 
-/**
- * Formats current Date to Frappe datetime string (YYYY-MM-DD HH:mm:ss)
- */
 export function getCurrentFrappeDateTime(): string {
   const now = new Date();
   const year = now.getFullYear();
@@ -121,26 +135,87 @@ export function getCurrentFrappeDateTime(): string {
 }
 
 /**
- * Fetches seminars filtered by date_and_time >= cutoffDate (defaults to current time)
+ * Direct fetch fallback for Edge runtime (Cloudflare Workers) compatibility
+ */
+async function fetchSeminarsViaNativeFetch(filters?: any[]): Promise<SeminarDoc[]> {
+  const baseUrl = getFrappeUrl();
+  const token = getFrappeToken();
+  
+  let url = `${baseUrl}/api/resource/Seminar?fields=["*"]&order_by=date_and_time asc`;
+  if (filters && filters.length > 0) {
+    url += `&filters=${encodeURIComponent(JSON.stringify(filters))}`;
+  }
+
+  const res = await fetch(url, {
+    headers: {
+      'Authorization': `token ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP error ${res.status}: ${res.statusText}`);
+  }
+
+  const json = await res.json();
+  return json.data || [];
+}
+
+/**
+ * Fetches seminars with automatic fallback
  */
 export async function getSeminars(cutoffDate?: string): Promise<FormattedSeminar[]> {
-  try {
-    const db = frappe.db();
-    const targetDate = cutoffDate || getCurrentFrappeDateTime();
-    
-    const filters: any[] = [
-      ['Seminar', 'date_and_time', '>=', targetDate]
-    ];
+  const targetDate = cutoffDate || getCurrentFrappeDateTime();
+  const filters: any[] = [['Seminar', 'date_and_time', '>=', targetDate]];
 
+  // 1. Try via Frappe SDK
+  try {
+    const frappe = getFrappeInstance();
+    const db = frappe.db();
     const docs = await db.getDocList<SeminarDoc>('Seminar', {
       fields: ['*'],
       filters,
       orderBy: { field: 'date_and_time', order: 'asc' }
     });
 
-    return (docs || []).map(formatSeminar);
+    if (docs && docs.length > 0) {
+      return docs.map(formatSeminar);
+    }
   } catch (error) {
-    console.error('Error fetching seminars via Frappe SDK:', error);
+    console.warn('Frappe SDK query failed, trying native fetch fallback...', error);
+  }
+
+  // 2. Try via Native Fetch (Cloudflare Workers safe)
+  try {
+    const docs = await fetchSeminarsViaNativeFetch(filters);
+    if (docs && docs.length > 0) {
+      return docs.map(formatSeminar);
+    }
+  } catch (error) {
+    console.error('Native fetch query failed:', error);
+  }
+
+  // 3. Fallback: If filtered date returned 0 upcoming seminars, fetch all seminars
+  try {
+    const frappe = getFrappeInstance();
+    const db = frappe.db();
+    const docs = await db.getDocList<SeminarDoc>('Seminar', {
+      fields: ['*'],
+      limit: 10,
+      orderBy: { field: 'date_and_time', order: 'desc' }
+    });
+    if (docs && docs.length > 0) {
+      return docs.map(formatSeminar);
+    }
+  } catch {
+    // ignore
+  }
+
+  try {
+    const docs = await fetchSeminarsViaNativeFetch();
+    return docs.map(formatSeminar);
+  } catch (error) {
+    console.error('All seminar fetch strategies failed:', error);
     return [];
   }
 }
@@ -149,15 +224,38 @@ export async function getSeminars(cutoffDate?: string): Promise<FormattedSeminar
  * Fetches a single seminar by name (ID)
  */
 export async function getSeminarById(id: string): Promise<FormattedSeminar | null> {
+  // 1. Try via Frappe SDK
   try {
+    const frappe = getFrappeInstance();
     const db = frappe.db();
     const doc = await db.getDoc<SeminarDoc>('Seminar', id);
     if (doc) {
       return formatSeminar(doc);
     }
-    return null;
   } catch (error) {
-    console.error(`Error fetching seminar ${id} via Frappe SDK:`, error);
-    return null;
+    console.warn(`SDK getSeminarById failed for ${id}, trying native fetch...`, error);
   }
+
+  // 2. Try via Native Fetch
+  try {
+    const baseUrl = getFrappeUrl();
+    const token = getFrappeToken();
+    const res = await fetch(`${baseUrl}/api/resource/Seminar/${encodeURIComponent(id)}`, {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data) {
+        return formatSeminar(json.data);
+      }
+    }
+  } catch (error) {
+    console.error(`Native fetch getSeminarById failed for ${id}:`, error);
+  }
+
+  return null;
 }

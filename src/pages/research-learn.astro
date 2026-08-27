@@ -4,6 +4,10 @@ import Header from "../components/Header.astro";
 import Hero3 from "../components/Hero3.astro";
 import Footer from "../components/Footer.astro";
 import FinalCTA from "../components/FinalCTA.astro";
+import { getSeminars } from "../lib/frappe";
+
+// Fetch live seminars from Frappe Doctype 'Seminar'
+const seminars = await getSeminars();
 ---
 
 <Layout
@@ -16,7 +20,7 @@ import FinalCTA from "../components/FinalCTA.astro";
     <!-- Hero3 Component -->
     <Hero3 />
 
-    <!-- Webinars Section (Restructured using index.astro theme cards) -->
+    <!-- Webinars Section (Restructured using Frappe JS SDK Live Data) -->
     <section id="webinars">
       <div class="container space-y-10 md:space-y-16">
         <div class="mx-auto max-w-2xl text-center">
@@ -38,128 +42,74 @@ import FinalCTA from "../components/FinalCTA.astro";
         </div>
 
         <div class="grid grid-cols-1 gap-8 md:gap-10 max-w-5xl mx-auto">
-          
-          <!-- Card 1: Options Super Trader Program -->
-          <div
-            data-aos="fade-up-sm"
-            data-aos-delay="150"
-            class="bg-theme-light flex flex-col md:flex-row rounded-4xl p-6 md:p-8 gap-6 md:gap-10 items-center md:items-start border border-border-light hover:border-black/20 transition-all duration-300 shadow-xs"
-          >
-            <div
-              class="rounded-3xl overflow-hidden bg-white border border-border-light shadow-sm shrink-0"
-              style="width: 310px; max-width: 100%; aspect-ratio: 500 / 625; flex: 0 0 310px;"
-            >
-              <img
-                src="/assets/images/learn1.jpeg"
-                alt="Options Super Trader Program ONLINE (Free)"
-                class="w-full h-full object-cover rounded-3xl"
-                loading="lazy"
-              />
+          {seminars.length === 0 ? (
+            <div class="text-center py-12 text-gray-500 bg-theme-light rounded-3xl border border-border-light">
+              <p class="text-lg font-medium">No upcoming seminars found at the moment.</p>
+              <p class="text-sm mt-1">Please check back soon for live masterclasses & webinars.</p>
             </div>
-            <div class="flex flex-col justify-between space-y-6 w-full h-full" style="flex: 1 1 0%; min-width: 0;">
-              <div class="space-y-5">
-                <div class="flex flex-wrap items-center gap-2.5">
-                  <span class="bg-white text-emerald-700 px-3.5 py-1 rounded-full text-xs font-semibold border border-border-light">ONLINE</span>
-                  <span class="bg-primary/10 text-primary px-3.5 py-1 rounded-full text-xs font-semibold">FREE</span>
-                  <span class="text-xs text-text-default opacity-70 font-semibold">| Tamil</span>
+          ) : (
+            seminars.map((item, index) => (
+              <div
+                data-aos="fade-up-sm"
+                data-aos-delay={100 + index * 100}
+                class="bg-theme-light flex flex-col md:flex-row rounded-4xl p-6 md:p-8 gap-6 md:gap-10 items-center md:items-start border border-border-light hover:border-black/20 transition-all duration-300 shadow-xs"
+              >
+                <div
+                  class="rounded-3xl overflow-hidden bg-white border border-border-light shadow-sm shrink-0"
+                  style="width: 310px; max-width: 100%; aspect-ratio: 500 / 625; flex: 0 0 310px;"
+                >
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    class="w-full h-full object-cover rounded-3xl"
+                    loading="lazy"
+                  />
                 </div>
-                <h3 class="text-2xl md:text-3xl font-bold text-dark leading-snug">
-                  Options Super Trader Program ONLINE (Free)
-                </h3>
-                <div class="flex items-center gap-2.5 text-sm md:text-base font-mono text-text-default opacity-90 font-medium my-4 py-2 border-y border-border-light/60 max-w-fit">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
-                    <line x1="16" x2="16" y1="2" y2="6"></line>
-                    <line x1="8" x2="8" y1="2" y2="6"></line>
-                    <line x1="3" x2="21" y1="10" y2="10"></line>
-                  </svg>
-                  <span>2026-08-25 • 20:30</span>
-                </div>
-                <p class="text-text-default opacity-85 text-base md:text-lg/relaxed pt-1">
-                  Options Super Trader Program: Master two-day intensive option buying &amp; selling strategies with comprehensive risk control techniques.
-                </p>
-              </div>
+                <div class="flex flex-col justify-between space-y-6 w-full h-full" style="flex: 1 1 0%; min-width: 0;">
+                  <div class="space-y-5">
+                    <div class="flex flex-wrap items-center gap-2.5">
+                      <span class="bg-white text-emerald-700 px-3.5 py-1 rounded-full text-xs font-semibold border border-border-light uppercase">{item.type}</span>
+                      <span class="bg-primary/10 text-primary px-3.5 py-1 rounded-full text-xs font-semibold uppercase">{item.cost}</span>
+                      <span class="text-xs text-text-default opacity-70 font-semibold">| {item.language}</span>
+                    </div>
+                    <h3 class="text-2xl md:text-3xl font-bold text-dark leading-snug">
+                      {item.title}
+                    </h3>
+                    <div class="flex items-center gap-2.5 text-sm md:text-base font-mono text-text-default opacity-90 font-medium my-4 py-2 border-y border-border-light/60 max-w-fit">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                        <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                        <line x1="16" x2="16" y1="2" y2="6"></line>
+                        <line x1="8" x2="8" y1="2" y2="6"></line>
+                        <line x1="3" x2="21" y1="10" y2="10"></line>
+                      </svg>
+                      <span>{item.date_and_time || item.formattedDate}</span>
+                    </div>
+                    <p class="text-text-default opacity-85 text-base md:text-lg/relaxed pt-1 whitespace-pre-line">
+                      {item.description}
+                    </p>
+                  </div>
 
-              <div class="flex items-center gap-3 pt-4">
-                <a class="btn btn-primary text-flip-hover-anim cursor-pointer" href="/research-learn/20260825-2030/">
-                  <span class="text-flip-inner" data-content="Register">Register</span>
-                  <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
-                    <svg class="gradient-shape" width="150" height="28" viewBox="0 0 147 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433" stroke="currentColor" stroke-width="8"></path>
-                    </svg>
-                  </span>
-                </a>
-                <button class="p-3 bg-white border border-border-light rounded-full hover:bg-gray-50 text-dark transition-colors cursor-pointer shadow-xs" title="Download Material">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" x2="12" y1="15" y2="3"></line>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 2: Crude Oil and Natural Gas Options -->
-          <div
-            data-aos="fade-up-sm"
-            data-aos-delay="250"
-            class="bg-theme-light flex flex-col md:flex-row rounded-4xl p-6 md:p-8 gap-6 md:gap-10 items-center md:items-start border border-border-light hover:border-black/20 transition-all duration-300 shadow-xs"
-          >
-            <div
-              class="rounded-3xl overflow-hidden bg-white border border-border-light shadow-sm shrink-0"
-              style="width: 310px; max-width: 100%; aspect-ratio: 500 / 625; flex: 0 0 310px;"
-            >
-              <img
-                src="/assets/images/learn2.jpeg"
-                alt="Crude Oil and Natural Gas Options for Beginners ONLINE (Free)"
-                class="w-full h-full object-cover rounded-3xl"
-                loading="lazy"
-              />
-            </div>
-            <div class="flex flex-col justify-between space-y-6 w-full h-full" style="flex: 1 1 0%; min-width: 0;">
-              <div class="space-y-5">
-                <div class="flex flex-wrap items-center gap-2.5">
-                  <span class="bg-white text-emerald-700 px-3.5 py-1 rounded-full text-xs font-semibold border border-border-light">ONLINE</span>
-                  <span class="bg-primary/10 text-primary px-3.5 py-1 rounded-full text-xs font-semibold">FREE</span>
-                  <span class="text-xs text-text-default opacity-70 font-semibold">| Tamil</span>
+                  <div class="flex items-center gap-3 pt-4">
+                    <a class="btn btn-primary text-flip-hover-anim cursor-pointer" href={`/research-learn/${item.id}/`}>
+                      <span class="text-flip-inner" data-content="Register">Register</span>
+                      <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
+                        <svg class="gradient-shape" width="150" height="28" viewBox="0 0 147 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433" stroke="currentColor" stroke-width="8"></path>
+                        </svg>
+                      </span>
+                    </a>
+                    <button class="p-3 bg-white border border-border-light rounded-full hover:bg-gray-50 text-dark transition-colors cursor-pointer shadow-xs" title="Download Material">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" x2="12" y1="15" y2="3"></line>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-                <h3 class="text-2xl md:text-3xl font-bold text-dark leading-snug">
-                  Crude Oil and Natural Gas Options for Beginners ONLINE (Free)
-                </h3>
-                <div class="flex items-center gap-2.5 text-sm md:text-base font-mono text-text-default opacity-90 font-medium my-4 py-2 border-y border-border-light/60 max-w-fit">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
-                    <line x1="16" x2="16" y1="2" y2="6"></line>
-                    <line x1="8" x2="8" y1="2" y2="6"></line>
-                    <line x1="3" x2="21" y1="10" y2="10"></line>
-                  </svg>
-                  <span>2026-08-27 • 20:30</span>
-                </div>
-                <p class="text-text-default opacity-85 text-base md:text-lg/relaxed pt-1">
-                  Crude Oil and Natural Gas Options for Beginners: Learn MCX energy commodities trading, futures contracts, and options hedging step-by-step.
-                </p>
               </div>
-
-              <div class="flex items-center gap-3 pt-3">
-                <a class="btn btn-primary text-flip-hover-anim cursor-pointer" href="/research-learn/20260827-2030/">
-                  <span class="text-flip-inner" data-content="Register">Register</span>
-                  <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
-                    <svg class="gradient-shape" width="150" height="28" viewBox="0 0 147 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433" stroke="currentColor" stroke-width="8"></path>
-                    </svg>
-                  </span>
-                </a>
-                <button class="p-3 bg-white border border-border-light rounded-full hover:bg-gray-50 text-dark transition-colors cursor-pointer shadow-xs" title="Download Material">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" x2="12" y1="15" y2="3"></line>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
+            ))
+          )}
 
         </div>
       </div>

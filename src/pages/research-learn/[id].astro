@@ -2,50 +2,32 @@
 import Layout from "../../layouts/Layout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
+import { getSeminarById } from "../../lib/frappe";
 
 const { id } = Astro.params;
 
-// Webinar details mapping by date ID
-const webinarsMap: Record<string, {
-  title: string;
-  language: string;
-  dateStr: string;
-  timeStr: string;
-  image: string;
-  description: string;
-}> = {
-  "20260825-2030": {
-    title: "Options Super Trader Program ONLINE (Free)",
-    language: "Tamil",
-    dateStr: "August 25, 2026",
-    timeStr: "08:30 PM",
-    image: "/assets/images/learn1.jpeg",
-    description: "Two-day intensive program covering option buying, selling strategies, and comprehensive risk control techniques."
-  },
-  "20260827-2030": {
-    title: "Crude Oil and Natural Gas Options for Beginners (Tamil)",
-    language: "Tamil",
-    dateStr: "August 27, 2026",
-    timeStr: "08:30 PM",
-    image: "/assets/images/learn2.jpeg",
-    description: "Learn MCX energy commodities trading, futures contracts, and options hedging step-by-step with GoPocket experts."
-  }
+// Fetch seminar details from Frappe Doctype 'Seminar'
+const seminar = id ? await getSeminarById(id) : null;
+
+const webinar = seminar || {
+  id: id || "default",
+  title: "Stock Market & Options Trading Masterclass",
+  language: "Tamil",
+  date_and_time: "Upcoming",
+  formattedDate: "Upcoming",
+  formattedTime: "08:30 PM",
+  type: "Online",
+  cost: "Free",
+  image: "/assets/images/learn1.jpeg",
+  description: "Join live stock market trading masterclasses, commodity research, and options hedging step-by-step with GoPocket experts."
 };
 
-// Fallback if ID is different
-const webinar = webinarsMap[id || ""] || {
-  title: "Crude Oil and Natural Gas Options for Beginners (Tamil)",
-  language: "Tamil",
-  dateStr: "August 27, 2026",
-  timeStr: "08:30 PM",
-  image: "/assets/images/learn2.jpeg",
-  description: "Learn MCX energy commodities trading, futures contracts, and options hedging step-by-step with GoPocket experts."
-};
+const displayDate = webinar.date_and_time || webinar.formattedDate;
 ---
 
 <Layout
   title={`${webinar.title} - GoPocket Webinar Registration`}
-  description={`Register for ${webinar.title} on ${webinar.dateStr} at ${webinar.timeStr}. Free stock market & options trading masterclass.`}
+  description={`Register for ${webinar.title} on ${displayDate}. Free stock market & options trading masterclass.`}
 >
   <Header currentPath="/research-learn/" />
 
@@ -72,13 +54,17 @@ const webinar = webinarsMap[id || ""] || {
             <line x1="8" x2="8" y1="2" y2="6"></line>
             <line x1="3" x2="21" y1="10" y2="10"></line>
           </svg>
-          <span>{webinar.dateStr}</span>
-          <span class="opacity-40">•</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-          <span>Time: {webinar.timeStr}</span>
+          <span>{displayDate}</span>
+          {webinar.formattedTime && (
+            <>
+              <span class="opacity-40">•</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>Time: {webinar.formattedTime}</span>
+            </>
+          )}
         </p>
       </div>
 
@@ -106,11 +92,11 @@ const webinar = webinarsMap[id || ""] || {
           <div class="space-y-2.5" style="width: 400px; max-width: 100%;">
             <div class="flex items-center justify-between text-xs sm:text-sm p-3.5 bg-white/90 rounded-2xl border border-border-light/80 shadow-2xs">
               <span class="text-text-default opacity-75 font-medium">Mode</span>
-              <span class="font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200/60">ONLINE (Zoom)</span>
+              <span class="font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200/60 uppercase">{webinar.type}</span>
             </div>
             <div class="flex items-center justify-between text-xs sm:text-sm p-3.5 bg-white/90 rounded-2xl border border-border-light/80 shadow-2xs">
               <span class="text-text-default opacity-75 font-medium">Fee</span>
-              <span class="font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full">100% FREE</span>
+              <span class="font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full uppercase">{webinar.cost}</span>
             </div>
             <div class="flex items-center justify-between text-xs sm:text-sm p-3.5 bg-white/90 rounded-2xl border border-border-light/80 shadow-2xs">
               <span class="text-text-default opacity-75 font-medium">Language</span>

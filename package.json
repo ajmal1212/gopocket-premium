@@ -81,6 +81,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/node": "^26.4.0",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
     "typescript": "^5.8.2"

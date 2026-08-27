@@ -4,8 +4,9 @@ export const DEFAULT_FRAPPE_URL = 'https://hrms.gopocket.in';
 export const DEFAULT_FRAPPE_TOKEN = 'ca55fb5157bea03:39f7391028b27b9';
 
 export function getFrappeUrl(): string {
-  if (typeof process !== 'undefined' && process.env?.FRAPPE_URL) {
-    return process.env.FRAPPE_URL;
+  const proc = (globalThis as any).process;
+  if (proc?.env?.FRAPPE_URL) {
+    return proc.env.FRAPPE_URL;
   }
   if (import.meta.env?.FRAPPE_URL) {
     return import.meta.env.FRAPPE_URL;
@@ -14,8 +15,9 @@ export function getFrappeUrl(): string {
 }
 
 export function getFrappeToken(): string {
-  if (typeof process !== 'undefined' && process.env?.FRAPPE_TOKEN) {
-    return process.env.FRAPPE_TOKEN;
+  const proc = (globalThis as any).process;
+  if (proc?.env?.FRAPPE_TOKEN) {
+    return proc.env.FRAPPE_TOKEN;
   }
   if (import.meta.env?.FRAPPE_TOKEN) {
     return import.meta.env.FRAPPE_TOKEN;

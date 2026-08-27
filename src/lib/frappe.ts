@@ -302,21 +302,23 @@ export function formatPostBody(rawBody?: string): string {
 
   let html = rawBody;
 
-  // 1. Replace any raw image file paths (e.g. /files/xxx.jpg or /private/files/xxx.png) NOT inside src="..."
-  // Works inside <p>, <span>, <div>, or any HTML container!
+  // 1. Mask existing relative <img> src attributes so they don't contain '/files/' or '/private/files/'
+  html = html.replace(/src=["'](\/(?:private\/)?files\/[^"']+)["']/gi, (_match, imgPath) => {
+    const fullUrl = getFullImageUrl(imgPath).replace('/files/', '/__MASKED_FILES__/').replace('/private/files/', '/__MASKED_PRIVATE_FILES__/');
+    return `src="${fullUrl}"`;
+  });
+
+  // 2. Convert any remaining unmasked raw /files/ or /private/files/ text paths into responsive <img> elements
   html = html.replace(
-    /(?<!src=["'])\b(\/(?:private\/)?files\/[^\s<>"']+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>"']*)?)/gi,
-    (_match, imgPath) => {
-      const fullUrl = getFullImageUrl(imgPath);
+    /(\/(?:private\/)?files\/[^\s<>"']+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>"']*)?)/gi,
+    (match) => {
+      const fullUrl = getFullImageUrl(match);
       return `<img src="${fullUrl}" alt="Blog Image" class="w-full h-auto object-cover rounded-3xl my-6 border border-border-light shadow-lg" loading="lazy" />`;
     }
   );
 
-  // 2. Fix relative src="..." attributes on existing <img> tags
-  html = html.replace(/src=["'](\/(?:private\/)?files\/[^"']+)["']/gi, (_match, imgPath) => {
-    const fullUrl = getFullImageUrl(imgPath);
-    return `src="${fullUrl}"`;
-  });
+  // 3. Unmask existing <img> src attributes back to normal /files/ and /private/files/
+  html = html.replace(/__MASKED_FILES__/g, 'files').replace(/__MASKED_PRIVATE_FILES__/g, 'private/files');
 
   return html;
 }

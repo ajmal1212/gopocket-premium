@@ -11,6 +11,24 @@
   const initGlobalScripts = () => {
     // Initialize animated number counters
     initAnimatedNumbers();
+
+    // Resolve relative blog post body image URLs (/private/files/... and /files/...)
+    const fixProseImages = () => {
+      document.querySelectorAll<HTMLImageElement>(".prose-styles img, .content img, article img").forEach((img) => {
+        const src = img.getAttribute("src");
+        if (src && (src.startsWith("/private/files/") || src.startsWith("/files/"))) {
+          img.src = `https://www.gopocket.in${src}`;
+        }
+        img.addEventListener("error", () => {
+          const currentSrc = img.getAttribute("src");
+          if (currentSrc && !currentSrc.startsWith("http") && !img.dataset.fallbackTried) {
+            img.dataset.fallbackTried = "true";
+            img.src = `https://www.gopocket.in${currentSrc.startsWith("/") ? "" : "/"}${currentSrc}`;
+          }
+        });
+      });
+    };
+    fixProseImages();
     // Initialize smooth scrolling (kinetic momentum scroll)
     try {
       SmoothScroll({

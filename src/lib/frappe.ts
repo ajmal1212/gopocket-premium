@@ -297,6 +297,41 @@ export interface FormattedBlog {
   postBody?: string;
 }
 
+export function formatPostBody(rawBody?: string): string {
+  if (!rawBody) return '';
+
+  let html = rawBody;
+
+  // 1. Convert <p>/files/xxx.jpg</p> or <p>/private/files/xxx.jpg</p> into full image card markup
+  html = html.replace(
+    /<p>\s*(\/(?:private\/)?files\/[^\s<>]+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>]*)?)\s*<\/p>/gi,
+    (match, imgPath) => {
+      const fullUrl = getFullImageUrl(imgPath);
+      return `<div class="my-6 rounded-3xl overflow-hidden border border-border-light shadow-lg w-full bg-white"><img src="${fullUrl}" class="w-full h-auto object-cover rounded-3xl" loading="lazy" alt="Blog Post Image" /></div>`;
+    }
+  );
+
+  // 2. Convert plain text file paths /files/xxx.jpg not inside src=""
+  html = html.replace(
+    /(?<!src=["'])\b(\/(?:private\/)?files\/[^\s<>"']+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>"']*)?)/gi,
+    (match, imgPath) => {
+      const fullUrl = getFullImageUrl(imgPath);
+      return `<div class="my-6 rounded-3xl overflow-hidden border border-border-light shadow-lg w-full bg-white"><img src="${fullUrl}" class="w-full h-auto object-cover rounded-3xl" loading="lazy" alt="Blog Post Image" /></div>`;
+    }
+  );
+
+  // 3. Convert existing relative <img> tags
+  html = html.replace(
+    /<img\s+([^>]*?)src=["'](\/(?:private\/)?files\/[^"']+)["']([^>]*?)>/gi,
+    (match, p1, imgPath, p2) => {
+      const fullUrl = getFullImageUrl(imgPath);
+      return `<img ${p1}src="${fullUrl}"${p2} class="w-full h-auto object-cover rounded-3xl my-6 border border-border-light shadow-lg" loading="lazy" />`;
+    }
+  );
+
+  return html;
+}
+
 export function formatBlog(doc: BlogDoc): FormattedBlog {
   const title = doc.meta_tittle || doc.meta_title || 'Untitled Article';
   const description = (doc.meta_description || doc.post_summary || '').trim();
@@ -330,7 +365,7 @@ export function formatBlog(doc: BlogDoc): FormattedBlog {
     category: doc.blog_category || 'Finance',
     formattedDate,
     creation,
-    postBody: doc.post_body
+    postBody: formatPostBody(doc.post_body)
   };
 }
 

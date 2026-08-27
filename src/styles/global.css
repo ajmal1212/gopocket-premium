@@ -1763,9 +1763,16 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
   }
 }
 @layer components {
-  .prose-styles :where(img):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-    margin-top: 2em;
-    margin-bottom: 2em;
+  .prose-styles :where(img):not(:where([class~="not-prose"], [class~="not-prose"] *)),
+  .prose-styles img,
+  .prose-styles p img {
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   }
 }
 @layer components {

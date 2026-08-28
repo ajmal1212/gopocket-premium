@@ -66,7 +66,7 @@ if (!post) {
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           <!-- LEFT COLUMN: Expanded Post Content Body (9 Columns) -->
           <article
-            class="lg:col-span-9 bg-theme-light p-6 sm:p-10 md:p-12 rounded-3xl border border-border-light shadow-xs w-full overflow-hidden"
+            class="lg:col-span-9 bg-theme-light px-3 py-6 sm:px-5 sm:py-10 md:px-7 md:py-12 rounded-3xl border border-border-light shadow-xs w-full overflow-hidden"
           >
             {
               post.postBody ? (
@@ -228,9 +228,13 @@ if (!post) {
 
     // 1. Mask existing <img> tag src attributes so they don't contain '/files/'
     html = html.replace(/src=["']([^"']+)["']/gi, (match, srcVal) => {
-      if (srcVal.includes('/files/') || srcVal.includes('/private/files/')) {
-        const fullUrl = srcVal.startsWith('http') ? srcVal : `https://hrms.gopocket.in${srcVal.startsWith('/') ? '' : '/'}${srcVal}`;
-        const masked = fullUrl.replace('/files/', '/__MASKED_FILES__/').replace('/private/files/', '/__MASKED_PRIVATE_FILES__/');
+      if (srcVal.includes("/files/") || srcVal.includes("/private/files/")) {
+        const fullUrl = srcVal.startsWith("http")
+          ? srcVal
+          : `https://hrms.gopocket.in${srcVal.startsWith("/") ? "" : "/"}${srcVal}`;
+        const masked = fullUrl
+          .replace("/files/", "/__MASKED_FILES__/")
+          .replace("/private/files/", "/__MASKED_PRIVATE_FILES__/");
         return `src="${masked}"`;
       }
       return match;
@@ -240,13 +244,15 @@ if (!post) {
     html = html.replace(
       /(\/(?:private\/)?files\/[^\s<>"']+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>"']*)?)/gi,
       (match) => {
-        const fullUrl = match.startsWith('http') ? match : `https://hrms.gopocket.in${match.startsWith('/') ? '' : '/'}${match}`;
+        const fullUrl = match.startsWith("http")
+          ? match
+          : `https://hrms.gopocket.in${match.startsWith("/") ? "" : "/"}${match}`;
         return `<img src="${fullUrl}" alt="Blog Image" class="w-full h-auto object-cover rounded-3xl my-6 border border-border-light shadow-lg" loading="lazy" />`;
-      }
+      },
     );
 
     // 3. Unmask existing <img> src attributes
-    html = html.replace(/__MASKED_FILES__/g, 'files').replace(/__MASKED_PRIVATE_FILES__/g, 'private/files');
+    html = html.replace(/__MASKED_FILES__/g, "files").replace(/__MASKED_PRIVATE_FILES__/g, "private/files");
 
     editor.innerHTML = html;
 
@@ -256,13 +262,127 @@ if (!post) {
       if (src && (src.startsWith("/files/") || src.startsWith("/private/files/"))) {
         img.src = `https://hrms.gopocket.in${src}`;
       }
-      img.classList.add("w-full", "h-auto", "object-cover", "rounded-3xl", "my-6", "border", "border-border-light", "shadow-lg");
+      img.classList.add(
+        "w-full",
+        "h-auto",
+        "object-cover",
+        "rounded-3xl",
+        "my-6",
+        "border",
+        "border-border-light",
+        "shadow-lg",
+      );
     });
   }
 
-  if (document.readyState !== "loading") {
+  /**
+   * Quill emits bare `<table class="table table-bordered"><tbody>…` with no
+   * <thead>. Promote the bold first row to a real header, label every body cell
+   * for the mobile card layout, and wrap the table in a scroll region with an
+   * edge-fade affordance. Styling lives in src/styles/global.css.
+   */
+  function enhanceProseTablesInDOM() {
+    const editor = document.querySelector<HTMLElement>(".ql-editor");
+    if (!editor) return;
+
+    editor.querySelectorAll<HTMLTableElement>("table").forEach((table) => {
+      promoteHeaderRow(table);
+      labelBodyCells(table);
+      wrapInScrollRegion(table);
+    });
+  }
+
+  function looksLikeHeaderRow(row: HTMLTableRowElement) {
+    const cells = Array.from(row.children) as HTMLTableCellElement[];
+    if (!cells.length) return false;
+
+    return cells.every((cell) => {
+      if (cell.tagName === "TH") return true;
+      const text = (cell.textContent || "").trim();
+      const emphasis = cell.querySelector("strong, b");
+      // Every cell must be entirely bold for the row to read as a header.
+      return text.length > 0 && !!emphasis && (emphasis.textContent || "").trim().length >= text.length;
+    });
+  }
+
+  function promoteHeaderRow(table: HTMLTableElement) {
+    if (table.tHead) return;
+
+    const firstRow = table.querySelector<HTMLTableRowElement>("tr");
+    if (!firstRow || !looksLikeHeaderRow(firstRow)) return;
+
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+
+    Array.from(firstRow.children).forEach((cell) => {
+      const th = document.createElement("th");
+      th.innerHTML = cell.innerHTML;
+      th.scope = "col";
+      ["colspan", "rowspan", "style"].forEach((attr) => {
+        const value = cell.getAttribute(attr);
+        if (value) th.setAttribute(attr, value);
+      });
+      headRow.appendChild(th);
+    });
+
+    thead.appendChild(headRow);
+    firstRow.remove();
+    table.insertBefore(thead, table.firstChild);
+  }
+
+  function labelBodyCells(table: HTMLTableElement) {
+    const labels = Array.from(table.querySelectorAll("thead th, thead td")).map((cell) =>
+      (cell.textContent || "").trim(),
+    );
+    if (!labels.length) return;
+
+    table.querySelectorAll<HTMLTableRowElement>("tbody tr").forEach((row) => {
+      Array.from(row.children).forEach((cell, index) => {
+        const label = labels[index];
+        if (label) cell.setAttribute("data-label", label);
+      });
+    });
+  }
+
+  function wrapInScrollRegion(table: HTMLTableElement) {
+    const parent = table.parentElement;
+    if (!parent || parent.classList.contains("blog-table-scroll")) return;
+
+    const wrap = document.createElement("div");
+    wrap.className = "blog-table-wrap";
+
+    const scroller = document.createElement("div");
+    scroller.className = "blog-table-scroll";
+    scroller.setAttribute("role", "region");
+    scroller.setAttribute("aria-label", "Table");
+    scroller.tabIndex = 0;
+
+    parent.insertBefore(wrap, table);
+    wrap.appendChild(scroller);
+    scroller.appendChild(table);
+
+    const syncScrollState = () => {
+      const overflow = scroller.scrollWidth - scroller.clientWidth;
+      wrap.classList.toggle("is-scrollable", overflow > 4);
+      wrap.classList.toggle("is-scrolled-end", scroller.scrollLeft >= overflow - 4);
+    };
+
+    scroller.addEventListener("scroll", syncScrollState, { passive: true });
+    window.addEventListener("resize", syncScrollState);
+    if (typeof ResizeObserver !== "undefined") {
+      new ResizeObserver(syncScrollState).observe(scroller);
+    }
+    syncScrollState();
+  }
+
+  function enhanceProseContent() {
     formatProseImagesInDOM();
+    enhanceProseTablesInDOM();
+  }
+
+  if (document.readyState !== "loading") {
+    enhanceProseContent();
   } else {
-    document.addEventListener("DOMContentLoaded", formatProseImagesInDOM);
+    document.addEventListener("DOMContentLoaded", enhanceProseContent);
   }
 </script>

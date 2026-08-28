@@ -58,7 +58,7 @@ const { currentPath = "/" } = Astro.props;
             tabindex="-1"
           >
             <div class="md:flex">
-              <div class="p-2.5 md:p-5 lg:flex lg:flex-row lg:flex-wrap lg:justify-between">
+              <div class="p-2.5 md:p-5">
                 <ul class="[&>li:not(:first-child)>a]:py-3 w-full md:w-[320px]">
                   <li>
                     <a href="/research-learn" class="group/item flex gap-x-8 rounded-lg p-4 text-inherit transition-colors">
@@ -176,27 +176,8 @@ const { currentPath = "/" } = Astro.props;
                     </a>
                   </li>
                 </ul>
-              </div>
-              <div class="w-full space-y-5 bg-slate-50 p-5 md:ms-auto md:w-[320px]">
-                <img
-                  src="/assets/images/menu-cta.webp"
-                  srcset="/assets/images/menu-cta.webp 300w"
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  sizes="(min-width: 300px) 300px, 100vw"
-                  data-astro-image="constrained"
-                  data-astro-image-fit="cover"
-                  data-astro-image-pos="center"
-                  width="300"
-                  height="201"
-                  class="h-72 w-full rounded-xl object-cover object-top md:h-52"
-                />
-                <div class="space-y-1.5">
-                  <div class="text-lg tracking-normal">Start Learning Today</div>
-                  <p class="text-sm/relaxed opacity-80">Build your trading knowledge with expert-led guides.</p>
-                </div>
-                <a class="btn btn-primary text-flip-hover-anim" href="/research-learn"
+                <div class="border-border-light mt-2 w-full border-t px-4 pt-4 md:w-[320px]">
+                  <a class="btn btn-primary text-flip-hover-anim w-full justify-center" href="/research-learn"
                   ><span class="text-flip-inner" data-content="Explore Courses">Explore Courses</span><span
                     class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
                     ><svg
@@ -212,7 +193,8 @@ const { currentPath = "/" } = Astro.props;
                         stroke-width="8"></path></svg
                     ></span
                   ></a
-                >
+                  >
+                </div>
               </div>
             </div>
           </div>
@@ -334,8 +316,6 @@ const { currentPath = "/" } = Astro.props;
             </li><li class="nav-dropdown-item"><a href="/blog" class="nav-dropdown-link block"> Blog </a></li><li
               class="nav-dropdown-item"
             >
-              <a href="/blog/post-1" class="nav-dropdown-link block"> Blog Single </a>
-            </li><li class="nav-dropdown-item">
               <a href="/terms-conditions" class="nav-dropdown-link block"> Terms &amp; Conditions </a>
             </li>
           </ul>

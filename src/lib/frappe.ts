@@ -75,7 +75,24 @@ export function getFullImageUrl(imagePath?: string | null): string {
     return imagePath;
   }
   const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-  return `${baseUrl}${cleanPath}`;
+  return `${baseUrl}${encodeFilePath(cleanPath)}`;
+}
+
+/**
+ * Frappe file names often contain spaces and other unsafe characters
+ * (e.g. "/files/WhatsApp Image 2026-08-27 at 14.54.36.jpeg"). Encode each
+ * segment, leaving already-encoded segments (e.g. "GOPocket%20baner.jpg")
+ * untouched so they are not double-escaped.
+ */
+function encodeFilePath(path: string): string {
+  const [pathname, query = ''] = path.split(/\?(.*)/s);
+
+  const encoded = pathname
+    .split('/')
+    .map((segment) => (/%[0-9A-Fa-f]{2}/.test(segment) ? segment : encodeURIComponent(segment)))
+    .join('/');
+
+  return query ? `${encoded}?${query}` : encoded;
 }
 
 export function formatSeminar(doc: SeminarDoc): FormattedSeminar {
@@ -300,7 +317,14 @@ export interface FormattedBlog {
 export function formatPostBody(rawBody?: string): string {
   if (!rawBody) return '';
 
-  let html = rawBody;
+  let html = rawBody.trim();
+
+  // 0. Frappe stores the body already wrapped in <div class="ql-editor read-mode">.
+  //    The article template adds that wrapper itself, so unwrap to avoid nesting.
+  const wrapper = html.match(/^<div[^>]*class=["'][^"']*\bql-editor\b[^"']*["'][^>]*>([\s\S]*)<\/div>$/i);
+  if (wrapper) {
+    html = wrapper[1];
+  }
 
   // 1. Mask existing relative <img> src attributes so they don't contain '/files/' or '/private/files/'
   html = html.replace(/src=["'](\/(?:private\/)?files\/[^"']+)["']/gi, (_match, imgPath) => {
@@ -324,9 +348,11 @@ export function formatPostBody(rawBody?: string): string {
 }
 
 export function formatBlog(doc: BlogDoc): FormattedBlog {
-  const title = doc.meta_tittle || doc.meta_title || 'Untitled Article';
+  // Editor-entered fields regularly carry stray whitespace; trim so titles read
+  // cleanly and slugs never produce a "%20" tail in the URL.
+  const title = (doc.meta_tittle || doc.meta_title || 'Untitled Article').trim();
   const description = (doc.meta_description || doc.post_summary || '').trim();
-  const slug = doc.slug || String(doc.name);
+  const slug = (doc.slug || '').trim() || String(doc.name);
   const creation = doc.creation || '';
   
   let formattedDate = 'Recent';
@@ -421,84 +447,91 @@ export async function getBlogPosts(limit = 20): Promise<FormattedBlog[]> {
 }
 
 /**
- * Fetches a single blog post by slug or name (ID) with fields=["*"]
+ * Shared authenticated GET against the Frappe REST API.
+ * Returns the parsed `data` payload, or null on any non-OK / network failure.
+ */
+async function frappeResourceGet<T>(url: string, context: string): Promise<T | null> {
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `token ${getFrappeToken()}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!res.ok) {
+      if (res.status !== 404) {
+        console.warn(`Frappe ${context} responded ${res.status} for ${url}`);
+      }
+      return null;
+    }
+
+    const json = await res.json();
+    return (json?.data ?? null) as T | null;
+  } catch (error) {
+    console.error(`Frappe ${context} request failed:`, error);
+    return null;
+  }
+}
+
+/**
+ * Fetches one Blog document straight from the single-resource endpoint:
+ *   GET /api/resource/Blog/<name>
+ * This is the only call that reliably returns the full `post_body`.
+ */
+export async function getBlogDocByName(name: string | number): Promise<BlogDoc | null> {
+  const url = `${getFrappeUrl()}/api/resource/Blog/${encodeURIComponent(String(name))}`;
+  return frappeResourceGet<BlogDoc>(url, 'getBlogDocByName');
+}
+
+/**
+ * Resolves a pretty slug (used in /blog/<slug> URLs) to the Blog record id.
+ *   GET /api/resource/Blog?filters=[["slug","=","<slug>"]]&fields=["name"]
+ */
+export async function getBlogNameBySlug(slug: string): Promise<string | null> {
+  const params = new URLSearchParams({
+    filters: JSON.stringify([['slug', '=', slug]]),
+    fields: JSON.stringify(['name']),
+    limit_page_length: '1'
+  });
+
+  const url = `${getFrappeUrl()}/api/resource/Blog?${params.toString()}`;
+  const rows = await frappeResourceGet<Array<{ name: string | number }>>(url, 'getBlogNameBySlug');
+
+  if (Array.isArray(rows) && rows.length > 0 && rows[0]?.name != null) {
+    return String(rows[0].name);
+  }
+  return null;
+}
+
+/**
+ * Fetches a single blog post for /blog/<identifier>, where the identifier is
+ * either the record id (e.g. "1") or the slug.
+ *
+ * Both paths converge on GET /api/resource/Blog/<name> so the detail page
+ * always renders the same complete document.
  */
 export async function getBlogPostBySlugOrId(identifier: string): Promise<FormattedBlog | null> {
-  const baseUrl = getFrappeUrl();
-  const token = getFrappeToken();
+  const id = (identifier || '').trim();
+  if (!id) return null;
 
-  // 1. Try getDoc by name
-  try {
-    const frappe = getFrappeInstance();
-    const db = frappe.db();
-    const doc = await db.getDoc<BlogDoc>('Blog', identifier);
-    if (doc) {
-      return formatBlog(doc);
-    }
-  } catch {
-    // ignore
+  // 1. Numeric identifiers are record ids - fetch the document directly.
+  if (/^\d+$/.test(id)) {
+    const doc = await getBlogDocByName(id);
+    if (doc) return formatBlog(doc);
   }
 
-  // 2. Try native fetch by name endpoint
-  try {
-    const res = await fetch(`${baseUrl}/api/resource/Blog/${encodeURIComponent(identifier)}`, {
-      headers: {
-        'Authorization': `token ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (json.data) {
-        return formatBlog(json.data);
-      }
-    }
-  } catch {
-    // ignore
+  // 2. Otherwise resolve the slug to a record id, then fetch that document.
+  const nameFromSlug = await getBlogNameBySlug(id);
+  if (nameFromSlug) {
+    const doc = await getBlogDocByName(nameFromSlug);
+    if (doc) return formatBlog(doc);
   }
 
-  // 3. Try filter by slug
-  try {
-    const filters = [
-      ["Blog", "slug", "=", identifier]
-    ];
-    const url = `${baseUrl}/api/resource/Blog?filters=${encodeURIComponent(JSON.stringify(filters))}&fields=["*"]`;
-    const res = await fetch(url, {
-      headers: {
-        'Authorization': `token ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (json.data && json.data.length > 0) {
-        return formatBlog(json.data[0]);
-      }
-    }
-  } catch {
-    // ignore
-  }
-
-  // 4. Try filter by name
-  try {
-    const filters = [
-      ["Blog", "name", "=", identifier]
-    ];
-    const url = `${baseUrl}/api/resource/Blog?filters=${encodeURIComponent(JSON.stringify(filters))}&fields=["*"]`;
-    const res = await fetch(url, {
-      headers: {
-        'Authorization': `token ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (json.data && json.data.length > 0) {
-        return formatBlog(json.data[0]);
-      }
-    }
-  } catch {
-    // ignore
+  // 3. Last resort: the identifier may itself be a non-numeric record name.
+  if (!/^\d+$/.test(id)) {
+    const doc = await getBlogDocByName(id);
+    if (doc) return formatBlog(doc);
   }
 
   return null;

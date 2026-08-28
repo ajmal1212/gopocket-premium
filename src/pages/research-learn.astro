@@ -4,6 +4,7 @@ import Header from "../components/Header.astro";
 import Hero3 from "../components/Hero3.astro";
 import Footer from "../components/Footer.astro";
 import FinalCTA from "../components/FinalCTA.astro";
+import FAQSection from "../components/FAQSection.astro";
 import { getSeminars } from "../lib/frappe";
 
 // Fetch live seminars from Frappe Doctype 'Seminar'
@@ -290,50 +291,7 @@ const seminars = await getSeminars();
     </section>
 
     <!-- SEO Section 3: FAQ Section (Matching FinzoHome.astro / faq.astro style) -->
-    <section>
-      <div class="container space-y-10 md:space-y-16">
-        <div class="mx-auto max-w-2xl text-center">
-          <h2 class="has-italic-text capitalize">
-            <div
-              class="animated-text is-ready"
-              data-duration="0.6"
-              data-delay="0.2"
-              data-stagger="0.09"
-              style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
-            >
-              <span class="word" style="--word-index:0">Frequently</span>
-              <span class="word" style="--word-index:1">Asked</span>
-              <span class="word" style="--word-index:2">
-                <strong>Questions</strong>
-              </span>
-            </div>
-          </h2>
-          <p class="text-text-default opacity-80 mt-3">Everything you need to know about GoPocket research webinars &amp; learning programs.</p>
-        </div>
-
-        <div class="mx-auto max-w-3xl space-y-6">
-          <div class="bg-theme-light rounded-3xl p-6 md:p-8 border border-border-light space-y-2">
-            <h3 class="text-lg font-medium text-dark">Are GoPocket research webinars free to attend?</h3>
-            <p class="text-text-default opacity-80 text-sm/relaxed">Yes, all live online webinars, option trading workshops, and downloadable educational materials are 100% free for all registered users.</p>
-          </div>
-
-          <div class="bg-theme-light rounded-3xl p-6 md:p-8 border border-border-light space-y-2">
-            <h3 class="text-lg font-medium text-dark">How do I register for an upcoming session?</h3>
-            <p class="text-text-default opacity-80 text-sm/relaxed">Simply click the "Register" button on any upcoming webinar card. Enter your registered email or phone number to receive instant access links and calendar reminders.</p>
-          </div>
-
-          <div class="bg-theme-light rounded-3xl p-6 md:p-8 border border-border-light space-y-2">
-            <h3 class="text-lg font-medium text-dark">Can I watch recorded sessions of completed webinars?</h3>
-            <p class="text-text-default opacity-80 text-sm/relaxed">Yes, completed sessions marked with "Completed" allow you to download presentation slides and access archived video recordings at your convenience.</p>
-          </div>
-
-          <div class="bg-theme-light rounded-3xl p-6 md:p-8 border border-border-light space-y-2">
-            <h3 class="text-lg font-medium text-dark">What languages are the webinars conducted in?</h3>
-            <p class="text-text-default opacity-80 text-sm/relaxed">Our research analysts host live webinars in Tamil, Hindi, and English to cater to traders across all major regions in India.</p>
-          </div>
-        </div>
-      </div>
-    </section>
+    <FAQSection />
 
     <!-- Final Call to Action Section (Imported directly from FinalCTA component) -->
     <FinalCTA />

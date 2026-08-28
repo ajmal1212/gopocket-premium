@@ -1,0 +1,364 @@
+---
+interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+interface FaqCategory {
+  id: string;
+  label: string;
+  items: FaqItem[];
+}
+
+interface Props {
+  title?: string;
+  titleBold?: string;
+  description?: string;
+  buttonText?: string;
+  buttonHref?: string;
+  categories?: FaqCategory[];
+}
+
+const {
+  title = "asked questions",
+  titleBold = "Frequently",
+  description = "Everything you need to know — from what we do to how we do it — in one quick FAQ section.",
+  buttonText = "Contact Us",
+  buttonHref = "/contact",
+  categories = [
+    {
+      id: "general",
+      label: "General",
+      items: [
+        {
+          question: "What is GoPocket?",
+          answer:
+            "GoPocket is a next-generation online stock broking platform designed for Indian retail traders and investors. We provide lightning-fast order execution across Equities, Futures & Options (F&O), Commodities, Currencies, and IPOs with powerful charting tools and flat ₹20 brokerage.",
+        },
+        {
+          question: "Do you offer integrations with other tools?",
+          answer:
+            "Yes, we integrate with popular services such as TradingView, Sensibull, and more. Check our integrations page for the full list.",
+        },
+        {
+          question: "Can I customize the look and feel?",
+          answer:
+            "Absolutely! Our system includes flexible themes, watchlist customization, and styling options to match your trading preferences.",
+        },
+        {
+          question: "Is your platform mobile-friendly?",
+          answer:
+            "Yes, everything is fully responsive and optimized for all screen sizes. Download our app on Android and iOS.",
+        },
+      ],
+    },
+    {
+      id: "billing",
+      label: "Billing",
+      items: [
+        {
+          question: "What are the brokerage charges?",
+          answer:
+            "We follow a transparent flat pricing model: Equity Delivery is ₹0 (Free). Equity Intraday, Futures & Options (F&O), and Commodities are charged flat ₹20 per executed order or 0.03% (whichever is lower).",
+        },
+        {
+          question: "Do you offer a free account?",
+          answer:
+            "Yes! GoPocket charges ₹0 for Demat & Trading Account Opening. We also offer Zero Annual Maintenance Charges (AMC) for life.",
+        },
+        {
+          question: "Can I change my plan later?",
+          answer:
+            "Of course! You can upgrade, downgrade, or switch your plan anytime from your dashboard without any penalties.",
+        },
+        {
+          question: "How can I deposit and withdraw funds?",
+          answer:
+            "Fund transfers can be made 24/7 instantly via UPI, IMPS, or Net Banking. Withdrawals placed before 8:00 PM on trading days are processed on the same day.",
+        },
+      ],
+    },
+    {
+      id: "getting-started",
+      label: "Getting Started",
+      items: [
+        {
+          question: "How do I open a Demat & Trading account?",
+          answer:
+            "Opening an account is 100% digital and paperless! Click 'Open Account', submit your Aadhaar-linked mobile number, upload PAN and bank proof, and complete e-sign. Activation within a few hours.",
+        },
+        {
+          question: "Can I invite my team or family members?",
+          answer:
+            "Yes, you can refer friends and family through our referral program and earn rewards for each successful account opening.",
+        },
+        {
+          question: "How do I reset my password?",
+          answer:
+            "Simply click 'Forgot Password' on the login page and follow the instructions sent to your registered email or phone.",
+        },
+        {
+          question: "Do you offer onboarding assistance?",
+          answer:
+            "Yes, we provide guided onboarding, tutorials, and 24/7 customer support to help you get started quickly.",
+        },
+      ],
+    },
+    {
+      id: "security",
+      label: "Security",
+      items: [
+        {
+          question: "Is my data secure?",
+          answer:
+            "We use enterprise-grade encryption (256-bit SSL), two-factor authentication, and are registered with SEBI. All securities are stored safely with CDSL/NSDL.",
+        },
+        {
+          question: "Do you offer backups?",
+          answer:
+            "Your portfolio data and transaction history are automatically backed up and available anytime through your dashboard.",
+        },
+        {
+          question: "Is GoPocket SEBI registered?",
+          answer:
+            "Yes, GoPocket is registered with the Securities and Exchange Board of India (SEBI) and is an active member of NSE, BSE, MCX, and CDSL depository.",
+        },
+        {
+          question: "Does GoPocket offer API access?",
+          answer:
+            "Yes! GoPocket provides free, developer-grade REST & WebSocket APIs for algo traders, quantitative funds, and strategy builders.",
+        },
+      ],
+    },
+  ],
+} = Astro.props;
+---
+
+<section>
+  <div class="container">
+    <div
+      data-aos=""
+      class="after:bg-theme-light relative z-10 space-y-12 rounded-4xl p-6 after:absolute after:bottom-0 after:left-0 after:-z-10 after:size-full after:rounded-4xl after:transition-all after:duration-1000 md:space-y-16 md:p-14 after:lg:h-1/2 [.aos-animate]:after:h-full aos-init"
+    >
+      <!-- Header -->
+      <div class="flex flex-wrap justify-between gap-6">
+        <div class="max-w-sm">
+          <h2 class="has-italic-text capitalize"><strong>{titleBold}</strong> {title}</h2>
+        </div>
+        <div class="max-w-md space-y-6">
+          <p class="text-lg font-normal">
+            {description}
+          </p>
+          <a class="btn btn-primary text-flip-hover-anim btn-black" href={buttonHref}>
+            <span class="text-flip-inner" data-content={buttonText}>{buttonText}</span>
+            <span
+              class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
+            >
+              <svg
+                class="gradient-shape"
+                width="150"
+                height="28"
+                viewBox="0 0 147 11"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
+                  stroke="currentColor"
+                  stroke-width="8"></path>
+              </svg>
+            </span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="faq2-tabs-wrapper">
+        <div class="faq2-tab-nav flex flex-wrap gap-2 mb-8" role="tablist">
+          {categories.map((cat, catIndex) => (
+            <button
+              role="tab"
+              aria-selected={catIndex === 0 ? "true" : "false"}
+              aria-controls={`faq2-tab-${cat.id}`}
+              data-faq2-tab={cat.id}
+              class={`faq2-tab-btn rounded-full px-5 py-2 text-sm font-medium tracking-wider transition-all duration-300 cursor-pointer ${catIndex === 0 ? "bg-dark text-white" : "bg-white text-dark hover:bg-gray-100"}`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        <!-- Tab Panels -->
+        {categories.map((cat, catIndex) => (
+          <div
+            role="tabpanel"
+            id={`faq2-tab-${cat.id}`}
+            data-faq2-panel={cat.id}
+            class={`faq2-tab-panel space-y-5 ${catIndex === 0 ? "block" : "hidden"}`}
+          >
+            <div class="faq2-accordion-group space-y-5">
+              {cat.items.map((item, itemIndex) => {
+                const faqId = `faq2-${cat.id}-${itemIndex + 1}`;
+                const isFirstOfFirst = catIndex === 0 && itemIndex === 0;
+                return (
+                  <div
+                    class={`faq2-accordion rounded-lg px-5 bg-white ${isFirstOfFirst ? "active" : ""}`}
+                    id={faqId}
+                  >
+                    <button
+                      aria-expanded={isFirstOfFirst ? "true" : "false"}
+                      class="faq2-accordion-toggle flex w-full items-center justify-between py-5 text-start text-xl cursor-pointer"
+                      aria-controls={`faq2-content-${faqId}`}
+                      data-faq2-trigger
+                    >
+                      <span>{item.question}</span>
+                      <span class={`faq2-icon-wrapper rounded-sm p-1 transition duration-300 ${isFirstOfFirst ? "bg-theme-light" : ""}`}>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class={`faq2-icon-plus text-xl ${isFirstOfFirst ? "hidden" : ""}`}
+                        >
+                          <path d="M5 12h14"></path>
+                          <path d="M12 5v14"></path>
+                        </svg>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class={`faq2-icon-minus text-xl ${isFirstOfFirst ? "" : "hidden"}`}
+                        >
+                          <path d="M5 12h14"></path>
+                        </svg>
+                      </span>
+                    </button>
+                    <div
+                      role="region"
+                      id={`faq2-content-${faqId}`}
+                      aria-labelledby={faqId}
+                      class={`faq2-accordion-content overflow-hidden transition-[height] duration-300 ${isFirstOfFirst ? "" : "hidden"}`}
+                    >
+                      <div class="prose-styles pb-5 text-lg md:max-w-4xl">
+                        <p>{item.answer}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function initFaq2() {
+    // Tab switching
+    const tabBtns = document.querySelectorAll<HTMLElement>("[data-faq2-tab]");
+    const tabPanels = document.querySelectorAll<HTMLElement>("[data-faq2-panel]");
+
+    tabBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.getAttribute("data-faq2-tab");
+
+        // Update tab buttons
+        tabBtns.forEach((b) => {
+          b.classList.remove("bg-dark", "text-white");
+          b.classList.add("bg-white", "text-dark", "hover:bg-gray-100");
+          b.setAttribute("aria-selected", "false");
+        });
+        btn.classList.add("bg-dark", "text-white");
+        btn.classList.remove("bg-white", "text-dark", "hover:bg-gray-100");
+        btn.setAttribute("aria-selected", "true");
+
+        // Show/hide panels
+        tabPanels.forEach((panel) => {
+          if (panel.getAttribute("data-faq2-panel") === targetId) {
+            panel.classList.remove("hidden");
+            panel.classList.add("block");
+          } else {
+            panel.classList.add("hidden");
+            panel.classList.remove("block");
+          }
+        });
+      });
+    });
+
+    // Accordion toggle
+    const triggers = document.querySelectorAll<HTMLElement>("[data-faq2-trigger]");
+
+    triggers.forEach((trigger) => {
+      trigger.addEventListener("click", () => {
+        const isExpanded = trigger.getAttribute("aria-expanded") === "true";
+        const contentId = trigger.getAttribute("aria-controls");
+        if (!contentId) return;
+
+        const content = document.getElementById(contentId);
+        const iconPlus = trigger.querySelector<HTMLElement>(".faq2-icon-plus");
+        const iconMinus = trigger.querySelector<HTMLElement>(".faq2-icon-minus");
+        const iconWrapper = trigger.querySelector<HTMLElement>(".faq2-icon-wrapper");
+        const parentAccordion = trigger.closest(".faq2-accordion");
+
+        // Close all siblings in the same group
+        const group = trigger.closest(".faq2-accordion-group");
+        if (group) {
+          group.querySelectorAll<HTMLElement>("[data-faq2-trigger]").forEach((otherTrigger) => {
+            if (otherTrigger !== trigger) {
+              otherTrigger.setAttribute("aria-expanded", "false");
+              const otherId = otherTrigger.getAttribute("aria-controls");
+              if (otherId) {
+                const otherContent = document.getElementById(otherId);
+                if (otherContent) otherContent.classList.add("hidden");
+              }
+              const otherPlus = otherTrigger.querySelector<HTMLElement>(".faq2-icon-plus");
+              const otherMinus = otherTrigger.querySelector<HTMLElement>(".faq2-icon-minus");
+              const otherWrapper = otherTrigger.querySelector<HTMLElement>(".faq2-icon-wrapper");
+              const otherAccordion = otherTrigger.closest(".faq2-accordion");
+              if (otherPlus) otherPlus.classList.remove("hidden");
+              if (otherMinus) otherMinus.classList.add("hidden");
+              if (otherWrapper) otherWrapper.classList.remove("bg-theme-light");
+              if (otherAccordion) otherAccordion.classList.remove("active");
+            }
+          });
+        }
+
+        // Toggle current
+        if (isExpanded) {
+          trigger.setAttribute("aria-expanded", "false");
+          if (content) content.classList.add("hidden");
+          if (iconPlus) iconPlus.classList.remove("hidden");
+          if (iconMinus) iconMinus.classList.add("hidden");
+          if (iconWrapper) iconWrapper.classList.remove("bg-theme-light");
+          if (parentAccordion) parentAccordion.classList.remove("active");
+        } else {
+          trigger.setAttribute("aria-expanded", "true");
+          if (content) content.classList.remove("hidden");
+          if (iconPlus) iconPlus.classList.add("hidden");
+          if (iconMinus) iconMinus.classList.remove("hidden");
+          if (iconWrapper) iconWrapper.classList.add("bg-theme-light");
+          if (parentAccordion) parentAccordion.classList.add("active");
+        }
+      });
+    });
+  }
+
+  if (document.readyState !== "loading") {
+    initFaq2();
+  } else {
+    document.addEventListener("DOMContentLoaded", initFaq2);
+  }
+</script>

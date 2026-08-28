@@ -1,0 +1,209 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout
+  title="404 - Page Not Found | GoPocket"
+  description="Sorry, that page not be found. Let's get you back to somewhere familiar."
+  canonical="https://gopocket.in/404"
+>
+  <Header currentPath="/404" />
+
+  {/* Sky Background Section */}
+  <main class="error-page-main">
+    
+    {/* 404 Hero Section */}
+    <div class="error-hero">
+      
+      {/* 404 Text with Monster Overlay */}
+      <div class="error-numbers-wrapper">
+        {/* The "404" text */}
+        <span class="error-digit">4</span>
+        <span class="error-digit error-digit-zero">0</span>
+        <span class="error-digit">4</span>
+        
+        {/* Monster overlapping the "0" */}
+        <div class="error-monster-wrapper">
+          <img
+            src="/assets/images/gopocket/404.png"
+            alt="404 Mascot Monster"
+            class="error-monster-img"
+            loading="eager"
+            decoding="async"
+          />
+        </div>
+      </div>
+
+      {/* Text & Button */}
+      <div class="error-text-section">
+        <h1 class="error-heading">
+          Sorry, that page not be found
+        </h1>
+        <p class="error-subtitle">
+          Let's get you back to somewhere familiar
+        </p>
+      </div>
+
+      <div class="error-button-wrapper">
+        <a href="/" class="error-home-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span>Go to Home</span>
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@700&display=swap');
+
+    .error-page-main {
+      position: relative;
+      min-height: 85vh;
+      width: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #ffffff;
+      padding: 2rem 1rem;
+    }
+
+    .error-hero {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* 404 number container */
+    .error-numbers-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      width: 100%;
+      line-height: 1;
+    }
+
+    .error-digit {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(200px, 35vw, 480px);
+      font-weight: 700;
+      background: linear-gradient(180deg, #4a00c8 0%, #8b48ff 50%, #c4a0ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      opacity: 0.45;
+      letter-spacing: 0.15em;
+      line-height: 0.85;
+      position: relative;
+      z-index: 1;
+    }
+
+    .error-digit-zero {
+      /* The zero shows behind the monster */
+    }
+
+    /* Monster overlay - positioned over the "0" */
+    .error-monster-wrapper {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-46%);
+      z-index: 5;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .error-monster-img {
+      height: clamp(160px, 28vw, 340px);
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.15));
+    }
+
+    /* Text section */
+    .error-text-section {
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+
+    .error-heading {
+      font-size: clamp(1.5rem, 4vw, 2.75rem);
+      font-weight: 700;
+      color: #1e293b;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    .error-subtitle {
+      font-size: clamp(0.875rem, 1.8vw, 1.125rem);
+      color: #64748b;
+      margin-top: 0.5rem;
+      font-weight: 400;
+    }
+
+    /* Button */
+    .error-button-wrapper {
+      margin-top: 2rem;
+    }
+
+    .error-home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      background: white;
+      color: #374151;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      border: 1px solid rgba(209, 213, 219, 0.8);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .error-home-btn:hover {
+      background: #f9fafb;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .error-home-btn svg {
+      color: #6b7280;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+      .error-page-main {
+        min-height: 75vh;
+        padding: 1.5rem 1rem;
+      }
+
+      .error-text-section {
+        margin-top: 1rem;
+      }
+
+      .error-button-wrapper {
+        margin-top: 1.5rem;
+      }
+    }
+  </style>
+
+  <Footer />
+</Layout>

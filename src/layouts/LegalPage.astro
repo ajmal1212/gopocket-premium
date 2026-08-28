@@ -1,0 +1,95 @@
+---
+import Layout from "./Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import CallToAction2 from "../components/CallToAction2.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  heading: string;
+  intro?: string;
+  currentPath: string;
+  canonical?: string;
+}
+
+const { title, description, heading, intro = "", currentPath, canonical } = Astro.props;
+---
+
+<Layout title={title} description={description} canonical={canonical}>
+  {/* Sticky Header at root level of layout so position:sticky works without overflow-hidden trap */}
+  <Header currentPath={currentPath} />
+
+  {/* Top Hero Container with Background Pattern Shape extending up behind header via negative margin */}
+  <div class="relative overflow-hidden bg-theme-light/40 -mt-24 pt-24 pb-80 md:pb-[560px] z-0">
+    {/* Pattern shape with narrower stripe boxes and soft gradual fade mask */}
+    <div
+      class="pattern-shape pointer-events-none absolute top-0 left-0 z-0 flex h-full w-[160%] opacity-28 select-none [mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)]"
+      style="transform: translateX(-150px);"
+    >
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-b"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-t"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-b"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-t"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-b"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-t"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-b"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-t"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-b"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-t"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-b"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-t"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-b"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-t"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-b"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-t"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-b"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-t"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-b"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-t"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-b"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-t"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-b"></div>
+      <div class="from-primary/25 h-full w-12 md:w-[6.25%] border-r border-white/60 to-transparent bg-gradient-to-t"></div>
+    </div>
+
+    <section class="relative z-10 mt-0 py-10 md:pt-16 md:pb-12 text-center">
+      <div class="container">
+        <div class="mx-auto max-w-4xl text-center">
+          <h1 class="has-italic-text text-h2 text-center capitalize">{heading}</h1>
+          {intro && <p class="mt-3 text-center text-gray-600">{intro}</p>}
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <main class="has-section-spacing-lg">
+    <div
+      class="page-loader pointer-events-none fixed bottom-0 left-0 z-50 size-full bg-white transition duration-300 [.inactive]:opacity-0 inactive"
+    >
+      <script type="module" is:inline>
+        const e = document.querySelector(".page-loader");
+        document.addEventListener("DOMContentLoaded", () => {
+          e &&
+            setTimeout(() => {
+              e.classList.add("inactive");
+            }, 100);
+        });
+      </script>
+    </div>
+
+    <section class="pt-0 -mt-64 md:-mt-[440px] relative z-20">
+      <div class="container">
+        <div class="box-shadow-black mx-auto max-w-6xl space-y-16 rounded-xl bg-white/85 backdrop-blur-xs p-8 md:p-12">
+          <div class="prose-styles content has-video-modal">
+            <slot />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <CallToAction2 />
+  </main>
+  
+  <Footer />
+</Layout>

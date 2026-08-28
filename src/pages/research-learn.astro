@@ -14,7 +14,7 @@ const seminars = await getSeminars();
   title="Research & Learn - GoPocket Trading Masterclasses & Webinars"
   description="Join live free stock market webinars, options trading workshops, commodity research sessions, and interactive trading masterclasses with GoPocket experts."
 >
-  <Header currentPath="/research-learn/" />
+  <Header currentPath="/research-learn" />
 
   <main class="has-section-spacing-lg">
     <!-- Hero3 Component -->
@@ -90,7 +90,7 @@ const seminars = await getSeminars();
                   </div>
 
                   <div class="flex items-center gap-3 pt-4">
-                    <a class="btn btn-primary text-flip-hover-anim cursor-pointer" href={`/research-learn/${item.id}/`}>
+                    <a class="btn btn-primary text-flip-hover-anim cursor-pointer" href={`/research-learn/${item.id}`}>
                       <span class="text-flip-inner" data-content="Register">Register</span>
                       <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
                         <svg class="gradient-shape" width="150" height="28" viewBox="0 0 147 11" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -16,6 +16,7 @@ const polyfillCode = `if (typeof globalThis.MessageChannel === 'undefined') {
 export default defineConfig({
   output: "server",
   adapter: cloudflare(),
+  trailingSlash: "never",
   integrations: [react()],
   vite: {
     plugins: [

@@ -11,12 +11,12 @@ const { slug } = Astro.params;
 const post = slug ? await getBlogPostBySlugOrId(slug) : null;
 
 if (!post) {
-  return Astro.redirect("/blog/");
+  return Astro.redirect("/blog");
 }
 ---
 
 <Layout title={`${post.title} - GoPocket Blog`} description={post.description || post.summary}>
-  <Header currentPath="/blog/" />
+  <Header currentPath="/blog" />
 
   <main class="has-section-spacing-lg pt-8 md:pt-16">
     <!-- Article Header -->
@@ -80,7 +80,7 @@ if (!post) {
 
             <!-- Back to Blog Button -->
             <div class="pt-8 mt-10 border-t border-border-light/80 flex items-center justify-between">
-              <a href="/blog/" class="btn btn-outline text-flip-hover-anim btn-sm cursor-pointer">
+              <a href="/blog" class="btn btn-outline text-flip-hover-anim btn-sm cursor-pointer">
                 <span class="text-flip-inner" data-content="← Back to All Articles">← Back to All Articles</span>
                 <span
                   class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"

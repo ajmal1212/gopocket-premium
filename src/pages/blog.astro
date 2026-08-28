@@ -15,7 +15,7 @@ const regularPosts = posts.length > 1 ? posts.slice(1) : posts;
   title="GoPocket Blog - Trading Insights, Algo Trading & Financial News"
   description="Discover practical tips, algo trading insights, options strategies, and market news designed to help you trade smarter."
 >
-  <Header currentPath="/blog/" />
+  <Header currentPath="/blog" />
   <main class="has-section-spacing-lg pt-8 md:pt-16">
     <!-- Featured Top Post -->
     {featuredPost && (
@@ -29,7 +29,7 @@ const regularPosts = posts.length > 1 ? posts.slice(1) : posts;
                 loading="lazy"
                 class="w-full h-full object-cover rounded-3xl transition duration-500 group-hover:scale-105"
               />
-              <a class="absolute inset-0 z-30" href={`/blog/${featuredPost.slug}/`}>
+              <a class="absolute inset-0 z-30" href={`/blog/${featuredPost.slug}`}>
                 <span class="sr-only">Read {featuredPost.title}</span>
               </a>
             </div>
@@ -40,7 +40,7 @@ const regularPosts = posts.length > 1 ? posts.slice(1) : posts;
                 <span class="text-primary font-semibold uppercase">{featuredPost.category}</span>
               </div>
               <h2 class="md:text-h3 text-2xl font-bold text-dark leading-snug">
-                <a href={`/blog/${featuredPost.slug}/`} class="hover:text-primary transition-colors">
+                <a href={`/blog/${featuredPost.slug}`} class="hover:text-primary transition-colors">
                   {featuredPost.title}
                 </a>
               </h2>
@@ -49,7 +49,7 @@ const regularPosts = posts.length > 1 ? posts.slice(1) : posts;
               </p>
               <a
                 class="btn btn-outline text-flip-hover-anim btn-sm btn-outline-white mt-3 capitalize inline-flex cursor-pointer"
-                href={`/blog/${featuredPost.slug}/`}
+                href={`/blog/${featuredPost.slug}`}
               >
                 <span class="text-flip-inner" data-content="Read Article">Read Article</span>
                 <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
@@ -84,7 +84,7 @@ const regularPosts = posts.length > 1 ? posts.slice(1) : posts;
                       loading="lazy"
                       class="w-full h-full object-cover rounded-2xl transition duration-500 group-hover:scale-105"
                     />
-                    <a class="absolute inset-0 z-30" href={`/blog/${post.slug}/`}>
+                    <a class="absolute inset-0 z-30" href={`/blog/${post.slug}`}>
                       <span class="sr-only">Read {post.title}</span>
                     </a>
                   </div>
@@ -95,7 +95,7 @@ const regularPosts = posts.length > 1 ? posts.slice(1) : posts;
                       <span class="text-primary font-semibold uppercase">{post.category}</span>
                     </div>
                     <h3 class="text-xl font-bold text-dark leading-snug line-clamp-2">
-                      <a href={`/blog/${post.slug}/`} class="hover:text-primary transition-colors">
+                      <a href={`/blog/${post.slug}`} class="hover:text-primary transition-colors">
                         {post.title}
                       </a>
                     </h3>
@@ -107,7 +107,7 @@ const regularPosts = posts.length > 1 ? posts.slice(1) : posts;
                 <div class="pt-5 mt-4 border-t border-border-light/60">
                   <a
                     class="btn btn-outline text-flip-hover-anim btn-sm btn-outline-white capitalize inline-flex cursor-pointer"
-                    href={`/blog/${post.slug}/`}
+                    href={`/blog/${post.slug}`}
                   >
                     <span class="text-flip-inner" data-content="Read Article">Read Article</span>
                     <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">

@@ -10,7 +10,7 @@ const { currentPath = "/" } = Astro.props;
     <nav
       class="hs-dropdown relative flex items-center justify-between px-2 py-2.5 [--auto-close:inside] [--gpu-acceleration:false] [--strategy:absolute] lg:[--strategy:static]"
     >
-      <a href="/" class="logo-wrapper" style="margin-left:20px">
+      <a href="/" class="logo-wrapper">
         <img
           src="/gopocket-logo.svg"
           alt="Brand logo of GoPocket"
@@ -771,6 +771,10 @@ const { currentPath = "/" } = Astro.props;
         if (lastScrollY > 0) header.classList.add("scroll-up");
         const updateHeader = () => {
           const scrollY = Math.max(0, window.scrollY);
+          if (scrollY === lastScrollY) {
+            ticking = false;
+            return;
+          }
           if (scrollY === 0) {
             header.classList.remove("scroll-up", "scroll-down");
           } else if (lastScrollY > scrollY) {

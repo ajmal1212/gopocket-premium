@@ -446,6 +446,22 @@ a {
     clip-path 0.8s ease,
     transform 0.8s ease;
 }
+
+/* Must stay unlayered, next to the from-states above: an unlayered declaration
+   outranks anything in @layer components regardless of specificity, so a to-state
+   inside the layer would never win. */
+[data-aos="reveal-anim-left"].aos-animate,
+[data-aos="reveal-anim-right"].aos-animate {
+  opacity: 1;
+  clip-path: inset(0);
+  transform: translate(0);
+}
+[data-aos="reveal-anim-top"].aos-animate,
+[data-aos="reveal-anim-bottom"].aos-animate {
+  opacity: 1;
+  clip-path: inset(0);
+  transform: translateY(0);
+}
 @keyframes animated-text-reveal {
   to {
     opacity: 1;
@@ -807,34 +823,6 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
   }
 }
 @layer components {
-  [data-aos="reveal-anim-right"].aos-animate {
-    opacity: 1;
-    clip-path: inset(0);
-    transform: translate(0);
-  }
-}
-@layer components {
-  [data-aos="reveal-anim-left"].aos-animate {
-    opacity: 1;
-    clip-path: inset(0);
-    transform: translate(0);
-  }
-}
-@layer components {
-  [data-aos="reveal-anim-top"].aos-animate {
-    opacity: 1;
-    clip-path: inset(0);
-    transform: translateY(0);
-  }
-}
-@layer components {
-  [data-aos="reveal-anim-bottom"].aos-animate {
-    opacity: 1;
-    clip-path: inset(0);
-    transform: translateY(0);
-  }
-}
-@layer components {
   .header {
     z-index: 30;
     width: 100%;
@@ -845,10 +833,7 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
   .header.sticky-header {
     top: calc(var(--spacing) * 6);
     z-index: 50;
-    transition-property:
-      transform,
-      opacity,
-      0.3s background;
+    transition-property: background-color;
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
     transition-duration: var(--tw-duration, var(--default-transition-duration));
     --tw-duration: 0.5s;
@@ -863,17 +848,18 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
 
 
   /* Sticky Header Scroll & Fade Animations */
+  .header {
+    /* Every part of the compact-mode switch (container width, nav-link padding,
+       logo margin, CTA padding) must share one curve and one duration, otherwise
+       the pieces desync mid-transition and the bar visibly bumps. */
+    --header-compact-duration: 0.3s;
+    --header-compact-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
   .header.sticky-header {
     position: sticky;
     top: calc(var(--spacing) * 5);
     z-index: 50;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-  }
-
-  .header.sticky-header.scroll-down,
-  .header.sticky-header.scroll-up {
-    transform: translateY(0);
-    opacity: 1;
   }
 
   /* Desktop Dropdowns (>= 1024px) */
@@ -1007,8 +993,14 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
 }
 @layer components {
   .logo-wrapper {
-    transition: margin 0.3s ease;
+    transition: margin var(--header-compact-duration, 0.3s) var(--header-compact-ease, ease);
     flex-shrink: 0;
+  }
+
+  /* Was an inline style on the header's logo anchor; kept here so the normal and
+     compact margins live in the same place and animate off the same curve. */
+  .header .logo-wrapper {
+    margin-left: 20px;
   }
 }
 @layer components {
@@ -1019,8 +1011,8 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
 @layer components {
   .logo-wrapper .logo {
     transition:
-      width 0.3s ease,
-      height 0.3s ease;
+      width var(--header-compact-duration, 0.3s) var(--header-compact-ease, ease),
+      height var(--header-compact-duration, 0.3s) var(--header-compact-ease, ease);
   }
 }
 @layer components {
@@ -1030,6 +1022,14 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
   }
 }
 @layer components {
+  /* .btn's own transition-property list excludes padding, so without this the CTA
+     snaps to its compact width instantly while the rest of the bar eases. */
+  .header .btn.btn-primary {
+    transition-property: padding, color, background-color, border-color, box-shadow, transform;
+    transition-duration: var(--header-compact-duration);
+    transition-timing-function: var(--header-compact-ease);
+  }
+
   :is(.header.scroll-down, .header.scroll-up) .btn.btn-primary {
     padding-inline: calc(var(--spacing) * 6) !important;
   }
@@ -1043,14 +1043,13 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
 }
 @layer components {
   .header > .container {
-    transition-property: all;
-    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
-    transition-duration: var(--tw-duration, var(--default-transition-duration));
-    --tw-duration: 0.3s;
-    --tw-ease: cubic-bezier(0.617, 1.5, 0.68, 1);
+    /* Only max-width changes between normal and compact mode, so transition that
+       alone. The stock theme used an overshooting spring here; with this header's
+       much larger compact delta the overshoot reads as a bump, so use an ease-out. */
+    transition-property: max-width;
     margin-inline: auto;
-    transition-duration: 0.3s;
-    transition-timing-function: cubic-bezier(0.617, 1.5, 0.68, 1);
+    transition-duration: var(--header-compact-duration);
+    transition-timing-function: var(--header-compact-ease);
   }
 }
 @layer components {
@@ -1315,12 +1314,10 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
     --tw-font-weight: var(--font-weight-normal);
     font-weight: var(--font-weight-normal);
     transition-property: all;
-    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
-    transition-duration: var(--tw-duration, var(--default-transition-duration));
-    --tw-duration: 0.3s;
+    transition-duration: var(--header-compact-duration, 0.3s);
+    transition-timing-function: var(--header-compact-ease, ease);
     border-radius: 3.40282e38px;
     align-items: center;
-    transition-duration: 0.3s;
     display: flex;
   }
 }

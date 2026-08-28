@@ -71,14 +71,11 @@ export function animateNumber(element: HTMLElement, target: number) {
   const formattedStr = isFloat ? target.toFixed(1) : Math.round(target).toLocaleString("en-US");
 
   element.classList.add("odometer", "odometer-auto-theme");
+  element.innerHTML = "";
 
-  let inside = element.querySelector<HTMLElement>(".odometer-inside");
-  if (!inside) {
-    inside = document.createElement("div");
-    inside.className = "odometer-inside";
-    element.appendChild(inside);
-  }
-  inside.innerHTML = "";
+  const inside = document.createElement("div");
+  inside.className = "odometer-inside";
+  element.appendChild(inside);
 
   const digitsCount = formattedStr.replace(/\D/g, "").length;
   let digitCounter = 0;

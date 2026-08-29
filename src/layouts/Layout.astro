@@ -42,7 +42,7 @@ const {
     {/*
       Resolves the theme before first paint so the page never flashes light
       before switching to dark. This has to stay inline and blocking in <head>;
-      an Astro <script> is deferred and would paint the wrong theme first.
+      an Astro script tag is deferred and would paint the wrong theme first.
     */}
     <script is:inline>
       (function () {

@@ -164,6 +164,7 @@ html[data-a11y-adhd="true"] #a11y-adhd-bar {
 
 /* Accessibility Floating Toggle Button */
 .a11y-trigger-btn {
+  display: none !important;
   position: fixed;
   bottom: 24px;
   right: 24px;

@@ -202,17 +202,17 @@ const {
                 const isFirstOfFirst = catIndex === 0 && itemIndex === 0;
                 return (
                   <div
-                    class={`faq2-accordion rounded-lg px-5 bg-white ${isFirstOfFirst ? "active" : ""}`}
+                    class={`faq2-accordion rounded-xl px-6 bg-white border border-gray-100 dark:border-gray-800 transition-all duration-300 ${isFirstOfFirst ? "active shadow-xs" : ""}`}
                     id={faqId}
                   >
                     <button
                       aria-expanded={isFirstOfFirst ? "true" : "false"}
-                      class="faq2-accordion-toggle flex w-full items-center justify-between py-5 text-start text-xl cursor-pointer"
+                      class="faq2-accordion-toggle flex w-full items-center justify-between py-5 text-start text-lg sm:text-xl font-bold cursor-pointer group"
                       aria-controls={`faq2-content-${faqId}`}
                       data-faq2-trigger
                     >
-                      <span>{item.question}</span>
-                      <span class={`faq2-icon-wrapper rounded-sm p-1 transition duration-300 ${isFirstOfFirst ? "bg-theme-light" : ""}`}>
+                      <span class="text-dark transition-colors duration-200 group-hover:text-primary">{item.question}</span>
+                      <span class={`faq2-icon-wrapper rounded-lg p-1.5 transition-all duration-300 ${isFirstOfFirst ? "bg-theme-light rotate-180" : ""}`}>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="24"
@@ -220,7 +220,7 @@ const {
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
-                          stroke-width="2"
+                          stroke-width="2.5"
                           stroke-linecap="round"
                           stroke-linejoin="round"
                           class={`faq2-icon-plus text-xl ${isFirstOfFirst ? "hidden" : ""}`}
@@ -235,7 +235,7 @@ const {
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
-                          stroke-width="2"
+                          stroke-width="2.5"
                           stroke-linecap="round"
                           stroke-linejoin="round"
                           class={`faq2-icon-minus text-xl ${isFirstOfFirst ? "" : "hidden"}`}
@@ -248,9 +248,10 @@ const {
                       role="region"
                       id={`faq2-content-${faqId}`}
                       aria-labelledby={faqId}
-                      class={`faq2-accordion-content overflow-hidden transition-[height] duration-300 ${isFirstOfFirst ? "" : "hidden"}`}
+                      class="faq2-accordion-content overflow-hidden"
+                      style={isFirstOfFirst ? "max-height: none; opacity: 1; display: block;" : "max-height: 0px; opacity: 0; display: none;"}
                     >
-                      <div class="prose-styles pb-5 text-lg md:max-w-4xl">
+                      <div class="prose-styles pb-6 text-base sm:text-lg text-text-default opacity-85 leading-relaxed md:max-w-4xl border-t border-gray-100 dark:border-gray-800/60 pt-4">
                         <p>{item.answer}</p>
                       </div>
                     </div>
@@ -266,6 +267,45 @@ const {
 </section>
 
 <script>
+  function openAccordion(content: HTMLElement | null) {
+    if (!content) return;
+    content.style.display = "block";
+    const height = content.scrollHeight + "px";
+    content.style.maxHeight = "0px";
+    content.style.opacity = "0";
+    content.style.transition = "max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease";
+    
+    requestAnimationFrame(() => {
+      content.style.maxHeight = height;
+      content.style.opacity = "1";
+    });
+
+    setTimeout(() => {
+      if (content.style.maxHeight !== "0px") {
+        content.style.maxHeight = "none";
+      }
+    }, 360);
+  }
+
+  function closeAccordion(content: HTMLElement | null) {
+    if (!content) return;
+    if (content.style.maxHeight === "none") {
+      content.style.maxHeight = content.scrollHeight + "px";
+    }
+    content.style.transition = "max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease";
+    
+    requestAnimationFrame(() => {
+      content.style.maxHeight = "0px";
+      content.style.opacity = "0";
+    });
+
+    setTimeout(() => {
+      if (content.style.maxHeight === "0px") {
+        content.style.display = "none";
+      }
+    }, 360);
+  }
+
   function initFaq2() {
     // Tab switching
     const tabBtns = document.querySelectorAll<HTMLElement>("[data-faq2-tab]");
@@ -313,7 +353,7 @@ const {
         const iconWrapper = trigger.querySelector<HTMLElement>(".faq2-icon-wrapper");
         const parentAccordion = trigger.closest(".faq2-accordion");
 
-        // Close all siblings in the same group
+        // Close all siblings in the same group smoothly
         const group = trigger.closest(".faq2-accordion-group");
         if (group) {
           group.querySelectorAll<HTMLElement>("[data-faq2-trigger]").forEach((otherTrigger) => {
@@ -322,7 +362,7 @@ const {
               const otherId = otherTrigger.getAttribute("aria-controls");
               if (otherId) {
                 const otherContent = document.getElementById(otherId);
-                if (otherContent) otherContent.classList.add("hidden");
+                closeAccordion(otherContent);
               }
               const otherPlus = otherTrigger.querySelector<HTMLElement>(".faq2-icon-plus");
               const otherMinus = otherTrigger.querySelector<HTMLElement>(".faq2-icon-minus");
@@ -330,27 +370,36 @@ const {
               const otherAccordion = otherTrigger.closest(".faq2-accordion");
               if (otherPlus) otherPlus.classList.remove("hidden");
               if (otherMinus) otherMinus.classList.add("hidden");
-              if (otherWrapper) otherWrapper.classList.remove("bg-theme-light");
-              if (otherAccordion) otherAccordion.classList.remove("active");
+              if (otherWrapper) {
+                otherWrapper.classList.remove("bg-theme-light");
+                otherWrapper.classList.remove("rotate-180");
+              }
+              if (otherAccordion) otherAccordion.classList.remove("active", "shadow-xs");
             }
           });
         }
 
-        // Toggle current
+        // Toggle current with smooth height animation
         if (isExpanded) {
           trigger.setAttribute("aria-expanded", "false");
-          if (content) content.classList.add("hidden");
+          closeAccordion(content);
           if (iconPlus) iconPlus.classList.remove("hidden");
           if (iconMinus) iconMinus.classList.add("hidden");
-          if (iconWrapper) iconWrapper.classList.remove("bg-theme-light");
-          if (parentAccordion) parentAccordion.classList.remove("active");
+          if (iconWrapper) {
+            iconWrapper.classList.remove("bg-theme-light");
+            iconWrapper.classList.remove("rotate-180");
+          }
+          if (parentAccordion) parentAccordion.classList.remove("active", "shadow-xs");
         } else {
           trigger.setAttribute("aria-expanded", "true");
-          if (content) content.classList.remove("hidden");
+          openAccordion(content);
           if (iconPlus) iconPlus.classList.add("hidden");
           if (iconMinus) iconMinus.classList.remove("hidden");
-          if (iconWrapper) iconWrapper.classList.add("bg-theme-light");
-          if (parentAccordion) parentAccordion.classList.add("active");
+          if (iconWrapper) {
+            iconWrapper.classList.add("bg-theme-light");
+            iconWrapper.classList.add("rotate-180");
+          }
+          if (parentAccordion) parentAccordion.classList.add("active", "shadow-xs");
         }
       });
     });

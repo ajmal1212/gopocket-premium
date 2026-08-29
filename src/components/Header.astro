@@ -941,6 +941,24 @@ const { currentPath = "/" } = Astro.props;
           }
         }
       });
+      // Tooltip dismiss on click
+      document.addEventListener("click", (e) => {
+        const tooltipEl = e.target.closest("[data-header-tooltip]");
+        if (tooltipEl) {
+          tooltipEl.setAttribute("data-tooltip-clicked", "true");
+          // also blur active element to prevent stuck focus
+          if (document.activeElement && typeof document.activeElement.blur === "function") {
+            document.activeElement.blur();
+          }
+        }
+      });
+
+      document.addEventListener("mouseout", (e) => {
+        const tooltipEl = e.target.closest("[data-header-tooltip]");
+        if (tooltipEl && (!e.relatedTarget || !tooltipEl.contains(e.relatedTarget))) {
+          tooltipEl.removeAttribute("data-tooltip-clicked");
+        }
+      });
     }
 
     if (document.readyState === "loading") {

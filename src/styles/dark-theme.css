@@ -229,6 +229,41 @@ html.dark .navbar .nav-link { color: var(--fg); }
 html.dark .navbar .nav-link:hover,
 html.dark .navbar .nav-link-active { color: var(--accent-ink); }
 
+/* Navigation Dropdown Popups & Nested Menus */
+html.dark .nav-dropdown-list,
+html.dark .navbar .nav-dropdown .nav-dropdown-list,
+html.dark .mega-menu,
+html.dark .hs-dropdown-menu {
+  background-color: var(--surface-1) !important;
+  border-color: var(--line) !important;
+  box-shadow: 0 20px 40px -15px var(--shadow-strong) !important;
+}
+
+html.dark .nav-dropdown-link,
+html.dark .navbar .nav-dropdown .nav-dropdown-list .nav-dropdown-item .nav-dropdown-link,
+html.dark .nav-dropdown-toggle {
+  color: var(--fg) !important;
+}
+
+html.dark .nav-dropdown-link:hover,
+html.dark .nav-dropdown-link:focus,
+html.dark .navbar .nav-dropdown .nav-dropdown-list .nav-dropdown-item .nav-dropdown-link:hover,
+html.dark .navbar .nav-dropdown .nav-dropdown-list .nav-dropdown-item .nav-dropdown-link:focus,
+html.dark .nav-dropdown-toggle:hover,
+html.dark .nav-dropdown-toggle:focus {
+  background-color: var(--surface-3) !important;
+  color: var(--fg-strong) !important;
+}
+
+/* Active / Open States for Dropdown Items & Submenu Toggles */
+html.dark .hs-dropdown.open > .nav-dropdown-toggle,
+html.dark .nav-dropdown.open > .nav-dropdown-toggle,
+html.dark .hs-dropdown-open > .nav-dropdown-toggle,
+html.dark .group:hover > .nav-dropdown-toggle {
+  background-color: var(--surface-3) !important;
+  color: var(--accent-ink) !important;
+}
+
 /* Mobile drawer - global.css sets these with !important inside @layer
    components, and important declarations invert layer order, so the override
    has to live in the same layer with higher specificity. */
@@ -279,14 +314,33 @@ html.dark .btn-primary {
 }
 html.dark .btn-outline,
 html.dark .btn-outline .gradient-shape {
-  color: var(--fg);
+  color: var(--fg-strong) !important;
+  border-color: var(--line-strong) !important;
   --tw-shadow: inset 0 0 8px 4px var(--tw-shadow-color, rgb(255 255 255 / 0.04));
 }
 html.dark .btn-outline-white {
   background-color: var(--surface-3);
-  color: var(--fg-strong);
+  color: var(--fg-strong) !important;
   border-color: var(--line-strong);
 }
+
+/* Fix text-flip-inner pseudo-element colors for btn-outline and btn-outline-white in Dark Theme */
+html.dark :is(.text-flip-hover-anim.btn-outline, .text-flip-hover-anim.btn-outline-white) .text-flip-inner::before,
+html.dark :is(.text-flip-hover-anim.btn-outline, .text-flip-hover-anim.btn-outline-white) .text-flip-inner::after,
+html.dark .btn-outline .text-flip-inner::before,
+html.dark .btn-outline .text-flip-inner::after,
+html.dark .btn-outline-white .text-flip-inner::before,
+html.dark .btn-outline-white .text-flip-inner::after {
+  color: var(--fg-strong) !important;
+}
+
+html.dark :is(.text-flip-hover-anim.btn-outline, .text-flip-hover-anim.btn-outline-white):hover .text-flip-inner::before,
+html.dark :is(.text-flip-hover-anim.btn-outline, .text-flip-hover-anim.btn-outline-white):hover .text-flip-inner::after,
+html.dark .btn-outline:hover .text-flip-inner::before,
+html.dark .btn-outline:hover .text-flip-inner::after {
+  color: var(--accent-ink) !important;
+}
+
 html.dark .creative-hover-anim:not([disabled="true"]).btn-primary .hover-bg {
   background-color: #3a2a5c;
 }
@@ -337,8 +391,8 @@ html.dark .global-search-empty { color: var(--fg-muted); opacity: 1; }
    9. Long-form content (blog / legal / prose)
    ------------------------------------------------------------------------- */
 html.dark .prose-styles { color: var(--fg); }
-html.dark .prose-styles :where(h1, h2, h3, h4, h5, h6, th):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
-  color: var(--fg-strong);
+html.dark .prose-styles :where(h1, h2, h3, h4, h5, h6, th, strong, b):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  color: var(--fg-strong) !important;
 }
 html.dark .prose-styles :where(p, li):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
   color: var(--fg);
@@ -453,6 +507,12 @@ html.dark .hero-backdrop > svg {
   opacity: 0.14;
 }
 
+/* Pricing Section - Pocket Prime Card Gradient in Dark Theme */
+html.dark [class*="after:to-white"]::after,
+html.dark .after\:to-white::after {
+  --tw-gradient-to: var(--surface-0) !important;
+}
+
 /* ---------------------------------------------------------------------------
    12. Focus visibility
    The brand violet is too dark to serve as a focus ring on a dark canvas.
@@ -511,4 +571,75 @@ html.dark :focus-visible {
   ::view-transition-new(root) {
     animation: none !important;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   14. Quill Editor Blog Post Content (.ql-editor) in Dark Theme
+   ------------------------------------------------------------------------- */
+html.dark .ql-editor {
+  color: var(--fg) !important;
+}
+
+html.dark .ql-editor p,
+html.dark .ql-editor li,
+html.dark .ql-editor span,
+html.dark .ql-editor div,
+html.dark .ql-editor label,
+html.dark .ql-editor td,
+html.dark .ql-editor th {
+  color: var(--fg) !important;
+}
+
+html.dark .ql-editor h1,
+html.dark .ql-editor h2,
+html.dark .ql-editor h3,
+html.dark .ql-editor h4,
+html.dark .ql-editor h5,
+html.dark .ql-editor h6,
+html.dark .ql-editor strong,
+html.dark .ql-editor b {
+  color: var(--fg-strong) !important;
+}
+
+html.dark .ql-editor blockquote {
+  color: var(--fg-muted) !important;
+  border-left-color: var(--accent-ink) !important;
+  background-color: var(--surface-2) !important;
+  padding: 0.75rem 1.25rem !important;
+  border-radius: 0 0.75rem 0.75rem 0 !important;
+}
+
+html.dark .ql-editor a {
+  color: var(--accent-ink) !important;
+}
+
+/* Blog Content Tables in Dark Theme */
+html.dark .ql-editor table {
+  border-color: var(--line) !important;
+  color: var(--fg) !important;
+}
+
+html.dark .ql-editor thead th,
+html.dark .ql-editor thead td {
+  background-color: var(--surface-3) !important;
+  color: var(--fg-strong) !important;
+  border-color: var(--line-strong) !important;
+}
+
+html.dark .ql-editor tbody td,
+html.dark .ql-editor tbody th {
+  border-color: var(--line) !important;
+  color: var(--fg) !important;
+}
+
+html.dark .ql-editor tbody tr:nth-child(even) {
+  background-color: var(--surface-2) !important;
+}
+
+html.dark .ql-editor tbody tr:hover {
+  background-color: var(--surface-3) !important;
+}
+
+html.dark .ql-editor .blog-table-wrap::after {
+  background: linear-gradient(to right, transparent, var(--surface-1)) !important;
 }

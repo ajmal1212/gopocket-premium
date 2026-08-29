@@ -104,16 +104,28 @@ html[data-a11y-dyslexia="true"] label {
   line-height: 1.7 !important;
 }
 
-/* Highlight Links */
+/* Highlight Links - Modern High-Contrast Accessibility Standard */
 html[data-a11y-highlight-links="true"] a {
   text-decoration: underline !important;
+  text-decoration-style: solid !important;
+  text-decoration-thickness: 2.5px !important;
+  text-underline-offset: 5px !important;
+}
+
+/* Light Mode: High-contrast Vibrant Blue/Purple Underline */
+html[data-a11y-highlight-links="true"]:not(.dark) a {
+  text-decoration-color: #6b1aff !important;
+}
+
+/* Dark Mode: Vibrant Electric Gold/Amber Underline */
+html[data-a11y-highlight-links="true"].dark a {
+  text-decoration-color: #fbbf24 !important;
+}
+
+/* Hover Accent */
+html[data-a11y-highlight-links="true"] a:hover {
   text-decoration-thickness: 3px !important;
-  text-underline-offset: 4px !important;
-  background-color: #fef08a !important;
-  color: #000000 !important;
-  padding: 1px 4px !important;
-  border-radius: 2px !important;
-  font-weight: 700 !important;
+  filter: brightness(1.2) !important;
 }
 
 /* Enhanced Focus Indicator */
@@ -311,19 +323,29 @@ html.dark [data-header-tooltip]::after {
   border-color: transparent transparent #ffffff transparent;
 }
 
-/* Hover & Focus State Activation */
-[data-header-tooltip]:hover::before,
-[data-header-tooltip]:focus-within::before {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(0) scale(1);
+/* Hover-Only Tooltip Activation */
+@media (hover: hover) {
+  [data-header-tooltip]:hover:not(:active):not([data-tooltip-clicked])::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  [data-header-tooltip]:hover:not(:active):not([data-tooltip-clicked])::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
-[data-header-tooltip]:hover::after,
-[data-header-tooltip]:focus-within::after {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(0);
+/* Force Hide Tooltip on Click or Active state */
+[data-header-tooltip][data-tooltip-clicked]::before,
+[data-header-tooltip][data-tooltip-clicked]::after,
+[data-header-tooltip]:active::before,
+[data-header-tooltip]:active::after {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 /* Accessibility Modal Backdrop Overlay (Identical to Search Modal Backdrop) */

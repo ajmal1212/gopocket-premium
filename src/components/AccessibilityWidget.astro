@@ -20,7 +20,7 @@
 </button>
 
 <!-- Backdrop Overlay & Modal -->
-<div id="a11y-modal-backdrop" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-[999995] hidden transition-opacity duration-300" aria-hidden="true">
+<div id="a11y-modal-backdrop" class="fixed inset-0 z-[999995] hidden transition-opacity duration-300" aria-hidden="true">
   <div class="min-h-screen px-4 text-center flex items-center justify-center">
     <!-- Modal Container -->
     <div
@@ -450,7 +450,6 @@
       const backdrop = document.getElementById("a11y-modal-backdrop");
       if (backdrop) {
         backdrop.classList.remove("hidden");
-        document.body.style.overflow = "hidden";
         document.getElementById("a11y-close-button")?.focus();
       }
     }
@@ -459,7 +458,6 @@
       const backdrop = document.getElementById("a11y-modal-backdrop");
       if (backdrop) {
         backdrop.classList.add("hidden");
-        document.body.style.overflow = "";
       }
     }
 

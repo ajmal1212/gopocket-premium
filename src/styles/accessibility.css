@@ -250,3 +250,90 @@ html[data-a11y-active="true"] .a11y-active-dot {
   display: block !important;
 }
 
+/* ===================================================
+   Header Custom Tooltips (Bottom Centered, Theme-Aware)
+   =================================================== */
+[data-header-tooltip] {
+  position: relative;
+}
+
+[data-header-tooltip]::before {
+  content: attr(data-header-tooltip);
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px) scale(0.92);
+  padding: 5px 11px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s ease;
+  z-index: 99999;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+
+  /* Light Mode Default: Dark Background, White Text */
+  background-color: #0b0d13;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Tooltip Arrow pointing up to bottom center of icon */
+[data-header-tooltip]::after {
+  content: "";
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  border-width: 0 5px 6px 5px;
+  border-style: solid;
+  border-color: transparent transparent #0b0d13 transparent;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s ease;
+  z-index: 99999;
+}
+
+/* Dark Mode Overrides: Light Background, Dark Text */
+html.dark [data-header-tooltip]::before {
+  background-color: #ffffff;
+  color: #0b0d13;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+html.dark [data-header-tooltip]::after {
+  border-color: transparent transparent #ffffff transparent;
+}
+
+/* Hover & Focus State Activation */
+[data-header-tooltip]:hover::before,
+[data-header-tooltip]:focus-within::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+[data-header-tooltip]:hover::after,
+[data-header-tooltip]:focus-within::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Accessibility Modal Backdrop Overlay (Identical to Search Modal Backdrop) */
+#a11y-modal-backdrop {
+  background: rgba(15, 15, 20, 0.3);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+html.dark #a11y-modal-backdrop {
+  background: var(--scrim, rgba(0, 0, 0, 0.72));
+}
+

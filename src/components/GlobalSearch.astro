@@ -658,7 +658,6 @@
     function open() {
       m.classList.add("is-open");
       m.setAttribute("aria-hidden", "false");
-      document.body.style.overflow = "hidden";
       i.value = "";
       activeCategory = "all";
       tabs.forEach((t) => t.classList.toggle("is-active", t.dataset.category === "all"));
@@ -669,7 +668,6 @@
     function close() {
       m.classList.remove("is-open");
       m.setAttribute("aria-hidden", "true");
-      document.body.style.overflow = "";
     }
 
     document.querySelectorAll(".search-toggle-btn").forEach((b) => b.addEventListener("click", open));

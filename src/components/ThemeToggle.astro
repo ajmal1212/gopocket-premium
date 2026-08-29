@@ -9,7 +9,7 @@
  */
 ---
 
-<div class="language-switcher theme-toggle-wrapper">
+<div class="language-switcher theme-toggle-wrapper" data-header-tooltip="Theme">
   <button type="button" class="language-switcher-button theme-toggle-btn" data-theme-toggle aria-label="Switch to dark theme">
     <span class="theme-toggle-icons" aria-hidden="true">
       {/* Sun - shown in light mode */}
@@ -171,10 +171,12 @@
   const syncButtons = (theme: Theme) => {
     const next = theme === "dark" ? "light" : "dark";
     document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach((btn) => {
-      // A plain label describing the outcome beats aria-pressed here: "pressed"
-      // says nothing about which theme you land in.
       btn.setAttribute("aria-label", `Switch to ${next} theme`);
-      btn.setAttribute("title", `Switch to ${next} theme`);
+      btn.removeAttribute("title");
+      const wrapper = btn.closest("[data-header-tooltip]");
+      if (wrapper) {
+        wrapper.setAttribute("data-header-tooltip", `Switch to ${next.charAt(0).toUpperCase() + next.slice(1)} Theme`);
+      }
     });
   };
 

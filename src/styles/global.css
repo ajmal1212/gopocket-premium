@@ -988,6 +988,8 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
     :is(.header.scroll-down, .header.scroll-up) .nav-item > .nav-link {
       padding-inline: calc(var(--spacing) * 2) !important;
       padding-block: calc(var(--spacing) * 2);
+      white-space: nowrap !important;
+      flex-shrink: 0;
     }
   }
 }
@@ -1305,6 +1307,7 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
 @layer components {
   .navbar .nav-item {
     position: relative;
+    flex-shrink: 0;
   }
 }
 @layer components {
@@ -1319,6 +1322,12 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
     border-radius: 3.40282e38px;
     align-items: center;
     display: flex;
+    white-space: nowrap !important;
+    flex-shrink: 0;
+  }
+  .navbar .nav-link,
+  .navbar .nav-dropdown-toggle {
+    white-space: nowrap !important;
   }
 }
 @layer components {

@@ -1,4 +1,6 @@
 ---
+import ThemeToggle from "./ThemeToggle.astro";
+
 interface Props {
   currentPath?: string;
 }
@@ -324,14 +326,14 @@ const { currentPath = "/" } = Astro.props;
             >Products</a
           >
         </li><li class="nav-item">
-          <a href="/index2" class={`nav-link ${currentPath === "/index2" || currentPath === "/index2/" ? "nav-link-active" : ""}`}
-            >Home 3<span class="badge badge-accent">NEW</span></a
+          <a href="/index2" class={`nav-link whitespace-nowrap ${currentPath === "/index2" || currentPath === "/index2/" ? "nav-link-active" : ""}`}
+            >Home 3<span class="badge badge-accent whitespace-nowrap">NEW</span></a
           >
-        <li
+        </li><li
           class="hs-dropdown nav-dropdown group [--auto-close:inside] [--offset:0px] nav-item relative lg:[--strategy:absolute]"
         >
           <span
-            class="nav-dropdown-toggle hs-dropdown-toggle flex items-center nav-link max-lg:flex! max-lg:justify-between"
+            class="nav-dropdown-toggle hs-dropdown-toggle flex items-center nav-link whitespace-nowrap max-lg:flex! max-lg:justify-between"
           >
             Sign In <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -629,6 +631,9 @@ const { currentPath = "/" } = Astro.props;
           </div>
         </li>
         <li class="max-lg:px-4 max-lg:py-2 lg:hidden">
+          <ThemeToggle />
+        </li>
+        <li class="max-lg:px-4 max-lg:py-2 lg:hidden">
           <div class="language-switcher">
             <button
               type="button"
@@ -672,6 +677,7 @@ const { currentPath = "/" } = Astro.props;
         </li>
       </ul>
       <div class="hidden gap-3.5 max-lg:ms-auto max-lg:me-4 lg:flex lg:items-center">
+        <ThemeToggle />
         <div class="language-switcher">
           <button
             type="button"

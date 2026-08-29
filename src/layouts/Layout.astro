@@ -1,5 +1,8 @@
 ---
 import "../styles/global.css";
+// Must come after global.css: the dark overrides are unlayered and rely on
+// following Tailwind's layers in source order.
+import "../styles/dark-theme.css";
 import GlobalSearch from "../components/GlobalSearch.astro";
 import GlobalScripts from "../components/GlobalScripts.astro";
 
@@ -33,8 +36,31 @@ const {
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href={canonical} item-prop="url" />
     <link rel="alternate" hreflang="en" href={canonical} />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
+    {/* Replaced by the theme script below once the resolved theme is known. */}
+    <meta name="theme-color" content="#ffffff" />
+
+    {/*
+      Resolves the theme before first paint so the page never flashes light
+      before switching to dark. This has to stay inline and blocking in <head>;
+      an Astro <script> is deferred and would paint the wrong theme first.
+    */}
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem("gp-theme");
+          var isDark =
+            stored === "dark" ||
+            (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (isDark) {
+            document.documentElement.classList.add("dark");
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute("content", "#0b0d13");
+          }
+        } catch (e) {
+          /* Storage blocked - fall through to the light default. */
+        }
+      })();
+    </script>
 
     <meta property="og:image" content={ogImage} />
     <meta property="og:title" content={title} />

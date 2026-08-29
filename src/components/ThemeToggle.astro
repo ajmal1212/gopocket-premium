@@ -1,0 +1,304 @@
+---
+/**
+ * Global light/dark switch.
+ *
+ * Renders inside the header's `.language-switcher` chrome so it sits flush with
+ * the search control next to it. The applied theme itself is decided by the
+ * inline script in Layout.astro before first paint; this component only owns
+ * the control and the switch animation.
+ */
+---
+
+<div class="language-switcher theme-toggle-wrapper">
+  <button type="button" class="language-switcher-button theme-toggle-btn" data-theme-toggle aria-label="Switch to dark theme">
+    <span class="theme-toggle-icons" aria-hidden="true">
+      {/* Sun - shown in light mode */}
+      <svg
+        class="theme-icon theme-icon-sun"
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2"></path>
+        <path d="M12 20v2"></path>
+        <path d="m4.93 4.93 1.41 1.41"></path>
+        <path d="m17.66 17.66 1.41 1.41"></path>
+        <path d="M2 12h2"></path>
+        <path d="M20 12h2"></path>
+        <path d="m6.34 17.66-1.41 1.41"></path>
+        <path d="m19.07 4.93-1.41 1.41"></path>
+      </svg>
+      {/* Moon - shown in dark mode */}
+      <svg
+        class="theme-icon theme-icon-moon"
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+      </svg>
+    </span>
+  </button>
+</div>
+
+<style is:global>
+  /* The button reuses .language-switcher-button for typography and padding; only
+     the icon swap and the hit area are defined here. */
+  .theme-toggle-btn {
+    cursor: pointer;
+    background: none;
+    border: 0;
+  }
+
+  /* The pill's own padding lands at roughly 28px tall. Rather than grow it -
+     which would desync it from the search control beside it - the hit area is
+     extended past the visual bounds with a transparent overlay, which is what
+     both Apple's and Material's 44/48px guidance actually asks for. Applied to
+     the search toggle too, since the two sit together and should behave alike. */
+  .theme-toggle-btn,
+  .search-toggle-btn {
+    position: relative;
+  }
+  .theme-toggle-btn::after,
+  .search-toggle-btn::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+
+  .theme-toggle-icons {
+    position: relative;
+    display: block;
+    width: 1rem;
+    height: 1rem;
+  }
+  .theme-toggle-icons .theme-icon {
+    position: absolute;
+    inset: 0;
+    width: 1rem;
+    height: 1rem;
+    transition:
+      opacity 0.25s ease,
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Light mode: sun rests, moon waits below-right and rotated out. */
+  .theme-icon-sun {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+  .theme-icon-moon {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.6);
+  }
+  html.dark .theme-icon-sun {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.6);
+  }
+  html.dark .theme-icon-moon {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+
+  /* .language-switcher paints itself brand-violet, which is too dark to read on
+     the dark canvas; --accent-ink is the lightened variant for exactly this. */
+  .theme-toggle-wrapper .theme-toggle-btn {
+    color: var(--accent-ink, #6b1aff);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-toggle-icons .theme-icon {
+      transition: opacity 0.01ms;
+      transform: none !important;
+    }
+  }
+
+  /* Circular wipe origin, set by the toggle script from the button's position. */
+  @keyframes theme-wipe-in {
+    from {
+      clip-path: circle(0% at var(--theme-wipe-x, 50%) var(--theme-wipe-y, 50%));
+    }
+    to {
+      clip-path: circle(var(--theme-wipe-r, 150%) at var(--theme-wipe-x, 50%) var(--theme-wipe-y, 50%));
+    }
+  }
+  html.theme-wiping::view-transition-new(root) {
+    animation: theme-wipe-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+</style>
+
+<script>
+  /**
+   * Applies and persists the theme.
+   *
+   * The *initial* theme is resolved by the blocking script in Layout.astro, so
+   * this file never needs to run before paint - it only handles user intent.
+   */
+  const STORAGE_KEY = "gp-theme";
+
+  type Theme = "light" | "dark";
+
+  const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const currentTheme = (): Theme => (document.documentElement.classList.contains("dark") ? "dark" : "light");
+
+  /** Keeps the browser UI (address bar, PWA chrome) in step with the page. */
+  const syncMetaThemeColor = (theme: Theme) => {
+    document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => meta.remove());
+    const meta = document.createElement("meta");
+    meta.name = "theme-color";
+    meta.content = theme === "dark" ? "#0b0d13" : "#ffffff";
+    document.head.appendChild(meta);
+  };
+
+  const syncButtons = (theme: Theme) => {
+    const next = theme === "dark" ? "light" : "dark";
+    document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach((btn) => {
+      // A plain label describing the outcome beats aria-pressed here: "pressed"
+      // says nothing about which theme you land in.
+      btn.setAttribute("aria-label", `Switch to ${next} theme`);
+      btn.setAttribute("title", `Switch to ${next} theme`);
+    });
+  };
+
+  const applyTheme = (theme: Theme) => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    syncMetaThemeColor(theme);
+    syncButtons(theme);
+  };
+
+  /**
+   * Fallback for browsers without View Transitions.
+   *
+   * A single full-viewport overlay dips through the incoming background colour
+   * while the swap happens behind it. Deliberately not a transition on `*`:
+   * that starts an animation on every node and measured 512-839ms of blocked
+   * main thread on the homepage.
+   */
+  let fadeTimers: number[] = [];
+  let overlay: HTMLDivElement | null = null;
+
+  const clearFade = () => {
+    fadeTimers.forEach((t) => window.clearTimeout(t));
+    fadeTimers = [];
+  };
+
+  const withCrossfade = (swap: () => void) => {
+    if (prefersReducedMotion()) {
+      swap();
+      return;
+    }
+    // A second click mid-fade reuses the overlay and restarts the sequence
+    // rather than stacking a new one on top.
+    clearFade();
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "theme-fade-overlay";
+      document.body.appendChild(overlay);
+    }
+    const el = overlay;
+    void el.offsetWidth; // flush the starting opacity before transitioning
+    el.classList.add("is-visible");
+
+    fadeTimers.push(
+      window.setTimeout(() => {
+        swap();
+        fadeTimers.push(
+          window.setTimeout(() => {
+            el.classList.remove("is-visible");
+            fadeTimers.push(
+              window.setTimeout(() => {
+                el.remove();
+                if (overlay === el) overlay = null;
+              }, 300),
+            );
+          }, 60),
+        );
+      }, 260),
+    );
+  };
+
+  /** Circular reveal growing out of the button that was pressed. */
+  const withWipe = (origin: HTMLElement, swap: () => void) => {
+    const root = document.documentElement;
+    const box = origin.getBoundingClientRect();
+    const x = box.left + box.width / 2;
+    const y = box.top + box.height / 2;
+    // Radius has to reach the furthest corner or the old theme stays visible in
+    // the corner of the viewport.
+    const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+
+    root.style.setProperty("--theme-wipe-x", `${x}px`);
+    root.style.setProperty("--theme-wipe-y", `${y}px`);
+    root.style.setProperty("--theme-wipe-r", `${radius}px`);
+    root.classList.add("theme-wiping");
+
+    const transition = document.startViewTransition(() => {
+      swap();
+    });
+    transition.finished.finally(() => root.classList.remove("theme-wiping"));
+  };
+
+  const toggleTheme = (origin: HTMLElement) => {
+    const next: Theme = currentTheme() === "dark" ? "light" : "dark";
+    try {
+      localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      // Private mode / blocked storage: the switch still works for this page.
+    }
+
+    const swap = () => applyTheme(next);
+
+    if (typeof document.startViewTransition === "function" && !prefersReducedMotion()) {
+      withWipe(origin, swap);
+    } else {
+      withCrossfade(swap);
+    }
+  };
+
+  const init = () => {
+    syncButtons(currentTheme());
+    syncMetaThemeColor(currentTheme());
+
+    document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach((btn) => {
+      if (btn.dataset.themeBound === "true") return;
+      btn.dataset.themeBound = "true";
+      btn.addEventListener("click", () => toggleTheme(btn));
+    });
+
+    // Follow the OS only while the visitor has not made an explicit choice.
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+      let stored: string | null = null;
+      try {
+        stored = localStorage.getItem(STORAGE_KEY);
+      } catch {
+        stored = null;
+      }
+      if (stored === "light" || stored === "dark") return;
+      withCrossfade(() => applyTheme(event.matches ? "dark" : "light"));
+    });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+</script>

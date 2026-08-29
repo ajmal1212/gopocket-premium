@@ -1,0 +1,514 @@
+/* ============================================================================
+   GLOBAL DARK THEME
+   ----------------------------------------------------------------------------
+   Loaded AFTER global.css (see src/layouts/Layout.astro).
+
+   HOW THIS WORKS
+   Tailwind v4 compiles every colour utility down to a CSS variable lookup
+   (`.bg-white { background-color: var(--color-white) }`). That means the whole
+   site can be re-skinned by redefining variables instead of touching ~40 pages
+   of markup. Two mechanisms are used, in this order:
+
+     1. Semantic remap  - tokens whose meaning is unambiguous (theme-light is
+        always a surface, text-default is always body copy) are pointed at their
+        dark counterpart. One line covers every usage site.
+
+     2. Utility override - tokens whose meaning depends on context are left
+        alone and the individual utilities are overridden instead. --color-white
+        is the clearest case: bg-white is a surface (must invert) while
+        text-white is ink on a brand-coloured button (must NOT invert).
+
+   These rules are deliberately UNLAYERED. Cascade layers outrank specificity,
+   and global.css puts its component styles in @layer components/utilities, so
+   an unlayered rule here reliably wins. The same trick is already used for the
+   AOS to-states in global.css.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   1. Semantic tokens
+   Light values mirror what global.css already hardcodes, so nothing changes
+   visually until .dark is present on <html>.
+   ------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  --surface-0: #ffffff;              /* page canvas                        */
+  --surface-1: #ffffff;              /* cards, menus, raised panels        */
+  --surface-2: #f8f8f8;              /* muted sections (= theme-light)     */
+  --surface-3: #f3f3f6;              /* hover fills, chips                 */
+  --surface-inset: #f7f7f9;          /* inputs, wells                      */
+
+  --fg-strong: #322b2b;              /* headings                           */
+  --fg: #3b3b3b;                     /* body copy                          */
+  --fg-muted: #6b7280;               /* secondary copy                     */
+  --fg-subtle: #9ca3af;              /* captions, placeholders             */
+
+  --line: #eceef1;                   /* default border                     */
+  --line-strong: #e3e2e8;            /* input + control borders            */
+
+  --accent: #6b1aff;                 /* brand fill                         */
+  --accent-ink: #6b1aff;             /* brand used AS TEXT                 */
+  --accent-tint: #f3edff;            /* selected chip background           */
+  --accent-tint-soft: #f5f3ff;       /* row hover                          */
+  --on-accent: #fff6f6;              /* ink on a brand fill                */
+
+  --scrim: rgb(0 0 0 / 0.5);         /* modal backdrop                     */
+  --glass: color-mix(in oklab, #ffffff 70%, transparent); /* sticky nav bar */
+  --shadow-strong: rgb(0 0 0 / 0.25);
+  --shadow-soft: rgb(0 0 0 / 0.15);
+
+  --theme-transition-duration: 0.25s;
+}
+
+/* ---------------------------------------------------------------------------
+   2. Dark palette
+   Not OLED black. A near-black with a slight cool cast reads as intentional
+   next to the violet brand colour and avoids the halation that pure #000 causes
+   around light text. Every foreground below is >= 4.8:1 on --surface-1.
+   ------------------------------------------------------------------------- */
+html.dark {
+  color-scheme: dark;
+
+  --surface-0: #0b0d13;
+  --surface-1: #14161f;
+  --surface-2: #181b25;
+  --surface-3: #22252f;
+  --surface-inset: #0f111a;
+
+  --fg-strong: #f3f4f7;              /* 16.8:1 on surface-1 */
+  --fg: #ced2dc;                     /* 11.6:1 */
+  --fg-muted: #9ba1b0;               /*  7.0:1 */
+  --fg-subtle: #7d8492;              /*  4.8:1 */
+
+  --line: #262a36;
+  --line-strong: #333846;
+
+  /* Brand fill is nudged brighter so white ink on it still clears 5:1, while
+     staying recognisably the same violet. Brand-as-text needs a much lighter
+     tint - #6b1aff on #14161f is only 2.4:1 and fails outright. */
+  --accent: #7c3aff;                 /* white ink on this = 5.4:1 */
+  --accent-ink: #b494ff;             /* 7.5:1 on surface-1        */
+  --accent-tint: color-mix(in oklab, #7c3aff 20%, #14161f);
+  --accent-tint-soft: color-mix(in oklab, #7c3aff 12%, #14161f);
+  --on-accent: #ffffff;
+
+  --scrim: rgb(0 0 0 / 0.72);
+  --glass: color-mix(in oklab, #14161f 78%, transparent);
+  --shadow-strong: rgb(0 0 0 / 0.6);
+  --shadow-soft: rgb(0 0 0 / 0.45);
+}
+
+/* ---------------------------------------------------------------------------
+   3. Semantic remap of the Tailwind theme scale
+   Each of these carries a single consistent meaning across the codebase, so
+   redefining the variable is safe and covers every call site at once.
+   ------------------------------------------------------------------------- */
+html.dark {
+  --color-theme-light: var(--surface-2);   /* bg/from/fill-theme-light */
+  --color-theme-dark: #2b2f3c;             /* only ever used as bg-theme-dark/30 */
+  --color-border-light: var(--line);       /* bg/border-border-light   */
+  --color-text-default: var(--fg);         /* text-text-default        */
+  --color-dark: var(--fg-strong);          /* text-dark (see .bg-dark below) */
+  --color-primary: var(--accent);          /* bg/from/border/ring-primary */
+
+  /* Neutral ramp is inverted so the greys keep their relative role. */
+  --color-gray-50: var(--surface-2);
+  --color-gray-100: var(--surface-3);
+  --color-gray-200: var(--line);
+  --color-gray-300: var(--line-strong);
+  --color-gray-400: var(--fg-subtle);
+  --color-gray-500: var(--fg-muted);
+  --color-gray-600: var(--fg-muted);
+  --color-gray-700: var(--fg);
+  --color-gray-800: var(--fg-strong);
+  --color-gray-900: var(--fg-strong);
+
+  --color-slate-50: var(--surface-2);
+  --color-slate-100: var(--surface-3);
+  --color-slate-200: var(--line);
+  --color-slate-800: var(--fg-strong);
+  --color-slate-900: var(--fg-strong);
+}
+
+/* ---------------------------------------------------------------------------
+   4. Context-dependent utilities
+   --color-white and --color-black are intentionally NOT remapped: each is used
+   both as a surface and as ink, so only the specific utilities can be corrected.
+   ------------------------------------------------------------------------- */
+
+/* -- white used as a surface ------------------------------------------------ */
+html.dark .bg-white { background-color: var(--surface-1); }
+html.dark .bg-white\/90 { background-color: color-mix(in oklab, var(--surface-1) 90%, transparent); }
+html.dark .bg-white\/85 { background-color: color-mix(in oklab, var(--surface-1) 85%, transparent); }
+html.dark .bg-white\/80 { background-color: color-mix(in oklab, var(--surface-1) 80%, transparent); }
+html.dark .bg-white\/50 { background-color: color-mix(in oklab, var(--surface-1) 50%, transparent); }
+html.dark .bg-white\/5 { background-color: color-mix(in oklab, var(--fg-strong) 5%, transparent); }
+html.dark .fill-white { fill: var(--surface-1); }
+
+/* -- white used as a hairline / gradient stop ------------------------------- */
+html.dark .border-white { border-color: var(--line); }
+html.dark .border-white\/60 { border-color: color-mix(in oklab, var(--fg-strong) 12%, transparent); }
+html.dark .border-white\/35 { border-color: color-mix(in oklab, var(--fg-strong) 8%, transparent); }
+html.dark .ring-white\/50 { --tw-ring-color: color-mix(in oklab, var(--fg-strong) 18%, transparent); }
+html.dark .from-white { --tw-gradient-from: var(--surface-1); }
+html.dark .via-white { --tw-gradient-via: var(--surface-1); }
+html.dark .via-white\/40 { --tw-gradient-via: color-mix(in oklab, var(--surface-1) 40%, transparent); }
+html.dark .to-white { --tw-gradient-to: var(--surface-1); }
+
+/* text-white is deliberately absent - it sits on brand fills and dark panels,
+   where it must stay white. */
+
+/* -- black used as ink ------------------------------------------------------ */
+html.dark .text-black { color: var(--fg-strong); }
+html.dark .text-black\/55 { color: var(--fg-muted); }
+
+/* -- black used as a hairline (invisible against a dark canvas) ------------- */
+html.dark .border-black\/50 { border-color: var(--line-strong); }
+html.dark .border-black\/30 { border-color: var(--line); }
+html.dark .border-black\/25 { border-color: var(--line); }
+html.dark .border-black\/20 { border-color: var(--line); }
+html.dark .border-black\/10 { border-color: color-mix(in oklab, var(--fg-strong) 8%, transparent); }
+html.dark .hover\:border-black\/50:hover { border-color: var(--fg-subtle); }
+html.dark .hover\:border-black\/20:hover { border-color: var(--line-strong); }
+html.dark .group-hover\/item\:bg-black\/30:is(:where(.group\/item):hover *) {
+  background-color: color-mix(in oklab, var(--fg-strong) 35%, transparent);
+}
+/* bg-black/30, bg-black/80 and the shadow utilities keep real black - they are
+   scrims and shadows, which stay dark in both themes. */
+
+/* -- dark is a foreground token, so bg-dark has to be pinned back ----------- */
+html.dark .bg-dark { background-color: var(--surface-0); }
+
+/* -- brand colour used as ink needs the lighter tint ------------------------ */
+html.dark .text-primary { color: var(--accent-ink); }
+html.dark .fill-primary { fill: var(--accent-ink); }
+
+/* ---------------------------------------------------------------------------
+   5. Base elements
+
+   The `.dark` scope is wrapped in :where() throughout this block so each rule
+   keeps the specificity of a bare element selector. That is deliberate: these
+   only need to outrank global.css's own element rules (which they do on source
+   order), and anything stronger would beat the utility classes sitting on the
+   same elements - `<h2 class="text-white">` inside a brand-coloured band, or
+   `<a class="btn btn-primary">`, would both lose their colour.
+   ------------------------------------------------------------------------- */
+:where(html.dark) body {
+  background-color: var(--surface-0);
+  color: var(--fg);
+}
+:where(html.dark) h1,
+:where(html.dark) h2,
+:where(html.dark) h3,
+:where(html.dark) h4,
+:where(html.dark) h5,
+:where(html.dark) h6 {
+  color: var(--fg-strong);
+}
+:where(html.dark) a { color: var(--fg); }
+:where(html.dark) hr { border-color: var(--line); }
+:where(html.dark) ::placeholder { color: var(--fg-subtle); }
+:where(html.dark) ::selection {
+  background-color: color-mix(in oklab, var(--accent) 45%, transparent);
+  color: #ffffff;
+}
+
+/* ---------------------------------------------------------------------------
+   6. Header / navigation
+   ------------------------------------------------------------------------- */
+html.dark .header > .container > nav {
+  background-color: var(--glass);
+  border-color: var(--line);
+}
+html.dark header .logo-text,
+html.dark footer .logo-wrapper .logo-text {
+  color: var(--fg-strong);
+}
+
+html.dark .navbar .nav-link { color: var(--fg); }
+html.dark .navbar .nav-link:hover,
+html.dark .navbar .nav-link-active { color: var(--accent-ink); }
+
+/* Mobile drawer - global.css sets these with !important inside @layer
+   components, and important declarations invert layer order, so the override
+   has to live in the same layer with higher specificity. */
+@layer components {
+  @media (max-width: 1023px) {
+    html.dark nav.hs-dropdown.open #nav-menu.navbar,
+    html.dark nav.hs-dropdown.open .navbar,
+    html.dark .navbar.open,
+    html.dark .navbar.expanded {
+      background-color: var(--surface-1) !important;
+      border: 1px solid var(--line) !important;
+      box-shadow: 0 20px 40px -15px var(--shadow-strong) !important;
+    }
+  }
+}
+
+html.dark .header .language-switcher {
+  color: var(--accent-ink);
+  border-color: var(--line-strong);
+}
+html.dark .header .language-switcher .language-switcher-dropdown {
+  background-color: var(--surface-1);
+  border-color: var(--line);
+}
+html.dark .header .language-switcher .language-switcher-dropdown li a {
+  color: var(--fg);
+}
+@media (hover: hover) {
+  html.dark .header .language-switcher .language-switcher-dropdown li a:hover {
+    background-color: var(--surface-3);
+    color: var(--fg-strong);
+  }
+}
+
+html.dark .navbar .badge.badge-info { color: var(--fg-strong); }
+html.dark .navbar .badge.badge-dark,
+html.dark .navbar .badge.badge-dark.badge-dot {
+  color: var(--surface-0);
+  background-color: var(--fg-strong);
+}
+
+/* ---------------------------------------------------------------------------
+   7. Buttons
+   ------------------------------------------------------------------------- */
+html.dark .btn-primary {
+  color: var(--on-accent);
+  background-color: var(--accent);
+}
+html.dark .btn-outline,
+html.dark .btn-outline .gradient-shape {
+  color: var(--fg);
+  --tw-shadow: inset 0 0 8px 4px var(--tw-shadow-color, rgb(255 255 255 / 0.04));
+}
+html.dark .btn-outline-white {
+  background-color: var(--surface-3);
+  color: var(--fg-strong);
+  border-color: var(--line-strong);
+}
+html.dark .creative-hover-anim:not([disabled="true"]).btn-primary .hover-bg {
+  background-color: #3a2a5c;
+}
+html.dark .text-flip-inner:after { color: var(--on-accent); }
+
+/* ---------------------------------------------------------------------------
+   8. Global search modal
+   ------------------------------------------------------------------------- */
+html.dark .global-search-backdrop { background: var(--scrim); }
+html.dark .global-search-panel {
+  background: var(--surface-1);
+  box-shadow: 0 20px 60px var(--shadow-strong);
+}
+html.dark .global-search-input-row { border-bottom-color: var(--line); }
+html.dark .global-search-input-row svg { color: var(--fg); }
+html.dark #global-search-input {
+  border-color: var(--line-strong);
+  background: var(--surface-inset);
+  color: var(--fg-strong);
+}
+html.dark #global-search-input:focus {
+  border-color: var(--accent-ink);
+  background: var(--surface-2);
+}
+html.dark .global-search-close {
+  background: var(--surface-3);
+  color: var(--fg);
+}
+html.dark .global-search-tabs { border-bottom-color: var(--line); }
+html.dark .global-search-tab {
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+  color: var(--fg);
+}
+html.dark .global-search-tab.is-active {
+  background: var(--accent-tint);
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+}
+html.dark .global-search-tab:hover:not(.is-active) { border-color: var(--fg-subtle); }
+html.dark .global-search-label { color: var(--fg-muted); opacity: 1; }
+html.dark .global-search-item a { color: var(--accent-ink); }
+html.dark .global-search-item a:hover { background: var(--accent-tint-soft); }
+html.dark .global-search-item .item-icon { color: var(--fg-muted); opacity: 1; }
+html.dark .global-search-empty { color: var(--fg-muted); opacity: 1; }
+
+/* ---------------------------------------------------------------------------
+   9. Long-form content (blog / legal / prose)
+   ------------------------------------------------------------------------- */
+html.dark .prose-styles { color: var(--fg); }
+html.dark .prose-styles :where(h1, h2, h3, h4, h5, h6, th):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  color: var(--fg-strong);
+}
+html.dark .prose-styles :where(p, li):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  color: var(--fg);
+}
+html.dark .prose-styles :where(a):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  color: var(--accent-ink);
+}
+html.dark .prose-styles :where(hr, thead, tr, table):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  border-color: var(--line);
+}
+html.dark .prose-styles :where(thead):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  background-color: var(--surface-2);
+}
+html.dark .prose-styles :where(pre):not(:where([class~="not-prose"], [class~="not-prose"] *)),
+html.dark .prose-styles pre.astro-code {
+  background-color: var(--surface-inset) !important;
+  color: var(--fg);
+}
+html.dark .prose-styles .stats-component p { color: var(--fg); }
+
+/* Blog tables rendered from the CMS */
+html.dark .ql-editor .blog-table-scroll,
+html.dark .ql-editor table {
+  background: var(--surface-1);
+  border-color: var(--line);
+}
+html.dark .ql-editor tbody tr:nth-child(even) { background: var(--surface-2); }
+html.dark .ql-editor tbody tr:hover { background: var(--accent-tint-soft); }
+html.dark .ql-editor .blog-table-wrap::after {
+  background: linear-gradient(to right, rgb(20 22 31 / 0), var(--surface-1));
+}
+@media (max-width: 639px) {
+  html.dark .ql-editor tbody tr { background: var(--surface-1) !important; }
+}
+
+/* ---------------------------------------------------------------------------
+   10. Forms
+   ------------------------------------------------------------------------- */
+html.dark .form-checkbox {
+  background-color: var(--surface-inset);
+  border-color: var(--line-strong);
+  color: var(--accent);
+}
+html.dark .form-checkbox:focus { --tw-ring-offset-color: var(--surface-0); }
+
+/* Same :where() reasoning as section 5 - a field carrying its own bg-* utility
+   must still win. .form-checkbox above is class-scoped, so it stays ahead of
+   these and keeps its own treatment. */
+:where(html.dark) input,
+:where(html.dark) textarea,
+:where(html.dark) select {
+  background-color: var(--surface-inset);
+  border-color: var(--line-strong);
+  color: var(--fg-strong);
+}
+:where(html.dark) input[type="checkbox"],
+:where(html.dark) input[type="radio"] {
+  background-color: initial;
+}
+
+/* ---------------------------------------------------------------------------
+   11. Decorative layers
+   Photography and product screenshots are left untouched. Only the striped
+   pattern layers are dimmed so they do not glow against the dark canvas.
+   ------------------------------------------------------------------------- */
+html.dark .pattern-shape { opacity: 0.12; }
+
+/* -- Hero backdrop ----------------------------------------------------------
+   hero-bg-*.webp is a white-to-violet gradient composited with
+   mix-blend-multiply. Multiply against a white page is an identity operation,
+   which is why it looks right in light mode - the image simply *is* the
+   backdrop. Against a dark canvas the same blend multiplies everything toward
+   black, collapsing the centre and leaving the raw `to-primary` gradient
+   showing as two hard violet slabs at the edges.
+
+   No blend mode fixes this: the image is mostly white, so `screen` or
+   `lighten` blow the whole area out instead. The image is replaced with
+   gradients that reproduce its shape - violet rising from the bottom, cooler
+   glow in the centre notch - built for a dark ground.
+   ------------------------------------------------------------------------- */
+html.dark .hero-backdrop {
+  /* border-4 border-white is a 4px inset, not a frame - white on a white page
+     renders it invisible. The dark equivalent is therefore also invisible,
+     which keeps the glow running edge to edge instead of adding a light rim
+     the light theme never had. background-origin below lets the gradient fill
+     the border strip so the edge stays seamless. */
+  border-color: transparent;
+  background-image:
+    /* soft violet bloom at each lower corner, as in the source artwork */
+    radial-gradient(58% 46% at 2% 92%, color-mix(in oklab, var(--accent) 46%, transparent) 0%, transparent 70%),
+    radial-gradient(58% 46% at 98% 92%, color-mix(in oklab, var(--accent) 46%, transparent) 0%, transparent 70%),
+    /* cooler glow in the centre notch */
+    radial-gradient(70% 42% at 50% 112%, color-mix(in oklab, #5b82ff 50%, transparent) 0%, transparent 66%),
+    linear-gradient(to top, color-mix(in oklab, var(--accent) 40%, transparent) 0%, transparent 52%);
+  /* Both matter. background-origin defaults to padding-box, and the default
+     `repeat` then tiles the gradient into the 4px border strip - which drew the
+     bottom of the next tile as a hard violet line across the top edge. */
+  background-origin: border-box;
+  background-repeat: no-repeat;
+}
+html.dark .hero-backdrop-image {
+  display: none;
+}
+html.dark .hero-backdrop-glow {
+  /* Superseded by the wrapper gradients above; left in place for light mode. */
+  background-image: none;
+}
+html.dark .hero-backdrop > svg {
+  /* bg-white would paint a dark panel over the glow - let it through and keep
+     only the faint diagonal stroke. */
+  background-color: transparent;
+  opacity: 0.14;
+}
+
+/* ---------------------------------------------------------------------------
+   12. Focus visibility
+   The brand violet is too dark to serve as a focus ring on a dark canvas.
+   ------------------------------------------------------------------------- */
+html.dark :focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+   13. Theme crossfade
+   Applied to <html> for the length of a switch only. Making these transitions
+   permanent would fight every hover animation on the site and keep the
+   compositor busy, so the class is added and removed around the toggle.
+   ------------------------------------------------------------------------- */
+/* One composited element, not a transition on every node.
+
+   The obvious approach - `html.theme-transition *{ transition: ... }` - was
+   measured on this page at a 512-839ms blocking frame, because it starts a
+   separate animation on several thousand elements at once. Fading a single
+   full-viewport overlay through the incoming background colour costs one
+   compositor layer, reads as a deliberate dip rather than a stutter, and is
+   what browsers without View Transitions now get. */
+.theme-fade-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+  opacity: 0;
+  background-color: var(--surface-0);
+  transition: opacity var(--theme-transition-duration) ease;
+  will-change: opacity;
+}
+.theme-fade-overlay.is-visible {
+  opacity: 1;
+}
+
+/* View Transitions circular wipe. Only the incoming theme is animated; the old
+   snapshot sits underneath so the reveal reads as one surface replacing
+   another rather than as a crossfade. The keyframes are supplied by the toggle
+   script, which knows where the button is. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 2; }
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-fade-overlay {
+    display: none;
+  }
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}

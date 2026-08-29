@@ -1,0 +1,647 @@
+---
+/* src/components/AccessibilityWidget.astro */
+---
+
+<!-- Floating Accessibility Button Trigger -->
+<button
+  id="a11y-trigger-button"
+  class="a11y-trigger-btn"
+  aria-label="Open Accessibility Toolbar (Alt + A)"
+  title="Accessibility Controls (Alt + A)"
+  type="button"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="4" r="2"></circle>
+    <path d="m18 19 1-7-6 1"></path>
+    <path d="m5 8 7-3 7 3"></path>
+    <path d="M5 19l1-7 6 1"></path>
+    <path d="M12 12v7"></path>
+  </svg>
+</button>
+
+<!-- Backdrop Overlay & Modal -->
+<div id="a11y-modal-backdrop" class="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-[999995] hidden transition-opacity duration-300" aria-hidden="true">
+  <div class="min-h-screen px-4 text-center flex items-center justify-center">
+    <!-- Modal Container -->
+    <div
+      id="a11y-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="a11y-modal-title"
+      class="relative w-full max-w-2xl bg-white/95 dark:bg-[#0b0d13]/95 backdrop-blur-xl text-slate-900 dark:text-slate-100 rounded-3xl p-6 text-left shadow-[0_25px_60px_-15px_rgba(107,26,255,0.25)] border border-slate-200/80 dark:border-slate-800/80 transform transition-all my-6 max-h-[90vh] overflow-y-auto"
+    >
+      <!-- Header -->
+      <div class="flex items-center justify-between pb-3 mb-5 border-b border-slate-100 dark:border-slate-800/80">
+        <div>
+          <h2 id="a11y-modal-title" class="text-sm font-bold tracking-tight text-slate-900 dark:text-white font-primary">
+            Accessibility
+          </h2>
+          <p class="text-[10px] text-slate-500 dark:text-slate-400">SEBI Compliant PwD Controls</p>
+        </div>
+        <button
+          id="a11y-close-button"
+          type="button"
+          class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all duration-200 cursor-pointer"
+          aria-label="Close Accessibility Modal"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Controls Grid (4 Columns Desktop, 2 Columns Mobile) -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        
+        <!-- 1. Screen Reader -->
+        <button
+          type="button"
+          data-a11y-toggle="speech"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+        >
+          <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl bg-white dark:bg-[#1c202e] border border-slate-200/60 dark:border-slate-700/60 shadow-sm flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+              <line x1="23" y1="9" x2="17" y2="15"></line>
+              <line x1="17" y1="9" x2="23" y2="15"></line>
+            </svg>
+          </div>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Screen Reader</span>
+        </button>
+
+        <!-- 2. Smart Contrast -->
+        <button
+          type="button"
+          data-a11y-toggle="contrast"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+        >
+          <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl bg-white dark:bg-[#1c202e] border border-slate-200/60 dark:border-slate-700/60 shadow-sm flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor"></path>
+            </svg>
+          </div>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Smart Contrast</span>
+        </button>
+
+        <!-- 3. Font Size -->
+        <div
+          class="a11y-card relative flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 text-center min-h-[96px]"
+        >
+          <span class="text-sm font-bold text-[#6b1aff] dark:text-purple-300 mb-1">Aa</span>
+          <div class="flex items-center gap-1 mb-1">
+            <button
+              type="button"
+              data-a11y-font="small"
+              class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-white dark:bg-[#1c202e] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-[#6b1aff] hover:text-[#6b1aff] transition-all cursor-pointer"
+              title="Decrease Font Size"
+            >
+              A-
+            </button>
+            <button
+              type="button"
+              data-a11y-font="normal"
+              class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-white dark:bg-[#1c202e] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-[#6b1aff] hover:text-[#6b1aff] transition-all cursor-pointer"
+              title="Reset Font Size"
+            >
+              A
+            </button>
+            <button
+              type="button"
+              data-a11y-font="large"
+              class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-white dark:bg-[#1c202e] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-[#6b1aff] hover:text-[#6b1aff] transition-all cursor-pointer"
+              title="Increase Font Size"
+            >
+              A+
+            </button>
+          </div>
+          <span class="text-[10px] text-slate-500 dark:text-slate-400">Font Size</span>
+        </div>
+
+        <!-- 4. Themes -->
+        <div
+          class="a11y-card relative flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 text-center min-h-[96px]"
+        >
+          <div class="w-6 h-6 mb-1 flex items-center justify-center text-[#6b1aff] dark:text-purple-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+              <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+              <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+              <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.7-.72 1.7-1.61 0-.43-.17-.83-.44-1.13-.24-.26-.4-.6-.4-1 0-.88.72-1.6 1.61-1.6H17c2.76 0 5-2.24 5-5 0-4.42-4.03-8-10-8z"></path>
+            </svg>
+          </div>
+          <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">Themes</span>
+          <div class="flex items-center gap-1.5">
+            <button type="button" data-a11y-theme="blue" class="w-4 h-4 rounded-full bg-blue-300 hover:scale-125 transition-transform cursor-pointer" title="Blue Tint"></button>
+            <button type="button" data-a11y-theme="yellow" class="w-4 h-4 rounded-full bg-amber-300 hover:scale-125 transition-transform cursor-pointer" title="Yellow Tint"></button>
+            <button type="button" data-a11y-theme="green" class="w-4 h-4 rounded-full bg-emerald-300 hover:scale-125 transition-transform cursor-pointer" title="Green Tint"></button>
+            <button type="button" data-a11y-theme="pink" class="w-4 h-4 rounded-full bg-rose-300 hover:scale-125 transition-transform cursor-pointer" title="Pink Tint"></button>
+          </div>
+        </div>
+
+        <!-- 5. Hide Images -->
+        <button
+          type="button"
+          data-a11y-toggle="hide-images"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+        >
+          <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl bg-white dark:bg-[#1c202e] border border-slate-200/60 dark:border-slate-700/60 shadow-sm flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+              <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+              <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+              <line x1="2" y1="2" x2="22" y2="22"></line>
+            </svg>
+          </div>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Hide Images</span>
+        </button>
+
+        <!-- 6. Grayscale -->
+        <button
+          type="button"
+          data-a11y-toggle="grayscale"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+        >
+          <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl bg-white dark:bg-[#1c202e] border border-slate-200/60 dark:border-slate-700/60 shadow-sm flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <path d="M3 15h18"></path>
+              <path d="m15 3-12 12"></path>
+            </svg>
+          </div>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Grayscale</span>
+        </button>
+
+        <!-- 7. Blue Light Filter -->
+        <button
+          type="button"
+          data-a11y-toggle="bluelight"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+        >
+          <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl bg-white dark:bg-[#1c202e] border border-slate-200/60 dark:border-slate-700/60 shadow-sm flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+              <path d="M19 3v4"></path>
+              <path d="M21 5h-4"></path>
+            </svg>
+          </div>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors leading-tight">Blue Light Filter</span>
+        </button>
+
+        <!-- 8. ADHD Focus Assist -->
+        <button
+          type="button"
+          data-a11y-toggle="adhd"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+        >
+          <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl bg-white dark:bg-[#1c202e] border border-slate-200/60 dark:border-slate-700/60 shadow-sm flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 8V4h4"></path>
+              <path d="M20 8V4h-4"></path>
+              <path d="M4 16v4h4"></path>
+              <path d="M20 16v4h-4"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </div>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors leading-tight">ADHD Focus Assist</span>
+        </button>
+
+        <!-- 9. Dyslexia Font -->
+        <button
+          type="button"
+          data-a11y-toggle="dyslexia"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+        >
+          <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl bg-white dark:bg-[#1c202e] border border-slate-200/60 dark:border-slate-700/60 shadow-sm flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
+          </div>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Dyslexia</span>
+        </button>
+
+        <!-- 10. Highlight Links -->
+        <button
+          type="button"
+          data-a11y-toggle="highlight-links"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+        >
+          <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl bg-white dark:bg-[#1c202e] border border-slate-200/60 dark:border-slate-700/60 shadow-sm flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+          </div>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Highlight Links</span>
+        </button>
+
+        <!-- 11. Focus Indicator -->
+        <button
+          type="button"
+          data-a11y-toggle="focus-indicator"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+        >
+          <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl bg-white dark:bg-[#1c202e] border border-slate-200/60 dark:border-slate-700/60 shadow-sm flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="22" y1="12" x2="18" y2="12"></line>
+              <line x1="6" y1="12" x2="2" y2="12"></line>
+              <line x1="12" y1="6" x2="12" y2="2"></line>
+              <line x1="12" y1="22" x2="12" y2="18"></line>
+            </svg>
+          </div>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Focus Indicator</span>
+        </button>
+
+      </div>
+
+      <!-- Footer Primary Reset Button -->
+      <div class="pt-2 w-full flex justify-center">
+        <button
+          id="a11y-reset-button"
+          type="button"
+          class="btn btn-primary text-flip-hover-anim btn-primary w-full justify-center cursor-pointer"
+        >
+          <span class="text-flip-inner" data-content="RESET ALL">RESET ALL</span>
+          <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
+            <svg
+              class="gradient-shape"
+              width="150"
+              height="28"
+              viewBox="0 0 147 11"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
+                stroke="currentColor"
+                stroke-width="8"
+              ></path>
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADHD Focus Circle Spotlight Overlay -->
+<div id="a11y-adhd-bar"></div>
+
+<!-- ARIA Live Screen Reader Announcer -->
+<div id="a11y-live-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Client-side Logic Script -->
+<script is:inline>
+  (function () {
+    const STORAGE_KEY = "gp-a11y-settings";
+
+    const defaultSettings = {
+      speech: false,
+      contrast: "normal", // 'normal' | 'high' | 'invert'
+      fontScale: "normal", // 'small' | 'normal' | 'large' | 'xlarge'
+      theme: "none", // 'none' | 'blue' | 'yellow' | 'green' | 'pink'
+      hideImages: false,
+      grayscale: false,
+      bluelight: false,
+      adhd: false,
+      dyslexia: false,
+      highlightLinks: false,
+      focusIndicator: false,
+    };
+
+    let settings = { ...defaultSettings };
+
+    function loadSettings() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          settings = { ...defaultSettings, ...JSON.parse(stored) };
+        }
+      } catch (e) {
+        console.error("Accessibility settings storage error:", e);
+      }
+    }
+
+    function saveSettings() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      } catch (e) {}
+    }
+
+    function applyDOMState() {
+      const html = document.documentElement;
+
+      // Contrast
+      if (settings.contrast === "high") html.setAttribute("data-a11y-contrast", "high");
+      else if (settings.contrast === "invert") html.setAttribute("data-a11y-contrast", "invert");
+      else html.removeAttribute("data-a11y-contrast");
+
+      // Font Scale
+      if (settings.fontScale !== "normal") html.setAttribute("data-a11y-font-scale", settings.fontScale);
+      else html.removeAttribute("data-a11y-font-scale");
+
+      // Theme
+      if (settings.theme !== "none") html.setAttribute("data-a11y-theme", settings.theme);
+      else html.removeAttribute("data-a11y-theme");
+
+      // Boolean Toggles
+      toggleAttr(html, "data-a11y-hide-images", settings.hideImages);
+      toggleAttr(html, "data-a11y-grayscale", settings.grayscale);
+      toggleAttr(html, "data-a11y-bluelight", settings.bluelight);
+      toggleAttr(html, "data-a11y-adhd", settings.adhd);
+      toggleAttr(html, "data-a11y-dyslexia", settings.dyslexia);
+      toggleAttr(html, "data-a11y-highlight-links", settings.highlightLinks);
+      toggleAttr(html, "data-a11y-focus-indicator", settings.focusIndicator);
+
+      const isAnyActive =
+        settings.speech ||
+        settings.contrast !== "normal" ||
+        settings.fontScale !== "normal" ||
+        settings.theme !== "none" ||
+        settings.hideImages ||
+        settings.grayscale ||
+        settings.bluelight ||
+        settings.adhd ||
+        settings.dyslexia ||
+        settings.highlightLinks ||
+        settings.focusIndicator;
+
+      toggleAttr(html, "data-a11y-active", isAnyActive);
+
+      updateUIElements();
+    }
+
+    function toggleAttr(element, attr, value) {
+      if (value) element.setAttribute(attr, "true");
+      else element.removeAttribute(attr);
+    }
+
+    function updateUIElements() {
+      const modal = document.getElementById("a11y-modal");
+      if (!modal) return;
+
+      // Update active styling on toggle cards
+      const toggleCards = modal.querySelectorAll("[data-a11y-toggle]");
+      toggleCards.forEach((btn) => {
+        const feature = btn.getAttribute("data-a11y-toggle");
+        let isActive = false;
+
+        if (feature === "contrast") isActive = settings.contrast !== "normal";
+        else if (feature === "speech") isActive = settings.speech;
+        else if (feature === "hide-images") isActive = settings.hideImages;
+        else if (feature === "grayscale") isActive = settings.grayscale;
+        else if (feature === "bluelight") isActive = settings.bluelight;
+        else if (feature === "adhd") isActive = settings.adhd;
+        else if (feature === "dyslexia") isActive = settings.dyslexia;
+        else if (feature === "highlight-links") isActive = settings.highlightLinks;
+        else if (feature === "focus-indicator") isActive = settings.focusIndicator;
+
+        const iconBox = btn.querySelector(".a11y-icon-box");
+
+        if (isActive) {
+          btn.classList.add("border-[#6b1aff]", "bg-purple-50/90", "dark:bg-[#6b1aff]/20", "ring-2", "ring-[#6b1aff]/40", "shadow-md");
+          btn.classList.remove("border-slate-200/80", "dark:border-slate-800/80");
+          if (iconBox) {
+            iconBox.classList.add("bg-[#6b1aff]", "text-white");
+            iconBox.classList.remove("bg-white", "dark:bg-[#1c202e]", "text-[#6b1aff]", "dark:text-purple-400");
+          }
+        } else {
+          btn.classList.remove("border-[#6b1aff]", "bg-purple-50/90", "dark:bg-[#6b1aff]/20", "ring-2", "ring-[#6b1aff]/40", "shadow-md");
+          btn.classList.add("border-slate-200/80", "dark:border-slate-800/80");
+          if (iconBox) {
+            iconBox.classList.remove("bg-[#6b1aff]", "text-white");
+            iconBox.classList.add("bg-white", "dark:bg-[#1c202e]", "text-[#6b1aff]", "dark:text-purple-400");
+          }
+        }
+      });
+
+      // Update Font Size active buttons
+      const fontBtns = modal.querySelectorAll("[data-a11y-font]");
+      fontBtns.forEach((btn) => {
+        const mode = btn.getAttribute("data-a11y-font");
+        const isCurrent = settings.fontScale === mode || (mode === "large" && settings.fontScale === "xlarge");
+        if (isCurrent) {
+          btn.classList.add("bg-[#6b1aff]", "text-white", "border-[#6b1aff]", "shadow-sm");
+          btn.classList.remove("bg-white", "dark:bg-[#1c202e]", "text-slate-700", "dark:text-slate-200");
+        } else {
+          btn.classList.remove("bg-[#6b1aff]", "text-white", "border-[#6b1aff]", "shadow-sm");
+          btn.classList.add("bg-white", "dark:bg-[#1c202e]", "text-slate-700", "dark:text-slate-200");
+        }
+      });
+
+      // Update Theme active dots
+      const themeBtns = modal.querySelectorAll("[data-a11y-theme]");
+      themeBtns.forEach((btn) => {
+        const themeName = btn.getAttribute("data-a11y-theme");
+        if (settings.theme === themeName) {
+          btn.classList.add("ring-2", "ring-[#6b1aff]", "scale-125");
+        } else {
+          btn.classList.remove("ring-2", "ring-[#6b1aff]", "scale-125");
+        }
+      });
+    }
+
+    // Modal Control Functions
+    function openModal() {
+      const backdrop = document.getElementById("a11y-modal-backdrop");
+      if (backdrop) {
+        backdrop.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+        document.getElementById("a11y-close-button")?.focus();
+      }
+    }
+
+    function closeModal() {
+      const backdrop = document.getElementById("a11y-modal-backdrop");
+      if (backdrop) {
+        backdrop.classList.add("hidden");
+        document.body.style.overflow = "";
+      }
+    }
+
+    // Screen Reader & Text-to-Speech Engine
+    let lastSpokenElement = null;
+    let speechTimer = null;
+
+    function speakText(text, element = null) {
+      if (!text) return;
+      const cleanText = text.trim().replace(/\s+/g, ' ');
+      if (cleanText.length === 0) return;
+
+      // Update ARIA Live announcer
+      const announcer = document.getElementById("a11y-live-announcer");
+      if (announcer) announcer.textContent = cleanText;
+
+      // Web Speech Synthesis
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.rate = 1.0;
+        utterance.lang = "en-US";
+        window.speechSynthesis.speak(utterance);
+      }
+
+      if (element) {
+        lastSpokenElement = element;
+      }
+    }
+
+    function initSpeech() {
+      if (!("speechSynthesis" in window)) return;
+
+      // Mouseover / Hover reader
+      document.body.addEventListener("mouseover", (e) => {
+        if (!settings.speech) return;
+        
+        const target = e.target;
+        if (!target || target.closest("#a11y-modal") || target.closest(".a11y-trigger-btn")) return;
+
+        // Find nearest semantic text container
+        const readable = target.closest("h1, h2, h3, h4, h5, h6, p, a, button, li, label, span, input, select, textarea") || target;
+        if (!readable || readable === lastSpokenElement) return;
+
+        let text = "";
+        if (readable.tagName === "INPUT" || readable.tagName === "TEXTAREA") {
+          text = readable.placeholder || readable.value || readable.getAttribute("aria-label") || "";
+        } else {
+          text = readable.getAttribute("aria-label") || readable.getAttribute("alt") || readable.getAttribute("title") || readable.innerText || readable.textContent || "";
+        }
+
+        if (!text || text.trim().length === 0) return;
+
+        clearTimeout(speechTimer);
+        speechTimer = setTimeout(() => {
+          speakText(text, readable);
+        }, 150);
+      });
+
+      // Keyboard Focus reader
+      document.body.addEventListener("focusin", (e) => {
+        if (!settings.speech) return;
+        const target = e.target;
+        if (!target || target.closest("#a11y-modal")) return;
+
+        let text = target.getAttribute("aria-label") || target.getAttribute("title") || target.innerText || target.textContent || "";
+        if (text) speakText(text, target);
+      });
+    }
+
+    // ADHD Focus Spotlight Follower
+    function initADHDBar() {
+      const bar = document.getElementById("a11y-adhd-bar");
+      if (!bar) return;
+      window.addEventListener("mousemove", (e) => {
+        if (settings.adhd) {
+          document.documentElement.style.setProperty("--a11y-mouse-x", e.clientX + "px");
+          document.documentElement.style.setProperty("--a11y-mouse-y", e.clientY + "px");
+        }
+      });
+    }
+
+    function resetAllSettings() {
+      settings = { ...defaultSettings };
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      saveSettings();
+      applyDOMState();
+    }
+
+    // Event Listeners setup
+    function setupListeners() {
+      const triggerBtn = document.getElementById("a11y-trigger-button");
+      const closeBtn = document.getElementById("a11y-close-button");
+      const backdrop = document.getElementById("a11y-modal-backdrop");
+      const resetBtn = document.getElementById("a11y-reset-button");
+
+      triggerBtn?.addEventListener("click", openModal);
+      document.querySelectorAll("[data-a11y-open]").forEach((btn) => {
+        btn.addEventListener("click", openModal);
+      });
+      closeBtn?.addEventListener("click", closeModal);
+      backdrop?.addEventListener("click", (e) => {
+        if (e.target === backdrop) closeModal();
+      });
+
+      // Keyboard Accessibility (Escape resets accessibility & closes modal)
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          resetAllSettings();
+          closeModal();
+        }
+        if (e.altKey && (e.key === "a" || e.key === "A")) {
+          e.preventDefault();
+          const backdrop = document.getElementById("a11y-modal-backdrop");
+          if (backdrop?.classList.contains("hidden")) openModal();
+          else closeModal();
+        }
+      });
+
+      // Toggle Buttons
+      document.querySelectorAll("[data-a11y-toggle]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const feature = btn.getAttribute("data-a11y-toggle");
+          if (feature === "contrast") {
+            if (settings.contrast === "normal") settings.contrast = "high";
+            else if (settings.contrast === "high") settings.contrast = "invert";
+            else settings.contrast = "normal";
+          } else if (feature === "speech") {
+            settings.speech = !settings.speech;
+            if (settings.speech) {
+              speakText("Screen reader activated");
+            } else if ("speechSynthesis" in window) {
+              window.speechSynthesis.cancel();
+            }
+          } else if (feature === "hide-images") settings.hideImages = !settings.hideImages;
+          else if (feature === "grayscale") settings.grayscale = !settings.grayscale;
+          else if (feature === "bluelight") settings.bluelight = !settings.bluelight;
+          else if (feature === "adhd") settings.adhd = !settings.adhd;
+          else if (feature === "dyslexia") settings.dyslexia = !settings.dyslexia;
+          else if (feature === "highlight-links") settings.highlightLinks = !settings.highlightLinks;
+          else if (feature === "focus-indicator") settings.focusIndicator = !settings.focusIndicator;
+
+          saveSettings();
+          applyDOMState();
+        });
+      });
+
+      // Font Resizing Buttons
+      document.querySelectorAll("[data-a11y-font]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const mode = btn.getAttribute("data-a11y-font");
+          if (mode === "small") settings.fontScale = "small";
+          else if (mode === "normal") settings.fontScale = "normal";
+          else if (mode === "large") {
+            settings.fontScale = settings.fontScale === "large" ? "xlarge" : "large";
+          }
+          saveSettings();
+          applyDOMState();
+        });
+      });
+
+      // Theme Buttons
+      document.querySelectorAll("[data-a11y-theme]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const themeName = btn.getAttribute("data-a11y-theme");
+          settings.theme = settings.theme === themeName ? "none" : themeName;
+          saveSettings();
+          applyDOMState();
+        });
+      });
+
+      // Reset All Button
+      resetBtn?.addEventListener("click", resetAllSettings);
+    }
+
+    // Init
+    document.addEventListener("DOMContentLoaded", () => {
+      loadSettings();
+      applyDOMState();
+      setupListeners();
+      initSpeech();
+      initADHDBar();
+    });
+  })();
+</script>

@@ -3,8 +3,10 @@ import "../styles/global.css";
 // Must come after global.css: the dark overrides are unlayered and rely on
 // following Tailwind's layers in source order.
 import "../styles/dark-theme.css";
+import "../styles/accessibility.css";
 import GlobalSearch from "../components/GlobalSearch.astro";
 import GlobalScripts from "../components/GlobalScripts.astro";
+import AccessibilityWidget from "../components/AccessibilityWidget.astro";
 
 interface Props {
   title?: string;
@@ -40,9 +42,8 @@ const {
     <meta name="theme-color" content="#ffffff" />
 
     {/*
-      Resolves the theme before first paint so the page never flashes light
-      before switching to dark. This has to stay inline and blocking in <head>;
-      an Astro script tag is deferred and would paint the wrong theme first.
+      Resolves the theme and accessibility settings before first paint so the page
+      never flashes incorrect styles.
     */}
     <script is:inline>
       (function () {
@@ -56,8 +57,40 @@ const {
             var meta = document.querySelector('meta[name="theme-color"]');
             if (meta) meta.setAttribute("content", "#0b0d13");
           }
+
+          var a11yStored = localStorage.getItem("gp-a11y-settings");
+          if (a11yStored) {
+            var a11y = JSON.parse(a11yStored);
+            var html = document.documentElement;
+            if (a11y.contrast === "high") html.setAttribute("data-a11y-contrast", "high");
+            else if (a11y.contrast === "invert") html.setAttribute("data-a11y-contrast", "invert");
+            if (a11y.fontScale && a11y.fontScale !== "normal") html.setAttribute("data-a11y-font-scale", a11y.fontScale);
+            if (a11y.theme && a11y.theme !== "none") html.setAttribute("data-a11y-theme", a11y.theme);
+            if (a11y.hideImages) html.setAttribute("data-a11y-hide-images", "true");
+            if (a11y.grayscale) html.setAttribute("data-a11y-grayscale", "true");
+            if (a11y.bluelight) html.setAttribute("data-a11y-bluelight", "true");
+            if (a11y.adhd) html.setAttribute("data-a11y-adhd", "true");
+            if (a11y.dyslexia) html.setAttribute("data-a11y-dyslexia", "true");
+            if (a11y.highlightLinks) html.setAttribute("data-a11y-highlight-links", "true");
+            if (a11y.focusIndicator) html.setAttribute("data-a11y-focus-indicator", "true");
+
+            var isAnyActive =
+              a11y.speech ||
+              (a11y.contrast && a11y.contrast !== "normal") ||
+              (a11y.fontScale && a11y.fontScale !== "normal") ||
+              (a11y.theme && a11y.theme !== "none") ||
+              a11y.hideImages ||
+              a11y.grayscale ||
+              a11y.bluelight ||
+              a11y.adhd ||
+              a11y.dyslexia ||
+              a11y.highlightLinks ||
+              a11y.focusIndicator;
+
+            if (isAnyActive) html.setAttribute("data-a11y-active", "true");
+          }
         } catch (e) {
-          /* Storage blocked - fall through to the light default. */
+          /* Storage blocked - fall through to light default. */
         }
       })();
     </script>
@@ -124,5 +157,6 @@ const {
     <slot />
     <GlobalSearch />
     <GlobalScripts />
+    <AccessibilityWidget />
   </body>
 </html>

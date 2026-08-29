@@ -637,6 +637,37 @@ const { currentPath = "/" } = Astro.props;
           <div class="language-switcher">
             <button
               type="button"
+              class="language-switcher-button a11y-toggle-btn relative"
+              data-a11y-open
+              aria-label="Accessibility Settings"
+              title="Accessibility Settings (Alt + A)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-4 h-4"
+              >
+                <circle cx="12" cy="4" r="2"></circle>
+                <path d="m18 19 1-7-6 1"></path>
+                <path d="m5 8 7-3 7 3"></path>
+                <path d="M5 19l1-7 6 1"></path>
+                <path d="M12 12v7"></path>
+              </svg>
+              <span class="a11y-active-dot"></span>
+            </button>
+          </div>
+        </li>
+        <li class="max-lg:px-4 max-lg:py-2 lg:hidden">
+          <div class="language-switcher">
+            <button
+              type="button"
               class="language-switcher-button search-toggle-btn"
               aria-label="Search"
               aria-haspopup="dialog"
@@ -678,6 +709,35 @@ const { currentPath = "/" } = Astro.props;
       </ul>
       <div class="hidden gap-3.5 max-lg:ms-auto max-lg:me-4 lg:flex lg:items-center">
         <ThemeToggle />
+        <div class="language-switcher">
+          <button
+            type="button"
+            class="language-switcher-button a11y-toggle-btn relative"
+            data-a11y-open
+            aria-label="Accessibility Settings"
+            title="Accessibility Settings (Alt + A)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-4 h-4"
+            >
+              <circle cx="12" cy="4" r="2"></circle>
+              <path d="m18 19 1-7-6 1"></path>
+              <path d="m5 8 7-3 7 3"></path>
+              <path d="M5 19l1-7 6 1"></path>
+              <path d="M12 12v7"></path>
+            </svg>
+            <span class="a11y-active-dot"></span>
+          </button>
+        </div>
         <div class="language-switcher">
           <button
             type="button"

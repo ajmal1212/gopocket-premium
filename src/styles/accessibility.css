@@ -1,0 +1,252 @@
+/* ==========================================
+   SEBI-Compliant Accessibility Utility Styles
+   ========================================== */
+
+/* Font Resizing Scale */
+html[data-a11y-font-scale="small"] {
+  font-size: 87.5% !important;
+}
+html[data-a11y-font-scale="normal"] {
+  font-size: 100% !important;
+}
+html[data-a11y-font-scale="large"] {
+  font-size: 115% !important;
+}
+html[data-a11y-font-scale="xlarge"] {
+  font-size: 130% !important;
+}
+
+/* Smart Contrast Modes */
+html[data-a11y-contrast="high"] {
+  filter: contrast(150%) brightness(105%) !important;
+}
+html[data-a11y-contrast="invert"] {
+  filter: invert(100%) hue-rotate(180deg) !important;
+}
+html[data-a11y-contrast="invert"] img,
+html[data-a11y-contrast="invert"] video,
+html[data-a11y-contrast="invert"] picture,
+html[data-a11y-contrast="invert"] canvas,
+html[data-a11y-contrast="invert"] iframe {
+  filter: invert(100%) hue-rotate(180deg) !important;
+}
+
+/* Color Themes / Tints */
+html[data-a11y-theme="blue"] body {
+  background-color: #f0f7ff !important;
+  color: #0f172a !important;
+}
+html[data-a11y-theme="yellow"] body {
+  background-color: #fefce8 !important;
+  color: #422006 !important;
+}
+html[data-a11y-theme="green"] body {
+  background-color: #f0fdf4 !important;
+  color: #052e16 !important;
+}
+html[data-a11y-theme="pink"] body {
+  background-color: #fff1f2 !important;
+  color: #4c0519 !important;
+}
+
+/* Hide Images */
+html[data-a11y-hide-images="true"] img,
+html[data-a11y-hide-images="true"] picture,
+html[data-a11y-hide-images="true"] video,
+html[data-a11y-hide-images="true"] [style*="background-image"] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Grayscale */
+html[data-a11y-grayscale="true"] {
+  filter: grayscale(100%) !important;
+}
+
+/* Blue Light Filter (Amber Tint Overlay) */
+html[data-a11y-bluelight="true"]::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(255, 170, 0, 0.15);
+  pointer-events: none;
+  z-index: 999990;
+}
+
+/* Dyslexia Font Support */
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+html[data-a11y-dyslexia="true"] body,
+html[data-a11y-dyslexia="true"] p,
+html[data-a11y-dyslexia="true"] h1,
+html[data-a11y-dyslexia="true"] h2,
+html[data-a11y-dyslexia="true"] h3,
+html[data-a11y-dyslexia="true"] h4,
+html[data-a11y-dyslexia="true"] h5,
+html[data-a11y-dyslexia="true"] h6,
+html[data-a11y-dyslexia="true"] span,
+html[data-a11y-dyslexia="true"] a,
+html[data-a11y-dyslexia="true"] button,
+html[data-a11y-dyslexia="true"] input,
+html[data-a11y-dyslexia="true"] label {
+  font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif !important;
+  letter-spacing: 0.08em !important;
+  word-spacing: 0.12em !important;
+  line-height: 1.7 !important;
+}
+
+/* Highlight Links */
+html[data-a11y-highlight-links="true"] a {
+  text-decoration: underline !important;
+  text-decoration-thickness: 3px !important;
+  text-underline-offset: 4px !important;
+  background-color: #fef08a !important;
+  color: #000000 !important;
+  padding: 1px 4px !important;
+  border-radius: 2px !important;
+  font-weight: 700 !important;
+}
+
+/* Enhanced Focus Indicator */
+html[data-a11y-focus-indicator="true"] *:focus-visible {
+  outline: 4px solid #2563eb !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.4) !important;
+}
+
+/* Screen Reader TTS active highlight */
+.a11y-speech-speaking {
+  outline: 3px dashed #16a34a !important;
+  background-color: rgba(22, 163, 74, 0.15) !important;
+}
+
+/* ADHD Focus Circle Spotlight Overlay */
+#a11y-adhd-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999980;
+  display: none;
+  background: radial-gradient(
+    circle 180px at var(--a11y-mouse-x, 50vw) var(--a11y-mouse-y, 50vh),
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.2) 75%,
+    rgba(0, 0, 0, 0.75) 100%
+  );
+}
+html[data-a11y-adhd="true"] #a11y-adhd-bar {
+  display: block;
+}
+
+/* Accessibility Floating Toggle Button */
+.a11y-trigger-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999900;
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  background-color: #2563eb;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.a11y-trigger-btn:hover {
+  transform: scale(1.08);
+  background-color: #1d4ed8;
+  box-shadow: 0 14px 28px -5px rgba(37, 99, 235, 0.5);
+}
+.a11y-trigger-btn:focus-visible {
+  outline: 4px solid #60a5fa;
+  outline-offset: 3px;
+}
+
+/* Header Circular Control Buttons Uniform Styling (Theme, Accessibility, Search) */
+.header .language-switcher {
+  border-radius: 9999px !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+}
+
+.header .language-switcher .language-switcher-button {
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 9999px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+/* Header Accessibility Toggle Button Styling */
+.a11y-toggle-btn {
+  cursor: pointer;
+  background: none;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  position: relative;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.a11y-toggle-btn:hover {
+  color: #6b1aff;
+  transform: scale(1.08);
+}
+
+/* Active State indicator on Header Accessibility Button */
+html[data-a11y-active="true"] .a11y-toggle-btn {
+  color: #6b1aff !important;
+}
+
+html[data-a11y-active="true"] .header .language-switcher:has(.a11y-toggle-btn) {
+  border-color: #6b1aff !important;
+  background-color: rgba(107, 26, 255, 0.08) !important;
+  box-shadow: 0 0 0 3px rgba(107, 26, 255, 0.2) !important;
+}
+
+/* Active Badge Dot */
+.a11y-active-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background-color: #6b1aff;
+  box-shadow: 0 0 8px #6b1aff;
+  display: none;
+}
+html[data-a11y-active="true"] .a11y-active-dot {
+  display: block !important;
+}
+

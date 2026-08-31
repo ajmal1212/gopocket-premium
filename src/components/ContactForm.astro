@@ -4,7 +4,7 @@
 
 <form
   id="contact-form"
-  action="https://formsubmit.co/temp.gats@gmail.com"
+  action="https://formsubmit.co/support@gopocket.in"
   method="post"
   class="bg-white/80 backdrop-blur-md grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-3xl p-6 sm:p-8 md:p-10 shadow-sm border border-gray-100/80 w-full max-w-xl mx-auto"
 >
@@ -18,7 +18,7 @@
       type="text"
       id="first-name"
       name="First Name"
-      placeholder="John *"
+      placeholder="First Name *"
       class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
       required
     />
@@ -31,7 +31,7 @@
       type="text"
       id="last-name"
       name="Last Name"
-      placeholder="Doe *"
+      placeholder="Last Name *"
       class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
       required
     />
@@ -44,7 +44,7 @@
       type="email"
       id="email"
       name="Email Address"
-      placeholder="john@ko.eoo *"
+      placeholder="Email Address *"
       class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
       required
     />
@@ -61,9 +61,13 @@
         required
       >
         <option value="" disabled selected hidden>Subject *</option>
-        <option value="General Inquiry">General Inquiry</option>
+        <option value="Account Opening">Account Opening</option>
+        <option value="General Query">General Query</option>
+        <option value="Trading & Orders">Trading &amp; Orders</option>
+        <option value="Banking & Funds">Banking &amp; Funds</option>
+        <option value="Technical Support">Technical Support</option>
+        <option value="Complaint / Grievance">Complaint / Grievance</option>
         <option value="Partnership">Partnership</option>
-        <option value="Investment">Investment</option>
       </select>
       <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-gray-400">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -73,21 +77,25 @@
     </div>
   </div>
 
-  <!-- Subject With Search Dropdown -->
+  <!-- Department Dropdown -->
   <div class="col-span-1">
-    <label for="subject-search" class="sr-only">Subject With Search</label>
+    <label for="department" class="sr-only">Department</label>
     <div class="relative">
       <select
-        id="subject-search"
-        name="Subject With Search"
+        id="department"
+        name="Department"
         class="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-gray-900 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer pr-10 truncate"
       >
-        <option value="" disabled selected hidden>Subject With Search *</option>
-        <option value="General Inquiry">General Inquiry</option>
-        <option value="Partnership">Partnership</option>
-        <option value="Career">Career</option>
-        <option value="Investment">Investment</option>
-        <option value="Media Inquiry">Media Inquiry</option>
+        <option value="" disabled selected hidden>Department</option>
+        <option value="General Queries">General Queries</option>
+        <option value="IT Support">IT Support</option>
+        <option value="Banking Support">Banking Support</option>
+        <option value="Orders / Dealing">Orders / Dealing</option>
+        <option value="RMS">RMS</option>
+        <option value="Back Office Support">Back Office Support</option>
+        <option value="Account Opening">Account Opening</option>
+        <option value="Compliance">Compliance</option>
+        <option value="DP Relations">DP Relations</option>
       </select>
       <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-gray-400">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

@@ -1019,8 +1019,8 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
 }
 @layer components {
   :is(.header.scroll-down, .header.scroll-up) .logo-wrapper {
-    margin-left: 4px !important;
-    margin-right: 12px !important;
+    margin-left: 16px !important;
+    margin-right: 24px !important;
   }
 }
 @layer components {
@@ -1416,6 +1416,16 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
     background-color: var(--color-slate-50);
     color: #6b1aff;
   }
+}
+/* Deliberately UNLAYERED. The bare `a { color: #3b3b3b }` near the top of this
+   file is unlayered too, and unlayered CSS outranks every @layer regardless of
+   specificity -- so the same declaration inside @layer components loses to it and
+   the active nav item renders grey. Kept out here, this wins on specificity
+   (0,3,0 vs 0,0,1). Dark mode still overrides it: dark-theme.css's
+   `html.dark .navbar .nav-link-active` is unlayered at (0,3,1). */
+:is(.navbar .nav-dropdown-link, .navbar .nav-link).nav-link-active,
+:is(.header.scroll-down, .header.scroll-up) .nav-item > .nav-link.nav-link-active {
+  color: var(--color-primary);
 }
 @layer components {
   .navbar [data-icon="arrow-down"] * {

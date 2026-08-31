@@ -2,124 +2,347 @@
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import ContactForm from "../components/ContactForm.astro";
+
+const departments = [
+  { name: "General Queries", phone: "0422 3525 900", email: "support@gopocket.in" },
+  { name: "IT Support", phone: "0422 3525 930", email: "it@gopocket.in" },
+  { name: "Banking Support", phone: "0422 3525 900", email: "banking@gopocket.in" },
+  { name: "Orders / Dealing", phone: "0422 3525 925", email: "dealing@gopocket.in" },
+  { name: "RMS", phone: "0422 3525 900", email: "rms@gopocket.in" },
+  { name: "Back Office Support", phone: "0422 3525 900", email: "support@gopocket.in" },
+  { name: "Account Opening", phone: "", email: "hello@gopocket.in" },
+  { name: "Compliance / Securities Complaints", phone: "", email: "compliance@gopocket.in" },
+  { name: "DP Relations", phone: "", email: "dp@gopocket.in" },
+];
+
+type Branch = { city: string; area?: string; lines: string[] };
+
+const branchesByState: { state: string; branches: Branch[] }[] = [
+  {
+    state: "Tamil Nadu",
+    branches: [
+      {
+        city: "Chennai",
+        area: "T. Nagar",
+        lines: ["JVL Arcade,", "18/199, 1st Floor,", "North Usman Road, T. Nagar,", "Chennai – 600017."],
+      },
+      {
+        city: "Coimbatore",
+        area: "Flower Market",
+        lines: ["40-49, I.G Towers,", "Devangapet 3rd Street,", "Flower Market,", "Coimbatore – 641 001."],
+      },
+      {
+        city: "Coimbatore",
+        area: "R.S. Puram",
+        lines: ["160, 19B 1st Floor,", "Srinivasa Trade Centre,", "DB Road, RS Puram,", "Coimbatore – 641002."],
+      },
+      {
+        city: "Coimbatore",
+        area: "Somanur",
+        lines: ["91C, AM Tower,", "Karumathampatty Road,", "Senthil Nagar, Somanur,", "Coimbatore – 641668."],
+      },
+      {
+        city: "Salem",
+        lines: ["37/119, M.R. Complex,", "1st Floor, Advaitha Ashram Road,", "Fairlands,", "Salem – 636016."],
+      },
+      { city: "Karur", lines: ["Annamalai Complex,", "Vaiyapuri Nagar Bus Stop,", "Karur – 639002."] },
+      {
+        city: "Madurai",
+        lines: ["16 & 17 AR Plaza,", "Shop No. F, Basement Floor,", "North Veli Street,", "Madurai – 625001."],
+      },
+      {
+        city: "Tirupur",
+        lines: ["No 22/2, Binny Compound Main Street,", "Kumaran Road,", "(Near Mayberry Hotel),", "Tirupur – 641601."],
+      },
+      {
+        city: "Trichy",
+        lines: ["2nd Floor, Door No. 28/2,", "Paikara Street, Woraiyur,", "Trichy – 620003."],
+      },
+      {
+        city: "Erode",
+        area: "Sathy Road",
+        lines: ["2nd Floor, Chellammal Complex,", "Sathy Road,", "Erode – 638003."],
+      },
+      {
+        city: "Erode",
+        area: "Soolai",
+        lines: ["2nd Floor, Bakemart Building,", "Soolai Bus Stop,", "Erode – 638004."],
+      },
+      {
+        city: "Dharapuram",
+        lines: ["8, Thenmalar Complex,", "Bus Stand Opposite,", "Dharapuram – 638656."],
+      },
+    ],
+  },
+  {
+    state: "Pondicherry",
+    branches: [
+      { city: "Pondicherry", lines: ["181, Thiruvalluvar Salai,", "Pillaithottam,", "Pondicherry – 605013."] },
+    ],
+  },
+  {
+    state: "Karnataka",
+    branches: [
+      {
+        city: "Bangalore",
+        lines: ["No 14, Balaji Complex,", "AVS Compound, 4th Block,", "Koramangala,", "Bangalore – 560034."],
+      },
+      { city: "Tumkur", lines: ["Vinayakanagara,", "Opp. BH Road,", "Tumkur – 572101."] },
+    ],
+  },
+  {
+    state: "Andhra Pradesh",
+    branches: [
+      {
+        city: "Vijayawada",
+        lines: ["39-1-39/A, Rukmini Rice Mill Road,", "Labbipet, M.G Road,", "Vijayawada – 520010."],
+      },
+      {
+        city: "Vizianagaram",
+        lines: ["4th Floor, P.S.N Estate,", "Lower Tank Bund Road,", "Near RTC Complex,", "Vizianagaram – 535002."],
+      },
+    ],
+  },
+  {
+    state: "Delhi",
+    branches: [
+      {
+        city: "Delhi",
+        lines: ["Plot No. 36, Office No. 301,", "Third Floor, Guru Nanak Pura,", "Laxmi Nagar,", "Delhi – 110092."],
+      },
+    ],
+  },
+  {
+    state: "West Bengal",
+    branches: [
+      {
+        city: "South 24 Parganas",
+        lines: [
+          "Sonarpur Khirishtala Idol House,",
+          "225/1A, Ground Floor,",
+          "Shop No. 2 (2nd Gate),",
+          "South 24 Parganas – 700150.",
+        ],
+      },
+    ],
+  },
+  {
+    state: "Bihar",
+    branches: [{ city: "Muzaffarpur", lines: ["II Floor, Motijheel,", "Sah Pen Lane,", "Muzaffarpur – 842001."] }],
+  },
+  {
+    state: "Madhya Pradesh",
+    branches: [
+      {
+        city: "Indore",
+        lines: ["217–218, Second Floor,", "Dhan Trident, Satya Sai Square,", "Vijay Nagar,", "Indore – 452010."],
+      },
+      {
+        city: "Dewas",
+        lines: ["104 Laxmi Niwas,", "33 B Kalyani Bag,", "Behind Sheeba Hotel,", "Dewas – 455001."],
+      },
+    ],
+  },
+  {
+    state: "Maharashtra",
+    branches: [
+      {
+        city: "Pune",
+        lines: [
+          "1st Floor, Office No. 102,",
+          "Bhama Emerald, S. No. 29, Plot No. 52,",
+          "Opp. Chitale Bandhu Mithaiwale,",
+          "Pune – Satara Road, Dhankwadi, Pune.",
+        ],
+      },
+      {
+        city: "Nashik",
+        lines: ["503 Padma Vishwa Landmark,", "Sharanpur Road,", "Opp. Tanishq Show Room,", "Nashik – 422003."],
+      },
+    ],
+  },
+  {
+    state: "Gujarat",
+    branches: [
+      {
+        city: "Ahmedabad",
+        lines: [
+          "B/209, Fairdeal House,",
+          "Opp. Xavier's Ladies Hostel,",
+          "Swastik Cross Road,",
+          "Navrangpura,",
+          "Ahmedabad – 380 009.",
+        ],
+      },
+    ],
+  },
+];
+
+const totalBranches = branchesByState.reduce((sum, group) => sum + group.branches.length, 0);
+const defaultState = branchesByState[0].state;
+
+const telHref = (phone: string) => `tel:+91${phone.replace(/\D/g, "").replace(/^0/, "")}`;
 ---
 
 <Layout
   title="Contact Us - GoPocket"
-  description="Get in touch with us! Reach out for inquiries, support, or feedback."
+  description="Get in touch with GoPocket. Reach our support, dealing, banking and compliance teams, or visit any of our branches across India."
+  canonical="https://www.gopocket.in/contact"
 >
   <Header currentPath="/contact" />
 
   <main class="has-section-spacing-lg py-12 md:py-20">
-    <section class="relative">
+    <!-- Office Locations Section -->
+    <section>
       <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 gap-12 lg:grid-cols-2 items-start">
-          <!-- Left Column: Info & Testimonial -->
-          <div class="flex flex-col lg:sticky lg:top-32 space-y-10">
-            <div>
-              <h1 class="text-3xl sm:text-4xl md:text-5xl font-semibold text-gray-900 tracking-tight leading-tight">
-                Have questions?<br />
-                <span class="text-primary font-normal italic">Send Us a Message</span>
-              </h1>
-              <p class="mt-6 text-gray-600 text-base/relaxed max-w-lg">
-                Fill out the form below, and we'll get back to you as soon as possible. We're committed to providing
-                excellent customer service and addressing any inquiries you may have.
+        <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900 mb-12">
+          Discover the <span class="font-normal italic">Office Location</span>
+        </h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+          <!-- Registered Office -->
+          <div class="space-y-4 bg-gray-50/60 p-6 rounded-3xl border border-gray-100">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d19439.395236464505!2d76.94645925936987!3d11.0058480787738!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba8590251815095%3A0x7c7f146f65865076!2sSky%20Broking%20(Head%20Office)!5e0!3m2!1sen!2sin!4v1788162440283!5m2!1sen!2sin"
+              title="Map showing GoPocket Registered Office, IG Towers, Devangapet Street No 3, Coimbatore"
+              class="w-full h-72 md:h-80 rounded-2xl mb-4 border-0"
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen></iframe>
+            <h3 class="text-xl font-semibold text-gray-900">Registered Office</h3>
+            <div class="text-sm text-gray-600 space-y-1">
+              <p>II Floor, 40-49, Shop S1, IG Towers, Devangapet Street No 3, Coimbatore – 641001</p>
+              <p>Phone: <a href="tel:+914223525900" class="text-primary hover:underline">0422 – 3525900</a></p>
+              <p>
+                Email: <a href="mailto:support@gopocket.in" class="text-primary hover:underline">support@gopocket.in</a>
               </p>
-            </div>
-
-            <!-- Testimonial card -->
-            <div class="pt-6 border-t border-gray-100 space-y-6">
-              <div class="flex gap-1 text-yellow-400">
-                <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
-                  <path
-                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                  ></path>
-                </svg>
-                <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
-                  <path
-                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                  ></path>
-                </svg>
-                <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
-                  <path
-                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                  ></path>
-                </svg>
-                <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
-                  <path
-                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                  ></path>
-                </svg>
-                <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20">
-                  <path
-                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
-                  ></path>
-                </svg>
-              </div>
-              <blockquote class="text-base sm:text-lg text-gray-800 font-medium leading-relaxed italic">
-                "Our remote collaboration improved drastically, saving countless hours every single week."
-              </blockquote>
-              <div class="flex items-center gap-4 pt-2">
-                <img
-                  src="/assets/images/testimonial-avatar-1-1.webp"
-                  alt="Kowsi Han"
-                  class="h-11 w-11 rounded-full object-cover border-2 border-white shadow-sm"
-                />
-                <div>
-                  <div class="text-gray-900 font-semibold text-sm">Kowsi Han</div>
-                  <p class="text-xs text-gray-500">Marketing Director</p>
-                </div>
-              </div>
             </div>
           </div>
 
-          <!-- Right Column: Contact Form Component -->
-          <div class="lg:ms-auto w-full">
-            <ContactForm />
+          <!-- Corporate Office -->
+          <div class="space-y-4 bg-gray-50/60 p-6 rounded-3xl border border-gray-100">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4859.632357680786!2d76.9910233!3d11.0189615!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba859ea4dfcec35%3A0xd635f90b0d910445!2sGoPocket%20by%20Sky!5e0!3m2!1sen!2sin!4v1788162192379!5m2!1sen!2sin"
+              title="Map showing GoPocket Corporate Office, May Flower Valencia, Nava India, Avinashi Road, Coimbatore"
+              class="w-full h-72 md:h-80 rounded-2xl mb-4 border-0"
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen></iframe>
+            <h3 class="text-xl font-semibold text-gray-900">Corporate Office</h3>
+            <div class="text-sm text-gray-600 space-y-1">
+              <p>May Flower Valencia, 3rd Floor, Office No 3, Nava India, Avinashi Road, Coimbatore – 641004</p>
+              <p>Phone: <a href="tel:+914223525900" class="text-primary hover:underline">0422 – 3525900</a></p>
+              <p>
+                Email: <a href="mailto:support@gopocket.in" class="text-primary hover:underline">support@gopocket.in</a>
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Office Locations Section -->
+    <!-- Department-wise Contact Section -->
     <section class="mt-20 md:mt-32 border-t border-gray-100 pt-16 md:pt-24">
       <div class="container mx-auto px-4">
         <h2 class="text-2xl sm:text-3xl font-semibold text-gray-900 mb-12">
-          Discover the <span class="font-normal italic">Office Location</span>
+          Reach the <span class="font-normal italic">Right Team</span>
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-          <!-- Office 1 -->
-          <div class="space-y-4 bg-gray-50/60 p-6 rounded-3xl border border-gray-100">
-            <img
-              src="/assets/images/contact-hero-1-2.webp"
-              alt="Singapore HQ"
-              class="w-full h-56 object-cover rounded-2xl mb-4"
-            />
-            <h3 class="text-xl font-semibold text-gray-900">Singapore HQ</h3>
-            <div class="text-sm text-gray-600 space-y-1">
-              <p>123 Lowe Street, Green City, State, 12345</p>
-              <p>Phone: (123) 456-7890</p>
-              <p>Email: <a href="mailto:hq@stella.com" class="text-primary hover:underline">hq@stella.com</a></p>
-              <p>Hours: Monday - Friday: 9:00 AM - 6:00 PM</p>
-            </div>
-          </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {
+            departments.map((dept) => (
+              <div class="space-y-3 bg-gray-50/60 p-6 rounded-3xl border border-gray-100">
+                <h3 class="text-base font-semibold text-gray-900">{dept.name}</h3>
+                <div class="text-sm text-gray-600 space-y-1">
+                  {dept.phone && (
+                    <p>
+                      <a href={telHref(dept.phone)} class="hover:text-primary">
+                        {dept.phone}
+                      </a>
+                    </p>
+                  )}
+                  <p>
+                    <a href={`mailto:${dept.email}`} class="text-primary hover:underline">
+                      {dept.email}
+                    </a>
+                  </p>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
 
-          <!-- Office 2 -->
-          <div class="space-y-4 bg-gray-50/60 p-6 rounded-3xl border border-gray-100">
-            <img
-              src="/assets/images/contact-hero-2-2.webp"
-              alt="London HQ"
-              class="w-full h-56 object-cover rounded-2xl mb-4"
-            />
-            <h3 class="text-xl font-semibold text-gray-900">London HQ</h3>
-            <div class="text-sm text-gray-600 space-y-1">
-              <p>123 Lowe Street, Green City, State, 12345</p>
-              <p>Phone: (123) 456-7890</p>
-              <p>Email: <a href="mailto:hq@stella.com" class="text-primary hover:underline">hq@stella.com</a></p>
-              <p>Hours: Monday - Friday: 9:00 AM - 6:00 PM</p>
-            </div>
-          </div>
+    <!-- Branch Offices Section -->
+    <section class="mt-20 md:mt-32 border-t border-gray-100 pt-16 md:pt-24">
+      <div class="container mx-auto px-4">
+        <h2 class="text-2xl sm:text-3xl font-semibold text-gray-900 mb-4">
+          Our <span class="font-normal italic">Branches</span>
+        </h2>
+        <p class="text-gray-600 text-base/relaxed max-w-2xl mb-10">
+          Walk in to any of our {totalBranches} branches across {branchesByState.length} states. Pick a state to see the
+          offices near you.
+        </p>
+
+        <!-- State filter pills -->
+        <div class="flex flex-wrap gap-3 mb-12" role="group" aria-label="Filter branches by state">
+          {
+            branchesByState.map((group) => (
+              <button
+                type="button"
+                class="state-pill cursor-pointer rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 border-gray-200 bg-white text-gray-700 hover:border-primary/40 hover:text-primary"
+                data-filter={group.state}
+                aria-pressed={group.state === defaultState ? "true" : "false"}
+              >
+                {group.state}
+                <span class="ms-1.5 text-xs opacity-50">{group.branches.length}</span>
+              </button>
+            ))
+          }
+        </div>
+
+        <!-- Branch cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {
+            branchesByState.map((group) =>
+              group.branches.map((branch) => (
+                <article
+                  class="branch-card group flex flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5"
+                  data-state={group.state}
+                  hidden={group.state !== defaultState}
+                >
+                  <div class="relative flex min-h-[84px] items-end overflow-hidden bg-primary px-6 py-4">
+                    <svg
+                      class="pointer-events-none absolute right-5 top-5 h-5 w-5 text-white/30 transition-transform duration-300 group-hover:scale-110"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+                      />
+                    </svg>
+                    <h3 class="branch-title relative font-semibold uppercase tracking-wide text-white">
+                      {branch.city}
+                      {branch.area && <span class="block font-medium text-white/85">{branch.area}</span>}
+                    </h3>
+                  </div>
+
+                  <div class="flex-1 bg-gray-50/60 px-6 py-5">
+                    <address class="not-italic text-sm leading-relaxed text-gray-600">
+                      {branch.lines.map((line) => (
+                        <span class="block">{line}</span>
+                      ))}
+                    </address>
+                  </div>
+                </article>
+              )),
+            )
+          }
         </div>
       </div>
     </section>
@@ -127,3 +350,74 @@ import ContactForm from "../components/ContactForm.astro";
 
   <Footer />
 </Layout>
+
+<style>
+  /* Global unlayered `h3` rules in global.css override Tailwind utilities (color and
+     font-size), so set both here where the scoped selector wins on specificity. */
+  .branch-card .branch-title {
+    font-size: 0.9375rem;
+    color: #fff;
+    line-height: 1.4;
+  }
+
+  .branch-card:not([hidden]) {
+    animation: branch-fade-in 0.35s ease both;
+  }
+
+  @keyframes branch-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .branch-card:not([hidden]) {
+      animation: none;
+    }
+    .branch-card,
+    .state-pill {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const pills = document.querySelectorAll<HTMLButtonElement>(".state-pill");
+  const cards = document.querySelectorAll<HTMLElement>(".branch-card");
+
+  const activeClasses = ["border-primary", "text-primary", "bg-primary/5"];
+  const idleClasses = ["border-gray-200", "bg-white", "text-gray-700"];
+
+  const applyState = (state: string) => {
+    pills.forEach((pill) => {
+      const on = pill.dataset.filter === state;
+      pill.setAttribute("aria-pressed", String(on));
+      activeClasses.forEach((cls) => pill.classList.toggle(cls, on));
+      idleClasses.forEach((cls) => pill.classList.toggle(cls, !on));
+    });
+
+    cards.forEach((card) => {
+      const show = card.dataset.state === state;
+      if (show && card.hidden) {
+        card.hidden = false;
+        card.style.animation = "none";
+        void card.offsetWidth;
+        card.style.animation = "";
+      } else {
+        card.hidden = !show;
+      }
+    });
+  };
+
+  pills.forEach((pill) => {
+    pill.addEventListener("click", () => applyState(pill.dataset.filter ?? ""));
+  });
+
+  const initial = document.querySelector<HTMLButtonElement>('.state-pill[aria-pressed="true"]');
+  if (initial) applyState(initial.dataset.filter ?? "");
+</script>

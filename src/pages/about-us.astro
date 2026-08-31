@@ -1,0 +1,1040 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+const timelineEvents = [
+  {
+    year: "2012",
+    title: "Inception & MCX Membership",
+    description: "Kickstarted operations as Sky Commodities India Pvt. Ltd. and started as a Trading Member - MCX.",
+    category: "Foundation",
+  },
+  {
+    year: "2013",
+    title: "1,000 Client Milestone",
+    description: "Reached our first major milestone of 1,000 active trading accounts.",
+    category: "Growth",
+  },
+  {
+    year: "2014",
+    title: "Web Trading Platform",
+    description: "Our advanced Web Trading Platform was officially launched for seamless browser trading.",
+    category: "Technology",
+  },
+  {
+    year: "2015",
+    title: "Mobile App Launch",
+    description: "Launched mobile trading application, bringing stock & commodity markets right to mobile devices.",
+    category: "Mobile Tech",
+  },
+  {
+    year: "2016",
+    title: "20 Branches & 150+ Team",
+    description: "Expanded footprint across South India with a growing team of 150+ members and 20 physical branches.",
+    category: "Expansion",
+  },
+  {
+    year: "2017",
+    title: "TradingView & I-Charts",
+    description: "Upgraded web trading platform with advanced I-charts and TradingView charts integration.",
+    category: "Innovation",
+  },
+  {
+    year: "2018",
+    title: "MCX Broking House Award",
+    description: "Awarded 'Best Broking House - South' by Multi Commodity Exchange of India.",
+    category: "Recognition",
+  },
+  {
+    year: "2019",
+    title: "₹1,000 Cr/Day Turnover",
+    description: "Crossed ₹1,000 Cr daily turnover in MCX and won 'Member of the Year - South' awarded by MCX.",
+    category: "Milestone",
+  },
+  {
+    year: "2020",
+    title: "Full Digital Transformation",
+    description: "Transformed operations into a 100% paperless, seamless digital onboarding ecosystem.",
+    category: "Digital Transformation",
+  },
+  {
+    year: "2021",
+    title: "NSE Membership & DP License",
+    description:
+      "Launched NSE Membership, secured CDSL Depository Participant (DP) license, and deployed in-house tech.",
+    category: "Licensing",
+  },
+  {
+    year: "2022",
+    title: "IPO & Open API",
+    description: "Introduced IPO bidding, bracket orders, and developer APIs for automated trading systems.",
+    category: "Product Tech",
+  },
+  {
+    year: "2024",
+    title: "GoPocket Era Launch",
+    description: "Launched GoPocket — a next-generation, fully digital, breakthrough financial technology platform.",
+    category: "New Chapter",
+  },
+];
+
+const leadershipTeam = [
+  {
+    name: "Santhosh Kumar",
+    role: "Co-Founder and CEO",
+    bio: "From an agriculture and textile background, he was very interested in stock market investment...",
+    linkedin: "https://www.linkedin.com/in/santhoshsky/",
+    image:
+      "https://cdn.prod.website-files.com/64b92362210c9c95c3459af6/65a4c94b515373d7e8f93884_WhatsApp%20Image%202024-01-15%20at%2010.26.01_767aad5a.jpg",
+  },
+  {
+    name: "Yuvaraj Singaravelu",
+    role: "Co-Founder and MD",
+    bio: "From a finance background and market experience of more than 15 years, Yuvaraj Singaravelu takes care...",
+    linkedin: "https://www.linkedin.com/in/yuvaraj-singaravelu-5714552b3/",
+    image:
+      "https://cdn.prod.website-files.com/64b92362210c9c95c3459af6/65a7aa85745536c07b3c21f7_WhatsApp%20Image%202024-01-17%20at%2010.50.18_c6de2383.jpg",
+  },
+];
+---
+
+<Layout
+  title="About Us - GoPocket | Empowering India's Financial Future"
+  description="Learn about GoPocket's vision, leadership, awards, and our incredible journey from 2012 to creating a breakthrough financial technology platform."
+  canonical="https://www.gopocket.in/about-us"
+>
+  <Header currentPath="/about-us" />
+
+  <main class="has-section-spacing-lg">
+    <div
+      class="page-loader pointer-events-none fixed bottom-0 left-0 z-50 size-full bg-white transition duration-300 [.inactive]:opacity-0 inactive"
+    >
+      <script type="module" is:inline>
+        const e = document.querySelector(".page-loader");
+        document.addEventListener("DOMContentLoaded", () => {
+          e &&
+            setTimeout(() => {
+              e.classList.add("inactive");
+            }, 100);
+        });
+      </script>
+    </div>
+    <main class="has-section-spacing-lg">
+      <section class="overflow-hidden">
+        <div class="container space-y-16 md:space-y-32">
+          <div class="space-y-10 md:space-y-16">
+            <div class="mx-auto max-w-2xl text-center">
+              <h2 class="has-italic-text capitalize">
+                <div
+                  class="animated-text is-ready is-animated"
+                  data-duration="0.6"
+                  data-delay="0.2"
+                  data-stagger="0.09"
+                  style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+                >
+                  <span class="word" style="--word-index:0">About</span>
+                  <span class="word" style="--word-index:1">Our</span>
+                  <span class="word" style="--word-index:2"><strong>Company</strong></span>
+                </div>
+                <script type="module" is:inline>
+                  const r = document.querySelectorAll(".animated-text");
+                  if (window.matchMedia("(max-width: 767px)").matches)
+                    r.forEach((t) => {
+                      t.querySelectorAll(".word").forEach((e) => {
+                        ((e.style.opacity = "1"), (e.style.filter = "none"), (e.style.transform = "none"));
+                      });
+                    });
+                  else {
+                    const t = new IntersectionObserver(
+                      (e, a) => {
+                        e.forEach((s) => {
+                          s.isIntersecting && (s.target.classList.add("is-animated"), a.unobserve(s.target));
+                        });
+                      },
+                      { threshold: 0.1 },
+                    );
+                    r.forEach((e) => {
+                      (e.classList.add("is-ready"), t.observe(e));
+                    });
+                  }
+                </script>
+              </h2>
+            </div>
+            <div class="grid gap-4 md:gap-8 lg:grid-cols-3 lg:grid-rows-[300px_300px]">
+              <div
+                data-aos="zoom-in-sm"
+                data-aos-delay="200"
+                data-aos-offset="0"
+                class="row-span-2 aos-init aos-animate"
+              >
+                <img
+                  src="/assets/images/company-story-1.webp"
+                  srcset="/assets/images/company-story-1.webp 625w"
+                  alt="Office Image"
+                  loading="lazy"
+                  decoding="async"
+                  sizes="(min-width: 625px) 625px, 100vw"
+                  data-astro-image="constrained"
+                  data-astro-image-fit="cover"
+                  data-astro-image-pos="center"
+                  width="625"
+                  height="1007"
+                  class="size-full object-cover"
+                />
+              </div><div data-aos="zoom-in-sm" data-aos-delay="200" data-aos-offset="0" class="aos-init aos-animate">
+                <img
+                  src="/assets/images/company-story-2.webp"
+                  srcset="/assets/images/company-story-2.webp 625w"
+                  alt="Office Image"
+                  loading="lazy"
+                  decoding="async"
+                  sizes="(min-width: 625px) 625px, 100vw"
+                  data-astro-image="constrained"
+                  data-astro-image-fit="cover"
+                  data-astro-image-pos="center"
+                  width="625"
+                  height="503"
+                  class="size-full object-cover"
+                />
+              </div><div data-aos="zoom-in-sm" data-aos-delay="200" data-aos-offset="0" class="aos-init aos-animate">
+                <img
+                  src="/assets/images/company-story-3-6.webp"
+                  srcset="/assets/images/company-story-3-4.webp 640w, /assets/images/company-story-3-1.webp 750w, /assets/images/company-story-3-5.webp 828w, /assets/images/company-story-3-2.webp 1080w, /assets/images/company-story-3-3.webp 1280w, /assets/images/company-story-3-6.webp 1285w"
+                  alt="Office Image"
+                  loading="lazy"
+                  decoding="async"
+                  sizes="(min-width: 1285px) 1285px, 100vw"
+                  data-astro-image="constrained"
+                  data-astro-image-fit="cover"
+                  data-astro-image-pos="center"
+                  width="1285"
+                  height="468"
+                  class="size-full object-cover"
+                />
+              </div><div
+                data-aos="zoom-in-sm"
+                data-aos-delay="200"
+                data-aos-offset="0"
+                class="col-span-2 aos-init aos-animate"
+              >
+                <img
+                  src="/assets/images/company-story-4.webp"
+                  srcset="/assets/images/company-story-4.webp 625w"
+                  alt="Office Image"
+                  loading="lazy"
+                  decoding="async"
+                  sizes="(min-width: 625px) 625px, 100vw"
+                  data-astro-image="constrained"
+                  data-astro-image-fit="cover"
+                  data-astro-image-pos="center"
+                  width="625"
+                  height="503"
+                  class="size-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="space-y-8 p-0 md:space-y-16 lg:px-12 xl:px-24">
+            <h2 data-aos="fade-up-sm" class="has-italic-text capitalize aos-init aos-animate">
+              Empowering India's Financial Future <strong>since 2012</strong>
+            </h2>
+            <div class="grid gap-14 md:grid-cols-12">
+              <div class="relative md:col-span-4 aos-init aos-animate" data-aos="fade-right-sm">
+                <img
+                  src="/assets/images/group-photo-2.webp"
+                  srcset="/assets/images/group-photo-2.webp 310w, /assets/images/group-photo-1.webp 620w"
+                  alt="Turning your startup vision into reality. Powering innovation **since 1928**"
+                  loading="lazy"
+                  decoding="async"
+                  sizes="(min-width: 310px) 310px, 100vw"
+                  data-astro-image="constrained"
+                  data-astro-image-fit="cover"
+                  data-astro-image-pos="center"
+                  width="310"
+                  height="270"
+                  class="size-full object-cover"
+                />
+                <div class="pointer-events-none absolute inset-0 size-full select-none">
+                  <span class="translate-x-centered absolute -top-1 h-1 w-[115%] border-b border-dashed border-black/50"
+                  ></span>
+                  <span
+                    class="translate-x-centered absolute -bottom-px h-1 w-[115%] border-b border-dashed border-black/50"
+                  ></span>
+                  <span
+                    class="translate-y-centered absolute -left-px h-[115%] w-1 border-s border-dashed border-black/50"
+                  ></span>
+                  <span
+                    class="translate-y-centered absolute -right-1 h-[115%] w-1 border-s border-dashed border-black/50"
+                  ></span>
+                  <svg
+                    class="absolute -top-3.5 -left-3.5 fill-white"
+                    width="28"
+                    height="28"
+                    viewBox="0 0 28 28"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <g filter="url(#filter0_if_8209_2334)">
+                      <rect x="4" y="4.00488" width="20.0001" height="20.0001" fill="var(--color-theme-light)"></rect>
+                      <rect x="4.05" y="4.05488" width="19.9001" height="19.9001" stroke="#ECEEF1" stroke-width="0.1"
+                      ></rect>
+                    </g>
+                    <defs>
+                      <filter
+                        id="filter0_if_8209_2334"
+                        x="0"
+                        y="0.00488281"
+                        width="28"
+                        height="28"
+                        filterUnits="userSpaceOnUse"
+                        color-interpolation-filters="sRGB"
+                      >
+                        <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
+                        <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"></feBlend>
+                        <feColorMatrix
+                          in="SourceAlpha"
+                          type="matrix"
+                          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                          result="hardAlpha"></feColorMatrix>
+                        <feMorphology
+                          radius="1"
+                          operator="dilate"
+                          in="SourceAlpha"
+                          result="effect1_innerShadow_8209_2334"></feMorphology>
+                        <feOffset></feOffset>
+                        <feGaussianBlur stdDeviation="1"></feGaussianBlur>
+                        <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"></feComposite>
+                        <feColorMatrix
+                          type="matrix"
+                          values="0 0 0 0 0.865704 0 0 0 0 0.566265 0 0 0 0 0.566265 0 0 0 0.25 0"></feColorMatrix>
+                        <feBlend mode="normal" in2="shape" result="effect1_innerShadow_8209_2334"></feBlend>
+                        <feGaussianBlur stdDeviation="2" result="effect2_foregroundBlur_8209_2334"></feGaussianBlur>
+                      </filter>
+                    </defs>
+                  </svg>
+                  <svg
+                    class="absolute -top-3.5 -right-3.5 fill-white"
+                    width="28"
+                    height="28"
+                    viewBox="0 0 28 28"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <g filter="url(#filter0_if_8209_2334)">
+                      <rect x="4" y="4.00488" width="20.0001" height="20.0001" fill="var(--color-theme-light)"></rect>
+                      <rect x="4.05" y="4.05488" width="19.9001" height="19.9001" stroke="#ECEEF1" stroke-width="0.1"
+                      ></rect>
+                    </g>
+                    <defs>
+                      <filter
+                        id="filter0_if_8209_2334"
+                        x="0"
+                        y="0.00488281"
+                        width="28"
+                        height="28"
+                        filterUnits="userSpaceOnUse"
+                        color-interpolation-filters="sRGB"
+                      >
+                        <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
+                        <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"></feBlend>
+                        <feColorMatrix
+                          in="SourceAlpha"
+                          type="matrix"
+                          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                          result="hardAlpha"></feColorMatrix>
+                        <feMorphology
+                          radius="1"
+                          operator="dilate"
+                          in="SourceAlpha"
+                          result="effect1_innerShadow_8209_2334"></feMorphology>
+                        <feOffset></feOffset>
+                        <feGaussianBlur stdDeviation="1"></feGaussianBlur>
+                        <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"></feComposite>
+                        <feColorMatrix
+                          type="matrix"
+                          values="0 0 0 0 0.865704 0 0 0 0 0.566265 0 0 0 0 0.566265 0 0 0 0.25 0"></feColorMatrix>
+                        <feBlend mode="normal" in2="shape" result="effect1_innerShadow_8209_2334"></feBlend>
+                        <feGaussianBlur stdDeviation="2" result="effect2_foregroundBlur_8209_2334"></feGaussianBlur>
+                      </filter>
+                    </defs>
+                  </svg>
+                  <svg
+                    class="absolute -bottom-3.5 -left-3.5 fill-white"
+                    width="28"
+                    height="28"
+                    viewBox="0 0 28 28"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <g filter="url(#filter0_if_8209_2334)">
+                      <rect x="4" y="4.00488" width="20.0001" height="20.0001" fill="var(--color-theme-light)"></rect>
+                      <rect x="4.05" y="4.05488" width="19.9001" height="19.9001" stroke="#ECEEF1" stroke-width="0.1"
+                      ></rect>
+                    </g>
+                    <defs>
+                      <filter
+                        id="filter0_if_8209_2334"
+                        x="0"
+                        y="0.00488281"
+                        width="28"
+                        height="28"
+                        filterUnits="userSpaceOnUse"
+                        color-interpolation-filters="sRGB"
+                      >
+                        <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
+                        <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"></feBlend>
+                        <feColorMatrix
+                          in="SourceAlpha"
+                          type="matrix"
+                          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                          result="hardAlpha"></feColorMatrix>
+                        <feMorphology
+                          radius="1"
+                          operator="dilate"
+                          in="SourceAlpha"
+                          result="effect1_innerShadow_8209_2334"></feMorphology>
+                        <feOffset></feOffset>
+                        <feGaussianBlur stdDeviation="1"></feGaussianBlur>
+                        <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"></feComposite>
+                        <feColorMatrix
+                          type="matrix"
+                          values="0 0 0 0 0.865704 0 0 0 0 0.566265 0 0 0 0 0.566265 0 0 0 0.25 0"></feColorMatrix>
+                        <feBlend mode="normal" in2="shape" result="effect1_innerShadow_8209_2334"></feBlend>
+                        <feGaussianBlur stdDeviation="2" result="effect2_foregroundBlur_8209_2334"></feGaussianBlur>
+                      </filter>
+                    </defs>
+                  </svg>
+                  <svg
+                    class="absolute -right-3.5 -bottom-3.5 fill-white"
+                    width="28"
+                    height="28"
+                    viewBox="0 0 28 28"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <g filter="url(#filter0_if_8209_2334)">
+                      <rect x="4" y="4.00488" width="20.0001" height="20.0001" fill="var(--color-theme-light)"></rect>
+                      <rect x="4.05" y="4.05488" width="19.9001" height="19.9001" stroke="#ECEEF1" stroke-width="0.1"
+                      ></rect>
+                    </g>
+                    <defs>
+                      <filter
+                        id="filter0_if_8209_2334"
+                        x="0"
+                        y="0.00488281"
+                        width="28"
+                        height="28"
+                        filterUnits="userSpaceOnUse"
+                        color-interpolation-filters="sRGB"
+                      >
+                        <feFlood flood-opacity="0" result="BackgroundImageFix"></feFlood>
+                        <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"></feBlend>
+                        <feColorMatrix
+                          in="SourceAlpha"
+                          type="matrix"
+                          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+                          result="hardAlpha"></feColorMatrix>
+                        <feMorphology
+                          radius="1"
+                          operator="dilate"
+                          in="SourceAlpha"
+                          result="effect1_innerShadow_8209_2334"></feMorphology>
+                        <feOffset></feOffset>
+                        <feGaussianBlur stdDeviation="1"></feGaussianBlur>
+                        <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"></feComposite>
+                        <feColorMatrix
+                          type="matrix"
+                          values="0 0 0 0 0.865704 0 0 0 0 0.566265 0 0 0 0 0.566265 0 0 0 0.25 0"></feColorMatrix>
+                        <feBlend mode="normal" in2="shape" result="effect1_innerShadow_8209_2334"></feBlend>
+                        <feGaussianBlur stdDeviation="2" result="effect2_foregroundBlur_8209_2334"></feGaussianBlur>
+                      </filter>
+                    </defs>
+                  </svg>
+                </div>
+                <img
+                  src="/assets/images/image-shape.webp"
+                  srcset="/assets/images/image-shape.webp 309w"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  sizes="(min-width: 309px) 309px, 100vw"
+                  data-astro-image="constrained"
+                  data-astro-image-fit="cover"
+                  data-astro-image-pos="center"
+                  width="309"
+                  height="181"
+                  class="absolute bottom-0 left-0 w-full"
+                />
+              </div>
+              <div
+                data-aos="fade-right-sm"
+                data-aos-delay="150"
+                class="space-y-7 md:col-span-8 md:space-y-14 aos-init aos-animate"
+              >
+                <p class="text-lg">
+                  In a landscape where terms like "Easy to Use," "Accessible to All," and "Faster than ever before"
+                  rarely found their place in the world of Investing and Online Trading in India, GoPocket emerges as a
+                  transformative force.
+                </p>
+                <div class="flex flex-wrap gap-7 md:flex-nowrap md:gap-14">
+                  <div class="space-y-4">
+                    <h3 class="text-h5-sm md:text-h5 font-medium">Mission</h3>
+                    <p>
+                      Empowering everyone with Financial knowledge and offering seamless technology to leverage the
+                      power of Trading & Investing.
+                    </p>
+                  </div><div class="space-y-4">
+                    <h3 class="text-h5-sm md:text-h5 font-medium">Vision</h3>
+                    <p>A country where financial literacy and access to capital markets is no longer a luxury.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="space-y-3.5 md:text-center">
+              <div class="inline-flex place-items-stretch leading-none has-animated-number text-h2-sm md:text-h2 block">
+                <span data-count="100" style="--odometer-duration:1.2s" class="odometer odometer-auto-theme">100</span>
+                <span class="append">K+</span>
+              </div>
+              <h3 class="text-h6-sm md:text-h6">Clients Served</h3>
+              <p>Empowering retail and active traders across India</p>
+            </div><div class="space-y-3.5 md:text-center">
+              <div class="inline-flex place-items-stretch leading-none has-animated-number text-h2-sm md:text-h2 block">
+                <span data-count="1000" style="--odometer-duration:1.2s" class="odometer odometer-auto-theme">1000</span>
+                <span class="append">Cr+</span>
+              </div>
+              <h3 class="text-h6-sm md:text-h6">Daily Turnover</h3>
+              <p>Crossed daily trading volume in stock & commodity markets</p>
+            </div><div class="space-y-3.5 md:text-center">
+              <div class="inline-flex place-items-stretch leading-none has-animated-number text-h2-sm md:text-h2 block">
+                <span data-count="20" style="--odometer-duration:1.2s" class="odometer odometer-auto-theme">20</span>
+                <span class="append">+</span>
+              </div>
+              <h3 class="text-h6-sm md:text-h6">Branches</h3>
+              <p>A growing physical network supporting our clients offline</p>
+            </div><div class="space-y-3.5 md:text-center">
+              <div class="inline-flex place-items-stretch leading-none has-animated-number text-h2-sm md:text-h2 block">
+                <span data-count="100" style="--odometer-duration:1.2s" class="odometer odometer-auto-theme">100</span>
+                <span class="append">%</span>
+              </div>
+              <h3 class="text-h6-sm md:text-h6">Digital Platform</h3>
+              <p>Fully paperless onboarding and instant trading execution</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section>
+        <div class="container space-y-10 md:space-y-16">
+          <div class="mx-auto max-w-2xl text-center">
+            <h2 class="has-italic-text capitalize">
+              <div
+                class="animated-text is-ready is-animated"
+                data-duration="0.6"
+                data-delay="0.2"
+                data-stagger="0.09"
+                style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+              >
+                <span class="word" style="--word-index:0">Our</span>
+                <span class="word" style="--word-index:1">Core</span>
+                <span class="word" style="--word-index:2"><strong>Values</strong></span>
+              </div>
+            </h2>
+          </div>
+          <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div
+              data-aos="fade-up-sm"
+              data-aos-delay="50"
+              data-aos-duration="900"
+              class="flex flex-col gap-4 border p-5 md:p-8 aos-init aos-animate"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                data-lucide="CircleFadingArrowUp"
+                class="text-3xl"
+                ><path d="M12 2a10 10 0 0 1 7.38 16.75"></path><path d="m16 12-4-4-4 4"></path><path d="M12 16V8"
+                ></path><path d="M2.5 8.875a10 10 0 0 0-.5 3"></path><path d="M2.83 16a10 10 0 0 0 2.43 3.4"
+                ></path><path d="M4.636 5.235a10 10 0 0 1 .891-.857"></path><path d="M8.644 21.42a10 10 0 0 0 7.631-.38"
+                ></path></svg
+              >
+              <div class="mt-4 space-y-3">
+                <h3 class="text-h5-sm md:text-h5">Innovation</h3>
+                <p class="opacity-80">
+                  We embrace creativity and constantly seek new ways to solve problems and deliver value.
+                </p>
+              </div>
+            </div><div
+              data-aos="fade-up-sm"
+              data-aos-delay="100"
+              data-aos-duration="900"
+              class="flex flex-col gap-4 border p-5 md:p-8 aos-init aos-animate"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                data-lucide="HeartHandshake"
+                class="text-3xl"
+                ><path
+                  d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762"
+                ></path></svg
+              >
+              <div class="mt-4 space-y-3">
+                <h3 class="text-h5-sm md:text-h5">Collaboration</h3>
+                <p class="opacity-80">
+                  We believe the best results come from working together and supporting one another.
+                </p>
+              </div>
+            </div><div
+              data-aos="fade-up-sm"
+              data-aos-delay="150"
+              data-aos-duration="900"
+              class="flex flex-col gap-4 border p-5 md:p-8 aos-init aos-animate"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                data-lucide="Focus"
+                class="text-3xl"
+                ><circle cx="12" cy="12" r="3"></circle><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path
+                  d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path
+                  d="M7 21H5a2 2 0 0 1-2-2v-2"></path></svg
+              >
+              <div class="mt-4 space-y-3">
+                <h3 class="text-h5-sm md:text-h5">Customer Focus</h3>
+                <p class="opacity-80">
+                  Our customers are at the heart of everything we do — we build with their needs in mind.
+                </p>
+              </div>
+            </div><div
+              data-aos="fade-up-sm"
+              data-aos-delay="200"
+              data-aos-duration="900"
+              class="flex flex-col gap-4 border p-5 md:p-8 aos-init aos-animate"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                data-lucide="Fingerprint"
+                class="text-3xl"
+                ><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"></path><path d="M14 13.12c0 2.38 0 6.38-1 8.88"
+                ></path><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"></path><path d="M2 12a10 10 0 0 1 18-6"></path><path
+                  d="M2 16h.01"></path><path d="M21.8 16c.2-2 .131-5.354 0-6"></path><path
+                  d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"></path><path d="M8.65 22c.21-.66.45-1.32.57-2"
+                ></path><path d="M9 6.8a6 6 0 0 1 9 5.2v2"></path></svg
+              >
+              <div class="mt-4 space-y-3">
+                <h3 class="text-h5-sm md:text-h5">Integrity</h3>
+                <p class="opacity-80">
+                  We act with honesty, transparency, and accountability in all our decisions and actions.
+                </p>
+              </div>
+            </div><div
+              data-aos="fade-up-sm"
+              data-aos-delay="250"
+              data-aos-duration="900"
+              class="flex flex-col gap-4 border p-5 md:p-8 aos-init aos-animate"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                data-lucide="Sprout"
+                class="text-3xl"
+                ><path
+                  d="M14 9.536V7a4 4 0 0 1 4-4h1.5a.5.5 0 0 1 .5.5V5a4 4 0 0 1-4 4 4 4 0 0 0-4 4c0 2 1 3 1 5a5 5 0 0 1-1 3"
+                ></path><path d="M4 9a5 5 0 0 1 8 4 5 5 0 0 1-8-4"></path><path d="M5 21h14"></path></svg
+              >
+              <div class="mt-4 space-y-3">
+                <h3 class="text-h5-sm md:text-h5">Growth</h3>
+                <p class="opacity-80">
+                  We encourage continuous learning, both as individuals to achieve long-term success.
+                </p>
+              </div>
+            </div><div
+              data-aos="fade-up-sm"
+              data-aos-delay="300"
+              data-aos-duration="900"
+              class="flex flex-col gap-4 border p-5 md:p-8 aos-init aos-animate"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                data-lucide="ShieldCheck"
+                class="text-3xl"
+                ><path
+                  d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+                ></path><path d="m9 12 2 2 4-4"></path></svg
+              >
+              <div class="mt-4 space-y-3">
+                <h3 class="text-h5-sm md:text-h5">Excellence</h3>
+                <p class="opacity-80">
+                  We are committed to delivering high-quality products, services, and experiences every time.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="container space-y-10 md:space-y-16">
+          <div class="mx-auto max-w-2xl text-center">
+            <h2 class="has-italic-text capitalize">
+              <div
+                class="animated-text is-ready"
+                data-duration="0.6"
+                data-delay="0.2"
+                data-stagger="0.09"
+                style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+              >
+                <span class="word" style="--word-index:0">Meet</span>
+                <span class="word" style="--word-index:1">Our</span>
+                <span class="word" style="--word-index:2"><strong>Leadership</strong></span>
+              </div>
+            </h2>
+            <p class="mt-4 opacity-80 animate-fade-in max-w-2xl mx-auto" data-aos="fade-up-sm" data-aos-delay="200">
+              Our leadership team is an assembly of visionaries with a cumulative experience exceeding 30 years. They are devoted to advancing financial literacy and empowerment throughout India.
+            </p>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            {leadershipTeam.map((member, index) => (
+              <div
+                data-aos={index % 2 === 0 ? "fade-right-sm" : "fade-left-sm"}
+                data-aos-delay={(index % 4) * 100 + 100}
+                class="from-theme-light flex w-full flex-col md:flex-row items-center md:items-stretch gap-6 rounded-2xl bg-linear-to-b to-white p-6 border border-black/5 shadow-xs"
+              >
+                <!-- Left: Image -->
+                <div class="w-56 h-56 md:w-52 md:h-52 lg:w-56 lg:h-56 flex-shrink-0 self-start">
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    loading="lazy"
+                    class="w-full h-full rounded-xl object-cover aspect-square shadow-xs"
+                  />
+                </div>
+                <!-- Right: Content -->
+                <div class="flex-grow flex flex-col justify-between space-y-4 text-center md:text-left">
+                  <div class="space-y-2">
+                    <p class="text-xs font-semibold text-primary uppercase tracking-wider">{member.role}</p>
+                    <h3 class="md:text-h6 text-h6-sm text-black font-bold">{member.name}</h3>
+                    <p class="text-sm opacity-80 leading-relaxed">{member.bio}</p>
+                  </div>
+                  <div class="pt-4 border-t border-black/5 flex justify-center md:justify-start">
+                    <a
+                      href={member.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-black hover:text-primary transition-colors duration-200"
+                      aria-label={`${member.name}'s LinkedIn profile`}
+                    >
+                      <svg class="h-8 w-8 fill-current" viewBox="0 0 24 24">
+                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section>
+        <div class="container">
+          <div class="space-y-10 md:space-y-16">
+            <div class="mx-auto max-w-4xl text-center">
+              <h2 class="has-italic-text capitalize">
+                <div
+                  class="animated-text is-ready"
+                  data-duration="0.6"
+                  data-delay="0.2"
+                  data-stagger="0.09"
+                  style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+                >
+                  <span class="word" style="--word-index:0">Milestones</span>
+                  <span class="word" style="--word-index:1">&amp;</span>
+                  <span class="word" style="--word-index:2"><strong>Recognition</strong></span>
+                </div>
+              </h2>
+              <p class="mt-4 opacity-80 max-w-2xl mx-auto" data-aos="fade-up-sm" data-aos-delay="200">
+                Our greatest achievement is the success and growth of our clients. GoPocket’s sole aim is to educate and empower investors.
+              </p>
+            </div>
+            <div class="grid gap-8 overflow-hidden md:grid-cols-2 lg:grid-cols-3">
+              <div
+                class="bg-theme-light group relative flex w-full flex-col items-start rounded-xl border-4 border-white p-6 aos-init"
+                data-aos="fade-left-sm"
+                data-aos-delay="100"
+              >
+                <div class="flex flex-col items-start space-y-4 w-full">
+                  <div class="relative w-full h-48 flex items-center justify-center bg-white rounded-lg p-4 border border-black/5 shadow-inner">
+                    <img
+                      src="/assets/images/gopocket/trophy-image-1.png"
+                      alt="Best Broking House - South"
+                      class="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-110"
+                    />
+                  </div>
+                  <div class="space-y-1 mt-4">
+                    <h3 class="text-h6 font-medium text-black">Best Broking House - South</h3>
+                    <p class="text-sm text-primary font-semibold">Multi Commodity Exchange of India (MCX)</p>
+                  </div>
+                  <p class="text-sm opacity-80 leading-relaxed">
+                    Awarded in recognition of our exceptional commodities volume, robust compliance practices, and commitment to service excellence in South India.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="bg-theme-light group relative flex w-full flex-col items-start rounded-xl border-4 border-white p-6 aos-init"
+                data-aos="fade-left-sm"
+                data-aos-delay="200"
+              >
+                <div class="flex flex-col items-start space-y-4 w-full">
+                  <div class="relative w-full h-48 flex items-center justify-center bg-white rounded-lg p-4 border border-black/5 shadow-inner">
+                    <img
+                      src="/assets/images/gopocket/trophy-image-2.png"
+                      alt="Leading Member - MCX Awards 2022"
+                      class="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-110"
+                    />
+                  </div>
+                  <div class="space-y-1 mt-4">
+                    <h3 class="text-h6 font-medium text-black">Leading Member - MCX Awards 2022</h3>
+                    <p class="text-sm text-primary font-semibold">Multi Commodity Exchange of India (MCX)</p>
+                  </div>
+                  <p class="text-sm opacity-80 leading-relaxed">
+                    Recognized as a leading financial member of MCX for driving market penetration, technological growth, and high volume transactions in commodities.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="bg-theme-light group relative flex w-full flex-col items-start rounded-xl border-4 border-white p-6 aos-init"
+                data-aos="fade-left-sm"
+                data-aos-delay="300"
+              >
+                <div class="flex flex-col items-start space-y-4 w-full">
+                  <div class="relative w-full h-48 flex items-center justify-center bg-white rounded-lg p-4 border border-black/5 shadow-inner">
+                    <img
+                      src="/assets/images/gopocket/trophy-image-3.png"
+                      alt="Member of the Year - South"
+                      class="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-110"
+                    />
+                  </div>
+                  <div class="space-y-1 mt-4">
+                    <h3 class="text-h6 font-medium text-black">Member of the Year - South</h3>
+                    <p class="text-sm text-primary font-semibold">Multi Commodity Exchange of India (MCX)</p>
+                  </div>
+                  <p class="text-sm opacity-80 leading-relaxed">
+                    Honored with the Member of the Year award in the southern region for our remarkable contribution to the exchange's trading ecosystem.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section class="timeline-section text-white relative py-24 overflow-hidden rounded-3xl mx-4 md:mx-8 my-12">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(124,58,237,0.08),transparent_40%)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(99,102,241,0.08),transparent_40%)]"></div>
+        <div class="container relative space-y-10 md:space-y-16">
+          <div class="mx-auto max-w-2xl text-center">
+            <h2 class="has-italic-text capitalize !text-white" style="color: #ffffff !important;">
+              <div
+                class="animated-text is-ready"
+                data-duration="0.6"
+                data-delay="0.2"
+                data-stagger="0.09"
+                style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s; color: #ffffff !important;"
+              >
+                <span class="word" style="--word-index:0; color: #ffffff !important;">Our</span>
+                <span class="word" style="--word-index:1; color: #ffffff !important;">Incredible</span>
+                <span class="word" style="--word-index:2; color: #ffffff !important;"><strong class="!text-white" style="color: #ffffff !important;">Journey</strong></span>
+              </div>
+            </h2>
+          </div>
+          
+          <div class="relative mx-auto max-w-4xl pt-8">
+            <div class="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-white/10 md:-ml-px"></div>
+            
+            <div class="space-y-12">
+              {timelineEvents.map((evt, idx) => (
+                <div 
+                  class={`relative flex flex-col md:flex-row items-start md:items-center ${idx % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
+                  data-aos="fade-up-sm"
+                  data-aos-delay="100"
+                >
+                  <div class="absolute left-6 md:left-1/2 z-10 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full timeline-dot-circle border border-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.5)]">
+                    <div class="h-1.5 w-1.5 rounded-full bg-purple-400"></div>
+                  </div>
+                  
+                  <div class="hidden md:block w-1/2"></div>
+                  
+                  <div class={`w-full pl-12 md:pl-0 md:w-1/2 ${idx % 2 === 0 ? 'md:pr-12 md:text-right' : 'md:pl-12 md:text-left'}`}>
+                    <div class="bg-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/5 hover:border-white/10 transition-all duration-300 text-left">
+                      <div class="mb-2 flex items-center gap-2">
+                        <span class="rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 px-3 py-1 text-xs font-bold !text-white" style="color: #ffffff !important;">{evt.year}</span>
+                        <span class="text-xs font-medium uppercase tracking-wider !text-purple-300" style="color: #d8b4fe !important;">{evt.category}</span>
+                      </div>
+                      <h3 class="mb-2 text-h6 font-medium !text-white" style="color: #ffffff !important;">{evt.title}</h3>
+                      <p class="text-sm !text-slate-200 leading-relaxed" style="color: #cbd5e1 !important;">{evt.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="call-to-action overflow-hidden">
+        <div class="relative container py-20 md:py-40">
+          <div class="mx-auto space-y-8 text-center lg:max-w-3xl">
+            <h2
+              class="has-italic-text text-display-3 md:text-display-2 mb-8 text-center leading-[1.15] font-normal capitalize"
+            >
+              <div
+                class="animated-text is-ready"
+                data-duration="0.6"
+                data-delay="0.2"
+                data-stagger="0.09"
+                style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+              >
+                <span class="word" style="--word-index:0">Get</span>
+                <span class="word" style="--word-index:1">Started</span>
+                <span class="word" style="--word-index:2">and</span>
+                <span class="word" style="--word-index:3">Streamline</span>
+                <span class="word" style="--word-index:4">Your</span>
+                <span class="word" style="--word-index:5"><strong>Workflow</strong></span><strong>
+                  <span class="word" style="--word-index:6">Today</span></strong
+                >
+              </div>
+            </h2>
+            <div
+              data-aos="fade-down-sm"
+              data-aos-delay="100"
+              class="mx-auto max-w-2xl space-y-1 text-center *:first:text-lg *:first:font-medium *:last:opacity-80 aos-init"
+            >
+              <p>No credit card required. Cancel anytime</p>
+              <p>Enjoy a 14-day free trial — experience every feature, risk-free.</p>
+            </div>
+            <div data-aos="fade-down-sm" data-aos-delay="200" class="aos-init">
+              <a class="btn btn-primary text-flip-hover-anim btn-md btn-primary" href="/contact"
+                ><span class="text-flip-inner" data-content="GET A FREE DEMO">GET A FREE DEMO</span><span
+                  class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
+                  ><svg
+                    class="gradient-shape"
+                    width="150"
+                    height="28"
+                    viewBox="0 0 147 11"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    ><path
+                      d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
+                      stroke="currentColor"
+                      stroke-width="8"></path></svg
+                  ></span
+                ></a
+              >
+            </div>
+          </div>
+          <div
+            class="pattern-shape pointer-events-none absolute top-0 left-0 -z-10 flex h-full w-[150%] opacity-40 select-none"
+            style="transform: translateX(-1000px);"
+          >
+            <div class="from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5 bg-linear-to-b">
+            </div><div
+              class="from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5 bg-linear-to-t"
+            >
+            </div><div
+              class="from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5 bg-linear-to-b"
+            >
+            </div><div
+              class="from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5 bg-linear-to-t"
+            >
+            </div><div
+              class="from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5 bg-linear-to-b"
+            >
+            </div><div
+              class="from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5 bg-linear-to-t"
+            >
+            </div><div
+              class="from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5 bg-linear-to-b"
+            >
+            </div><div
+              class="from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5 bg-linear-to-t"
+            >
+            </div><div
+              class="from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5 bg-linear-to-b"
+            >
+            </div><div
+              class="from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5 bg-linear-to-t"
+            >
+            </div><div
+              class="from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5 bg-linear-to-b"
+            >
+            </div><div
+              class="from-primary/10 h-full w-1/12 border-2 border-white to-transparent md:w-1/5 bg-linear-to-t"
+            >
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <Footer />
+</Layout>
+
+<style>
+  .timeline-section {
+    background-color: #0f172a !important;
+  }
+  :global(html.dark) .timeline-section {
+    background-color: #0b0d13 !important;
+  }
+
+  .timeline-dot-circle {
+    background-color: #0f172a !important;
+  }
+  :global(html.dark) .timeline-dot-circle {
+    background-color: #0b0d13 !important;
+  }
+</style>

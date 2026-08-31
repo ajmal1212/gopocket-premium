@@ -2,12 +2,12 @@
 import Layout from "../../layouts/Layout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
-import { getSeminarById } from "../../lib/frappe";
+import { getSeminarBySlugOrId } from "../../lib/frappe";
 
 const { id } = Astro.params;
 
 // Fetch seminar details from Frappe Doctype 'Seminar'
-const seminar = id ? await getSeminarById(id) : null;
+const seminar = id ? await getSeminarBySlugOrId(id) : null;
 
 const webinar = seminar || {
   id: id || "default",
@@ -115,6 +115,7 @@ const displayDate = webinar.date_and_time || webinar.formattedDate;
           </div>
 
           <form id="webinar-register-form" class="space-y-4">
+            <input type="hidden" name="seminar" value={seminar?.id ?? ""} />
             <!-- Field 1: Client Code / New -->
             <div class="space-y-1.5">
               <label class="block text-xs font-semibold text-dark uppercase tracking-wider">
@@ -177,6 +178,11 @@ const displayDate = webinar.date_and_time || webinar.formattedDate;
                   required
                   placeholder="Enter 10-digit mobile number"
                   pattern="[0-9]{10}"
+                  inputmode="numeric"
+                  maxlength="10"
+                  minlength="10"
+                  autocomplete="tel-national"
+                  title="Enter exactly 10 digits, numbers only."
                   class="w-full pl-11 pr-4 py-3.5 bg-white border border-border-light rounded-xl text-dark placeholder-gray-400 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-xs"
                 />
               </div>
@@ -236,19 +242,6 @@ const displayDate = webinar.date_and_time || webinar.formattedDate;
               <strong>Note:</strong> By submitting above details, you are authorizing GoPocket / its sub-brokers / agents to call you, send promotional communication even though you being registered under DND.
             </div>
           </form>
-
-          <!-- Success Alert Message (Hidden by default) -->
-          <div id="success-alert" class="hidden p-5 rounded-2xl bg-emerald-100 border border-emerald-300 text-emerald-950 space-y-2">
-            <h4 class="font-bold text-base flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-700">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-              Registration Successful!
-            </h4>
-            <p class="text-sm">
-              Thank you for registering. We have sent the webinar joining link to your registered mobile number.
-            </p>
           </div>
 
         </div>
@@ -260,19 +253,200 @@ const displayDate = webinar.date_and_time || webinar.formattedDate;
   <Footer />
 </Layout>
 
+<style is:global>
+  /* Toasts are created by script after hydration, so they never receive Astro's
+     scoped class attribute - these rules have to be global. Names are prefixed
+     to keep them from colliding with anything else. */
+  .gp-toast-stack {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-width: min(26rem, calc(100vw - 2rem));
+  }
+
+  .gp-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 1rem 1.15rem;
+    border-radius: 1rem;
+    color: #052e21;
+    background: #a7f3d0;
+    border: 1px solid #6ee7b7;
+    box-shadow: 0 12px 34px rgb(0 0 0 / 0.16);
+    animation: gp-toast-in 0.25s ease both;
+  }
+
+  .gp-toast[data-variant="error"] {
+    color: #450a0a;
+    background: #fecaca;
+    border-color: #fca5a5;
+  }
+
+  .gp-toast.is-leaving {
+    animation: gp-toast-out 0.2s ease forwards;
+  }
+
+  .gp-toast-icon {
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+
+  .gp-toast-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+
+  .gp-toast-title {
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+
+  .gp-toast-text {
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    opacity: 0.85;
+  }
+
+  @keyframes gp-toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes gp-toast-out {
+    to {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gp-toast,
+    .gp-toast.is-leaving {
+      animation: none;
+    }
+  }
+</style>
+
 <script is:inline>
-  document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('webinar-register-form');
-    const alert = document.getElementById('success-alert');
-    if (form) {
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (alert) {
-          alert.classList.remove('hidden');
-          form.reset();
-          alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("webinar-register-form");
+    if (!form) return;
+
+    const submitButton = form.querySelector('button[type="submit"]');
+    const buttonLabel = submitButton ? submitButton.querySelector(".text-flip-inner") : null;
+    const originalLabel = buttonLabel ? buttonLabel.textContent : "";
+
+    // type="tel" still accepts letters and symbols, and maxlength caps length
+    // without filtering characters - so strip anything non-numeric as it is
+    // typed or pasted, and hard-cap the value at 10 digits.
+    const mobileInput = form.querySelector('input[name="mobile"]');
+    if (mobileInput) {
+      mobileInput.addEventListener("input", () => {
+        const digitsOnly = mobileInput.value.replace(/\D/g, "").slice(0, 10);
+        if (mobileInput.value !== digitsOnly) mobileInput.value = digitsOnly;
       });
     }
+
+    const stack = document.createElement("div");
+    stack.className = "gp-toast-stack";
+    stack.setAttribute("role", "status");
+    stack.setAttribute("aria-live", "polite");
+    document.body.appendChild(stack);
+
+    const ICONS = {
+      success:
+        '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>',
+      error: '<circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path>',
+    };
+
+    function showToast(title, message, variant) {
+      const el = document.createElement("div");
+      el.className = "gp-toast";
+      el.dataset.variant = variant;
+      el.innerHTML =
+        '<svg class="gp-toast-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+        (ICONS[variant] || ICONS.error) +
+        '</svg><div class="gp-toast-body"><span class="gp-toast-title"></span><span class="gp-toast-text"></span></div>';
+
+      // Server-supplied text goes in via textContent, never innerHTML.
+      el.querySelector(".gp-toast-title").textContent = title;
+      const textEl = el.querySelector(".gp-toast-text");
+      if (message) {
+        textEl.textContent = message;
+      } else {
+        textEl.remove();
+      }
+
+      stack.appendChild(el);
+
+      setTimeout(() => {
+        el.classList.add("is-leaving");
+        setTimeout(() => el.remove(), 220);
+      }, 6000);
+    }
+
+    function setBusy(busy) {
+      if (submitButton) submitButton.disabled = busy;
+      if (!buttonLabel) return;
+      const label = busy ? "Registering..." : originalLabel;
+      buttonLabel.textContent = label;
+      buttonLabel.setAttribute("data-content", label);
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (typeof form.reportValidity === "function" && !form.reportValidity()) return;
+
+      const data = new FormData(form);
+      const payload = {
+        seminar: data.get("seminar") || "",
+        fullName: data.get("fullName") || "",
+        mobile: data.get("mobile") || "",
+        city: data.get("city") || "",
+        clientCode: data.get("clientCode") || "",
+      };
+
+      setBusy(true);
+
+      try {
+        const res = await fetch("/api/seminar-register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const result = await res.json().catch(() => ({
+          ok: false,
+          title: "Something went wrong",
+          message: "Unexpected response from the server. Please try again.",
+        }));
+
+        showToast(
+          result.title || (result.ok ? "Registration Successful!" : "Registration Failed"),
+          result.message || "",
+          result.ok ? "success" : "error"
+        );
+
+        if (result.ok) form.reset();
+      } catch (error) {
+        showToast("Network error", "Please check your connection and try again.", "error");
+      } finally {
+        setBusy(false);
+      }
+    });
   });
 </script>

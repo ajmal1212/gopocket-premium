@@ -1,7 +1,6 @@
 import { FrappeApp } from 'frappe-js-sdk';
 
 export const DEFAULT_FRAPPE_URL = 'https://hrms.gopocket.in';
-export const DEFAULT_FRAPPE_TOKEN = 'ca55fb5157bea03:39f7391028b27b9';
 
 export function getFrappeUrl(): string {
   const proc = (globalThis as any).process;
@@ -22,7 +21,11 @@ export function getFrappeToken(): string {
   if (import.meta.env?.FRAPPE_TOKEN) {
     return import.meta.env.FRAPPE_TOKEN;
   }
-  return DEFAULT_FRAPPE_TOKEN;
+  throw new Error(
+    'FRAPPE_TOKEN is not set. Add it to .env for local runs and builds, and to ' +
+      'the Cloudflare Worker environment for deploys. It is deliberately not ' +
+      'hardcoded here so the credential never lands in version control.'
+  );
 }
 
 export function getFrappeInstance(): FrappeApp {
@@ -31,6 +34,20 @@ export function getFrappeInstance(): FrappeApp {
     token: () => getFrappeToken(),
     type: 'token'
   });
+}
+
+/** One row of the `registration_details` child table on the Seminar doctype. */
+export interface SeminarRegistrationRow {
+  mobile_number?: string;
+  full_name?: string;
+  city?: string;
+  client_code?: string;
+  client_name?: string;
+  class_code?: string;
+  refer?: string;
+  mode?: string;
+  branch?: string;
+  parent1?: string;
 }
 
 export interface SeminarDoc {
@@ -47,10 +64,13 @@ export interface SeminarDoc {
   creation?: string;
   modified?: string;
   docstatus?: number;
+  registration_details?: SeminarRegistrationRow[];
 }
 
 export interface FormattedSeminar {
   id: string;
+  /** Date-based URL segment, e.g. "20260831-1600". */
+  slug: string;
   title: string;
   description: string;
   date_and_time: string;
@@ -129,6 +149,7 @@ export function formatSeminar(doc: SeminarDoc): FormattedSeminar {
 
   return {
     id: doc.name,
+    slug: seminarSlug(doc),
     title,
     description,
     date_and_time: rawDateTime,
@@ -142,15 +163,47 @@ export function formatSeminar(doc: SeminarDoc): FormattedSeminar {
   };
 }
 
-export function getCurrentFrappeDateTime(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+/**
+ * How long a seminar stays listed after its start time. A session beginning at
+ * 14:00 therefore remains visible until 16:00, then drops off.
+ */
+export const SEMINAR_GRACE_HOURS = 2;
+
+/**
+ * Timezone the Frappe site stores its naive "YYYY-MM-DD HH:MM:SS" timestamps
+ * in. Every comparison against those values has to be built in this zone, not
+ * the host's, or the filter drifts by the offset between them.
+ */
+export const FRAPPE_TIMEZONE = 'Asia/Kolkata';
+
+/**
+ * Formats "now" as a Frappe-style "YYYY-MM-DD HH:MM:SS" timestamp in
+ * FRAPPE_TIMEZONE. `offsetHours` shifts the instant first: negative values look
+ * backwards, which is how the seminar grace window is expressed.
+ *
+ * The zone is pinned explicitly rather than read from the host clock because
+ * Cloudflare Workers run in UTC while the Frappe site stores IST - relying on
+ * the host would silently widen the window by 5.5 hours in production.
+ */
+export function getCurrentFrappeDateTime(offsetHours = 0): string {
+  const instant = new Date(Date.now() + offsetHours * 60 * 60 * 1000);
+
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: FRAPPE_TIMEZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    // h23 keeps midnight as "00"; hour12:false reports it as "24" in some engines.
+    hourCycle: 'h23'
+  }).formatToParts(instant);
+
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((entry) => entry.type === type)?.value ?? '00';
+
+  return `${part('year')}-${part('month')}-${part('day')} ${part('hour')}:${part('minute')}:${part('second')}`;
 }
 
 /**
@@ -184,10 +237,15 @@ async function fetchSeminarsViaNativeFetch(filters?: any[]): Promise<SeminarDoc[
  * Fetches seminars with automatic fallback
  */
 export async function getSeminars(cutoffDate?: string): Promise<FormattedSeminar[]> {
-  const targetDate = cutoffDate || getCurrentFrappeDateTime();
+  // Keep a seminar listed until SEMINAR_GRACE_HOURS after it starts.
+  const targetDate = cutoffDate || getCurrentFrappeDateTime(-SEMINAR_GRACE_HOURS);
   const filters: any[] = [['Seminar', 'date_and_time', '>=', targetDate]];
 
-  // 1. Try via Frappe SDK
+  // The two attempts below are TRANSPORT fallbacks only - the SDK is not always
+  // usable on the Edge runtime, so a native fetch stands in for it. Whichever
+  // one succeeds returns its result verbatim, empty list included: "nothing is
+  // running right now" is a correct answer and must never be back-filled with
+  // past seminars, which would defeat the date filter entirely.
   try {
     const frappe = getFrappeInstance();
     const db = frappe.db();
@@ -196,42 +254,13 @@ export async function getSeminars(cutoffDate?: string): Promise<FormattedSeminar
       filters,
       orderBy: { field: 'date_and_time', order: 'asc' }
     });
-
-    if (docs && docs.length > 0) {
-      return docs.map(formatSeminar);
-    }
+    return (docs || []).map(formatSeminar);
   } catch (error) {
-    console.warn('Frappe SDK query failed, trying native fetch fallback...', error);
+    console.warn('Frappe SDK seminar query failed, trying native fetch...', error);
   }
 
-  // 2. Try via Native Fetch (Cloudflare Workers safe)
   try {
     const docs = await fetchSeminarsViaNativeFetch(filters);
-    if (docs && docs.length > 0) {
-      return docs.map(formatSeminar);
-    }
-  } catch (error) {
-    console.error('Native fetch query failed:', error);
-  }
-
-  // 3. Fallback: If filtered date returned 0 upcoming seminars, fetch all seminars
-  try {
-    const frappe = getFrappeInstance();
-    const db = frappe.db();
-    const docs = await db.getDocList<SeminarDoc>('Seminar', {
-      fields: ['*'],
-      limit: 10,
-      orderBy: { field: 'date_and_time', order: 'desc' }
-    });
-    if (docs && docs.length > 0) {
-      return docs.map(formatSeminar);
-    }
-  } catch {
-    // ignore
-  }
-
-  try {
-    const docs = await fetchSeminarsViaNativeFetch();
     return docs.map(formatSeminar);
   } catch (error) {
     console.error('All seminar fetch strategies failed:', error);
@@ -277,6 +306,147 @@ export async function getSeminarById(id: string): Promise<FormattedSeminar | nul
   }
 
   return null;
+}
+
+/** Matches a seminar slug: YYYYMMDD-HHMM, e.g. "20260831-1600". */
+const SEMINAR_SLUG_PATTERN = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})$/;
+
+/**
+ * Builds the public URL segment for a seminar from its start time, so
+ * "2026-08-31 16:00:00" becomes "20260831-1600".
+ *
+ * `date_and_time` is a naive IST string, and the slug is derived from it by
+ * pure string surgery - no Date parsing - so the URL always matches the stored
+ * value regardless of the host's timezone. Falls back to the Frappe record id
+ * when the timestamp is missing or malformed, so a link is never broken.
+ */
+export function seminarSlug(doc: Pick<SeminarDoc, 'name' | 'date_and_time'>): string {
+  const raw = (doc.date_and_time || '').trim();
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+  if (!match) return String(doc.name || '');
+  const [, year, month, day, hour, minute] = match;
+  return `${year}${month}${day}-${hour}${minute}`;
+}
+
+/** Inverse of seminarSlug: "20260831-1600" -> "2026-08-31 16:00:00". */
+export function seminarSlugToDateTime(slug: string): string | null {
+  const match = slug.match(SEMINAR_SLUG_PATTERN);
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match;
+  return `${year}-${month}-${day} ${hour}:${minute}:00`;
+}
+
+/** Looks up a single seminar by its exact start time. */
+async function findSeminarByDateTime(dateTime: string): Promise<SeminarDoc | null> {
+  const filters: any[] = [['Seminar', 'date_and_time', '=', dateTime]];
+
+  try {
+    const frappe = getFrappeInstance();
+    const db = frappe.db();
+    const docs = await db.getDocList<SeminarDoc>('Seminar', { fields: ['*'], filters, limit: 1 });
+    return docs && docs.length > 0 ? docs[0] : null;
+  } catch (error) {
+    console.warn('SDK seminar slug lookup failed, trying native fetch...', error);
+  }
+
+  try {
+    const docs = await fetchSeminarsViaNativeFetch(filters);
+    return docs[0] || null;
+  } catch (error) {
+    console.error('Native fetch seminar slug lookup failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Resolves /research-learn/<identifier>, where the identifier is either a
+ * date-based slug ("20260831-1600") or - for links created before slugs
+ * existed - a raw Frappe record id.
+ */
+export async function getSeminarBySlugOrId(identifier: string): Promise<FormattedSeminar | null> {
+  const value = (identifier || '').trim();
+  if (!value) return null;
+
+  const dateTime = seminarSlugToDateTime(value);
+  if (dateTime) {
+    const doc = await findSeminarByDateTime(dateTime);
+    return doc ? formatSeminar(doc) : null;
+  }
+
+  return getSeminarById(value);
+}
+
+/** Fetches the raw Seminar document, including its registration_details rows. */
+export async function getSeminarDocByName(name: string): Promise<SeminarDoc | null> {
+  const url = `${getFrappeUrl()}/api/resource/Seminar/${encodeURIComponent(name)}`;
+  return frappeResourceGet<SeminarDoc>(url, 'getSeminarDocByName');
+}
+
+export type SeminarRegistrationResult =
+  | { status: 'ok'; registrations: number }
+  | { status: 'not_found' }
+  | { status: 'duplicate' }
+  | { status: 'error'; message: string };
+
+/**
+ * Appends one attendee to a seminar's `registration_details` child table.
+ *
+ * IMPORTANT: updateDoc replaces a Table field wholesale rather than appending to
+ * it, so the existing rows are read first and sent back alongside the new one.
+ * Posting just the new row would silently delete every prior registration.
+ *
+ * This is a read-modify-write, so two people registering in the same instant can
+ * race and one row can be lost. Frappe has no append-to-child-table REST call;
+ * closing that gap properly needs a server-side whitelisted method.
+ */
+export async function addSeminarRegistration(
+  seminarName: string,
+  row: SeminarRegistrationRow
+): Promise<SeminarRegistrationResult> {
+  const doc = await getSeminarDocByName(seminarName);
+  if (!doc) return { status: 'not_found' };
+
+  const existing = Array.isArray(doc.registration_details) ? doc.registration_details : [];
+  const mobile = (row.mobile_number || '').trim();
+
+  if (existing.some((entry) => (entry?.mobile_number || '').trim() === mobile)) {
+    return { status: 'duplicate' };
+  }
+
+  const registration_details = [...existing, row];
+
+  try {
+    const frappe = getFrappeInstance();
+    await frappe.db().updateDoc('Seminar', seminarName, { registration_details });
+    return { status: 'ok', registrations: registration_details.length };
+  } catch (error) {
+    console.warn('SDK updateDoc failed for seminar registration, trying native fetch...', error);
+  }
+
+  try {
+    const res = await fetch(`${getFrappeUrl()}/api/resource/Seminar/${encodeURIComponent(seminarName)}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `token ${getFrappeToken()}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ registration_details })
+    });
+
+    if (res.ok) return { status: 'ok', registrations: registration_details.length };
+
+    // mobile_number is `unique` on the child doctype, so Frappe rejects a number
+    // that is already registered for ANY seminar, not just this one.
+    const detail = await res.text();
+    if (/DuplicateEntry|already exists|Duplicate entry/i.test(detail)) {
+      return { status: 'duplicate' };
+    }
+    console.error('Seminar registration rejected by Frappe:', res.status, detail.slice(0, 300));
+    return { status: 'error', message: `Registration service returned ${res.status}.` };
+  } catch (error) {
+    console.error('Native fetch seminar registration failed:', error);
+    return { status: 'error', message: 'Could not reach the registration service.' };
+  }
 }
 
 /* ============================================================================

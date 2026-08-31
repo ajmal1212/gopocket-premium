@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { getBlogPosts, getSeminars } from "../lib/frappe";
+import { getBlogPosts } from "../lib/frappe";
 
 const SITE = "https://gopocket.in";
 
@@ -82,18 +82,10 @@ export const GET: APIRoute = async () => {
     console.error("sitemap: could not load blog posts", error);
   }
 
-  try {
-    const seminars = await getSeminars();
-    for (const seminar of seminars) {
-      entries.push({
-        loc: `${SITE}/research-learn/${seminar.id}`,
-        changefreq: "weekly",
-        priority: "0.6",
-      });
-    }
-  } catch (error) {
-    console.error("sitemap: could not load seminars", error);
-  }
+  // Seminars are deliberately NOT listed here. Each one drops off the site once
+  // its grace window closes, so any URL published in the sitemap would go stale
+  // within days and leave crawlers chasing entries that no longer resolve to a
+  // live listing. The detail pages stay reachable; they just aren't advertised.
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

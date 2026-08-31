@@ -9,12 +9,58 @@ import { getBlogPosts } from "../lib/frappe";
 const posts = await getBlogPosts(20);
 const featuredPost = posts.length > 0 ? posts[0] : null;
 const regularPosts = posts.length > 1 ? posts.slice(1) : posts;
+
+const SITE = "https://gopocket.in";
+const blogUrl = `${SITE}/blog`;
+
+const blogSchema = {
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  name: "GoPocket Blog",
+  description:
+    "Practical tips, algo trading insights, options strategies and market news to help you trade smarter.",
+  url: blogUrl,
+  inLanguage: "en",
+  publisher: {
+    "@type": "Organization",
+    name: "GoPocket",
+    url: `${SITE}/`,
+    logo: { "@type": "ImageObject", url: `${SITE}/gopocket-logo.svg` }
+  },
+  blogPost: posts.map((post) => ({
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.description || post.summary,
+    image: post.thumbnailImage,
+    url: `${blogUrl}/${post.slug}`,
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${blogUrl}/${post.slug}` },
+    datePublished: post.publishedISO,
+    dateModified: post.modifiedISO || post.publishedISO,
+    articleSection: post.categories,
+    author: { "@type": "Organization", name: "GoPocket", url: `${SITE}/` }
+  }))
+};
+
+const blogBreadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
+    { "@type": "ListItem", position: 2, name: "Blog", item: blogUrl }
+  ]
+};
 ---
 
 <Layout
   title="GoPocket Blog - Trading Insights, Algo Trading & Financial News"
   description="Discover practical tips, algo trading insights, options strategies, and market news designed to help you trade smarter."
+  canonical={blogUrl}
+  ogImage={featuredPost ? featuredPost.thumbnailImage : undefined}
 >
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(blogSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(blogBreadcrumbSchema)} />
+  </Fragment>
   <Header currentPath="/blog" />
   <main class="has-section-spacing-lg pt-8 md:pt-16">
     <!-- Featured Top Post -->

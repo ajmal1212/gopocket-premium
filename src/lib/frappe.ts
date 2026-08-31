@@ -283,6 +283,14 @@ export async function getSeminarById(id: string): Promise<FormattedSeminar | nul
    BLOG DOCTYPE FUNCTIONS
    ============================================================================ */
 
+/** One row of the `faq` child table on the Blog doctype. */
+export interface BlogFaqRow {
+  name?: string;
+  idx?: number;
+  question?: string;
+  answer?: string;
+}
+
 export interface BlogDoc {
   name: string | number;
   meta_tittle?: string;
@@ -293,11 +301,20 @@ export interface BlogDoc {
   post_summary?: string | null;
   main_image?: string | null;
   thumbnail_image?: string | null;
-  blog_category?: string;
+  category1?: string | null;
+  category2?: string | null;
+  category3?: string | null;
+  faq?: BlogFaqRow[];
   owner?: string;
   creation?: string;
   modified?: string;
   docstatus?: number;
+}
+
+export interface BlogFaq {
+  id: string;
+  question: string;
+  answer: string;
 }
 
 export interface FormattedBlog {
@@ -308,9 +325,16 @@ export interface FormattedBlog {
   summary: string;
   mainImage: string;
   thumbnailImage: string;
+  /** First entry of `categories`; kept so existing listing code keeps working. */
   category: string;
+  categories: string[];
+  faqs: BlogFaq[];
   formattedDate: string;
   creation: string;
+  modified: string;
+  /** ISO-8601 timestamps for schema.org / OpenGraph article metadata. */
+  publishedISO: string;
+  modifiedISO: string;
   postBody?: string;
 }
 
@@ -347,6 +371,17 @@ export function formatPostBody(rawBody?: string): string {
   return html;
 }
 
+/**
+ * Frappe stores timestamps as "YYYY-MM-DD HH:MM:SS.ffffff" with no timezone, so
+ * they are parsed in the server's local zone before being emitted as ISO-8601
+ * for schema.org and OpenGraph `article:*` tags.
+ */
+export function toIsoDate(value?: string | null): string {
+  if (!value) return '';
+  const dt = new Date(value.replace(' ', 'T'));
+  return isNaN(dt.getTime()) ? '' : dt.toISOString();
+}
+
 export function formatBlog(doc: BlogDoc): FormattedBlog {
   // Editor-entered fields regularly carry stray whitespace; trim so titles read
   // cleanly and slugs never produce a "%20" tail in the URL.
@@ -371,6 +406,24 @@ export function formatBlog(doc: BlogDoc): FormattedBlog {
     }
   }
 
+  // The Blog doctype replaced the single `blog_category` with up to three
+  // category fields; collapse them into one ordered, de-duplicated list.
+  const categories = [doc.category1, doc.category2, doc.category3]
+    .map((value) => (value || '').trim())
+    .filter((value, index, all) => value.length > 0 && all.indexOf(value) === index);
+
+  // `faq` is a child table, so it only arrives from the single-document
+  // endpoint; list responses omit it entirely, hence the array guard.
+  const faqs = (Array.isArray(doc.faq) ? doc.faq : [])
+    .filter((row) => (row?.question || '').trim() && (row?.answer || '').trim())
+    .slice()
+    .sort((a, b) => (a.idx ?? 0) - (b.idx ?? 0))
+    .map((row, index) => ({
+      id: `blog-faq-${row.name || index + 1}`,
+      question: (row.question || '').trim(),
+      answer: (row.answer || '').trim()
+    }));
+
   return {
     id: String(doc.name),
     title,
@@ -379,9 +432,14 @@ export function formatBlog(doc: BlogDoc): FormattedBlog {
     summary: doc.post_summary || description,
     mainImage: getFullImageUrl(doc.main_image || doc.thumbnail_image),
     thumbnailImage: getFullImageUrl(doc.thumbnail_image || doc.main_image),
-    category: doc.blog_category || 'Finance',
+    category: categories[0] || 'Finance',
+    categories,
+    faqs,
     formattedDate,
     creation,
+    modified: doc.modified || '',
+    publishedISO: toIsoDate(doc.creation),
+    modifiedISO: toIsoDate(doc.modified || doc.creation),
     postBody: formatPostBody(doc.post_body)
   };
 }
@@ -395,10 +453,11 @@ export async function getBlogPosts(limit = 20): Promise<FormattedBlog[]> {
     'meta_tittle',
     'meta_description',
     'slug',
-    'post_summary',
     'main_image',
     'thumbnail_image',
-    'blog_category',
+    'category1',
+    'category2',
+    'category3',
     'creation',
     'modified'
   ];

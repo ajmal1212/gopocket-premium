@@ -31,7 +31,9 @@ const { currentPath = "/" } = Astro.props;
         tabindex="-1"
       >
         <li class="nav-item">
-          <a href="/" class={`nav-link ${currentPath === "/" ? "nav-link-active" : ""}`}>Home</a>
+          <a href="/products" class={`nav-link ${currentPath === "/products" || currentPath === "/products/" ? "nav-link-active" : ""}`}
+            >Products</a
+          >
         </li><li
           class="hs-dropdown nav-dropdown group [--auto-close:inside] [--offset:0px] nav-item relative lg:[--strategy:absolute]"
         >
@@ -322,12 +324,12 @@ const { currentPath = "/" } = Astro.props;
             </li>
           </ul>
         </li><li class="nav-item">
-          <a href="/products" class={`nav-link ${currentPath === "/products" || currentPath === "/products/" ? "nav-link-active" : ""}`}
-            >Products</a
+          <a href="/index2" class={`nav-link whitespace-nowrap ${currentPath === "/index2" || currentPath === "/index2/" ? "nav-link-active" : ""}`}
+            >Partner With Us<span class="badge badge-accent whitespace-nowrap">NEW</span></a
           >
         </li><li class="nav-item">
-          <a href="/index2" class={`nav-link whitespace-nowrap ${currentPath === "/index2" || currentPath === "/index2/" ? "nav-link-active" : ""}`}
-            >Home 3<span class="badge badge-accent whitespace-nowrap">NEW</span></a
+          <a href="/blog" class={`nav-link ${currentPath === "/blog" || currentPath === "/blog/" ? "nav-link-active" : ""}`}
+            >Blogs</a
           >
         </li><li
           class="hs-dropdown nav-dropdown group [--auto-close:inside] [--offset:0px] nav-item relative lg:[--strategy:absolute]"

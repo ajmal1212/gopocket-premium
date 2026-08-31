@@ -1,5 +1,5 @@
 ---
-const faqs = [
+const defaultFaqs = [
   {
     id: "faq-1",
     category: "General",
@@ -43,6 +43,34 @@ const faqs = [
     answer: "Yes! GoPocket provides free, developer-grade REST & WebSocket APIs for algo traders, quantitative funds, and strategy builders to place orders, fetch real-time ticks, and manage portfolios programmatically."
   }
 ];
+
+export interface Faq {
+  id?: string;
+  category?: string;
+  question: string;
+  answer: string;
+}
+
+interface Props {
+  faqs?: Faq[];
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+}
+
+const {
+  faqs: faqsProp,
+  eyebrow = "Got Questions?",
+  title = "Frequently Asked Questions",
+  description = "Everything you need to know about trading, opening an account, charges, and security on GoPocket."
+} = Astro.props;
+
+// Callers may supply rows without ids (Frappe FAQ rows carry their own, but the
+// accordion needs one per item to bind each trigger to its panel).
+const faqs: Faq[] = (faqsProp ?? defaultFaqs).map((faq, index) => ({
+  ...faq,
+  id: faq.id || `faq-${index + 1}`
+}));
 ---
 
 <section class="relative py-16 md:py-24 overflow-hidden bg-theme-light/60" data-aos="fade-up">
@@ -50,14 +78,12 @@ const faqs = [
     <!-- Header -->
     <div class="text-center max-w-3xl mx-auto mb-12">
       <span class="inline-block rounded-full bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary mb-3">
-        Got Questions?
+        {eyebrow}
       </span>
       <h2 class="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
-        Frequently Asked Questions
+        {title}
       </h2>
-      <p class="text-lg text-gray-600">
-        Everything you need to know about trading, opening an account, charges, and security on GoPocket.
-      </p>
+      {description && <p class="text-lg text-gray-600">{description}</p>}
     </div>
 
     <!-- Accordion List -->
@@ -80,7 +106,7 @@ const faqs = [
           </button>
           <div
             id={faq.id}
-            class={`faq-content px-6 transition-all duration-300 ease-in-out ${index === 0 ? "max-h-96 pb-6 opacity-100" : "max-h-0 pb-0 opacity-0 overflow-hidden"}`}
+            class={`faq-content px-6 transition-all duration-300 ease-in-out ${index === 0 ? "max-h-[60rem] pb-6 opacity-100" : "max-h-0 pb-0 opacity-0 overflow-hidden"}`}
           >
             <p class="text-gray-600 text-base md:text-lg leading-relaxed border-t border-gray-100 pt-4">
               {faq.answer}
@@ -115,7 +141,7 @@ const faqs = [
               const otherContent = document.getElementById(otherId);
               if (otherContent) {
                 otherContent.classList.add("max-h-0", "pb-0", "opacity-0", "overflow-hidden");
-                otherContent.classList.remove("max-h-96", "pb-6", "opacity-100");
+                otherContent.classList.remove("max-h-[60rem]", "pb-6", "opacity-100");
               }
             }
             const otherIcon = otherTrigger.querySelector<HTMLElement>(".faq-icon");
@@ -133,7 +159,7 @@ const faqs = [
           trigger.setAttribute("aria-expanded", "false");
           if (content) {
             content.classList.add("max-h-0", "pb-0", "opacity-0", "overflow-hidden");
-            content.classList.remove("max-h-96", "pb-6", "opacity-100");
+            content.classList.remove("max-h-[60rem]", "pb-6", "opacity-100");
           }
           if (icon) icon.style.transform = "rotate(0deg)";
           if (iconWrapper) {
@@ -144,7 +170,7 @@ const faqs = [
           trigger.setAttribute("aria-expanded", "true");
           if (content) {
             content.classList.remove("max-h-0", "pb-0", "opacity-0", "overflow-hidden");
-            content.classList.add("max-h-96", "pb-6", "opacity-100");
+            content.classList.add("max-h-[60rem]", "pb-6", "opacity-100");
           }
           if (icon) icon.style.transform = "rotate(45deg)";
           if (iconWrapper) {

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Theme kitchen-sink page, not real content
+Disallow: /components
+
+Sitemap: https://gopocket.in/sitemap.xml

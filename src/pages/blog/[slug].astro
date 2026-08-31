@@ -3,6 +3,7 @@ import Layout from "../../layouts/Layout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
 import FinalCTA from "../../components/FinalCTA.astro";
+import FAQSection2 from "../../components/FAQSection2.astro";
 import { getBlogPostBySlugOrId } from "../../lib/frappe";
 
 const { slug } = Astro.params;
@@ -13,9 +14,91 @@ const post = slug ? await getBlogPostBySlugOrId(slug) : null;
 if (!post) {
   return Astro.redirect("/blog");
 }
+
+// FAQSection2 renders its FAQs grouped under category tabs, but a post's FAQ
+// rows are a flat list, so present them as one group labelled with the post's
+// primary category. The tab bar hides itself when there is only one group.
+const faqCategories = post.faqs.length
+  ? [
+      {
+        id: "article",
+        label: post.categories[0] || "General",
+        items: post.faqs.map(({ question, answer }) => ({ question, answer }))
+      }
+    ]
+  : [];
+
+const SITE = "https://gopocket.in";
+const postUrl = `${SITE}/blog/${post.slug}`;
+
+// Both images point at the same file when a post only sets one of them, so
+// de-duplicate before handing the list to schema.org.
+const schemaImages = [...new Set([post.mainImage, post.thumbnailImage].filter(Boolean))];
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: post.title,
+  description: post.description || post.summary,
+  image: schemaImages,
+  url: postUrl,
+  mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
+  datePublished: post.publishedISO,
+  dateModified: post.modifiedISO || post.publishedISO,
+  articleSection: post.categories,
+  keywords: post.categories.join(", "),
+  inLanguage: "en",
+  author: { "@type": "Organization", name: "GoPocket", url: `${SITE}/` },
+  publisher: {
+    "@type": "Organization",
+    name: "GoPocket",
+    url: `${SITE}/`,
+    logo: { "@type": "ImageObject", url: `${SITE}/gopocket-logo.svg` }
+  }
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
+    { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE}/blog` },
+    { "@type": "ListItem", position: 3, name: post.title, item: postUrl }
+  ]
+};
+
+// Only emit FAQPage when the post actually carries FAQ rows - an empty
+// mainEntity is invalid and Google flags it.
+const faqSchema = post.faqs.length
+  ? {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: post.faqs.map((faq) => ({
+        "@type": "Question",
+        name: faq.question,
+        acceptedAnswer: { "@type": "Answer", text: faq.answer }
+      }))
+    }
+  : null;
 ---
 
-<Layout title={`${post.title} - GoPocket Blog`} description={post.description || post.summary}>
+<Layout
+  title={`${post.title} - GoPocket Blog`}
+  description={post.description || post.summary}
+  canonical={postUrl}
+  ogImage={post.thumbnailImage}
+  ogType="article"
+>
+  <Fragment slot="head">
+    <meta property="article:published_time" content={post.publishedISO} />
+    <meta property="article:modified_time" content={post.modifiedISO || post.publishedISO} />
+    <meta property="article:publisher" content="https://gopocket.in/" />
+    {post.categories[0] && <meta property="article:section" content={post.categories[0]} />}
+    {post.categories.map((category) => <meta property="article:tag" content={category} />)}
+    <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+    {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
+  </Fragment>
   <Header currentPath="/blog" />
 
   <main class="has-section-spacing-lg pt-8 md:pt-16">
@@ -26,8 +109,14 @@ if (!post) {
           <div
             class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold tracking-wide uppercase"
           >
-            <span>{post.category}</span>
-            <span class="opacity-40">•</span>
+            {
+              post.categories.map((category) => (
+                <>
+                  <span>{category}</span>
+                  <span class="opacity-40">•</span>
+                </>
+              ))
+            }
             <span>{post.formattedDate}</span>
           </div>
 
@@ -105,103 +194,73 @@ if (!post) {
 
           <!-- RIGHT COLUMN: Compact Sticky Sidebar CTA (3 Columns) -->
           <aside class="lg:col-span-3 lg:sticky lg:top-28 space-y-6 w-full max-w-[340px] mx-auto lg:mx-0">
-            <div class="bg-theme-light rounded-3xl p-5 sm:p-6 border border-border-light shadow-md space-y-5">
-              <div class="space-y-3">
+            <div
+              class="relative overflow-hidden rounded-3xl bg-primary p-6 sm:p-7 shadow-lg shadow-primary/30 space-y-6"
+            >
+              <!-- Texture: fine dot grid over two soft colour blooms -->
+              <div
+                class="pointer-events-none absolute inset-0 opacity-20"
+                style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 14px 14px;"
+                aria-hidden="true"
+              >
+              </div>
+              <div
+                class="pointer-events-none absolute -top-20 -right-16 h-56 w-56 rounded-full bg-white/25 blur-3xl"
+                aria-hidden="true"
+              >
+              </div>
+              <div
+                class="pointer-events-none absolute -bottom-24 -left-16 h-52 w-52 rounded-full bg-fuchsia-400/30 blur-3xl"
+                aria-hidden="true"
+              >
+              </div>
+
+              <div class="relative space-y-3">
                 <div
-                  class="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full uppercase"
+                  class="inline-flex items-center gap-1.5 bg-white/15 ring-1 ring-white/25 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase"
                 >
                   <span>GoPocket Trading</span>
                 </div>
-                <h3 class="text-xl sm:text-2xl font-bold text-dark leading-snug">Open Free Account</h3>
-                <p class="text-text-default opacity-80 text-sm leading-relaxed">
+                <h3 class="blog-cta-title font-bold">Open Free Account</h3>
+                <p class="text-white/80 text-sm leading-relaxed">
                   Trade Stocks, F&amp;O, Commodities &amp; IPOs at flat ₹20 per order with institutional-grade tools.
                 </p>
               </div>
 
-              <!-- Form with Mobile Input & Signup Now Button -->
-              <form class="space-y-3" onsubmit="event.preventDefault()">
-                <div class="relative w-full">
-                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                    </svg>
-                  </div>
-                  <input
-                    type="tel"
-                    placeholder="Enter mobile number"
-                    class="w-full pl-10 pr-4 py-3 bg-white border border-border-light rounded-xl text-dark placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-2xs"
-                    required
-                  />
-                </div>
-                <button
-                  type="submit"
-                  class="btn btn-primary text-flip-hover-anim btn-md w-full justify-center text-sm font-semibold cursor-pointer shadow-sm"
+              <!-- Primary action -->
+              <a
+                href="/open-account-call-back?src=Website&tag=Blog"
+                class="relative flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-bold uppercase tracking-wider text-primary shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+              >
+                Open Account
+                <svg
+                  class="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
-                  <span class="text-flip-inner" data-content="SIGNUP NOW">SIGNUP NOW</span>
-                  <span
-                    class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
-                  >
-                    <svg
-                      class="gradient-shape"
-                      width="150"
-                      height="28"
-                      viewBox="0 0 147 11"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
-                        stroke="currentColor"
-                        stroke-width="8"></path>
-                    </svg>
-                  </span>
-                </button>
-              </form>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                </svg>
+              </a>
 
               <!-- Feature Bullets -->
-              <div class="space-y-2.5 pt-4 border-t border-border-light/80 text-xs text-text-default font-medium">
+              <div class="relative space-y-2.5 pt-5 border-t border-white/20 text-xs text-white/90 font-medium">
                 <div class="flex items-center gap-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4 text-emerald-600 shrink-0"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg class="h-4 w-4 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
                   </svg>
                   <span>Zero Account Opening &amp; AMC Charges</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4 text-emerald-600 shrink-0"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg class="h-4 w-4 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
                   </svg>
                   <span>100% Digital 5-Minute Onboarding</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4 text-emerald-600 shrink-0"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg class="h-4 w-4 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
                   </svg>
                   <span>Advanced Option Chain &amp; Charts</span>
@@ -213,11 +272,40 @@ if (!post) {
       </div>
     </section>
 
+    {
+      post.faqs.length > 0 && (
+        <FAQSection2
+          titleBold="Frequently"
+          title="asked questions"
+          description="Quick answers to the most common questions about this topic."
+          categories={faqCategories}
+        />
+      )
+    }
+
     <FinalCTA />
   </main>
 
   <Footer />
 </Layout>
+
+<style>
+  /* global.css styles bare h1-h6 unlayered (both colour and font-size), and
+     unlayered CSS outranks every @layer -- Tailwind utilities included -- so
+     `text-white` / `text-2xl` on this heading would silently lose. Set it here,
+     where Astro's scoped [data-astro-cid] selector wins on specificity. */
+  .blog-cta-title {
+    color: #fff;
+    font-size: 1.5rem;
+    line-height: 1.25;
+  }
+
+  @media (min-width: 640px) {
+    .blog-cta-title {
+      font-size: 1.75rem;
+    }
+  }
+</style>
 
 <script>
   function formatProseImagesInDOM() {

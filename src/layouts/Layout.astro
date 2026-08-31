@@ -14,6 +14,7 @@ interface Props {
   keywords?: string;
   canonical?: string;
   ogImage?: string;
+  ogType?: string;
 }
 
 const {
@@ -22,6 +23,7 @@ const {
   keywords = "demat account, online trading, stock broker India, discount broker, GoPocket, F&O trading, mutual funds, IPO",
   canonical = "https://gopocket.in/",
   ogImage = "https://gopocket.in/favicon.png",
+  ogType = "website",
 } = Astro.props;
 ---
 
@@ -99,7 +101,7 @@ const {
     <meta property="og:title" content={title} />
     <meta property="og:site_name" content="GoPocket" />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:locale" content="en_US" />
     <meta property="og:url" content={canonical} />
     <meta name="twitter:title" content={title} />
@@ -125,7 +127,7 @@ const {
         inLanguage: "en",
         isPartOf: {
           "@type": "WebSite",
-          name: title,
+          name: "GoPocket",
           description:
             "GoPocket is a SEBI-registered online trading and demat account platform for stocks, F&O, mutual funds, commodities and IPOs.",
           url: "https://gopocket.in/",
@@ -151,6 +153,10 @@ const {
       href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Instrument+Serif:ital@0;1&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Per-page head extras (article meta, JSON-LD, etc.) -->
+    <slot name="head" />
+
   </head>
 
   <body>

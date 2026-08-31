@@ -8,40 +8,40 @@ import FAQSection2 from "../components/FAQSection2.astro";
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  "mainEntity": [
+  mainEntity: [
     {
       "@type": "Question",
-      "name": "What is a Systematic Investment Plan (SIP)?",
-      "acceptedAnswer": {
+      name: "What is a Systematic Investment Plan (SIP)?",
+      acceptedAnswer: {
         "@type": "Answer",
-        "text": "A Systematic Investment Plan (SIP) is an investment vehicle offered by mutual funds allowing investors to invest a fixed amount regularly (weekly, monthly, or quarterly) into a chosen scheme instead of a one-time lump sum."
-      }
+        text: "A Systematic Investment Plan (SIP) is an investment vehicle offered by mutual funds allowing investors to invest a fixed amount regularly (weekly, monthly, or quarterly) into a chosen scheme instead of a one-time lump sum.",
+      },
     },
     {
       "@type": "Question",
-      "name": "How does the GoPocket SIP Calculator work?",
-      "acceptedAnswer": {
+      name: "How does the GoPocket SIP Calculator work?",
+      acceptedAnswer: {
         "@type": "Answer",
-        "text": "The GoPocket SIP Calculator uses the standard compound interest formula M = P × ({[1 + i]^n - 1} / i) × (1 + i) to compute your total invested capital, estimated capital returns, and maturity wealth based on monthly investment, expected return rate, and tenure."
-      }
+        text: "The GoPocket SIP Calculator uses the standard compound interest formula M = P × ({[1 + i]^n - 1} / i) × (1 + i) to compute your total invested capital, estimated capital returns, and maturity wealth based on monthly investment, expected return rate, and tenure.",
+      },
     },
     {
       "@type": "Question",
-      "name": "Can I calculate both SIP and Lumpsum investment returns?",
-      "acceptedAnswer": {
+      name: "Can I calculate both SIP and Lumpsum investment returns?",
+      acceptedAnswer: {
         "@type": "Answer",
-        "text": "Yes, GoPocket's SIP calculator features dedicated tabs for SIP investment, one-time Lumpsum investment, and combined SIP + Lumpsum wealth estimation."
-      }
+        text: "Yes, GoPocket's SIP calculator features dedicated tabs for SIP investment, one-time Lumpsum investment, and combined SIP + Lumpsum wealth estimation.",
+      },
     },
     {
       "@type": "Question",
-      "name": "Are SIP mutual fund returns guaranteed?",
-      "acceptedAnswer": {
+      name: "Are SIP mutual fund returns guaranteed?",
+      acceptedAnswer: {
         "@type": "Answer",
-        "text": "Mutual fund investments are subject to market risks and returns are not guaranteed. However, SIP investments help average out market volatility through rupee cost averaging over long investment periods."
-      }
-    }
-  ]
+        text: "Mutual fund investments are subject to market risks and returns are not guaranteed. However, SIP investments help average out market volatility through rupee cost averaging over long investment periods.",
+      },
+    },
+  ],
 };
 
 // FAQ Items for FAQSection2 Component
@@ -52,22 +52,26 @@ const sipFaqCategories = [
     items: [
       {
         question: "What is a Systematic Investment Plan (SIP)?",
-        answer: "A Systematic Investment Plan (SIP) is a disciplined investment approach where you contribute a fixed sum of money into mutual funds at regular intervals (monthly, quarterly). SIP enables rupee cost averaging and power of compounding growth over long horizons."
+        answer:
+          "A Systematic Investment Plan (SIP) is a disciplined investment approach where you contribute a fixed sum of money into mutual funds at regular intervals (monthly, quarterly). SIP enables rupee cost averaging and power of compounding growth over long horizons.",
       },
       {
         question: "How does the GoPocket SIP Calculator work?",
-        answer: "The GoPocket SIP calculator takes your monthly investment amount, expected rate of annual return, and time period to instantly project your total capital invested vs. capital gains and maturity value."
+        answer:
+          "The GoPocket SIP calculator takes your monthly investment amount, expected rate of annual return, and time period to instantly project your total capital invested vs. capital gains and maturity value.",
       },
       {
         question: "Can I calculate both SIP and Lumpsum investment returns?",
-        answer: "Yes! GoPocket's SIP calculator features interactive tabs for regular SIP contributions as well as one-time Lumpsum investments."
+        answer:
+          "Yes! GoPocket's SIP calculator features interactive tabs for regular SIP contributions as well as one-time Lumpsum investments.",
       },
       {
         question: "Are SIP mutual fund returns guaranteed?",
-        answer: "Mutual fund investments are subject to market risks, and returns are not fixed or guaranteed. However, historical equity SIP investments over 5-10+ years have consistently generated attractive wealth creation compared to conventional savings."
-      }
-    ]
-  }
+        answer:
+          "Mutual fund investments are subject to market risks, and returns are not fixed or guaranteed. However, historical equity SIP investments over 5-10+ years have consistently generated attractive wealth creation compared to conventional savings.",
+      },
+    ],
+  },
 ];
 ---
 
@@ -83,22 +87,18 @@ const sipFaqCategories = [
 
   <main class="pt-8 md:pt-14 pb-16">
     <div class="container max-w-[1400px] px-4 sm:px-6 space-y-12">
-      
       <!-- Page Header (Clean Heading Matching Open Account Header Style) -->
       <div class="mb-8">
-        <h1 class="text-lg sm:text-xl font-bold text-dark tracking-tight">
-          SIP Calculator
-        </h1>
+        <h3 class="text-lg sm:text-xl font-bold text-dark tracking-tight">SIP Calculator</h3>
       </div>
 
       <!-- Main Grid Container (8 Cols Left + 4 Cols Right) -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
         <!-- LEFT COLUMN: Minimal Boxed Calculator Card (8 Cols) -->
         <div class="lg:col-span-8 space-y-8">
-          
-          <div class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-8">
-            
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-8"
+          >
             <!-- Top Mode Tabs (SIP / Lumpsum) -->
             <div class="flex items-center gap-3">
               <button
@@ -119,10 +119,8 @@ const sipFaqCategories = [
 
             <!-- TOP GRID: Sliders (7 Cols) & Chart (5 Cols) -->
             <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
-              
               <!-- SLIDERS (7 Cols) -->
               <div class="md:col-span-7 space-y-8">
-                
                 <!-- 1. Monthly / Total Investment -->
                 <div class="space-y-4">
                   <div class="flex items-center justify-between gap-4">
@@ -133,7 +131,9 @@ const sipFaqCategories = [
                     >
                       Monthly investment
                     </label>
-                    <div class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5">
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
                       <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
                       <input
                         type="number"
@@ -163,7 +163,9 @@ const sipFaqCategories = [
                     <label for="return-rate-input" class="text-sm sm:text-base font-semibold text-dark">
                       Expected return rate (p.a)
                     </label>
-                    <div class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5">
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
                       <input
                         type="number"
                         id="return-rate-input"
@@ -193,7 +195,9 @@ const sipFaqCategories = [
                     <label for="time-period-input" class="text-sm sm:text-base font-semibold text-dark">
                       Time period
                     </label>
-                    <div class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5">
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
                       <input
                         type="number"
                         id="time-period-input"
@@ -216,7 +220,6 @@ const sipFaqCategories = [
                     class="sip-minimal-slider"
                   />
                 </div>
-
               </div>
 
               <!-- CHART & LEGEND (5 Cols) -->
@@ -238,25 +241,31 @@ const sipFaqCategories = [
                   <canvas id="sip-chart" width="240" height="240"></canvas>
                 </div>
               </div>
-
             </div>
 
             <!-- BOTTOM ROW: Summary Stats (7 Cols) & Invest Now Button (5 Cols - Horizontally Aligned with Total Value) -->
-            <div class="pt-8 border-t border-gray-100 dark:border-[#262938] grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-              
+            <div
+              class="pt-8 border-t border-gray-100 dark:border-[#262938] grid grid-cols-1 md:grid-cols-12 gap-6 items-end"
+            >
               <!-- SUMMARY STATS (7 Cols - Aligned under sliders, values right to the slider end) -->
               <div class="md:col-span-7 space-y-3.5 text-sm sm:text-base">
                 <div class="flex items-center justify-between gap-4">
                   <span class="text-text-default opacity-70 font-semibold">Invested amount</span>
-                  <span id="output-invested-amount" class="font-extrabold text-dark text-base sm:text-lg text-right">₹30,00,000</span>
+                  <span id="output-invested-amount" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >₹30,00,000</span
+                  >
                 </div>
                 <div class="flex items-center justify-between gap-4">
                   <span class="text-text-default opacity-70 font-semibold">Est. returns</span>
-                  <span id="output-est-returns" class="font-extrabold text-dark text-base sm:text-lg text-right">₹26,00,897</span>
+                  <span id="output-est-returns" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >₹26,00,897</span
+                  >
                 </div>
                 <div class="flex items-center justify-between gap-4 pt-1">
                   <span class="text-text-default opacity-70 font-semibold">Total value</span>
-                  <span id="output-total-value" class="font-black text-dark text-lg sm:text-xl text-right">₹56,00,897</span>
+                  <span id="output-total-value" class="font-black text-dark text-lg sm:text-xl text-right"
+                    >₹56,00,897</span
+                  >
                 </div>
               </div>
 
@@ -269,29 +278,52 @@ const sipFaqCategories = [
                   rel="noopener noreferrer"
                 >
                   <span class="text-flip-inner" data-content="INVEST NOW">INVEST NOW</span>
-                  <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
-                    <svg class="gradient-shape" width="150" height="28" viewBox="0 0 147 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433" stroke="currentColor" stroke-width="8"></path>
+                  <span
+                    class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
+                  >
+                    <svg
+                      class="gradient-shape"
+                      width="150"
+                      height="28"
+                      viewBox="0 0 147 11"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
+                        stroke="currentColor"
+                        stroke-width="8"></path>
                     </svg>
                   </span>
                 </a>
               </div>
-
             </div>
-
           </div>
-
         </div>
 
         <!-- RIGHT COLUMN: Clean Boxed Sidebar (4 Cols) -->
         <aside class="lg:col-span-4 space-y-6 w-full">
-          
           <!-- Top Card: Open Account in 5 Min -->
-          <div class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 text-center space-y-5">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 text-center space-y-5"
+          >
             <!-- Coin / Badge Illustration -->
-            <div class="w-16 h-16 mx-auto rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div
+              class="w-16 h-16 mx-auto rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-8 w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
               </svg>
             </div>
 
@@ -305,74 +337,112 @@ const sipFaqCategories = [
               href="/open-account-call-back?src=Website&tag=SIP%20Calculator"
             >
               <span class="text-flip-inner" data-content="OPEN ACCOUNT">OPEN ACCOUNT</span>
-              <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
-                <svg class="gradient-shape" width="150" height="28" viewBox="0 0 147 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433" stroke="currentColor" stroke-width="8"></path>
+              <span
+                class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
+              >
+                <svg
+                  class="gradient-shape"
+                  width="150"
+                  height="28"
+                  viewBox="0 0 147 11"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
+                    stroke="currentColor"
+                    stroke-width="8"></path>
                 </svg>
               </span>
             </a>
           </div>
 
           <!-- Bottom Card: Popular Calculators List -->
-          <div class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl overflow-hidden">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl overflow-hidden"
+          >
             <div class="p-4 sm:p-5 border-b border-gray-100 dark:border-[#262938] bg-gray-50/50 dark:bg-[#181b25]">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-text-default opacity-80">Popular Calculators</h4>
+              <h4 class="text-xs font-bold uppercase tracking-wider text-text-default opacity-80">
+                Popular Calculators
+              </h4>
             </div>
 
             <div class="divide-y divide-gray-100 dark:divide-[#262938] text-sm">
-              <a href="/sip-calculator" class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] font-bold text-primary transition">
+              <a
+                href="/sip-calculator"
+                class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] font-bold text-primary transition"
+              >
                 <span>SIP Calculator</span>
                 <span class="text-primary font-bold">→</span>
               </a>
-              <a href="/sip-calculator" class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition">
+              <a
+                href="/sip-calculator"
+                class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition"
+              >
                 <span>Lumpsum Calculator</span>
               </a>
-              <a href="/swp-calculator" class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition">
+              <a
+                href="/swp-calculator"
+                class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition"
+              >
                 <span>SWP Calculator</span>
               </a>
-              <a href="/sip-calculator" class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition">
+              <a
+                href="/sip-calculator"
+                class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition"
+              >
                 <span>Mutual Fund Returns Calculator</span>
               </a>
-              <a href="/emi-calculator" class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition">
+              <a
+                href="/emi-calculator"
+                class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition"
+              >
                 <span>EMI Calculator</span>
               </a>
-              <a href="/pricing" class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition">
+              <a
+                href="/pricing"
+                class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition"
+              >
                 <span>Brokerage Calculator</span>
               </a>
             </div>
           </div>
-
         </aside>
-
       </div>
 
       <!-- RICH SEO CONTENT SECTION -->
       <section class="mt-16 space-y-12 border-t border-gray-200 dark:border-[#262938] pt-12">
-        
         <!-- SEO Article Header & Intro: What is a SIP Calculator? -->
         <div class="space-y-6">
           <div class="max-w-4xl space-y-4">
-            <h2 class="text-lg sm:text-xl font-bold text-dark tracking-tight">
-              What is a SIP Calculator?
-            </h2>
+            <h3 class="text-lg sm:text-xl font-bold text-dark tracking-tight">What is a SIP Calculator?</h3>
             <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
-              A <strong>SIP Calculator</strong> is a virtual financial estimation tool that enables investors to calculate estimated capital returns on their mutual fund investments over time. The online mutual fund SIP calculator is free to use, allowing any investor to instantly evaluate how their recurring monthly discipline will compound into significant long-term wealth.
+              A <strong>SIP Calculator</strong> is a virtual financial estimation tool that enables investors to calculate
+              estimated capital returns on their mutual fund investments over time. The online mutual fund SIP calculator
+              is free to use, allowing any investor to instantly evaluate how their recurring monthly discipline will compound
+              into significant long-term wealth.
             </p>
             <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
-              To use the calculator, simply enter your monthly contribution amount, investment tenure in years, and expected annual return rate (p.a.). The calculator automatically projects your total invested amount against estimated capital gains.
+              To use the calculator, simply enter your monthly contribution amount, investment tenure in years, and
+              expected annual return rate (p.a.). The calculator automatically projects your total invested amount
+              against estimated capital gains.
             </p>
           </div>
 
           <!-- Year-by-Year Growth Schedule Table (Placed Directly Below 'What is a SIP Calculator?') -->
-          <div class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5"
+          >
             <div class="flex items-center justify-between">
-              <h3 class="text-lg sm:text-xl font-bold text-dark">Year-by-Year Wealth Growth</h3>
+              <h4 class="text-lg sm:text-xl font-bold text-dark">Year-by-Year Wealth Growth</h4>
               <span class="text-sm text-text-default opacity-70 font-semibold">Compounding Schedule</span>
             </div>
 
             <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-[#262938]">
               <table class="w-full text-left text-base sm:text-lg">
-                <thead class="bg-gray-50 dark:bg-[#1c202e] font-bold text-text-default border-b border-gray-100 dark:border-[#262938]">
+                <thead
+                  class="bg-gray-50 dark:bg-[#1c202e] font-bold text-text-default border-b border-gray-100 dark:border-[#262938]"
+                >
                   <tr>
                     <th class="px-5 py-4">Year</th>
                     <th class="px-5 py-4">Invested Amount</th>
@@ -380,7 +450,10 @@ const sipFaqCategories = [
                     <th class="px-5 py-4 text-right">Total Future Value</th>
                   </tr>
                 </thead>
-                <tbody id="sip-breakdown-body" class="divide-y divide-gray-100 dark:divide-[#262938] text-dark font-medium">
+                <tbody
+                  id="sip-breakdown-body"
+                  class="divide-y divide-gray-100 dark:divide-[#262938] text-dark font-medium"
+                >
                   <!-- Dynamic Rows -->
                 </tbody>
               </table>
@@ -389,28 +462,45 @@ const sipFaqCategories = [
         </div>
 
         <!-- How SIP Calculator Works & Example -->
-        <div class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6">
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
           <h3 class="text-lg sm:text-xl font-bold text-dark tracking-tight">How Does a SIP Calculator Work?</h3>
           <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
-            The SIP calculator operates using a standardized compound interest formula. It evaluates key inputs—including your periodic instalment amount, expected annual return percentage, and investment horizon—to present a clear visual comparison between your total capital outlay and net maturity profits.
+            The SIP calculator operates using a standardized compound interest formula. It evaluates key
+            inputs—including your periodic instalment amount, expected annual return percentage, and investment
+            horizon—to present a clear visual comparison between your total capital outlay and net maturity profits.
           </p>
 
           <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-6 space-y-4">
             <h4 class="text-base sm:text-lg font-bold text-primary">Practical Example:</h4>
             <p class="text-base sm:text-lg text-text-default font-medium leading-relaxed">
-              Suppose you start a monthly SIP of <strong>₹5,000</strong> for <strong>12 years</strong> at an expected return rate of <strong>12% p.a.</strong>:
+              Suppose you start a monthly SIP of <strong>₹5,000</strong> for <strong>12 years</strong> at an expected return
+              rate of <strong>12% p.a.</strong>:
             </p>
             <ul class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm sm:text-base pt-2">
-              <li class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1">
-                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Total Invested Amount:</span>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm"
+                  >Total Invested Amount:</span
+                >
                 <span class="font-extrabold text-dark text-lg sm:text-xl">₹6,00,000</span>
               </li>
-              <li class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1">
-                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Estimated Capital Returns:</span>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm"
+                  >Estimated Capital Returns:</span
+                >
                 <span class="font-extrabold text-primary text-lg sm:text-xl">₹5,61,695</span>
               </li>
-              <li class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1">
-                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Total Maturity Wealth:</span>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm"
+                  >Total Maturity Wealth:</span
+                >
                 <span class="font-black text-dark text-xl sm:text-2xl">₹11,61,695</span>
               </li>
             </ul>
@@ -418,14 +508,18 @@ const sipFaqCategories = [
         </div>
 
         <!-- Formula Section -->
-        <div class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6">
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
           <h3 class="text-lg sm:text-xl font-bold text-dark tracking-tight">What is the SIP Calculator Formula?</h3>
           <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
             The mathematical formula used by online SIP calculators to compute final maturity returns is:
           </p>
 
           <!-- Formula Card -->
-          <div class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 text-center font-mono text-lg sm:text-2xl font-black text-primary overflow-x-auto">
+          <div
+            class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 text-center font-mono text-lg sm:text-2xl font-black text-primary overflow-x-auto"
+          >
             Maturity (M) = P × [ ( (1 + i)^n - 1 ) / i ] × (1 + i)
           </div>
 
@@ -455,10 +549,14 @@ const sipFaqCategories = [
             Different types of SIP investment and their details:
           </h3>
 
-          <div class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs">
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
             <table class="w-full text-left border-collapse text-sm sm:text-base">
               <!-- Styled Lavender Header (Matching Reference Image Header Color) -->
-              <thead class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
                 <tr>
                   <th class="px-6 py-4.5 w-48">Mutual Fund SIP Name</th>
                   <th class="px-6 py-4.5 min-w-[220px]">Main Features</th>
@@ -469,7 +567,6 @@ const sipFaqCategories = [
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
-                
                 <!-- Row 1: Equity SIP -->
                 <tr class="hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition">
                   <td class="px-6 py-4.5 font-bold text-dark">Equity SIP</td>
@@ -539,21 +636,14 @@ const sipFaqCategories = [
                   <td class="px-6 py-4.5 text-center font-bold text-primary">13-19%</td>
                   <td class="px-6 py-4.5 opacity-85">Higher risk due to sector-specific factors</td>
                 </tr>
-
               </tbody>
             </table>
           </div>
         </div>
-
       </section>
 
       <!-- OFFICIAL FAQSection2 COMPONENT -->
-      <FAQSection2
-        title="asked questions"
-        titleBold="Frequently"
-        categories={sipFaqCategories}
-      />
-
+      <FAQSection2 title="asked questions" titleBold="Frequently" categories={sipFaqCategories} />
     </div>
   </main>
 

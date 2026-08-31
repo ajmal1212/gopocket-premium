@@ -1019,8 +1019,8 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
 }
 @layer components {
   :is(.header.scroll-down, .header.scroll-up) .logo-wrapper {
-    margin-left: 8px !important;
-    margin-right: 24px !important;
+    margin-left: 4px !important;
+    margin-right: 12px !important;
   }
 }
 @layer components {
@@ -1033,7 +1033,23 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
   }
 
   :is(.header.scroll-down, .header.scroll-up) .btn.btn-primary {
-    padding-inline: calc(var(--spacing) * 6) !important;
+    padding-inline: calc(var(--spacing) * 5) !important;
+  }
+}
+@layer components {
+  /* The action cluster (theme, a11y, search, CTA) is the row's last flex item,
+     so any width the compact bar is short by shows up as the CTA hanging off
+     the pill. Tightening its gaps buys that width back on the same curve. */
+  .header .header-actions {
+    transition: gap var(--header-compact-duration, 0.3s) var(--header-compact-ease, ease);
+  }
+
+  @media (min-width: 1024px) {
+    :is(.header.scroll-down, .header.scroll-up) .header-actions {
+      /* !important: gap-3.5 on the element lives in the utilities layer, which
+         outranks components. */
+      gap: calc(var(--spacing) * 2.5) !important;
+    }
   }
 }
 @layer components {
@@ -1052,6 +1068,19 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
     margin-inline: auto;
     transition-duration: var(--header-compact-duration);
     transition-timing-function: var(--header-compact-ease);
+  }
+
+  @media (min-width: 1024px) {
+    .header > .container {
+      /* Every item in the bar is nowrap / flex-shrink:0, so whenever .container's
+         max-width lands below the row's intrinsic width the overflow escapes as
+         the last flex item — the CTA hanging outside the pill's rounded edge.
+         That happened in compact mode (capped at 5xl) and in normal mode between
+         lg and 2xl, where .container caps well under what the bar needs.
+         min-width beats max-width, so the pill grows to exactly what it needs and
+         keeps the cap everywhere it already fits. */
+      min-width: min-content;
+    }
   }
 }
 @layer components {

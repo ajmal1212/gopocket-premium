@@ -73,13 +73,13 @@ const posts = await getBlogPosts(3);
                   <span class="sr-only">Learn more about {post.title}</span>
                 </a>
               </div>
-              <div class="space-y-4 mt-4">
-                <div class="font-primary text-text-default flex flex-wrap items-center gap-x-2.5 gap-y-px text-sm font-medium">
+              <div class="space-y-3 mt-4">
+                <div class="font-primary text-text-default flex flex-wrap items-center gap-x-2.5 gap-y-px text-xs font-medium opacity-80">
                   <span>{post.formattedDate}</span>
-                  <span class="bg-dark inline-block h-0.75 w-0.75 rounded-full" />
+                  <span class="bg-dark inline-block h-1 w-1 rounded-full" />
                   <span class="text-inherit">{post.category}</span>
                 </div>
-                <h2 class="md:text-h5 text-h5-sm mb-4">{post.title}</h2>
+                <h3 class="text-base md:text-lg font-semibold leading-snug mb-3 text-gray-900 dark:text-white">{post.title}</h3>
                 <a
                   class="btn btn-outline text-flip-hover-anim btn-sm btn-outline-white mt-3 capitalize"
                   href={`/blog/${post.slug}`}

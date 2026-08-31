@@ -1,5 +1,91 @@
 ---
 // Testimonials2 Component - Dual Row Marquee (Row 1 Left-to-Right, Row 2 Right-to-Left)
+//
+// Copy, names, cities and photos are the real customer testimonials published on
+// gopocket.in — do not replace them with placeholder/theme content. Quotes are
+// verbatim apart from whitespace normalisation and one added sentence break.
+interface Testimonial {
+  quote: string;
+  name: string;
+  location: string;
+  image: string;
+}
+
+const rowOne: Testimonial[] = [
+  {
+    quote:
+      "I aspired to engage in stock market trading for two decades but struggled to find the right platform. Fortunately, a friend introduced me to GoPocket, and since then, I have been trading safely and find the app easy to use. Overall, my experience with GoPocket has been highly satisfactory.",
+    name: "Vijaya Kumar",
+    location: "Erode",
+    image: "/assets/images/testimonials/customer-01.jpg",
+  },
+  {
+    quote:
+      "Hi, I am new to trading and I choose GoPocket. I feel it's a good choice. The customer support provided is really excellent. Anytime they are available to help us. Happy to be a part of GoPocket user.",
+    name: "Padmavathi",
+    location: "Tirupur",
+    image: "/assets/images/testimonials/customer-02.jpg",
+  },
+  {
+    quote:
+      "Hello, I've been trading in the forex market for the past 10 years with significant investments, resulting in losses. However, my friend introduced me to GoPocket for trading. The mob app is excellent hassle free trading.",
+    name: "Rameshkumar",
+    location: "Erode",
+    image: "/assets/images/testimonials/customer-03.jpg",
+  },
+  {
+    quote:
+      "I have been associated with GoPocket for more than a year. Previously I have invested in commodities, now I trade in securities and equities with GoPocket Thanks GoPocket for your support.",
+    name: "Ajay Karthik",
+    location: "Chennai",
+    image: "/assets/images/testimonials/customer-04.jpg",
+  },
+  {
+    quote:
+      "Hello, GoPocket gives a low brokerage charge and good service. User-friendly app and providing good customer service.",
+    name: "Mohana Sundaram",
+    location: "Vellore",
+    image: "/assets/images/testimonials/customer-05.jpg",
+  },
+];
+
+const rowTwo: Testimonial[] = [
+  {
+    quote:
+      "GoPocket offers good customer support and they offer a safe app, as a beginner and learner of the stock market it is very helpful for me. Thank you GoPocket for service and support.",
+    name: "Lakshmi Narayanan",
+    location: "Coimbatore",
+    image: "/assets/images/testimonials/customer-06.jpg",
+  },
+  {
+    quote:
+      "The GoPocket app is easy to use and they are kind with their customers when addressing issues and resolving problems. The application is simple as you can download from Google Play Store and installation process and joining process is hassle free. No hidden charges and no joining fee or maintenance fee. Overall GoPocket is a good choice for anyone who wants to enter in trading.",
+    name: "Rajendran",
+    location: "Karaikudi",
+    image: "/assets/images/testimonials/customer-07.jpg",
+  },
+  {
+    quote:
+      "I've been using the Sky app for over a few years and now Sky introduced Gopocket, I must say GoPocket offers a simple and hassle-free account opening process. It's the most supportive platform for both trading and investing.",
+    name: "Muniraj",
+    location: "Coimbatore",
+    image: "/assets/images/testimonials/customer-08.jpg",
+  },
+  {
+    quote:
+      "Hi all I have been using Sky for a few years and now am using GoPocket the app is user friendly and easy to place orders, and a secure app for investment. Thank you GoPocket.",
+    name: "Arokianathan",
+    location: "Coimbatore",
+    image: "/assets/images/testimonials/customer-09.jpg",
+  },
+];
+
+// The marquee loops by translating one full set out of view, so each row renders
+// its cards twice; the second pass is aria-hidden so it isn't read out again.
+const rows = [
+  { items: rowOne, duration: "50s", reverse: "reverse" },
+  { items: rowTwo, duration: "50s", reverse: "" },
+];
 ---
 
 <section class="testimonial-section overflow-hidden py-10">
@@ -11,17 +97,19 @@
         data-stagger="0.09"
         class="has-italic-text capitalize max-w-lg animated-text text-4xl md:text-5xl font-medium"
       >
-        <span>Trusted</span>
-        <span>by</span>
         <span>Customers</span>
-        <strong><span>Worldwide</span></strong>
+        <strong><span>First</span></strong>
       </h2>
       <div class="space-y-4 max-w-md">
         <p class="text-gray-600 text-base md:text-lg">
-          Join thousands of users who trust us to simplify their finances. Read their success stories and see the impact for yourself.
+          A friendly community built by traders, for traders. Read what GoPocket customers say about trading and
+          investing with us.
         </p>
         <div>
-          <a class="btn btn-text has-icon-moving-animation no-underline text-flip-hover-anim inline-flex items-center font-medium text-primary" href="/testimonial">
+          <a
+            class="btn btn-text has-icon-moving-animation no-underline text-flip-hover-anim inline-flex items-center font-medium text-primary"
+            href="/testimonial"
+          >
             See All Testimonials
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -46,420 +134,85 @@
 
   <!-- Marquee Container -->
   <div class="relative w-full space-y-6 overflow-hidden border-y border-border-light py-8">
-    
-    <!-- ROW 1: Moves Left to Right -->
-    <div class="relative overflow-hidden mask-[linear-gradient(to_right,rgba(0,0,0,0)_0%,rgb(0,0,0)_5%,rgb(0,0,0)_95%,rgba(0,0,0,0)_100%)]">
-      <div class="marquee marquee-pause-on-hover" style="--marquee-duration:50s;--marquee-reverse:reverse;">
-        <div class="marquee-content flex items-center gap-6 marquee-element-width-auto">
-          
-          <!-- Card 1 -->
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+    {
+      rows.map((row) => (
+        <div class="relative overflow-hidden mask-[linear-gradient(to_right,rgba(0,0,0,0)_0%,rgb(0,0,0)_5%,rgb(0,0,0)_95%,rgba(0,0,0,0)_100%)]">
+          <div
+            class="marquee marquee-pause-on-hover"
+            style={`--marquee-duration:${row.duration};--marquee-reverse:${row.reverse};`}
+          >
+            <div class="marquee-content flex items-stretch gap-6 marquee-element-width-auto">
+              {[...row.items, ...row.items].map((testimonial, index) => {
+                const isDuplicate = index >= row.items.length;
+                return (
+                <div class="w-[340px] md:w-[420px] shrink-0" aria-hidden={isDuplicate ? "true" : undefined}>
+                  <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 shadow-xs">
+                    <div class="space-y-3">
+                      <div class="flex shrink-0 items-center space-x-1 text-yellow-500" aria-label="Rated 5 out of 5">
+                        {Array.from({ length: 5 }).map(() => (
+                          <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                      {/* Quotes run from one line to a full paragraph. The box is a fixed five
+                          lines tall (5 x 1.625 leading-relaxed = 8.125em, so it tracks the
+                          text-base -> text-lg step on its own) plus a 12px strip for the
+                          scroll fade, so all five lines stay crisp; longer quotes scroll
+                          inside it, which keeps every card the same height.
+                          tabindex only on the real cards — the marquee's duplicate copies are
+                          aria-hidden and must not be focus stops. */}
+                      <blockquote
+                        class="testimonial-quote h-[calc(8.125em+0.75rem)] overflow-y-auto pr-3 text-base md:text-lg leading-relaxed text-gray-800"
+                        tabindex={isDuplicate ? undefined : 0}
+                      >
+                        "{testimonial.quote}"
+                      </blockquote>
+                    </div>
+                    <div class="mt-4 flex shrink-0 items-center gap-4 pt-4 border-t border-gray-200/60">
+                      <img
+                        src={testimonial.image}
+                        alt={`${testimonial.name} - GoPocket customer`}
+                        width="48"
+                        height="48"
+                        loading="lazy"
+                        decoding="async"
+                        class="h-12 w-12 rounded-full object-cover border"
+                      />
+                      <div>
+                        <div class="text-base font-semibold text-gray-900">{testimonial.name}</div>
+                        <p class="text-xs text-gray-500">{testimonial.location}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "The platform's seamless integration and user-friendly design have significantly boosted our team's productivity."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-1-1.webp" alt="Jane Smith" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">Jane Smith</div>
-                  <p class="text-xs text-gray-500">CEO of TechCorp</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 2 -->
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "Thanks to GoPocket, our financial planning and investments are now more organized and efficient."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-2.webp" alt="Kowsi Han" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">Kowsi Han</div>
-                  <p class="text-xs text-gray-500">Marketing Director</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 3 -->
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "The analytics provided by GoPocket have been invaluable in helping us optimize our trading portfolio."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-3.webp" alt="John Lee" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">John Lee</div>
-                  <p class="text-xs text-gray-500">CEO of AdCorp</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 4 -->
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "GoPocket has been a game-changer for our business. The level of customization and control is unparalleled."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-4.webp" alt="Emily Brown" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">Emily Brown</div>
-                  <p class="text-xs text-gray-500">Manager at GreenTech</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- DUPLICATED ROW 1 CARDS FOR INFINITE LOOP -->
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "The platform's seamless integration and user-friendly design have significantly boosted our team's productivity."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-1-1.webp" alt="Jane Smith" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">Jane Smith</div>
-                  <p class="text-xs text-gray-500">CEO of TechCorp</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "Thanks to GoPocket, our financial planning and investments are now more organized and efficient."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-2.webp" alt="Kowsi Han" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">Kowsi Han</div>
-                  <p class="text-xs text-gray-500">Marketing Director</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "The analytics provided by GoPocket have been invaluable in helping us optimize our trading portfolio."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-3.webp" alt="John Lee" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">John Lee</div>
-                  <p class="text-xs text-gray-500">CEO of AdCorp</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "GoPocket has been a game-changer for our business. The level of customization and control is unparalleled."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-4.webp" alt="Emily Brown" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">Emily Brown</div>
-                  <p class="text-xs text-gray-500">Manager at GreenTech</p>
-                </div>
-              </div>
+                );
+              })}
             </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- ROW 2: Moves Right to Left -->
-    <div class="relative overflow-hidden mask-[linear-gradient(to_right,rgba(0,0,0,0)_0%,rgb(0,0,0)_5%,rgb(0,0,0)_95%,rgba(0,0,0,0)_100%)]">
-      <div class="marquee marquee-pause-on-hover" style="--marquee-duration:50s;--marquee-reverse:;">
-        <div class="marquee-content flex items-center gap-6 marquee-element-width-auto">
-          
-          <!-- Card 5 -->
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "The support provided by the GoPocket team has been exceptional. They are always responsive and helpful."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-5.webp" alt="David Kim" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">David Kim</div>
-                  <p class="text-xs text-gray-500">Co-Founder of StartUpX</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 6 -->
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "GoPocket has helped us streamline our investment operations and make data-driven decisions."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-6.webp" alt="Sarah Johnson" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">Sarah Johnson</div>
-                  <p class="text-xs text-gray-500">Director of Marketing</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 7 -->
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "The automation features provided by GoPocket have saved us countless hours of manual work."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-7.webp" alt="Jason Lee" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">Jason Lee</div>
-                  <p class="text-xs text-gray-500">Co-Founder of InnovateX</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card 8 -->
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "GoPocket's intuitive interface and powerful features allowed us to launch our financial tools with minimal friction."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-8.webp" alt="Raj Patel" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">Raj Patel</div>
-                  <p class="text-xs text-gray-500">Product Manager</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- DUPLICATED ROW 2 CARDS FOR INFINITE LOOP -->
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "The support provided by the GoPocket team has been exceptional. They are always responsive and helpful."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-5.webp" alt="David Kim" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">David Kim</div>
-                  <p class="text-xs text-gray-500">Co-Founder of StartUpX</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "GoPocket has helped us streamline our investment operations and make data-driven decisions."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-6.webp" alt="Sarah Johnson" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">Sarah Johnson</div>
-                  <p class="text-xs text-gray-500">Director of Marketing</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "The automation features provided by GoPocket have saved us countless hours of manual work."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-7.webp" alt="Jason Lee" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">Jason Lee</div>
-                  <p class="text-xs text-gray-500">Co-Founder of InnovateX</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="w-[340px] md:w-[420px] shrink-0">
-            <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 space-y-6 shadow-xs">
-              <div class="space-y-4">
-                <div class="flex items-center space-x-1 text-yellow-500">
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <blockquote class="text-base md:text-lg leading-relaxed text-gray-800">
-                  "GoPocket's intuitive interface and powerful features allowed us to launch our financial tools with minimal friction."
-                </blockquote>
-              </div>
-              <div class="flex items-center gap-4 pt-4 border-t border-gray-200/60">
-                <img src="/assets/images/testimonial-avatar-8.webp" alt="Raj Patel" class="h-12 w-12 rounded-full object-cover border" />
-                <div>
-                  <div class="text-base font-semibold text-gray-900">Raj Patel</div>
-                  <p class="text-xs text-gray-500">Product Manager</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
+      ))
+    }
   </div>
 
   <script type="module" is:inline={true}>
+    // A quote taller than its box gets a bottom fade as the "there is more" cue;
+    // it is dropped once the reader reaches the end so the last line stays crisp.
+    function setupQuoteFades() {
+      document.querySelectorAll(".testimonial-quote").forEach((quote) => {
+        const update = () => {
+          const scrollable = quote.scrollHeight - quote.clientHeight > 2;
+          const atEnd = quote.scrollTop + quote.clientHeight >= quote.scrollHeight - 2;
+          quote.toggleAttribute("data-scrollable", scrollable && !atEnd);
+        };
+        if (!quote.dataset.fadeBound) {
+          quote.addEventListener("scroll", update, { passive: true });
+          quote.dataset.fadeBound = "1";
+        }
+        update();
+      });
+    }
+
     function setupMarqueeWidth() {
       document.querySelectorAll(".marquee-element-width-auto").forEach((container) => {
         const totalWidth = container.scrollWidth;
@@ -469,8 +222,50 @@
     let resizeTimer;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(setupMarqueeWidth, 100);
+      resizeTimer = window.setTimeout(() => {
+        setupMarqueeWidth();
+        setupQuoteFades();
+      }, 100);
     });
     setupMarqueeWidth();
+    setupQuoteFades();
   </script>
+
+  <style>
+    /* Slim scrollbar for the quote area so a scrolling card still reads as a card.
+       Firefox gets scrollbar-width/color; WebKit needs the pseudo-elements. */
+    .testimonial-quote {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(107, 26, 255, 0.35) transparent;
+      overscroll-behavior-y: contain;
+    }
+
+    .testimonial-quote[data-scrollable] {
+      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 12px), transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 calc(100% - 12px), transparent 100%);
+    }
+
+    .testimonial-quote::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .testimonial-quote::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .testimonial-quote::-webkit-scrollbar-thumb {
+      background-color: rgba(107, 26, 255, 0.28);
+      border-radius: 9999px;
+    }
+
+    .testimonial-quote:hover::-webkit-scrollbar-thumb {
+      background-color: rgba(107, 26, 255, 0.5);
+    }
+
+    .testimonial-quote:focus-visible {
+      outline: 2px solid var(--color-primary, #6b1aff);
+      outline-offset: 4px;
+      border-radius: 0.25rem;
+    }
+  </style>
 </section>

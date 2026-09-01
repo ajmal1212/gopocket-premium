@@ -206,33 +206,82 @@
             bannerImg.style.willChange = "transform";
           };
 
-          window.addEventListener("scroll", updateHeroTilt, { passive: true });
-          window.addEventListener("resize", updateHeroTilt, { passive: true });
+          // Coalesce to one write per frame - the raw scroll handler fired far more
+          // often than the compositor could use, and each call read window.innerWidth
+          // straight after the previous frame's transform write.
+          let tiltFrame = 0;
+          const scheduleHeroTilt = () => {
+            if (tiltFrame) return;
+            tiltFrame = requestAnimationFrame(() => {
+              tiltFrame = 0;
+              updateHeroTilt();
+            });
+          };
+
+          window.addEventListener("scroll", scheduleHeroTilt, { passive: true });
+          window.addEventListener("resize", scheduleHeroTilt, { passive: true });
           updateHeroTilt();
         }
       </script>
       <script type="module" is:inline={true}>
-        function r() {
-          document.querySelectorAll(".marquee-element-width-auto").forEach((o) => {
-            o.querySelectorAll("img").forEach((e) => {
-              e.complete ? s(e) : e.addEventListener("load", () => s(e));
+        // Sizes the logo marquee: give each logo an explicit width/height from its
+        // intrinsic ratio, then publish each track's width to CSS as --total-width.
+        //
+        // Reads are batched ahead of writes so a track costs one layout instead of
+        // one per image. An image that has not decoded yet is sized on its own load
+        // event and only schedules a single recalculation of the track widths -
+        // re-running the whole pass per image made N images cost N full layouts.
+        const trackSelector = ".marquee-element-width-auto";
+
+        function sizeImage(img) {
+          const height = parseFloat(getComputedStyle(img).height);
+          if (!height || !img.naturalHeight) return;
+          img.setAttribute("height", String(height));
+          img.setAttribute("width", String(height * (img.naturalWidth / img.naturalHeight)));
+        }
+
+        let widthsQueued = false;
+        function queueTrackWidths() {
+          if (widthsQueued) return;
+          widthsQueued = true;
+          requestAnimationFrame(() => {
+            widthsQueued = false;
+            const tracks = document.querySelectorAll(trackSelector);
+            const widths = Array.from(tracks, (track) => track.scrollWidth);
+            tracks.forEach((track, i) => {
+              track.style.setProperty("--total-width", `${widths[i] / 2}px`);
             });
-            const a = o.scrollWidth;
-            o.style.setProperty("--total-width", `${a / 2}px`);
           });
         }
-        function s(t) {
-          const o = getComputedStyle(t),
-            i = parseFloat(o.height),
-            a = t.naturalWidth / t.naturalHeight,
-            e = i * a;
-          (t.setAttribute("height", i.toString()), t.setAttribute("width", e.toString()));
+
+        function sizeMarquees() {
+          const images = document.querySelectorAll(`${trackSelector} img`);
+          const ready = [];
+          images.forEach((img) => {
+            if (img.complete) ready.push(img);
+            else if (!img.dataset.marqueeBound) {
+              img.dataset.marqueeBound = "true";
+              img.addEventListener(
+                "load",
+                () => {
+                  sizeImage(img);
+                  queueTrackWidths();
+                },
+                { once: true },
+              );
+            }
+          });
+          ready.forEach(sizeImage);
+          queueTrackWidths();
         }
-        let n;
+
+        let resizeTimer;
         window.addEventListener("resize", () => {
-          (clearTimeout(n), (n = window.setTimeout(r, 100)));
+          clearTimeout(resizeTimer);
+          resizeTimer = window.setTimeout(sizeMarquees, 100);
         });
-        r();
+        // Off the critical path - nothing above the fold depends on it.
+        requestAnimationFrame(sizeMarquees);
       </script><div class="prose-p:text-light pt-8 pb-8 md:pt-24 md:pb-16">
         <div class="container">
           <div class="mx-auto text-center">

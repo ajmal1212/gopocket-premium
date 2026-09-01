@@ -13,10 +13,13 @@ const { currentPath = "/" } = Astro.props;
       class="hs-dropdown relative flex items-center justify-between px-2 py-2.5 [--auto-close:inside] [--gpu-acceleration:false] [--strategy:absolute] lg:[--strategy:static]"
     >
       <a href="/" class="logo-wrapper">
+        {/* Above the fold on every page - lazy-loading it pushed the logo behind
+            the rest of the page's requests and left a visible gap in the header. */}
         <img
           src="/gopocket-logo.svg"
           alt="Brand logo of GoPocket"
-          loading="lazy"
+          loading="eager"
+          fetchpriority="high"
           decoding="async"
           width="143"
           height="34"

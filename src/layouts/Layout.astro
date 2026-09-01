@@ -147,12 +147,14 @@ const {
       })}
     />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Instrument+Serif:ital@0;1&display=swap"
-      rel="stylesheet"
-    />
+    {/*
+      Figtree and Instrument Serif are self-hosted from /public/fonts and declared
+      via @font-face in global.css. Preload them here so the browser can start the
+      download immediately instead of waiting for the stylesheet to parse - the
+      @font-face rules sit inside a large CSS bundle, so discovery is otherwise late.
+    */}
+    <link rel="preload" href="/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/instrument-serif.woff2" as="font" type="font/woff2" crossorigin />
 
     <!-- Per-page head extras (article meta, JSON-LD, etc.) -->
     <slot name="head" />

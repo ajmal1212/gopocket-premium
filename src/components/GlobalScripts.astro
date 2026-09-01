@@ -4,7 +4,8 @@
 
 <script>
   import AOS from "aos";
-  import "aos/dist/aos.css";
+  // aos.css is already pulled in by global.css - importing it here too made Astro
+  // emit a second, render-blocking copy of the same 26 kB stylesheet.
   import SmoothScroll from "smoothscroll-for-websites";
   import { initAnimatedNumbers } from "../scripts/counter";
 
@@ -51,7 +52,13 @@
       el.classList.remove("aos-init", "aos-animate");
     });
 
-    // Initialize AOS animations
+    // Initialize AOS animations.
+    //
+    // AOS caches each element's Y offset once, at refresh time. refreshHard()
+    // re-collects and re-measures, and the MutationObserver does the same when
+    // [data-aos] nodes come and go - both are needed, because the offsets taken
+    // at DOMContentLoaded are computed before images and fonts have settled the
+    // layout, and stale offsets leave sections stuck at opacity 0.
     AOS.init({
       duration: 700,
       easing: "ease-out",
@@ -59,6 +66,11 @@
       offset: 40,
     });
     AOS.refreshHard();
+
+    // Once images and webfonts are in, every cached offset is out of date.
+    // refresh() re-measures the elements AOS already knows about, which is what
+    // keeps below-the-fold sections appearing on the way back up the page.
+    window.addEventListener("load", () => AOS.refresh(), { once: true });
 
     // Intersection Observer for heading word reveal animations (.animated-text)
     const textElements = document.querySelectorAll<HTMLElement>(".animated-text");
@@ -81,21 +93,40 @@
       });
     }
 
-    // Horizontal wheel scroll
-    document.querySelectorAll<HTMLElement>("*").forEach((e) => {
-      if (e.scrollWidth > e.clientWidth) {
-        e.addEventListener(
-          "wheel",
-          function (t) {
-            if (t.shiftKey) {
-              t.preventDefault();
-              this.scrollBy({ left: t.deltaY * 3, behavior: "smooth" });
-            }
-          },
-          { passive: false },
-        );
-      }
-    });
+    // Shift+wheel scrolls horizontally overflowing containers.
+    //
+    // The listener has to be non-passive to call preventDefault, and a
+    // non-passive wheel listener on document would take the whole page off the
+    // compositor scrolling path - every wheel event would have to reach a busy
+    // main thread before the page could move. So it is attached per element,
+    // and only to elements that genuinely scroll horizontally.
+    //
+    // Discovery happens on hover instead of by walking the entire document at
+    // load: the geometry read only happens for something the cursor is actually
+    // over, and each container is wired up at most once.
+    const wheelBound = new WeakSet<HTMLElement>();
+
+    const onHorizontalWheel = function (this: HTMLElement, event: WheelEvent) {
+      if (!event.shiftKey) return;
+      if (this.scrollWidth <= this.clientWidth) return;
+      event.preventDefault();
+      this.scrollBy({ left: event.deltaY * 3, behavior: "smooth" });
+    };
+
+    document.addEventListener(
+      "pointerover",
+      (event) => {
+        let node = event.target instanceof HTMLElement ? event.target : null;
+        while (node && node !== document.body) {
+          if (!wheelBound.has(node) && node.scrollWidth > node.clientWidth) {
+            wheelBound.add(node);
+            node.addEventListener("wheel", onHorizontalWheel, { passive: false });
+          }
+          node = node.parentElement;
+        }
+      },
+      { passive: true },
+    );
 
     // Creative hover background effect
     document.addEventListener("mouseover", (e) => {

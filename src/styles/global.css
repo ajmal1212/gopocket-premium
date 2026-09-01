@@ -260,7 +260,14 @@ a {
   max-height: 58vh;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  /* Same glassmorphism as the header bar / mega-menus / accessibility panel.
+     .global-search-backdrop is a SIBLING, not a parent, so it does not become
+     a backdrop root and its 2px blur can stay - this panel still samples the
+     page behind it. */
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #eceef1;
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   border-radius: 1.25rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   overflow: hidden;
@@ -269,6 +276,16 @@ a {
   transition:
     transform 0.2s ease,
     opacity 0.2s ease;
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .global-search-panel {
+    background: color-mix(in oklab, #ffffff 70%, transparent);
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .global-search-panel {
+    background: rgba(255, 255, 255, 0.97);
+  }
 }
 .global-search-modal.is-open .global-search-panel {
   transform: translateY(0);
@@ -895,7 +912,10 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
       opacity: 1 !important;
       visibility: visible !important;
       pointer-events: auto !important;
-      transform: translateY(0) !important;
+      /* `none`, not translateY(0): an identity transform still counts as a
+         transformed ancestor, which breaks backdrop-filter on nested panels
+         in Chromium. It interpolates from translateY(8px) exactly the same. */
+      transform: none !important;
     }
 
     li.hs-dropdown.open > .hs-dropdown-toggle svg,
@@ -911,7 +931,7 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
       top: 0 !important;
       margin-top: 0 !important;
       margin-left: 0.25rem !important;
-      transform: translateX(0) !important;
+      transform: none !important; /* see note above - keeps nested glass working */
     }
   }
 
@@ -3598,5 +3618,124 @@ html {
   .ql-editor tbody > tr > *:first-child {
     font-size: 1.0625rem;
     font-weight: 700;
+  }
+}
+
+/* ===================================================================
+   Pages dropdown, every level - same glass as the mega-menus.
+
+   The fill sits on a pseudo-element rather than on the list itself:
+   an element carrying backdrop-filter is a BACKDROP ROOT for its own
+   descendants, and each list contains the next level's submenu, so
+   filtering the list directly would leave the nested panel with
+   nothing to blur (flat translucency, sharp text behind it).
+   Same fix as the header bar. Desktop only - below 1024px these
+   lists are static blocks inside the white mobile drawer, where a
+   glass fill would have nothing behind it worth blurring.
+   =================================================================== */
+@media (min-width: 1024px) {
+  .header .navbar .nav-dropdown-list {
+    /* No position declaration here on purpose: these lists are already
+       absolutely positioned, so they contain the pseudo-element, and
+       setting `relative` would knock the top-level list back into flow. */
+    background-color: transparent;
+    border-color: #eceef1;
+    box-shadow: 0 24px 48px -20px rgba(16, 18, 28, 0.28);
+  }
+
+  .header .navbar .nav-dropdown-list::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background-color: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .header .navbar .nav-dropdown-list::before {
+      background-color: color-mix(in oklab, #ffffff 55%, transparent);
+    }
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .header .navbar .nav-dropdown-list::before {
+      background-color: rgba(255, 255, 255, 0.97);
+    }
+  }
+}
+
+/* ===================================================================
+   Header bar glass, moved onto a pseudo-element.
+
+   backdrop-filter on the nav itself made the nav a BACKDROP ROOT: every
+   descendant's own backdrop-filter (the Learn/Pages mega-menus) then had
+   nothing behind it left to sample and rendered as flat translucency.
+   Painting the same glass on nav::before at z-index -1 keeps the bar
+   pixel-identical while leaving descendants free to blur the page.
+   .header.sticky-header is z-index 50 + position sticky, so it is a
+   stacking context and the negative z-index stays inside the header.
+   =================================================================== */
+.header > .container > nav {
+  position: relative;
+  background-color: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.header > .container > nav::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+  .header > .container > nav::before {
+    background-color: color-mix(in oklab, #ffffff 70%, transparent);
+  }
+}
+
+/* ===================================================================
+   Mega-menu dropdowns (Learn, Pages) - glassmorphism, matching the
+   header bar and the accessibility panel: 70% white + hairline border.
+   Unlayered on purpose so it beats the `bg-white` utility on the element.
+   =================================================================== */
+.header .hs-dropdown-menu.mega-menu {
+  /* The header bar uses the same 70% white, but over a 60px strip it barely
+     registers; across a tall panel the heavy blur smears the page behind into
+     an even haze and that same 70% reads as milk. Hence a lighter fill here -
+     the panel matches the header's LOOK rather than its number. */
+  background-color: rgba(255, 255, 255, 0.55);
+  border-color: #eceef1;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: 0 24px 48px -20px rgba(16, 18, 28, 0.28);
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+  .header .hs-dropdown-menu.mega-menu {
+    background-color: color-mix(in oklab, #ffffff 55%, transparent);
+  }
+}
+
+/* The little white patch behind each item icon would read as an opaque
+   chip on glass; the decorative crosshair lines sit outside it anyway. */
+.header .hs-dropdown-menu.mega-menu .bg-white {
+  background-color: transparent;
+}
+
+/* No backdrop-filter support: fall back to a near-opaque panel */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .header .hs-dropdown-menu.mega-menu {
+    background-color: rgba(255, 255, 255, 0.97);
   }
 }

@@ -56,6 +56,7 @@ const blogBreadcrumbSchema = {
   description="Discover practical tips, algo trading insights, options strategies, and market news designed to help you trade smarter."
   canonical={blogUrl}
   ogImage={featuredPost ? featuredPost.thumbnailImage : undefined}
+  ogImageAlt={featuredPost ? featuredPost.title : undefined}
 >
   <Fragment slot="head">
     <script type="application/ld+json" set:html={JSON.stringify(blogSchema)} />

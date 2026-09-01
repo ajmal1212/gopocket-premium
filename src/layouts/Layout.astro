@@ -16,17 +16,28 @@ interface Props {
   keywords?: string;
   canonical?: string;
   ogImage?: string;
+  ogImageAlt?: string;
   ogType?: string;
 }
+
+// Site-wide share card. 512x512 - square rather than the 1200x630 that Facebook
+// and X crop to, so it renders best on WhatsApp, LinkedIn and Slack.
+const DEFAULT_OG_IMAGE = "https://gopocket.in/og-image.png";
+const DEFAULT_OG_IMAGE_SIZE = 512;
 
 const {
   title = "GoPocket - Open a Free Demat Account | Online Stock Trading App",
   description = "GoPocket is a SEBI-registered online trading and demat account platform. Trade stocks, F&O, mutual funds, commodities and IPOs at flat ₹20 per order or 0.03%, whichever is lower.",
   keywords = "demat account, online trading, stock broker India, discount broker, GoPocket, F&O trading, mutual funds, IPO",
   canonical = "https://gopocket.in/",
-  ogImage = "https://gopocket.in/favicon.png",
+  ogImage = DEFAULT_OG_IMAGE,
+  ogImageAlt = "GoPocket - online trading and demat account app",
   ogType = "website",
 } = Astro.props;
+
+// Dimensions are only truthful for the site default; pages that pass their own
+// artwork (blog thumbnails) omit them rather than advertise a wrong size.
+const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
 ---
 
 <html lang="en">
@@ -100,6 +111,17 @@ const {
     </script>
 
     <meta property="og:image" content={ogImage} />
+    <meta property="og:image:secure_url" content={ogImage} />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    {
+      isDefaultOgImage && (
+        <>
+          <meta property="og:image:type" content="image/png" />
+          <meta property="og:image:width" content={String(DEFAULT_OG_IMAGE_SIZE)} />
+          <meta property="og:image:height" content={String(DEFAULT_OG_IMAGE_SIZE)} />
+        </>
+      )
+    }
     <meta property="og:title" content={title} />
     <meta property="og:site_name" content="GoPocket" />
     <meta property="og:description" content={description} />
@@ -110,6 +132,7 @@ const {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
 
     <link rel="apple-touch-icon" href="/favicon.png" />
     <link rel="icon" type="image/png" href="/favicon.png" />

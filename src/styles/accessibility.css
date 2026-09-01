@@ -349,14 +349,66 @@ html.dark [data-header-tooltip]::after {
   pointer-events: none !important;
 }
 
-/* Accessibility Modal Backdrop Overlay (Identical to Search Modal Backdrop) */
+/* Accessibility Modal Backdrop Overlay.
+   NOTE: no backdrop-filter here on purpose. An ancestor with backdrop-filter
+   becomes a backdrop root, which leaves the modal panel's own backdrop-filter
+   with nothing behind it to sample - the glass then reads as flat translucency.
+   The frosting lives on .a11y-glass-panel instead; this layer only dims. */
 #a11y-modal-backdrop {
-  background: rgba(15, 15, 20, 0.3);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgba(15, 15, 20, 0.22);
 }
 
 html.dark #a11y-modal-backdrop {
-  background: var(--scrim, rgba(0, 0, 0, 0.72));
+  background: var(--scrim, rgba(0, 0, 0, 0.6));
 }
 
+
+/* ===================================================
+   Accessibility Modal Panel - same glassmorphism recipe
+   as the sticky header bar (.header > .container > nav):
+   70% white glass + hairline border, dark mode uses the
+   shared --glass / --line tokens. The blur is dialled up
+   past the header's 12px because a panel this large needs
+   a heavier frost than a 60px-tall bar to stay legible.
+   =================================================== */
+.a11y-glass-panel {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid #eceef1;
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+}
+
+@supports (color: color-mix(in lab, red, red)) {
+  .a11y-glass-panel {
+    background-color: color-mix(in oklab, #ffffff 70%, transparent);
+  }
+}
+
+html.dark .a11y-glass-panel {
+  background-color: var(--glass, rgba(20, 22, 31, 0.78));
+  border-color: var(--line, rgba(255, 255, 255, 0.1));
+}
+
+/* Safari/Firefox without backdrop-filter: fall back to an opaque panel */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .a11y-glass-panel {
+    background-color: rgba(255, 255, 255, 0.97);
+  }
+  html.dark .a11y-glass-panel {
+    background-color: rgba(11, 13, 19, 0.97);
+  }
+}
+
+/* Icons inside the modal cards sit directly on the glass - no white chip */
+.a11y-icon-box {
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ...except when the feature is on: then the chip is the purple state marker */
+.a11y-icon-box--active {
+  background-color: #6b1aff !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 16px -6px rgba(107, 26, 255, 0.6) !important;
+}

@@ -93,7 +93,12 @@ html.dark {
   --on-accent: #ffffff;
 
   --scrim: rgb(0 0 0 / 0.72);
-  --glass: color-mix(in oklab, #14161f 78%, transparent);
+  /* 78% of a near-black read as a solid pill - the blur was working, but
+     almost nothing behind it survived. 62% is the dark counterpart of the
+     light theme's 55-70% fills. Do not push much below this: unlike the
+     light panels, this one carries white text, which loses contrast against
+     bright page content far faster than dark text on white glass does. */
+  --glass: color-mix(in oklab, #14161f 62%, transparent);
   --shadow-strong: rgb(0 0 0 / 0.6);
   --shadow-soft: rgb(0 0 0 / 0.45);
 }
@@ -217,8 +222,13 @@ html.dark .fill-primary { fill: var(--accent-ink); }
    6. Header / navigation
    ------------------------------------------------------------------------- */
 html.dark .header > .container > nav {
-  background-color: var(--glass);
+  /* The glass fill lives on nav::before - see the backdrop-root note in
+     global.css. Only the border stays on the nav itself. */
+  background-color: transparent;
   border-color: var(--line);
+}
+html.dark .header > .container > nav::before {
+  background-color: var(--glass);
 }
 html.dark header .logo-text,
 html.dark footer .logo-wrapper .logo-text {
@@ -233,10 +243,53 @@ html.dark .navbar .nav-link-active { color: var(--accent-ink); }
 html.dark .nav-dropdown-list,
 html.dark .navbar .nav-dropdown .nav-dropdown-list,
 html.dark .mega-menu,
-html.dark .hs-dropdown-menu {
+/* :not(.navbar) - the desktop nav list <ul id="nav-menu"> also carries the
+   hs-dropdown-menu class, so the unqualified selector painted an opaque
+   surface-1 slab across the middle of the glass header bar. The mobile
+   drawer, which does want an opaque fill, has its own rule further down. */
+html.dark .hs-dropdown-menu:not(.navbar) {
   background-color: var(--surface-1) !important;
   border-color: var(--line) !important;
   box-shadow: 0 20px 40px -15px var(--shadow-strong) !important;
+}
+
+/* ...except the mega-menus (Learn, Sign In) and the top-level Pages list,
+   which use the same dark glass as the header bar. Needs !important to
+   outrank the block above. */
+@media (min-width: 1024px) {
+  /* Glass fill lives on ::before at every level - see the backdrop-root note
+     in global.css. The list itself only keeps its border and shadow. */
+  html.dark .header .navbar .nav-dropdown-list {
+    background-color: transparent !important;
+    border-color: var(--line) !important;
+    box-shadow: 0 24px 48px -20px var(--shadow-strong) !important;
+  }
+
+  html.dark .header .navbar .nav-dropdown-list::before {
+    background-color: var(--glass);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    html.dark .header .navbar .nav-dropdown-list::before {
+      background-color: var(--surface-1);
+    }
+  }
+}
+
+html.dark .header .hs-dropdown-menu.mega-menu {
+  background-color: var(--glass) !important;
+  border-color: var(--line) !important;
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  box-shadow: 0 24px 48px -20px var(--shadow-strong) !important;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html.dark .header .hs-dropdown-menu.mega-menu {
+    background-color: var(--surface-1) !important;
+  }
 }
 
 html.dark .nav-dropdown-link,
@@ -351,8 +404,16 @@ html.dark .text-flip-inner:after { color: var(--on-accent); }
    ------------------------------------------------------------------------- */
 html.dark .global-search-backdrop { background: var(--scrim); }
 html.dark .global-search-panel {
-  background: var(--surface-1);
+  background: var(--glass);
+  border-color: var(--line);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
   box-shadow: 0 20px 60px var(--shadow-strong);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html.dark .global-search-panel {
+    background: var(--surface-1);
+  }
 }
 html.dark .global-search-input-row { border-bottom-color: var(--line); }
 html.dark .global-search-input-row svg { color: var(--fg); }

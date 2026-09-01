@@ -87,6 +87,7 @@ const faqSchema = post.faqs.length
   description={post.description || post.summary}
   canonical={postUrl}
   ogImage={post.thumbnailImage}
+  ogImageAlt={post.title}
   ogType="article"
 >
   <Fragment slot="head">

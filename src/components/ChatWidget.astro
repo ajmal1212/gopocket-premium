@@ -219,12 +219,17 @@
 
   @media (max-width: 640px) {
     #n8n-chat {
-      --chat--toggle--size: 52px;
+      --chat--toggle--size: 44px;
       --chat--window--bottom: 16px;
       --chat--window--right: 16px;
       --chat--window--width: calc(100vw - 32px);
       --chat--window--height: calc(100dvh - 140px);
       --chat--window--border-radius: 10px;
+    }
+    /* The toggle's icon has its own intrinsic size, so scale it with the circle. */
+    #n8n-chat .chat-window-toggle svg {
+      width: 22px;
+      height: 22px;
     }
   }
 

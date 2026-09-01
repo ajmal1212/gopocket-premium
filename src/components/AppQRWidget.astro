@@ -1,0 +1,283 @@
+---
+/* src/components/AppQRWidget.astro
+   Floating bottom-left launcher: a circular app-icon button ringed by a rotating
+   violet sweep. Hover (pointer devices) or tap reveals the app-download QR card. */
+---
+
+<div class="gp-qr-widget" id="gp-qr-widget" data-open="false">
+  <!-- QR panel -->
+  <div class="gp-qr-card" id="gp-qr-card" role="dialog" aria-label="Download the GoPocket app" aria-hidden="true">
+    <p class="gp-qr-title">Scan to download<br />GoPocket App</p>
+    <img
+      src="/assets/images/gopocket/GoPocketAppQR.svg"
+      alt="QR code to download the GoPocket app"
+      loading="lazy"
+      decoding="async"
+      width="259"
+      height="259"
+      class="gp-qr-image"
+    />
+    <p class="gp-qr-caption">Start Trading, Open Your Free Account</p>
+  </div>
+
+  <!-- Launcher -->
+  <button
+    type="button"
+    id="gp-qr-trigger"
+    class="gp-qr-fab"
+    aria-label="Scan QR code to download the GoPocket app"
+    aria-expanded="false"
+    aria-controls="gp-qr-card"
+  >
+    <span class="gp-qr-ring" aria-hidden="true"></span>
+    <span class="gp-qr-face">
+      {/* QR glyph rather than the brand mark, so the button reads as "scan me" at a glance. */}
+      <svg class="gp-qr-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+        <rect x="3" y="3" width="7" height="7" rx="1.6" stroke="currentColor" stroke-width="1.8" />
+        <rect x="14" y="3" width="7" height="7" rx="1.6" stroke="currentColor" stroke-width="1.8" />
+        <rect x="3" y="14" width="7" height="7" rx="1.6" stroke="currentColor" stroke-width="1.8" />
+        <rect x="5.6" y="5.6" width="1.8" height="1.8" rx="0.5" fill="currentColor" />
+        <rect x="16.6" y="5.6" width="1.8" height="1.8" rx="0.5" fill="currentColor" />
+        <rect x="5.6" y="16.6" width="1.8" height="1.8" rx="0.5" fill="currentColor" />
+        <rect x="14" y="14" width="3.2" height="3.2" rx="0.8" fill="currentColor" />
+        <rect x="19" y="14" width="2" height="2" rx="0.6" fill="currentColor" />
+        <rect x="14" y="19" width="2" height="2" rx="0.6" fill="currentColor" />
+        <rect x="18.4" y="18.4" width="2.6" height="2.6" rx="0.7" fill="currentColor" />
+      </svg>
+    </span>
+  </button>
+</div>
+
+<style>
+  .gp-qr-widget {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    z-index: 999890;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  /* --- Launcher button ---------------------------------------------------- */
+  .gp-qr-fab {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
+    background: transparent;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: transform 0.25s ease;
+  }
+  .gp-qr-fab:hover,
+  .gp-qr-fab:focus-visible {
+    transform: scale(1.07);
+  }
+  .gp-qr-fab:focus-visible {
+    outline: 3px solid #6b1aff;
+    outline-offset: 4px;
+  }
+
+  /* Rotating violet sweep that reads as a colour travelling around the circle. */
+  .gp-qr-ring {
+    position: absolute;
+    inset: -3px;
+    border-radius: 9999px;
+    background: conic-gradient(
+      from 0deg,
+      rgba(107, 26, 255, 0) 0deg,
+      rgba(107, 26, 255, 0) 140deg,
+      #6b1aff 240deg,
+      #a06bff 310deg,
+      rgba(160, 107, 255, 0) 360deg
+    );
+    animation: gp-qr-orbit 2.4s linear infinite;
+  }
+  /* Soft bloom so the sweep glows rather than sitting flat against the page. */
+  .gp-qr-ring::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    background: inherit;
+    filter: blur(8px);
+    opacity: 0.55;
+  }
+
+  .gp-qr-face {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    border-radius: 9999px;
+    background: var(--surface-1, #ffffff);
+    box-shadow: 0 10px 26px -8px rgba(107, 26, 255, 0.55), 0 4px 10px -4px rgba(0, 0, 0, 0.18);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .gp-qr-icon {
+    width: 32px;
+    height: 32px;
+    display: block;
+    color: #6b1aff;
+  }
+  :global(html.dark) .gp-qr-icon {
+    color: var(--accent-ink, #b494ff);
+  }
+
+  @keyframes gp-qr-orbit {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* --- QR card ------------------------------------------------------------ */
+  .gp-qr-card {
+    width: 216px;
+    padding: 18px 16px 16px;
+    border-radius: 18px;
+    border: 1px solid var(--line, #e6e8ee);
+    background: var(--surface-1, #ffffff);
+    box-shadow: 0 24px 48px -18px rgba(16, 18, 27, 0.35), 0 6px 16px -8px rgba(16, 18, 27, 0.18);
+    text-align: center;
+    transform-origin: bottom left;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px) scale(0.94);
+    transition:
+      opacity 0.22s ease,
+      transform 0.22s ease,
+      visibility 0.22s;
+  }
+  .gp-qr-title {
+    margin: 0 0 12px;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--fg-strong, #101828);
+  }
+  .gp-qr-image {
+    width: 168px;
+    height: 168px;
+    margin: 0 auto;
+    display: block;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 6px;
+  }
+  .gp-qr-caption {
+    margin: 12px 0 0;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--fg-muted, #667085);
+  }
+
+  /* Visibility is driven solely by data-open. A CSS :hover rule here would keep
+     the card on screen after a click that closes it, since the cursor is still
+     over the button at that moment. */
+  .gp-qr-widget[data-open="true"] .gp-qr-card {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+  }
+
+  @media (max-width: 640px) {
+    .gp-qr-widget {
+      bottom: 16px;
+      left: 16px;
+    }
+    .gp-qr-fab {
+      width: 52px;
+      height: 52px;
+    }
+    .gp-qr-icon {
+      width: 38px;
+      height: 38px;
+    }
+    .gp-qr-card {
+      width: 190px;
+    }
+    .gp-qr-image {
+      width: 148px;
+      height: 148px;
+    }
+  }
+
+  @media print {
+    .gp-qr-widget {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gp-qr-ring {
+      animation: none;
+    }
+    .gp-qr-card,
+    .gp-qr-fab {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    const widget = document.getElementById("gp-qr-widget");
+    const trigger = document.getElementById("gp-qr-trigger");
+    const card = document.getElementById("gp-qr-card");
+    if (!widget || !trigger || !card) return;
+
+    // Pinned means the card was opened by a click, so it survives the pointer
+    // leaving the button until the next click, Escape, or an outside click.
+    let pinned = false;
+
+    const setOpen = (open: boolean) => {
+      widget.setAttribute("data-open", String(open));
+      trigger.setAttribute("aria-expanded", String(open));
+      card.setAttribute("aria-hidden", String(!open));
+    };
+
+    const close = () => {
+      pinned = false;
+      setOpen(false);
+    };
+
+    // Hovering the floating icon itself is what reveals the card.
+    trigger.addEventListener("mouseenter", () => setOpen(true));
+
+    // The card stays up while the pointer travels from the button onto it.
+    widget.addEventListener("mouseleave", () => {
+      if (!pinned) setOpen(false);
+    });
+
+    trigger.addEventListener("click", (event) => {
+      event.stopPropagation();
+      pinned = !pinned;
+      setOpen(pinned);
+    });
+
+    // A tap or click anywhere else dismisses the pinned card.
+    document.addEventListener("click", (event) => {
+      if (!widget.contains(event.target as Node)) close();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && widget.getAttribute("data-open") === "true") {
+        close();
+        (trigger as HTMLButtonElement).focus();
+      }
+    });
+
+    // Keyboard equivalent of hover.
+    trigger.addEventListener("focus", () => setOpen(true));
+    trigger.addEventListener("blur", () => {
+      if (!pinned) setOpen(false);
+    });
+  })();
+</script>

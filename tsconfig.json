@@ -3,7 +3,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      // @n8n/chat 1.35.5 points its "exports" types entry at dist/index.d.ts,
+      // which it does not ship - the real declarations sit in dist/src.
+      "@n8n/chat": ["node_modules/@n8n/chat/dist/src/index.d.ts"]
     },
     "jsx": "react-jsx",
     "jsxImportSource": "react"

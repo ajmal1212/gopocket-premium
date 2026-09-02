@@ -1,0 +1,84 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import PartnerHero from "../components/partner/PartnerHero.astro";
+import PartnerBenefits from "../components/partner/PartnerBenefits.astro";
+import PartnerAdvantages from "../components/partner/PartnerAdvantages.astro";
+import PartnerPlatforms from "../components/partner/PartnerPlatforms.astro";
+import PartnerSteps from "../components/partner/PartnerSteps.astro";
+import FAQSection from "../components/FAQSection.astro";
+import CallToAction2 from "../components/CallToAction2.astro";
+
+// FAQSection takes its rows as a prop, so the accordion is reused as-is.
+const partnerFaqs = [
+  {
+    id: "partner-faq-1",
+    category: "Getting Started",
+    question: "How do I start as a GoPocket Business Partner?",
+    answer:
+      "Fill the form on this page, and our partnership team will call you to understand your business. You then submit a short set of documents, we complete your onboarding, and you receive your partner credentials and CRM access.",
+  },
+  {
+    id: "partner-faq-2",
+    category: "Earnings",
+    question: "How much can a Business Partner earn?",
+    answer:
+      "Business Partners can earn up to ₹5,00,000 per month, depending on the size of their client base and how actively those clients trade. We offer among the highest revenue sharing in the industry, and payouts are settled by the 5th of every month.",
+  },
+  {
+    id: "partner-faq-3",
+    category: "Products",
+    question: "What products can I offer my clients?",
+    answer:
+      "Everything GoPocket offers: equity trading, derivatives (futures and options), commodities, currency, mutual funds, IPOs, bonds and insurance - all through a single account.",
+  },
+  {
+    id: "partner-faq-4",
+    category: "Support",
+    question: "What support does GoPocket provide?",
+    answer:
+      "Marketing collaterals, a dedicated relationship manager, training for you and your team, business development help, fully digital client onboarding, back-office support, and regular webinars and workshops.",
+  },
+  {
+    id: "partner-faq-5",
+    category: "Getting Started",
+    question: "What investment is required to become a Business Partner?",
+    answer:
+      "A security deposit ranging from ₹50,000 to ₹3,00,000, depending on the partnership model you choose. The deposit is refundable when the partnership is terminated.",
+  },
+  {
+    id: "partner-faq-6",
+    category: "Getting Started",
+    question: "How long does onboarding take?",
+    answer:
+      "Onboarding is digital and paperless, with minimal documentation. Once your documents are in, approval is quick - our team will give you a firm timeline on the first call.",
+  },
+];
+---
+
+<Layout
+  title="Partner With Us | Become a GoPocket Business Partner"
+  description="Become an authorized GoPocket partner. High revenue sharing, zero deposit charges, free RM and dealing support, and a CRM to track every client you onboard."
+  keywords="gopocket partner, business partner, authorized person, sub broker, franchise, stock broking partner india, refer and earn"
+  canonical="https://gopocket.in/partner-with-us"
+>
+  <Header currentPath="/partner-with-us" />
+
+  <main class="has-section-spacing-lg">
+    <PartnerHero />
+    <PartnerBenefits />
+    <PartnerAdvantages />
+    <PartnerPlatforms />
+    <PartnerSteps />
+    <FAQSection
+      faqs={partnerFaqs}
+      eyebrow="Partner Questions"
+      title="Frequently Asked Questions"
+      description="What most people ask before signing up as a GoPocket Business Partner."
+    />
+    <CallToAction2 />
+  </main>
+
+  <Footer />
+</Layout>

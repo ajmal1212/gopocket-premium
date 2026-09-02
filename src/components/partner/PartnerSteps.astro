@@ -1,0 +1,97 @@
+---
+/**
+ * How to become a partner, in five steps.
+ *
+ * A numbered rail rather than the three-card row TradingJourney uses - five
+ * cards would not divide evenly across that grid at any breakpoint.
+ */
+
+interface Step {
+  number: string;
+  title: string;
+  description: string;
+}
+
+const steps: Step[] = [
+  {
+    number: "01",
+    title: "Fill The Form",
+    description: "Send us your name, number, email and state using the form at the top of this page.",
+  },
+  {
+    number: "02",
+    title: "We Call You",
+    description:
+      "Our partnership team gets in touch to understand your business and walk you through the models.",
+  },
+  {
+    number: "03",
+    title: "Submit Documents",
+    description: "Share the paperwork - it is minimal, and we tell you exactly what is needed.",
+  },
+  {
+    number: "04",
+    title: "Complete Onboarding",
+    description: "We set up your partner account, your CRM access and your relationship manager.",
+  },
+  {
+    number: "05",
+    title: "Start Earning",
+    description: "Receive your credentials, onboard your first clients, and get paid by the 5th each month.",
+  },
+];
+---
+
+<section>
+  <div class="container space-y-10 md:space-y-16">
+    <div class="mx-auto max-w-2xl space-y-4 text-center">
+      <h2 class="has-italic-text capitalize">
+        <div
+          class="animated-text is-ready"
+          data-duration="0.6"
+          data-delay="0.2"
+          data-stagger="0.09"
+          style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+        >
+          <span class="word" style="--word-index:0">How</span>
+          <span class="word" style="--word-index:1">It</span>
+          <span class="word" style="--word-index:2">
+            <strong>Works</strong>
+          </span>
+        </div>
+      </h2>
+      <p class="opacity-80">Five steps from this page to your first payout.</p>
+    </div>
+
+    <ol class="mx-auto max-w-3xl">
+      {
+        steps.map((step, index) => (
+          <li
+            data-aos="fade-up-sm"
+            data-aos-delay={150 + index * 100}
+            class="partner-step relative flex gap-6 pb-10 last:pb-0 aos-init"
+          >
+            <div class="relative flex flex-col items-center">
+              <span class="text-primary border-border-light bg-theme-light relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border text-base font-semibold">
+                {step.number}
+              </span>
+              {/* The rail is drawn per-item and hidden on the last one, so it
+                  stops at the final marker instead of trailing off. */}
+              <span class="partner-step-rail bg-border-light absolute top-12 bottom-0 w-px" aria-hidden="true" />
+            </div>
+            <div class="space-y-2 pt-2.5">
+              <h3 class="text-h5-sm md:text-h5">{step.title}</h3>
+              <p class="opacity-80">{step.description}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .partner-step:last-child .partner-step-rail {
+    display: none;
+  }
+</style>

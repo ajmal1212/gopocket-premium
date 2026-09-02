@@ -1,8 +1,21 @@
 ---
 // SmartManagement2 Component
+
+interface Props {
+  /**
+   * Extra classes for the section. The component sets its own `py-12 md:py-20`,
+   * which is tighter than the `main.has-section-spacing-lg > section` rule the
+   * neighbouring sections pick up - a utility beats that base-layer rule. Pass a
+   * larger `pt-*` here to bring one page's copy of this section back into the
+   * surrounding rhythm.
+   */
+  class?: string;
+}
+
+const { class: className } = Astro.props;
 ---
 
-<section class="overflow-hidden py-12 md:py-20">
+<section class:list={["overflow-hidden py-12 md:py-20", className]}>
   <div class="container space-y-8 md:space-y-12">
     <!-- Header Text Block -->
     <div class="mx-auto space-y-4 text-center max-lg:max-w-lg">

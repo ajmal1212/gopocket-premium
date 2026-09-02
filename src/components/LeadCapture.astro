@@ -317,6 +317,9 @@
       const buttonLabel = form.querySelector("[data-lead-label]") || submitButton;
       const originalLabel = buttonLabel ? buttonLabel.textContent : "";
       const referInput = form.querySelector('input[name="refer"]');
+      // Most forms post to the lead endpoint; the partner enquiry sets its own,
+      // because it collects more than a number and must not redirect afterwards.
+      const endpoint = form.getAttribute("data-lead-endpoint") || "/api/create-lead";
 
       // The pages are server-rendered, but read `refer` off the live URL too so
       // the code survives a cached HTML response.
@@ -373,17 +376,28 @@
           return;
         }
 
-        const payload = {
-          mobile,
-          refer: data.get("refer") || "",
-          src: data.get("src") || "",
-          tag: data.get("tag") || "",
-        };
+        // Forms with more than a mobile number (the partner enquiry) lean on
+        // the browser's own constraint checking for the rest. The form carries
+        // `novalidate` so nothing fires on its own; this asks for it explicitly
+        // once the mobile - which has its own message above - is known good.
+        if (typeof form.checkValidity === "function" && !form.checkValidity()) {
+          if (typeof form.reportValidity === "function") form.reportValidity();
+          return;
+        }
+
+        // Every named field is sent, so a form can declare extra inputs without
+        // this needing to know about them. `mobile` is overwritten with the
+        // normalised value rather than whatever is sitting in the input.
+        const payload = {};
+        data.forEach((value, key) => {
+          payload[key] = typeof value === "string" ? value.trim() : value;
+        });
+        payload.mobile = mobile;
 
         setBusy(true);
 
         try {
-          const res = await fetch("/api/create-lead", {
+          const res = await fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -410,6 +424,22 @@
               window.location.href = result.redirect;
             }, 1200);
             return;
+          }
+
+          // No redirect means the visitor stays here (the partner enquiry), so
+          // the form is cleared to show the submission landed, and the hidden
+          // tracking fields are put back afterwards - reset() wipes those too.
+          if (result.ok) {
+            const tracking = {};
+            form.querySelectorAll('input[type="hidden"]').forEach((input) => {
+              tracking[input.name] = input.value;
+            });
+            form.reset();
+            form.querySelectorAll('input[type="hidden"]').forEach((input) => {
+              if (input.name in tracking) input.value = tracking[input.name];
+            });
+            // Falls through to setBusy(false) below - unlike the redirect path,
+            // the visitor stays here and needs the button back.
           }
         } catch (error) {
           showToast("Network error", "Please check your connection and try again.", "error");

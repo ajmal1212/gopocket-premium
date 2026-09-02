@@ -1,0 +1,368 @@
+---
+import LeadCapture from "../LeadCapture.astro";
+
+/**
+ * Partner hero, built on Hero3's layout: the same gradient ground, decorative
+ * line and glow overlays, left-aligned badge / headline / copy, and the trust
+ * metrics row underneath.
+ *
+ * Where Hero3 puts its phone mockups, this puts the enquiry form - on a page
+ * whose whole job is collecting partner applications, the form is the thing
+ * worth showing.
+ *
+ * It posts to /api/partner-enquiry rather than the retail lead endpoint: it
+ * collects more than a number, and a partner applicant must not be redirected
+ * into the retail signup flow.
+ */
+
+const srcParam = Astro.url.searchParams.get("src") || "Website";
+const tagParam = Astro.url.searchParams.get("tag") || "Partner";
+const referParam = Astro.url.searchParams.get("refer") || "";
+
+/** States and union territories, for the dropdown. */
+const STATES = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry",
+];
+---
+
+<section
+  class="relative overflow-hidden bg-linear-to-b from-gray-50/80 via-white to-gray-50/50 pt-6 pb-12 md:pt-10 md:pb-20 lg:pt-12 lg:pb-24"
+>
+  <!-- Line Background Shapes -->
+  <img
+    src="/assets/images/hero-line-937w.svg"
+    alt=""
+    loading="lazy"
+    decoding="async"
+    width="937"
+    height="1360"
+    class="pointer-events-none absolute top-[10%] -left-36 -z-10 hidden h-100 w-212.5 rotate-[-40deg] opacity-15 md:block md:h-300 md:opacity-5"
+  />
+  <img
+    src="/assets/images/hero-line-937w.svg"
+    alt=""
+    loading="lazy"
+    decoding="async"
+    width="937"
+    height="1360"
+    class="pointer-events-none absolute top-[20%] -right-40 -z-10 hidden h-100 w-212.5 rotate-60 opacity-15 md:block md:h-280 md:opacity-5"
+  />
+
+  <!-- Banner Gradient Overlays -->
+  <img
+    src="/assets/images/hero-banner-gradient-791w.svg"
+    alt=""
+    loading="lazy"
+    decoding="async"
+    width="791"
+    height="1006"
+    class="pointer-events-none absolute bottom-0 left-0 -z-10 h-128 opacity-60"
+  />
+  <img
+    src="/assets/images/hero-banner-gradient-two-638w.svg"
+    alt=""
+    loading="lazy"
+    decoding="async"
+    width="638"
+    height="975"
+    class="pointer-events-none absolute top-0 right-0 -z-10 hidden h-175 w-auto opacity-50 md:block"
+  />
+
+  <div class="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-8">
+      <!-- LEFT COLUMN: Content -->
+      <div class="space-y-8 lg:col-span-6 xl:col-span-6">
+        <!-- Animated Badge -->
+        <div
+          data-aos="fade-up"
+          data-aos-delay="100"
+          class="group relative max-w-fit overflow-hidden rounded-full border p-px"
+        >
+          <div
+            class="translate-y-centered to-primary absolute left-1/2 -z-10 h-6 w-1/2 origin-left rotate-90 animate-spin rounded-full bg-linear-to-b from-white [animation-duration:10000ms]"
+          >
+          </div>
+          <div class="flex items-center rounded-full bg-white px-1 py-0.5">
+            <span
+              class="bg-dark inline-block gap-1 rounded-full px-3 py-1 text-xs font-normal text-white md:text-sm"
+              >Partner</span
+            >
+            <div
+              class="text-text-default ms-3 flex items-center rounded-full py-px pr-2 text-xs font-normal md:text-sm"
+            >
+              Become an Authorized Partner
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="ms-1 h-4 w-4 transition duration-300 group-hover:translate-x-0.5"
+              >
+                <path d="m9 18 6-6-6-6"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Title -->
+        <div data-aos="fade-up" data-aos-delay="200" class="space-y-3">
+          <h1
+            class="has-italic-text text-4xl leading-[1.12] font-normal tracking-tight text-gray-900 sm:text-5xl lg:text-6xl"
+          >
+            Grow your <strong class="text-primary font-serif italic">Business.</strong><br />
+            Partner with GoPocket.
+          </h1>
+          <p class="max-w-xl pt-2 text-base font-normal text-gray-600 sm:text-lg md:text-xl">
+            Earn up to ₹5,00,000* a month with the highest revenue sharing in the industry, a dedicated
+            relationship manager, and a CRM that tracks every client you onboard.
+          </p>
+        </div>
+
+        <!-- Trust Metrics Row -->
+        <div
+          data-aos="fade-up"
+          data-aos-delay="400"
+          class="grid grid-cols-3 items-start gap-3 border-t border-gray-200/80 pt-6 sm:gap-6"
+        >
+          <div class="flex items-center gap-2.5 sm:gap-3">
+            <div
+              class="text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-100/80 shadow-2xs sm:h-11 sm:w-11"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 3h12M6 8h12m-8.5 5L14 21M9 13h3c6.667 0 6.667-10 0-10" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-sm leading-tight font-bold whitespace-nowrap text-gray-900 sm:text-base">₹5,00,000*</h4>
+              <p class="text-[11px] font-medium text-gray-500 sm:text-xs">Monthly Potential</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2.5 sm:gap-3">
+            <div
+              class="text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-100/80 shadow-2xs sm:h-11 sm:w-11"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="18" height="18" x="3" y="4" rx="2" />
+                <path d="M3 10h18M8 2v4M16 2v4" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-sm leading-tight font-bold whitespace-nowrap text-gray-900 sm:text-base">By 5th</h4>
+              <p class="text-[11px] font-medium text-gray-500 sm:text-xs">Payout Every Month</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2.5 sm:gap-3">
+            <div
+              class="text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-100/80 shadow-2xs sm:h-11 sm:w-11"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-sm leading-tight font-bold whitespace-nowrap text-gray-900 sm:text-base">Zero</h4>
+              <p class="text-[11px] font-medium text-gray-500 sm:text-xs">Deposit Charges</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: Enquiry form, where Hero3 puts its mockups -->
+      <div data-aos="fade-up" data-aos-delay="300" class="relative lg:col-span-6 xl:col-span-6">
+        <div class="mx-auto w-full max-w-lg space-y-6 lg:mr-0 lg:ml-auto">
+          <div class="space-y-2">
+            <h2 class="text-dark text-2xl font-bold tracking-tight sm:text-3xl">Become a Partner</h2>
+            <p class="text-text-default text-sm leading-relaxed font-normal opacity-85 sm:text-base">
+              Tell us how to reach you and our partnership team will take it from there.
+            </p>
+          </div>
+
+          <form data-lead-form data-lead-endpoint="/api/partner-enquiry" class="space-y-5" novalidate>
+            <!-- Hidden Tracking Query Parameters -->
+            <input type="hidden" name="src" value={srcParam} />
+            <input type="hidden" name="tag" value={tagParam} />
+            <input type="hidden" name="refer" value={referParam} />
+
+            <div class="space-y-2">
+              <label for="partner-name" class="text-dark block text-sm font-semibold">Name</label>
+              <input
+                id="partner-name"
+                type="text"
+                name="name"
+                autocomplete="name"
+                maxlength="80"
+                placeholder="Your Full Name"
+                class="partner-field w-full rounded-2xl px-4 py-3.5 text-base font-medium"
+                required
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label for="partner-mobile" class="text-dark block text-sm font-semibold">Mobile</label>
+              <div class="relative flex items-center">
+                <div
+                  class="text-dark pointer-events-none absolute left-3.5 z-10 flex items-center gap-1.5 text-sm font-medium"
+                >
+                  <span class="text-base">🇮🇳</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 text-gray-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+                <input
+                  id="partner-mobile"
+                  data-lead-mobile
+                  type="tel"
+                  name="mobile"
+                  inputmode="numeric"
+                  autocomplete="tel"
+                  maxlength="10"
+                  pattern="[0-9]{10}"
+                  placeholder="Your Mobile Number"
+                  class="partner-field w-full rounded-2xl py-3.5 pr-4 pl-16 text-base font-medium"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label for="partner-email" class="text-dark block text-sm font-semibold">Email</label>
+              <input
+                id="partner-email"
+                type="email"
+                name="email"
+                autocomplete="email"
+                maxlength="120"
+                placeholder="you@example.com"
+                class="partner-field w-full rounded-2xl px-4 py-3.5 text-base font-medium"
+                required
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label for="partner-state" class="text-dark block text-sm font-semibold">State</label>
+              <div class="relative flex items-center">
+                <select
+                  id="partner-state"
+                  name="state"
+                  class="partner-field w-full appearance-none rounded-2xl py-3.5 pr-11 pl-4 text-base font-medium"
+                  required
+                >
+                  <option value="">Select your state</option>
+                  {STATES.map((state) => <option value={state}>{state}</option>)}
+                </select>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="pointer-events-none absolute right-4 h-4 w-4 text-gray-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+
+            <button
+              data-lead-submit
+              type="submit"
+              class="flex w-full cursor-pointer items-center justify-center rounded-2xl bg-[#7c3aed] py-4 text-lg font-bold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#6d28d9] active:scale-[0.98] disabled:transform-none disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <span data-lead-label>Become a Partner</span>
+            </button>
+          </form>
+
+          <div
+            class="rounded-2xl border border-[#bbf7d0] bg-[#dcfce7] p-4 text-xs leading-relaxed font-medium text-emerald-900"
+          >
+            Note: By submitting above details, you are authorizing GoPocket / its sub-brokers / agents to call
+            you and send promotional communication even though you being registered under DND.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<LeadCapture />
+
+<style>
+  /* One rule for every control in the form, so the text inputs and the select
+     share a border, focus ring and height rather than drifting apart. */
+  .partner-field {
+    color: var(--fg-strong, #322b2b);
+    background: var(--surface-1, #fff);
+    border: 1px solid var(--line, #eceef1);
+    transition:
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .partner-field::placeholder {
+    color: var(--fg-subtle, #9ca3af);
+  }
+
+  .partner-field:focus {
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 4px rgb(124 58 237 / 0.1);
+  }
+
+  /* A select with nothing chosen shows its placeholder option, which should
+     read as placeholder text rather than as an answer. Scoped to the select:
+     on a text input this would grey out whatever the visitor is still typing. */
+  select.partner-field:invalid {
+    color: var(--fg-subtle, #9ca3af);
+  }
+
+  .partner-field option {
+    color: var(--fg-strong, #322b2b);
+  }
+</style>

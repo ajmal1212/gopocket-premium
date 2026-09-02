@@ -1,0 +1,139 @@
+---
+/**
+ * Six reasons to partner, in the bordered-card grid SpecialBenefits uses on the
+ * homepage.
+ */
+
+interface Advantage {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+const advantages: Advantage[] = [
+  {
+    title: "Advanced Technology",
+    description:
+      "State-of-the-art trading platforms and a mobile app your clients will actually enjoy using.",
+    icon: "cpu",
+  },
+  {
+    title: "Marketing & Branding Support",
+    description:
+      "Collaterals, campaign material and promotional strategies, ready to put your name on.",
+    icon: "megaphone",
+  },
+  {
+    title: "All Products Under One Roof",
+    description:
+      "Equity, derivatives, commodities, currency, mutual funds, IPOs and bonds - one account covers it.",
+    icon: "layers",
+  },
+  {
+    title: "Dedicated Partner Support",
+    description:
+      "A relationship manager who knows your business, plus a dealing desk and back-office team behind you.",
+    icon: "headset",
+  },
+  {
+    title: "Quick Onboarding",
+    description:
+      "Digital, paperless client onboarding. Minimal documentation, and approval that does not drag.",
+    icon: "rocket",
+  },
+  {
+    title: "High Revenue Sharing",
+    description:
+      "Attractive sharing models with payouts settled by the 5th of every month, without chasing.",
+    icon: "trending",
+  },
+];
+---
+
+<section>
+  <div class="container space-y-10 md:space-y-16">
+    <div class="mx-auto max-w-2xl space-y-4 text-center">
+      <h2 class="has-italic-text capitalize">
+        <div
+          class="animated-text is-ready"
+          data-duration="0.6"
+          data-delay="0.2"
+          data-stagger="0.09"
+          style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+        >
+          <span class="word" style="--word-index:0">Why</span>
+          <span class="word" style="--word-index:1">Partners</span>
+          <span class="word" style="--word-index:2">
+            <strong>Choose</strong>
+          </span>
+          <span class="word" style="--word-index:3">
+            <strong>GoPocket</strong>
+          </span>
+        </div>
+      </h2>
+      <p class="opacity-80">
+        Everything you need to build a broking business, without building the infrastructure yourself.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        advantages.map((advantage, index) => (
+          <div
+            data-aos="fade-up-sm"
+            data-aos-delay={50 + index * 50}
+            data-aos-duration="900"
+            class="flex flex-col gap-4 border p-5 md:p-8 aos-init"
+          >
+            <span class="text-primary">
+              {advantage.icon === "cpu" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-3xl">
+                  <rect width="16" height="16" x="4" y="4" rx="2" />
+                  <rect width="6" height="6" x="9" y="9" rx="1" />
+                  <path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2" />
+                </svg>
+              )}
+              {advantage.icon === "megaphone" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-3xl">
+                  <path d="m3 11 18-5v12L3 14v-3z" />
+                  <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+                </svg>
+              )}
+              {advantage.icon === "layers" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-3xl">
+                  <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+                  <path d="m6.08 9.5-3.5 1.6a1 1 0 0 0 0 1.81l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9a1 1 0 0 0 0-1.83l-3.5-1.59" />
+                  <path d="m6.08 14.5-3.5 1.6a1 1 0 0 0 0 1.81l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9a1 1 0 0 0 0-1.83l-3.5-1.59" />
+                </svg>
+              )}
+              {advantage.icon === "headset" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-3xl">
+                  <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+                  <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+                </svg>
+              )}
+              {advantage.icon === "rocket" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-3xl">
+                  <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z" />
+                  <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+                  <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+                  <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+                </svg>
+              )}
+              {advantage.icon === "trending" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-3xl">
+                  <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                  <polyline points="16 7 22 7 22 13" />
+                </svg>
+              )}
+            </span>
+            <div class="mt-4 space-y-3">
+              <h3 class="text-h5-sm md:text-h5">{advantage.title}</h3>
+              <p class="opacity-80">{advantage.description}</p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

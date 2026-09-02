@@ -191,6 +191,20 @@ const slides: Slide[] = [
   .dv-section {
     overflow-x: clip;
     overflow-y: visible;
+
+    /* Sections on this site normally carry no bottom padding - the gap comes
+       from the next section's padding-top. This one is the exception: its last
+       element is the pill row, which otherwise sits flush on the boundary and
+       reads as crowded against the heading below. Plain CSS rather than a
+       utility class, so it cannot go missing if Tailwind's scanner misses this
+       file. */
+    padding-bottom: 3rem;
+  }
+
+  @media (min-width: 768px) {
+    .dv-section {
+      padding-bottom: 5rem;
+    }
   }
 
   .dv {

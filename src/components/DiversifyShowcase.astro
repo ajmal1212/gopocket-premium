@@ -1,0 +1,588 @@
+---
+/**
+ * DiversifyShowcase
+ * -----------------------------------------------------------------------------
+ * Coverflow carousel for the "don't put all your eggs in one basket" section.
+ *
+ * All six key visuals share one 16:9 ratio, so every slide uses the same card.
+ * The active one sits square-on at full size; its neighbours scale down, rotate
+ * away on a perspective stage and tuck partly behind it.
+ *
+ * ARTWORK
+ * Sources live in public/Diversify/*.png (1672x941, ~2MB each). Those are far
+ * too heavy to ship, so each one is mirrored as a 1280px WebP next to it — that
+ * is what the page loads (11.3MB -> 0.72MB across the six). Regenerate with
+ * sharp if the PNGs change, keeping the same names.
+ */
+
+interface Slide {
+  label: string;
+  blurb: string;
+  img: string;
+  alt: string;
+}
+
+const slides: Slide[] = [
+  {
+    label: "Equity",
+    blurb:
+      "Buy and hold shares across NSE and BSE with live market depth and instant order placement.",
+    img: "/Diversify/equity.webp",
+    alt: "Equity — own a part of tomorrow's growth, from large cap to sectoral stocks.",
+  },
+  {
+    label: "Mutual Funds",
+    blurb:
+      "Start an SIP or invest a lump sum in direct plans — zero commission, every folio in one place.",
+    img: "/Diversify/mutual-fund.webp",
+    alt: "Mutual funds — direct plans, SIPs and goal-based investing on GoPocket.",
+  },
+  {
+    label: "IPO",
+    blurb:
+      "Apply to mainboard and SME issues over UPI, then follow the allotment right through to listing.",
+    img: "/Diversify/ipo.webp",
+    alt: "IPO — apply to mainboard and SME public issues over UPI on GoPocket.",
+  },
+  {
+    label: "Futures",
+    blurb:
+      "Hedge a holding or take a directional view on index and stock futures, with margins shown upfront.",
+    img: "/Diversify/futures.webp",
+    alt: "Futures — hedge or take a directional view on index and stock contracts.",
+  },
+  {
+    label: "Options",
+    blurb:
+      "Read the full option chain, build multi-leg strategies and see the payoff before you place the order.",
+    img: "/Diversify/options.webp",
+    alt: "Options — option chain, multi-leg strategies and payoff analysis.",
+  },
+  {
+    label: "Commodities",
+    blurb:
+      "Trade gold, silver, crude and agri contracts on MCX from the same funded account.",
+    img: "/Diversify/commodity.webp",
+    alt: "Commodities — gold, silver, crude and agri contracts on MCX.",
+  },
+];
+---
+
+<!-- No padding utilities: `main.has-section-spacing-lg > section` in global.css
+     already sets the lead-in every other homepage section relies on. -->
+<section class="dv-section">
+  <div class="container">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 class="has-italic-text">
+        <div
+          class="animated-text is-ready is-animated"
+          data-duration="0.6"
+          data-delay="0.2"
+          data-stagger="0.09"
+          style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+        >
+          <span class="word" style="--word-index:0">Never</span>
+          <span class="word" style="--word-index:1">put</span>
+          <span class="word" style="--word-index:2">all</span>
+          <span class="word" style="--word-index:3">your</span>
+          <span class="word" style="--word-index:4">eggs</span>
+          <span class="word" style="--word-index:5">in</span><strong>
+            <span class="word" style="--word-index:6">one</span>
+            <span class="word" style="--word-index:7">basket!</span></strong
+          >
+        </div>
+      </h2>
+    </div>
+
+    <div
+      class="dv"
+      data-dv
+      data-aos="fade-up-sm"
+      data-aos-delay="200"
+      role="group"
+      aria-roledescription="carousel"
+      aria-label="GoPocket investment products"
+    >
+      <!-- Sits above the stage: this is the section's standfirst, and it swaps
+           with the active slide. -->
+      <div class="dv-captions" aria-live="polite">
+        {
+          slides.map((slide) => (
+            <div class="dv-caption" data-dv-caption>
+              <h3 class="h5">{slide.label}</h3>
+              <p>{slide.blurb}</p>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="dv-stage" data-dv-stage>
+        {
+          slides.map((slide, i) => (
+            <div class="dv-slide" data-dv-slide data-pos="hidden">
+              <img
+                src={slide.img}
+                alt={slide.alt}
+                width="1280"
+                height="720"
+                loading={i === 0 ? "eager" : "lazy"}
+                decoding="async"
+              />
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="dv-controls">
+        <button
+          type="button"
+          class="dv-arrow"
+          data-dv-prev
+          aria-label="Previous product"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path
+              d="M15 5 8 12l7 7"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+        </button>
+
+        <div class="dv-pills">
+          {
+            slides.map((slide, i) => (
+              <button type="button" class="dv-pill" data-dv-pill data-index={i}>
+                {slide.label}
+              </button>
+            ))
+          }
+        </div>
+
+        <button
+          type="button"
+          class="dv-arrow"
+          data-dv-next
+          aria-label="Next product"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path
+              d="m9 5 7 7-7 7"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* The flanking cards are meant to run past the container and off the edge of
+     the screen. Clipping here (rather than on the stage) lets them bleed the
+     full page width, while still keeping them out of the document's scroll
+     width — without this the page scrolls sideways on narrow screens.
+     `clip` rather than `hidden` so the y-axis stays visible for the shadows. */
+  .dv-section {
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+
+  .dv {
+    /* Source ratio of the artwork — every size below is derived from it. */
+    --card-w: clamp(260px, 46vw, 600px);
+    --card-h: calc(var(--card-w) * 941 / 1672);
+
+    /* Scale of the first and second card out from centre. */
+    --s1: 0.82;
+    --s2: 0.66;
+
+    /* Fractions of the centre card's width. Under half, so each neighbour
+       tucks behind the active card rather than clearing it. */
+    --x1: calc(var(--card-w) * 0.52);
+    --x2: calc(var(--card-w) * 0.84);
+
+    --dv-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --dv-speed: 0.7s;
+  }
+
+  /* ---- stage ---------------------------------------------------------- */
+
+  .dv-stage {
+    position: relative;
+    height: calc(var(--card-h) + 2rem);
+    perspective: 1600px;
+    transform-style: preserve-3d;
+  }
+
+  .dv-slide {
+    --tx: 0px;
+    --sc: 1;
+    --ry: 0deg;
+    --op: 0;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--card-w);
+    height: var(--card-h);
+    z-index: 0;
+    opacity: var(--op);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--surface-1);
+    box-shadow:
+      0 2px 6px var(--shadow-soft),
+      0 24px 60px -18px var(--shadow-strong);
+    transform: translate(-50%, -50%) translateX(var(--tx)) rotateY(var(--ry))
+      scale(var(--sc));
+    transition:
+      transform var(--dv-speed) var(--dv-ease),
+      opacity var(--dv-speed) var(--dv-ease);
+    will-change: transform, opacity;
+  }
+
+  .dv-slide img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .dv-slide[data-pos="0"] {
+    --tx: 0px;
+    --sc: 1;
+    --ry: 0deg;
+    --op: 1;
+    z-index: 40;
+  }
+  .dv-slide[data-pos="-1"] {
+    --tx: calc(var(--x1) * -1);
+    --sc: var(--s1);
+    --ry: 16deg;
+    --op: 0.85;
+    z-index: 30;
+  }
+  .dv-slide[data-pos="1"] {
+    --tx: var(--x1);
+    --sc: var(--s1);
+    --ry: -16deg;
+    --op: 0.85;
+    z-index: 30;
+  }
+  .dv-slide[data-pos="-2"] {
+    --tx: calc(var(--x2) * -1);
+    --sc: var(--s2);
+    --ry: 22deg;
+    --op: 0.5;
+    z-index: 20;
+  }
+  .dv-slide[data-pos="2"] {
+    --tx: var(--x2);
+    --sc: var(--s2);
+    --ry: -22deg;
+    --op: 0.5;
+    z-index: 20;
+  }
+  /* The odd one out — with six cards and five slots, exactly one is always
+     parked behind the centre where it can't be seen. */
+  .dv-slide[data-pos="hidden"] {
+    --sc: 0.5;
+    --op: 0;
+    pointer-events: none;
+  }
+
+  /* Side cards are click-to-focus; the pills below carry the keyboard path. */
+  .dv-slide:not([data-pos="0"]) {
+    cursor: pointer;
+  }
+
+  /* ---- caption -------------------------------------------------------- */
+
+  /* Stacking all six in one grid cell means the block is always as tall as the
+     longest blurb, so swapping slides can't shunt the carousel up and down. */
+  .dv-captions {
+    display: grid;
+    max-width: 38rem;
+    margin: 1.25rem auto 2.75rem;
+    text-align: center;
+  }
+
+  @media (min-width: 768px) {
+    .dv-captions {
+      margin-bottom: 3.5rem;
+    }
+  }
+
+  .dv-caption {
+    grid-area: 1 / 1;
+    margin-inline: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition:
+      opacity 0.4s var(--dv-ease),
+      transform 0.4s var(--dv-ease),
+      visibility 0.4s;
+  }
+
+  .dv-caption.is-active {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .dv-caption h3 {
+    margin-bottom: 0.4rem;
+    color: var(--accent-ink);
+  }
+
+  .dv-caption p {
+    color: var(--fg-muted);
+  }
+
+  /* ---- controls ------------------------------------------------------- */
+
+  .dv-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 2.5rem;
+  }
+
+  .dv-arrow {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 9999px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface-1);
+    color: var(--fg);
+    transition:
+      border-color 0.25s ease,
+      color 0.25s ease,
+      background-color 0.25s ease;
+  }
+
+  .dv-arrow svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .dv-arrow:hover {
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  .dv-pills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .dv-pill {
+    padding: 0.4rem 1rem;
+    border-radius: 9999px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface-1);
+    color: var(--fg-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition:
+      border-color 0.25s ease,
+      color 0.25s ease,
+      background-color 0.25s ease;
+  }
+
+  .dv-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  .dv-pill.is-active {
+    border-color: transparent;
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  /* ---- responsive ----------------------------------------------------- */
+
+  @media (max-width: 767px) {
+    .dv {
+      --card-w: min(84vw, 440px);
+      /* Push the neighbours further out so they read as a peek at the screen
+         edge rather than crowding a card that is already nearly full width. */
+      --x1: calc(var(--card-w) * 0.66);
+    }
+
+    .dv-slide[data-pos="-2"],
+    .dv-slide[data-pos="2"] {
+      --op: 0;
+      pointer-events: none;
+    }
+
+    .dv-captions {
+      margin-bottom: 2rem;
+    }
+
+    .dv-controls {
+      flex-wrap: wrap;
+      margin-top: 2rem;
+    }
+
+    /* Six pills plus two arrows don't fit on one line at 360px. Give the pills
+       the full width and drop the arrows underneath them. */
+    .dv-pills {
+      order: -1;
+      width: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dv-slide,
+    .dv-caption {
+      transition-duration: 0.01ms;
+    }
+  }
+</style>
+
+<script>
+  type Carousel = {
+    destroy: () => void;
+  };
+
+  function initDiversify(root: HTMLElement): Carousel {
+    const slides = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-dv-slide]"),
+    );
+    const captions = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-dv-caption]"),
+    );
+    const pills = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("[data-dv-pill]"),
+    );
+    const prev = root.querySelector<HTMLButtonElement>("[data-dv-prev]");
+    const next = root.querySelector<HTMLButtonElement>("[data-dv-next]");
+
+    const count = slides.length;
+    const AUTOPLAY_MS = 4200;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    let active = 0;
+    let timer: number | null = null;
+    let visible = true;
+    let hovered = false;
+
+    function render() {
+      slides.forEach((slide, i) => {
+        // Signed distance from the active slide, wrapped to the shorter way
+        // round: 0 is centre, +/-1 and +/-2 are the visible flanks.
+        let rel = (i - active + count) % count;
+        if (rel > count / 2) rel -= count;
+
+        const onStage = Math.abs(rel) <= 2;
+        slide.dataset.pos = onStage ? String(rel) : "hidden";
+        slide.setAttribute("aria-hidden", rel === 0 ? "false" : "true");
+      });
+
+      captions.forEach((caption, i) => {
+        caption.classList.toggle("is-active", i === active);
+      });
+
+      pills.forEach((pill, i) => {
+        const on = i === active;
+        pill.classList.toggle("is-active", on);
+        if (on) pill.setAttribute("aria-current", "true");
+        else pill.removeAttribute("aria-current");
+      });
+    }
+
+    function go(index: number) {
+      active = ((index % count) + count) % count;
+      render();
+    }
+
+    function stop() {
+      if (timer !== null) {
+        window.clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    function play() {
+      stop();
+      if (reduce.matches || !visible || hovered) return;
+      timer = window.setInterval(() => go(active + 1), AUTOPLAY_MS);
+    }
+
+    // Advancing on a click should not leave the old timer half-elapsed.
+    function jump(index: number) {
+      go(index);
+      play();
+    }
+
+    prev?.addEventListener("click", () => jump(active - 1));
+    next?.addEventListener("click", () => jump(active + 1));
+    pills.forEach((pill, i) => pill.addEventListener("click", () => jump(i)));
+    slides.forEach((slide, i) =>
+      slide.addEventListener("click", () => {
+        if (slide.dataset.pos !== "0") jump(i);
+      }),
+    );
+
+    const pause = () => {
+      hovered = true;
+      stop();
+    };
+    const resume = () => {
+      hovered = false;
+      play();
+    };
+
+    root.addEventListener("pointerenter", pause);
+    root.addEventListener("pointerleave", resume);
+    root.addEventListener("focusin", pause);
+    root.addEventListener("focusout", (event) => {
+      if (!root.contains(event.relatedTarget as Node | null)) resume();
+    });
+
+    // Don't burn frames animating a section nobody is looking at.
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        if (visible) play();
+        else stop();
+      },
+      { threshold: 0.2 },
+    );
+    observer.observe(root);
+
+    const onMotionChange = () => (reduce.matches ? stop() : play());
+    reduce.addEventListener("change", onMotionChange);
+
+    render();
+    play();
+
+    return {
+      destroy() {
+        stop();
+        observer.disconnect();
+        reduce.removeEventListener("change", onMotionChange);
+      },
+    };
+  }
+
+  document
+    .querySelectorAll<HTMLElement>("[data-dv]")
+    .forEach((root) => initDiversify(root));
+</script>

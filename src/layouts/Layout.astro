@@ -4,6 +4,9 @@ import "../styles/global.css";
 // following Tailwind's layers in source order.
 import "../styles/dark-theme.css";
 import "../styles/accessibility.css";
+// Brand cursor: must stay last so its unlayered rules beat Tailwind's
+// `cursor-*` utilities.
+import "../styles/cursor.css";
 import GlobalSearch from "../components/GlobalSearch.astro";
 import GlobalScripts from "../components/GlobalScripts.astro";
 import AccessibilityWidget from "../components/AccessibilityWidget.astro";

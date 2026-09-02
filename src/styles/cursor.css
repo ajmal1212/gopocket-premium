@@ -1,0 +1,134 @@
+/* ===== Brand cursor =====================================================
+ * Replaces the OS arrow with the GoPocket pointer mark (public/poiter.svg),
+ * flat brand orange, 24x27, hotspot "0 3" (the tip of the arrow).
+ *
+ * SVG is listed first (crisp on HiDPI in Chrome/Edge/Firefox); Safari has no
+ * SVG-cursor support and falls through to the PNG, then to the OS cursor.
+ *
+ * Two things keep these rules on top:
+ *   - they are unlayered, so they beat Tailwind's `cursor-*` utilities and
+ *     anything in global.css's @layer blocks;
+ *   - every selector is prefixed with `:root`, so a plain single-class rule
+ *     elsewhere (e.g. `.a11y-toggle-btn { cursor: pointer }`) can't win.
+ * ===================================================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  :root {
+    --cursor-brand:
+      url("/cursors/gp-cursor.svg") 0 3, url("/cursors/gp-cursor.png") 0 3,
+      auto;
+  }
+
+  /* The brand arrow is the default (idle) cursor only. */
+  :root,
+  :root body {
+    cursor: var(--cursor-brand);
+  }
+
+  /* Anything clickable keeps the normal hand, so the affordance still reads. */
+  :root a[href],
+  :root button,
+  :root summary,
+  :root label[for],
+  :root select,
+  :root option,
+  :root [role="button"],
+  :root [role="link"],
+  :root [role="tab"],
+  :root [role="option"],
+  :root [role="menuitem"],
+  :root [role="checkbox"],
+  :root [role="radio"],
+  :root [role="switch"],
+  :root input[type="button"],
+  :root input[type="submit"],
+  :root input[type="reset"],
+  :root input[type="checkbox"],
+  :root input[type="radio"],
+  :root input[type="file"],
+  :root input[type="color"],
+  :root .cursor-pointer,
+  :root .btn,
+  :root .swiper-button-next,
+  :root .swiper-button-prev {
+    cursor: pointer;
+  }
+
+  /* Native cursors that carry meaning stay native — overriding these would
+     cost more in usability than it gains in branding. */
+  :root input:not(
+      [type="button"],
+      [type="submit"],
+      [type="reset"],
+      [type="checkbox"],
+      [type="radio"],
+      [type="file"],
+      [type="color"],
+      [type="range"]
+    ),
+  :root textarea,
+  :root [contenteditable="true"],
+  :root .cursor-text {
+    cursor: text;
+  }
+
+  :root [disabled],
+  :root [aria-disabled="true"],
+  :root .disabled,
+  :root .cursor-not-allowed {
+    cursor: not-allowed;
+  }
+
+  :root .cursor-wait {
+    cursor: wait;
+  }
+  :root .cursor-progress {
+    cursor: progress;
+  }
+  :root .cursor-help {
+    cursor: help;
+  }
+  :root .cursor-move {
+    cursor: move;
+  }
+  :root .cursor-grab {
+    cursor: grab;
+  }
+  :root .cursor-grabbing {
+    cursor: grabbing;
+  }
+  :root .cursor-crosshair {
+    cursor: crosshair;
+  }
+  :root .cursor-zoom-in {
+    cursor: zoom-in;
+  }
+  :root .cursor-zoom-out {
+    cursor: zoom-out;
+  }
+  :root .cursor-col-resize {
+    cursor: col-resize;
+  }
+  :root .cursor-row-resize {
+    cursor: row-resize;
+  }
+  :root .cursor-ew-resize {
+    cursor: ew-resize;
+  }
+  :root .cursor-ns-resize {
+    cursor: ns-resize;
+  }
+  :root .cursor-none {
+    cursor: none;
+  }
+  :root input[type="range"] {
+    cursor: ew-resize;
+  }
+
+  /* Escape hatch: add `no-brand-cursor` to any wrapper to hand a subtree back
+     to the OS cursor — e.g. embedded third-party UI. */
+  :root .no-brand-cursor,
+  :root .no-brand-cursor * {
+    cursor: revert;
+  }
+}

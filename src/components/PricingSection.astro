@@ -1,5 +1,10 @@
 ---
-
+/**
+ * The Per Month / Per Year switch is parked, not removed: there is only one
+ * live rate per plan right now. Flip this back to true to bring it — and the
+ * second `data-plan` price on every card — back into play.
+ */
+const showPlanToggle = false;
 ---
 
 <section>
@@ -28,28 +33,33 @@
           </div>
         </h2>
       </div>
-      <div
-        data-aos="fade-right-sm"
-        data-aos-delay="200"
-        class="bg-theme-light relative flex w-fit flex-wrap rounded-full p-1 aos-init"
-      >
-        <span
-          class="pricing-plan-highlighter absolute top-0 left-0 h-full w-1/2 rounded-full border bg-white transition-all duration-300"
-          aria-hidden="true"
-          style="left: 4px; top: 4px; width: 103.438px; height: 32px; display: block;"
-        >
-        </span>
-        <button
-          data-plan-btn="per month"
-          class="pricing-plan-btn [&.active]:text-primary text-dark relative rounded-full px-4 py-1.5 text-sm font-medium tracking-wider transition delay-100 active"
-          >Per Month</button
-        >
-        <button
-          data-plan-btn="per year"
-          class="pricing-plan-btn [&.active]:text-primary text-dark relative rounded-full px-4 py-1.5 text-sm font-medium tracking-wider transition delay-100"
-          >Per Year</button
-        >
-      </div>
+      {
+        showPlanToggle && (
+          <div
+            data-aos="fade-right-sm"
+            data-aos-delay="200"
+            class="bg-theme-light relative flex w-fit flex-wrap rounded-full p-1 aos-init"
+          >
+            <span
+              class="pricing-plan-highlighter absolute top-0 left-0 h-full w-1/2 rounded-full border bg-white transition-all duration-300"
+              aria-hidden="true"
+              style="left: 4px; top: 4px; width: 103.438px; height: 32px; display: block;"
+            />
+            <button
+              data-plan-btn="per month"
+              class="pricing-plan-btn [&.active]:text-primary text-dark relative rounded-full px-4 py-1.5 text-sm font-medium tracking-wider transition delay-100 active"
+            >
+              Per Month
+            </button>
+            <button
+              data-plan-btn="per year"
+              class="pricing-plan-btn [&.active]:text-primary text-dark relative rounded-full px-4 py-1.5 text-sm font-medium tracking-wider transition delay-100"
+              >
+              Per Year
+            </button>
+          </div>
+        )
+      }
     </div>
     <div class="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2 lg:grid-cols-3 xl:gap-x-12">
       <div
@@ -89,7 +99,7 @@
                         <span class="odometer-digit-inner">
                           <span class="odometer-ribbon">
                             <span class="odometer-ribbon-inner">
-                              <span class="odometer-value">9</span>
+                              <span class="odometer-value">0</span>
                             </span>
                           </span>
                         </span>
@@ -129,16 +139,6 @@
                         <span class="odometer-digit-inner">
                           <span class="odometer-ribbon">
                             <span class="odometer-ribbon-inner">
-                              <span class="odometer-value">9</span>
-                            </span>
-                          </span>
-                        </span>
-                      </span>
-                      <span class="odometer-digit">
-                        <span class="odometer-digit-spacer">8</span>
-                        <span class="odometer-digit-inner">
-                          <span class="odometer-ribbon">
-                            <span class="odometer-ribbon-inner">
                               <span class="odometer-value">0</span>
                             </span>
                           </span>
@@ -155,9 +155,9 @@
               plan is for you.
             </p>
           </div>
-          <!-- Desktop Features (only showInCard: true) -->
+          <!-- Charges (desktop) -->
           <ul class="mt-5 hidden space-y-4 border-t border-black/25 py-4 pt-10 lg:block">
-            <li class="relative ps-10">
+            <li class="relative flex items-center justify-between gap-2 ps-10">
               <span
                 class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
               >
@@ -177,9 +177,10 @@
                   <path d="M20 6 9 17l-5-5"> </path>
                 </svg>
               </span>
-              <span>Standard Integrations</span>
+              <span>For All Segments</span>
+              <span class="text-right text-sm"> Equity, Currency &amp; Commodity </span>
             </li>
-            <li class="relative ps-10">
+            <li class="relative flex items-center justify-between gap-2 ps-10">
               <span
                 class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
               >
@@ -199,9 +200,10 @@
                   <path d="M20 6 9 17l-5-5"> </path>
                 </svg>
               </span>
-              <span>Mobile App Access</span>
+              <span>Intraday &amp; Delivery</span>
+              <span class="text-right text-sm"> Flat ₹20 or 0.03%, whichever is lower, per executed order </span>
             </li>
-            <li class="relative ps-10">
+            <li class="relative flex items-center justify-between gap-2 ps-10">
               <span
                 class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
               >
@@ -221,563 +223,84 @@
                   <path d="M20 6 9 17l-5-5"> </path>
                 </svg>
               </span>
-              <span>Basic Analytics</span>
-            </li>
-            <li class="relative ps-10">
-              <span
-                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  data-lucide="Check"
-                  class="text-xs"
-                >
-                  <path d="M20 6 9 17l-5-5"> </path>
-                </svg>
-              </span>
-              <span>API Calls per Month</span>
-            </li>
-            <li class="relative ps-10">
-              <span
-                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  data-lucide="Check"
-                  class="text-xs"
-                >
-                  <path d="M20 6 9 17l-5-5"> </path>
-                </svg>
-              </span>
-              <span>Storage Space</span>
-            </li>
-            <li class="relative ps-10">
-              <span
-                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  data-lucide="Check"
-                  class="text-xs"
-                >
-                  <path d="M20 6 9 17l-5-5"> </path>
-                </svg>
-              </span>
-              <span>Team Members</span>
-            </li>
-            <li class="relative ps-10">
-              <span
-                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-theme-dark/30 after:bg-theme-light/70 pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  data-lucide="X"
-                  class="text-xs"
-                >
-                  <path d="M18 6 6 18"> </path>
-                  <path d="m6 6 12 12"> </path>
-                </svg>
-              </span>
-              <span>Advanced Reports</span>
-            </li>
-            <li class="relative ps-10">
-              <span
-                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-theme-dark/30 after:bg-theme-light/70 pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  data-lucide="X"
-                  class="text-xs"
-                >
-                  <path d="M18 6 6 18"> </path>
-                  <path d="m6 6 12 12"> </path>
-                </svg>
-              </span>
-              <span>Custom Dashboard Builder</span>
-            </li>
-            <li class="relative ps-10">
-              <span
-                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-theme-dark/30 after:bg-theme-light/70 pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  data-lucide="X"
-                  class="text-xs"
-                >
-                  <path d="M18 6 6 18"> </path>
-                  <path d="m6 6 12 12"> </path>
-                </svg>
-              </span>
-              <span>Enterprise Reporting</span>
+              <span>Option Trades</span>
+              <span class="text-right text-sm"> Flat ₹20 per executed order </span>
             </li>
           </ul>
-          <!-- Mobile Features (all features with opacity for non-included) -->
+          <!-- Charges (mobile) -->
           <ul class="mt-5 block space-y-4 border-t border-black/25 py-4 pt-10 lg:hidden">
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Email Support</span>
-              <span class="text-right text-sm"> 24-48h response </span>
-            </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Standard Integrations</span>
-              <span class="text-right text-sm"> 10+ integrations </span>
-            </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Mobile App Access</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-primary">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="Check"
-                    class="text-xs"
-                  >
-                    <path d="M20 6 9 17l-5-5"> </path>
-                  </svg>
-                </span>
+            <li class="relative flex items-center justify-between gap-2 ps-10">
+              <span
+                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  data-lucide="Check"
+                  class="text-xs"
+                >
+                  <path d="M20 6 9 17l-5-5"> </path>
+                </svg>
               </span>
+              <span>For All Segments</span>
+              <span class="text-right text-sm"> Equity, Currency &amp; Commodity </span>
             </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Basic Analytics</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-primary">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="Check"
-                    class="text-xs"
-                  >
-                    <path d="M20 6 9 17l-5-5"> </path>
-                  </svg>
-                </span>
+            <li class="relative flex items-center justify-between gap-2 ps-10">
+              <span
+                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  data-lucide="Check"
+                  class="text-xs"
+                >
+                  <path d="M20 6 9 17l-5-5"> </path>
+                </svg>
               </span>
+              <span>Intraday &amp; Delivery</span>
+              <span class="text-right text-sm"> Flat ₹20 or 0.03%, whichever is lower, per executed order </span>
             </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>API Calls per Month</span>
-              <span class="text-right text-sm"> 1,000 calls </span>
-            </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Storage Space</span>
-              <span class="text-right text-sm"> 10GB </span>
-            </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Team Members</span>
-              <span class="text-right text-sm"> Up to 5 users </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Advanced Reports</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
+            <li class="relative flex items-center justify-between gap-2 ps-10">
+              <span
+                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  data-lucide="Check"
+                  class="text-xs"
+                >
+                  <path d="M20 6 9 17l-5-5"> </path>
+                </svg>
               </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Custom Dashboard Builder</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Enterprise Reporting</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Automation Workflows</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>A/B Testing</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Custom Development</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Priority Support</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Dedicated Account Manager</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Enterprise Security (SSO/SAML)</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>SLA Guarantee</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Compliance (SOC2, GDPR)</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>White-label Options</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Custom Onboarding</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Training and Workshops</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
+              <span>Option Trades</span>
+              <span class="text-right text-sm"> Flat ₹20 per executed order </span>
             </li>
           </ul>
           <a class="btn btn-outline text-flip-hover-anim btn-md mt-auto text-center" href="/contact">
-            <span class="text-flip-inner" data-content="Start Free Trial">Start Free Trial</span>
+            <span class="text-flip-inner" data-content="Open Account">Open Account</span>
             <span
               class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
             >
@@ -810,7 +333,7 @@
           <div class="space-y-5">
             <div
               data-plan="per month"
-              class="price-wrapper relative flex flex-wrap items-end gap-1.5 transition-all duration-300 active"
+              class="price-wrapper relative flex flex-wrap items-end gap-1.5 transition-all duration-300 hidden"
             >
               <span class="flex gap-0 text-5xl md:text-7xl/[1.125]">
                 <div class="inline-flex place-items-stretch leading-none has-animated-number leading-none">
@@ -827,7 +350,7 @@
                         <span class="odometer-digit-inner">
                           <span class="odometer-ribbon">
                             <span class="odometer-ribbon-inner">
-                              <span class="odometer-value">7</span>
+                              <span class="odometer-value">5</span>
                             </span>
                           </span>
                         </span>
@@ -837,7 +360,7 @@
                         <span class="odometer-digit-inner">
                           <span class="odometer-ribbon">
                             <span class="odometer-ribbon-inner">
-                              <span class="odometer-value">9</span>
+                              <span class="odometer-value">0</span>
                             </span>
                           </span>
                         </span>
@@ -850,7 +373,7 @@
             </div>
             <div
               data-plan="per year"
-              class="price-wrapper relative flex flex-wrap items-end gap-1.5 transition-all duration-300 hidden"
+              class="price-wrapper relative flex flex-wrap items-end gap-1.5 transition-all duration-300 active"
             >
               <span class="flex gap-0 text-5xl md:text-7xl/[1.125]">
                 <div class="inline-flex place-items-stretch leading-none has-animated-number leading-none">
@@ -867,17 +390,7 @@
                         <span class="odometer-digit-inner">
                           <span class="odometer-ribbon">
                             <span class="odometer-ribbon-inner">
-                              <span class="odometer-value">7</span>
-                            </span>
-                          </span>
-                        </span>
-                      </span>
-                      <span class="odometer-digit">
-                        <span class="odometer-digit-spacer">8</span>
-                        <span class="odometer-digit-inner">
-                          <span class="odometer-ribbon">
-                            <span class="odometer-ribbon-inner">
-                              <span class="odometer-value">9</span>
+                              <span class="odometer-value">5</span>
                             </span>
                           </span>
                         </span>
@@ -900,9 +413,9 @@
             </div>
             <p class="text-lg">For one who needs tailored service — Tailored brokerage as per your preference.</p>
           </div>
-          <!-- Desktop Features (only showInCard: true) -->
+          <!-- Charges (desktop) -->
           <ul class="mt-5 hidden space-y-4 border-t border-black/25 py-4 pt-10 lg:block">
-            <li class="relative ps-10">
+            <li class="relative flex items-center justify-between gap-2 ps-10">
               <span
                 class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
               >
@@ -922,9 +435,10 @@
                   <path d="M20 6 9 17l-5-5"> </path>
                 </svg>
               </span>
-              <span>Standard Integrations</span>
+              <span>Intraday - Futures (Equity, Currency &amp; Commodities)</span>
+              <span class="text-right text-sm"> 0.03% on turnover. </span>
             </li>
-            <li class="relative ps-10">
+            <li class="relative flex items-center justify-between gap-2 ps-10">
               <span
                 class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
               >
@@ -944,9 +458,10 @@
                   <path d="M20 6 9 17l-5-5"> </path>
                 </svg>
               </span>
-              <span>Mobile App Access</span>
+              <span>Equity Delivery</span>
+              <span class="text-right text-sm"> 0.3% on turnover. </span>
             </li>
-            <li class="relative ps-10">
+            <li class="relative flex items-center justify-between gap-2 ps-10">
               <span
                 class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
               >
@@ -966,9 +481,10 @@
                   <path d="M20 6 9 17l-5-5"> </path>
                 </svg>
               </span>
-              <span>Basic Analytics</span>
+              <span>Options (Equity, Currency &amp; Commodity)</span>
+              <span class="text-right text-sm"> ₹50 per lot. </span>
             </li>
-            <li class="relative ps-10">
+            <li class="relative flex items-center justify-between gap-2 ps-10">
               <span
                 class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
               >
@@ -988,9 +504,10 @@
                   <path d="M20 6 9 17l-5-5"> </path>
                 </svg>
               </span>
-              <span>Advanced Reports</span>
+              <span>NRI - Equity Delivery</span>
+              <span class="text-right text-sm"> ₹200 per executed order or 0.5% of turnover (whichever is lower) </span>
             </li>
-            <li class="relative ps-10">
+            <li class="relative flex items-center justify-between gap-2 ps-10">
               <span
                 class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
               >
@@ -1010,9 +527,10 @@
                   <path d="M20 6 9 17l-5-5"> </path>
                 </svg>
               </span>
-              <span>Custom Dashboard Builder</span>
+              <span>NRI - Futures &amp; Options</span>
+              <span class="text-right text-sm"> ₹100 per executed order placed using a CP code </span>
             </li>
-            <li class="relative ps-10">
+            <li class="relative flex items-center justify-between gap-2 ps-10">
               <span
                 class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
               >
@@ -1032,438 +550,153 @@
                   <path d="M20 6 9 17l-5-5"> </path>
                 </svg>
               </span>
-              <span>API Calls per Month</span>
-            </li>
-            <li class="relative ps-10">
-              <span
-                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  data-lucide="Check"
-                  class="text-xs"
-                >
-                  <path d="M20 6 9 17l-5-5"> </path>
-                </svg>
-              </span>
-              <span>Storage Space</span>
-            </li>
-            <li class="relative ps-10">
-              <span
-                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  data-lucide="Check"
-                  class="text-xs"
-                >
-                  <path d="M20 6 9 17l-5-5"> </path>
-                </svg>
-              </span>
-              <span>Team Members</span>
-            </li>
-            <li class="relative ps-10">
-              <span
-                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-theme-dark/30 after:bg-theme-light/70 pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  data-lucide="X"
-                  class="text-xs"
-                >
-                  <path d="M18 6 6 18"> </path>
-                  <path d="m6 6 12 12"> </path>
-                </svg>
-              </span>
-              <span>Enterprise Reporting</span>
+              <span>NRI-NRO Non-PIS account</span>
+              <span class="text-right text-sm"> ₹100 per executed order or 0.5% of turnover (whichever is lower) </span>
             </li>
           </ul>
-          <!-- Mobile Features (all features with opacity for non-included) -->
+          <!-- Charges (mobile) -->
           <ul class="mt-5 block space-y-4 border-t border-black/25 py-4 pt-10 lg:hidden">
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Training and Workshops</span>
-              <span class="text-right text-sm"> Self-service </span>
-            </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>White-label Options</span>
-              <span class="text-right text-sm"> Basic branding </span>
-            </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Email Support</span>
-              <span class="text-right text-sm"> 4-8h response </span>
-            </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Standard Integrations</span>
-              <span class="text-right text-sm"> 50+ integrations </span>
-            </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Mobile App Access</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-primary">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="Check"
-                    class="text-xs"
-                  >
-                    <path d="M20 6 9 17l-5-5"> </path>
-                  </svg>
-                </span>
+            <li class="relative flex items-center justify-between gap-2 ps-10">
+              <span
+                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  data-lucide="Check"
+                  class="text-xs"
+                >
+                  <path d="M20 6 9 17l-5-5"> </path>
+                </svg>
               </span>
+              <span>Intraday - Futures (Equity, Currency &amp; Commodities)</span>
+              <span class="text-right text-sm"> 0.03% on turnover. </span>
             </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Basic Analytics</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-primary">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="Check"
-                    class="text-xs"
-                  >
-                    <path d="M20 6 9 17l-5-5"> </path>
-                  </svg>
-                </span>
+            <li class="relative flex items-center justify-between gap-2 ps-10">
+              <span
+                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  data-lucide="Check"
+                  class="text-xs"
+                >
+                  <path d="M20 6 9 17l-5-5"> </path>
+                </svg>
               </span>
+              <span>Equity Delivery</span>
+              <span class="text-right text-sm"> 0.3% on turnover. </span>
             </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Advanced Reports</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-primary">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="Check"
-                    class="text-xs"
-                  >
-                    <path d="M20 6 9 17l-5-5"> </path>
-                  </svg>
-                </span>
+            <li class="relative flex items-center justify-between gap-2 ps-10">
+              <span
+                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  data-lucide="Check"
+                  class="text-xs"
+                >
+                  <path d="M20 6 9 17l-5-5"> </path>
+                </svg>
               </span>
+              <span>Options (Equity, Currency &amp; Commodity)</span>
+              <span class="text-right text-sm"> ₹50 per lot. </span>
             </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Custom Dashboard Builder</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-primary">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="Check"
-                    class="text-xs"
-                  >
-                    <path d="M20 6 9 17l-5-5"> </path>
-                  </svg>
-                </span>
+            <li class="relative flex items-center justify-between gap-2 ps-10">
+              <span
+                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  data-lucide="Check"
+                  class="text-xs"
+                >
+                  <path d="M20 6 9 17l-5-5"> </path>
+                </svg>
               </span>
+              <span>NRI - Equity Delivery</span>
+              <span class="text-right text-sm"> ₹200 per executed order or 0.5% of turnover (whichever is lower) </span>
             </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Automation Workflows</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-primary">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="Check"
-                    class="text-xs"
-                  >
-                    <path d="M20 6 9 17l-5-5"> </path>
-                  </svg>
-                </span>
+            <li class="relative flex items-center justify-between gap-2 ps-10">
+              <span
+                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  data-lucide="Check"
+                  class="text-xs"
+                >
+                  <path d="M20 6 9 17l-5-5"> </path>
+                </svg>
               </span>
+              <span>NRI - Futures &amp; Options</span>
+              <span class="text-right text-sm"> ₹100 per executed order placed using a CP code </span>
             </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>A/B Testing</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-primary">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="Check"
-                    class="text-xs"
-                  >
-                    <path d="M20 6 9 17l-5-5"> </path>
-                  </svg>
-                </span>
+            <li class="relative flex items-center justify-between gap-2 ps-10">
+              <span
+                class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  data-lucide="Check"
+                  class="text-xs"
+                >
+                  <path d="M20 6 9 17l-5-5"> </path>
+                </svg>
               </span>
-            </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Priority Support</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-primary">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="Check"
-                    class="text-xs"
-                  >
-                    <path d="M20 6 9 17l-5-5"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>API Calls per Month</span>
-              <span class="text-right text-sm"> 10,000 calls </span>
-            </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Storage Space</span>
-              <span class="text-right text-sm"> 100GB </span>
-            </li>
-            <li class="relative flex items-center justify-between gap-2">
-              <span>Team Members</span>
-              <span class="text-right text-sm"> Up to 25 users </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Enterprise Reporting</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Custom Development</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Dedicated Account Manager</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Enterprise Security (SSO/SAML)</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>SLA Guarantee</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Compliance (SOC2, GDPR)</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
-            </li>
-            <li
-              class="relative flex items-center justify-between gap-2 after:bg-theme-light/0 after:pointer-events-none after:absolute after:inset-0 after:size-full after:content-['']"
-            >
-              <span>Custom Onboarding</span>
-              <span class="text-right text-sm">
-                <span class="inline-flex h-4 w-4 items-center justify-center rounded-full text-white bg-theme-dark/30">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    data-lucide="X"
-                    class="text-xs"
-                  >
-                    <path d="M18 6 6 18"> </path>
-                    <path d="m6 6 12 12"> </path>
-                  </svg>
-                </span>
-              </span>
+              <span>NRI-NRO Non-PIS account</span>
+              <span class="text-right text-sm"> ₹100 per executed order or 0.5% of turnover (whichever is lower) </span>
             </li>
           </ul>
           <a class="btn btn-primary text-flip-hover-anim btn-md mt-auto text-center" href="/contact">
-            <span class="text-flip-inner" data-content="Start Free Trial">Start Free Trial</span>
+            <span class="text-flip-inner" data-content="Open Account">Open Account</span>
             <span
               class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
             >
@@ -2244,12 +1477,16 @@
         };
         window.addEventListener("resize", m);
       }
-      L({
-        selector: ".pricing-plan-btn",
-        highlightElementSelector: ".pricing-plan-highlighter",
-        triggerEvent: "click",
-        activeClass: "active",
-      });
+      // The toggle may not be rendered (see showPlanToggle); L() logs an error
+      // rather than no-oping when its elements are missing.
+      if (document.querySelector(".pricing-plan-highlighter")) {
+        L({
+          selector: ".pricing-plan-btn",
+          highlightElementSelector: ".pricing-plan-highlighter",
+          triggerEvent: "click",
+          activeClass: "active",
+        });
+      }
     </script>
   </div>
 </section>

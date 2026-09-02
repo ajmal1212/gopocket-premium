@@ -765,3 +765,98 @@ export async function getBlogPostBySlugOrId(identifier: string): Promise<Formatt
 
   return null;
 }
+
+/* ============================================================================
+   LEAD CREATION (open-account call-back form)
+   ============================================================================ */
+
+export const CREATE_LEAD_METHOD = 'gopocket.website.create_lead';
+
+/** Payload accepted by the `create_lead` whitelisted method. */
+export interface CreateLeadParams {
+  mobile: string;
+  refer: string;
+  src: string;
+  tag: string;
+}
+
+/**
+ * Frappe answers with one of three statuses. `client` means the number already
+ * belongs to a back-office user, `kyc` means signup is mid-KYC, and
+ * `lead_created` is a fresh CRM Lead. The caller routes on the status.
+ */
+export interface CreateLeadResponse {
+  status?: string;
+  message?: string;
+  lead?: string;
+}
+
+export type CreateLeadResult =
+  | { ok: true; data: CreateLeadResponse }
+  | { ok: false; message: string };
+
+/** Frappe wraps whitelisted-method return values in a top-level `message` key. */
+function unwrapMessage(payload: any): CreateLeadResponse | null {
+  const body = payload && typeof payload === 'object' ? payload.message : null;
+  return body && typeof body === 'object' ? (body as CreateLeadResponse) : null;
+}
+
+/**
+ * Creates (or matches) a CRM Lead for a mobile number.
+ *
+ * Every key is always sent, empty string included, because the method expects
+ * the full shape rather than a partial payload.
+ *
+ * Mirrors the fallback used elsewhere in this file: the SDK rides on axios,
+ * which is not always happy inside the Cloudflare Worker runtime, so a native
+ * fetch stands behind it.
+ */
+export async function createLead(params: CreateLeadParams): Promise<CreateLeadResult> {
+  const payload: CreateLeadParams = {
+    mobile: params.mobile || '',
+    refer: params.refer || '',
+    src: params.src || '',
+    tag: params.tag || ''
+  };
+
+  try {
+    const frappe = getFrappeInstance();
+    const response = await frappe.call().post<any>(CREATE_LEAD_METHOD, payload);
+    const data = unwrapMessage(response);
+    if (data) return { ok: true, data };
+    console.error('create_lead returned an unexpected body:', JSON.stringify(response).slice(0, 300));
+  } catch (error) {
+    console.warn('SDK call().post failed for create_lead, trying native fetch...', error);
+  }
+
+  try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    // The method is whitelisted for guests, so a missing token is not fatal
+    // here - send the credential when we have one and carry on when we do not.
+    try {
+      headers.Authorization = `token ${getFrappeToken()}`;
+    } catch {
+      /* no token configured */
+    }
+
+    const res = await fetch(`${getFrappeUrl()}/api/method/${CREATE_LEAD_METHOD}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+
+    const text = await res.text();
+
+    if (!res.ok) {
+      console.error('create_lead rejected by Frappe:', res.status, text.slice(0, 300));
+      return { ok: false, message: `Lead service returned ${res.status}.` };
+    }
+
+    const data = unwrapMessage(JSON.parse(text));
+    if (!data) return { ok: false, message: 'Lead service returned an unexpected response.' };
+    return { ok: true, data };
+  } catch (error) {
+    console.error('Native fetch create_lead failed:', error);
+    return { ok: false, message: 'Could not reach the lead service.' };
+  }
+}

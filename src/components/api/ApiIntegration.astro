@@ -1,0 +1,119 @@
+---
+/**
+ * Three steps from account to first live order, in the numbered-step band
+ * TradingJourney uses on the homepage - same tinted full-bleed section, same
+ * white step cards.
+ *
+ * The SDK row underneath names the client libraries. Trim it to whatever is
+ * actually published before this goes live.
+ */
+
+interface Step {
+  number: string;
+  title: string;
+  description: string;
+  cta: { label: string; href: string };
+}
+
+const steps: Step[] = [
+  {
+    number: "01",
+    title: "Get Your Keys",
+    description:
+      "Open a GoPocket account, enable API access from the developer portal and generate a key and secret.",
+    cta: { label: "Open Account", href: "/open-account-call-back?src=Website&tag=API" },
+  },
+  {
+    number: "02",
+    title: "Build Against Sandbox",
+    description:
+      "Point the base URL at sandbox and run your strategy end to end - orders, fills and feeds - with nothing at risk.",
+    cta: { label: "Docs", href: "/contact" },
+  },
+  {
+    number: "03",
+    title: "Go Live",
+    description: "Swap in your production key. Same request shapes, same responses, real fills.",
+    cta: { label: "Talk To Us", href: "/contact" },
+  },
+];
+
+const sdks = ["Python", "Node.js", "Java", "Go", "REST", "WebSocket"];
+---
+
+<section>
+  <div class="bg-theme-light py-20 md:py-32">
+    <div class="container space-y-10 md:space-y-16">
+      <div class="mx-auto max-w-2xl space-y-4 text-center">
+        <h2 class="has-italic-text capitalize">
+          <div
+            class="animated-text is-ready"
+            data-duration="0.6"
+            data-delay="0.2"
+            data-stagger="0.09"
+            style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+          >
+            <span class="word" style="--word-index:0">Live</span>
+            <span class="word" style="--word-index:1">In</span>
+            <span class="word" style="--word-index:2">
+              <strong>Three</strong>
+            </span>
+            <span class="word" style="--word-index:3">
+              <strong>Steps</strong>
+            </span>
+          </div>
+        </h2>
+        <p class="opacity-80">From signing up to your first programmatic order, without a sales call.</p>
+      </div>
+
+      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {
+          steps.map((step, index) => (
+            <div
+              data-aos="fade-right-sm"
+              data-aos-delay={250 + index * 100}
+              class="space-y-16 rounded-4xl bg-white p-8 md:space-y-32 aos-init"
+            >
+              <div class="prose-em:not-italic prose-em:text-dark/80 flex flex-wrap items-center justify-between gap-y-4 font-medium text-black">
+                <div class="md:text-h3 text-h3-sm">
+                  Step <em>{step.number}</em>
+                </div>
+                <a
+                  class="text-text-default rounded-full border px-9 py-1.5 text-sm! capitalize transition-colors duration-300 hover:border-black/50"
+                  href={step.cta.href}
+                >
+                  {step.cta.label}
+                </a>
+              </div>
+              <div class="space-y-4">
+                <h3 class="md:text-h5 text-h5-sm text-black">{step.title}</h3>
+                <p class="border-t pt-4 text-gray-600">{step.description}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+
+      <div
+        data-aos="fade-up-sm"
+        data-aos-delay="200"
+        class="flex flex-wrap items-center justify-center gap-3 aos-init"
+      >
+        <span class="text-sm opacity-70">Connect with</span>
+        {
+          sdks.map((sdk) => (
+            <span class="api-sdk-chip rounded-full px-4 py-1.5 text-sm font-medium">{sdk}</span>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .api-sdk-chip {
+    color: var(--fg, #3b3b3b);
+    background: var(--surface-1, #fff);
+    border: 1px solid var(--line, #eceef1);
+  }
+</style>

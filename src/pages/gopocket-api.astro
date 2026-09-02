@@ -1,0 +1,85 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import ApiHero from "../components/api/ApiHero.astro";
+import ApiProducts from "../components/api/ApiProducts.astro";
+import ApiBenefits from "../components/api/ApiBenefits.astro";
+import ApiIntegration from "../components/api/ApiIntegration.astro";
+import ApiPricing from "../components/api/ApiPricing.astro";
+import CallToAction2 from "../components/CallToAction2.astro";
+import FAQSection from "../components/FAQSection.astro";
+
+// FAQSection takes its rows as a prop, so the accordion is reused as-is rather
+// than duplicated for this page.
+const apiFaqs = [
+  {
+    id: "api-faq-1",
+    category: "General",
+    question: "What can I build with the GoPocket API?",
+    answer:
+      "Anything that needs to place orders or read market and account data programmatically - an algo that runs your own strategy, a research notebook, a portfolio dashboard, or a full trading platform you offer to other GoPocket clients.",
+  },
+  {
+    id: "api-faq-2",
+    category: "Access",
+    question: "Do I need a GoPocket account to use the APIs?",
+    answer:
+      "Yes. The APIs act on a real trading account, so you need an active GoPocket account first. Once it is open you can enable API access and generate your keys.",
+  },
+  {
+    id: "api-faq-3",
+    category: "Charges",
+    question: "Is there a charge for API access?",
+    answer:
+      "Trading APIs are included with your GoPocket account at no extra cost - you pay only the usual brokerage on the trades you place. Market data APIs are priced separately; get in touch and we will walk you through it.",
+  },
+  {
+    id: "api-faq-4",
+    category: "Access",
+    question: "Can I test before trading with real money?",
+    answer:
+      "Yes. Build against the sandbox environment, which mirrors the production request and response shapes without touching the live market. When you are ready, swap the base URL and your key for the production pair.",
+  },
+  {
+    id: "api-faq-5",
+    category: "Access",
+    question: "Do you support fully automated trading?",
+    answer:
+      "Automated strategies are subject to exchange approval. Talk to us about what you are building and we will help you through the approval process where one is needed. Our API Usage Policy sets out the full terms.",
+  },
+  {
+    id: "api-faq-6",
+    category: "General",
+    question: "Which languages are supported?",
+    answer:
+      "The APIs are plain REST and WebSocket, so anything that can make an HTTP request will work. Client libraries are available for the common languages to save you writing auth, retries and reconnect logic yourself.",
+  },
+];
+---
+
+<Layout
+  title="GoPocket API for Developers | Trading & Market Data APIs"
+  description="Build trading apps, algos and research tools on GoPocket. Free REST and WebSocket APIs for orders, portfolio, live market feed and historical data."
+  keywords="trading api india, broker api, algo trading api, market data api, websocket market feed, GoPocket api, developer api"
+  canonical="https://gopocket.in/gopocket-api"
+>
+  <Header currentPath="/gopocket-api" />
+
+  <main class="has-section-spacing-lg">
+    <ApiHero />
+    <ApiProducts />
+    <ApiBenefits />
+    <ApiIntegration />
+    <ApiPricing />
+    <FAQSection
+      faqs={apiFaqs}
+      eyebrow="Developer Questions"
+      title="API, Answered"
+      description="What most people ask before they write the first line against GoPocket."
+    />
+    <CallToAction2 />
+  </main>
+
+  <Footer />
+</Layout>

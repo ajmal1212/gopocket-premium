@@ -1,0 +1,448 @@
+---
+/**
+ * Lead capture: the toast styling plus the client wiring shared by every
+ * "give us your mobile number" form on the site.
+ *
+ * Drop this in once per page and mark the form up declaratively:
+ *
+ *   <form data-lead-form>
+ *     <input type="hidden" name="src" value={...} />
+ *     <input type="hidden" name="tag" value={...} />
+ *     <input type="hidden" name="refer" value={...} />
+ *     <input data-lead-mobile name="mobile" type="tel" required />
+ *     <button data-lead-submit><span data-lead-label>Open Account</span></button>
+ *   </form>
+ *
+ * Every marked-up form on the page is wired: the number is held to 10 digits as
+ * it is typed, posted to /api/create-lead, and the visitor is sent wherever the
+ * status in the reply points. `data-lead-label` is optional - without it the
+ * button's own text is swapped.
+ *
+ * The script is bundled rather than inline, so Astro emits one copy per page
+ * even if this component is included more than once.
+ */
+---
+
+<style is:global>
+  /* Toasts are created by script after hydration, so they never receive Astro's
+     scoped class attribute - these rules have to be global. Names are prefixed
+     to keep them from colliding with anything else.
+
+     Everything below is drawn from the semantic tokens in dark-theme.css
+     (--surface-1, --line, --fg-strong, --shadow-soft ...), so the toast follows
+     the site into dark mode without a second set of rules. The only per-variant
+     input is --gp-toast-accent; the tint, the icon chip and the progress bar are
+     all mixed from it against the current surface. */
+  .gp-toast-stack {
+    position: fixed;
+    /* Set by script to clear the sticky header; this is the pre-hydration
+       fallback and the value used if the header is not on the page. */
+    top: 6.5rem;
+    right: 1.25rem;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: min(23rem, calc(100vw - 2rem));
+    /* The stack spans the viewport edge; only the cards themselves take
+       pointer events, so it never blocks the page underneath. */
+    pointer-events: none;
+  }
+
+  .gp-toast {
+    --gp-toast-accent: var(--accent, #6b1aff);
+    --gp-toast-tint: color-mix(in oklab, var(--gp-toast-accent) 12%, var(--surface-1, #fff));
+
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.125rem;
+    overflow: hidden;
+    border-radius: 1.125rem;
+    background: var(--surface-1, #fff);
+    border: 1px solid var(--line, #eceef1);
+    box-shadow:
+      0 18px 40px -14px var(--shadow-soft, rgb(0 0 0 / 0.15)),
+      0 2px 6px -2px rgb(0 0 0 / 0.06);
+    pointer-events: auto;
+    animation: gp-toast-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .gp-toast[data-variant="success"] {
+    --gp-toast-accent: #16a34a;
+  }
+
+  .gp-toast[data-variant="error"] {
+    --gp-toast-accent: #dc2626;
+  }
+
+  /* The 600-weight greens and reds are tuned for white; on the near-black
+     surface they drop under 4.5:1, so the dark theme takes the 400 steps. */
+  html.dark .gp-toast[data-variant="success"] {
+    --gp-toast-accent: #4ade80;
+  }
+
+  html.dark .gp-toast[data-variant="error"] {
+    --gp-toast-accent: #f87171;
+  }
+
+  .gp-toast.is-leaving {
+    animation: gp-toast-out 0.22s ease forwards;
+  }
+
+  .gp-toast-icon {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 2.125rem;
+    height: 2.125rem;
+    border-radius: 0.75rem;
+    color: var(--gp-toast-accent);
+    background: var(--gp-toast-tint);
+  }
+
+  .gp-toast-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+    padding-top: 0.1rem;
+  }
+
+  .gp-toast-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    color: var(--fg-strong, #322b2b);
+  }
+
+  .gp-toast-text {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--fg-muted, #6b7280);
+  }
+
+  .gp-toast-close {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: -0.125rem -0.25rem auto auto;
+    border-radius: 0.5rem;
+    color: var(--fg-subtle, #9ca3af);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .gp-toast-close:hover {
+    color: var(--fg-strong, #322b2b);
+    background: var(--surface-3, #f3f3f6);
+  }
+
+  .gp-toast-close:focus-visible {
+    outline: 2px solid var(--gp-toast-accent);
+    outline-offset: 1px;
+  }
+
+  /* The progress bar is the dismiss timer made visible: the script removes the
+     toast when this animation ends, so pausing it on hover pauses the
+     countdown too, and the two can never disagree. */
+  .gp-toast-progress {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 2px;
+    transform-origin: left center;
+    background: var(--gp-toast-accent);
+    opacity: 0.55;
+    animation: gp-toast-timer 6s linear forwards;
+  }
+
+  .gp-toast:hover .gp-toast-progress,
+  .gp-toast:focus-within .gp-toast-progress {
+    animation-play-state: paused;
+  }
+
+  @keyframes gp-toast-in {
+    from {
+      opacity: 0;
+      transform: translateX(1.5rem) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes gp-toast-out {
+    to {
+      opacity: 0;
+      transform: translateX(1rem) scale(0.98);
+    }
+  }
+
+  @keyframes gp-toast-timer {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .gp-toast-stack {
+      right: 0.75rem;
+      left: 0.75rem;
+      width: auto;
+    }
+  }
+
+  /* The entrance and exit are decorative and go; the progress bar is the only
+     signal of how long the toast has left, so it keeps running. */
+  @media (prefers-reduced-motion: reduce) {
+    .gp-toast,
+    .gp-toast.is-leaving {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  function initLeadCapture() {
+    const forms = Array.from(document.querySelectorAll("form[data-lead-form]"));
+    if (!forms.length) return;
+
+    /* ---------------------------------------------------------------------
+       Toasts - one stack, shared by every form on the page
+       --------------------------------------------------------------------- */
+
+    const stack = document.createElement("div");
+    stack.className = "gp-toast-stack";
+    stack.setAttribute("role", "status");
+    stack.setAttribute("aria-live", "polite");
+    document.body.appendChild(stack);
+
+    // The header is sticky and slides in and out on scroll, so the stack is
+    // parked just below wherever the header currently sits rather than at a
+    // fixed offset that would collide with it.
+    const header = document.querySelector(".header");
+
+    function positionStack() {
+      if (!header) return;
+      const bottom = header.getBoundingClientRect().bottom;
+      const top = bottom > 0 ? bottom + 12 : 20;
+      stack.style.top = Math.min(Math.max(top, 16), 180) + "px";
+    }
+
+    let positionQueued = false;
+
+    function queuePositionStack() {
+      if (positionQueued || !stack.childElementCount) return;
+      positionQueued = true;
+      requestAnimationFrame(() => {
+        positionQueued = false;
+        positionStack();
+      });
+    }
+
+    window.addEventListener("scroll", queuePositionStack, { passive: true });
+    window.addEventListener("resize", queuePositionStack);
+
+    const ICONS = {
+      success: '<path d="M21.8 10A10 10 0 1 1 17 3.34"></path><path d="m9 11 3 3L22 4"></path>',
+      error:
+        '<circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path>',
+    };
+
+    function dismiss(el) {
+      if (el.dataset.leaving) return;
+      el.dataset.leaving = "true";
+      el.classList.add("is-leaving");
+      setTimeout(() => el.remove(), 220);
+    }
+
+    function showToast(title, message, variant) {
+      const el = document.createElement("div");
+      el.className = "gp-toast";
+      el.dataset.variant = variant;
+      el.innerHTML =
+        '<span class="gp-toast-icon"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+        (ICONS[variant] || ICONS.error) +
+        "</svg></span>" +
+        '<div class="gp-toast-body"><span class="gp-toast-title"></span><span class="gp-toast-text"></span></div>' +
+        '<button type="button" class="gp-toast-close" aria-label="Dismiss">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>' +
+        "</button>" +
+        '<span class="gp-toast-progress"></span>';
+
+      // Server-supplied text goes in via textContent, never innerHTML.
+      el.querySelector(".gp-toast-title").textContent = title;
+      const textEl = el.querySelector(".gp-toast-text");
+      if (message) {
+        textEl.textContent = message;
+      } else {
+        textEl.remove();
+      }
+
+      el.querySelector(".gp-toast-close").addEventListener("click", () => dismiss(el));
+      // The progress bar IS the countdown - when it finishes draining, the
+      // toast goes. Hovering pauses the animation in CSS, which pauses the
+      // dismissal with it.
+      el.querySelector(".gp-toast-progress").addEventListener("animationend", () => dismiss(el));
+
+      stack.appendChild(el);
+      positionStack();
+      return el;
+    }
+
+    /* ---------------------------------------------------------------------
+       Form wiring
+       --------------------------------------------------------------------- */
+
+    let redirectTimer = null;
+    const resetters = [];
+
+    forms.forEach((form) => {
+      const mobileInput = form.querySelector("[data-lead-mobile]");
+      const submitButton = form.querySelector("[data-lead-submit]");
+      // Some buttons wrap their text in a span for the flip-hover animation;
+      // where they do not, the button itself carries the label.
+      const buttonLabel = form.querySelector("[data-lead-label]") || submitButton;
+      const originalLabel = buttonLabel ? buttonLabel.textContent : "";
+      const referInput = form.querySelector('input[name="refer"]');
+
+      // The pages are server-rendered, but read `refer` off the live URL too so
+      // the code survives a cached HTML response.
+      if (referInput) {
+        const referFromUrl = new URLSearchParams(window.location.search).get("refer");
+        if (referFromUrl) referInput.value = referFromUrl.trim();
+      }
+
+      function normaliseMobile() {
+        if (!mobileInput) return;
+        let digits = mobileInput.value.replace(/\D/g, "");
+        // "+91 63836 25862" and "0 63836 25862" both arrive with a prefix on
+        // the front. Drop it rather than truncating to the first ten digits,
+        // which would keep the prefix and lose the tail. Guarded on length, so
+        // a real number that happens to start 91 or 0 is left alone.
+        if (digits.length > 10 && digits.startsWith("91")) digits = digits.slice(2);
+        if (digits.length > 10 && digits.startsWith("0")) digits = digits.slice(1);
+        digits = digits.slice(0, 10);
+        if (mobileInput.value !== digits) mobileInput.value = digits;
+      }
+
+      if (mobileInput) {
+        mobileInput.addEventListener("input", normaliseMobile);
+        // Typing is filtered above; this catches a paste of "+91 63836 25862"
+        // and anything the browser autofills straight into the field, neither
+        // of which is guaranteed to raise an input event first.
+        mobileInput.addEventListener("paste", () => setTimeout(normaliseMobile, 0));
+        mobileInput.addEventListener("change", normaliseMobile);
+      }
+
+      function setBusy(busy) {
+        if (submitButton) submitButton.disabled = busy;
+        if (!buttonLabel) return;
+        const label = busy ? "Please wait..." : originalLabel;
+        buttonLabel.textContent = label;
+        // The flip-hover animation paints its duplicate label out of
+        // data-content, so that has to move in step or the two desync.
+        if (buttonLabel.hasAttribute("data-content")) {
+          buttonLabel.setAttribute("data-content", label);
+        }
+      }
+
+      resetters.push(() => setBusy(false));
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const data = new FormData(form);
+        const mobile = String(data.get("mobile") || "").trim();
+
+        if (!/^[0-9]{10}$/.test(mobile)) {
+          showToast("Check your details", "Please enter a valid 10-digit mobile number.", "error");
+          if (mobileInput) mobileInput.focus();
+          return;
+        }
+
+        const payload = {
+          mobile,
+          refer: data.get("refer") || "",
+          src: data.get("src") || "",
+          tag: data.get("tag") || "",
+        };
+
+        setBusy(true);
+
+        try {
+          const res = await fetch("/api/create-lead", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          const result = await res.json().catch(() => ({
+            ok: false,
+            title: "Something went wrong",
+            message: "Unexpected response from the server. Please try again.",
+          }));
+
+          showToast(
+            result.title || (result.ok ? "You're all set!" : "Something went wrong"),
+            result.message || "",
+            result.ok ? "success" : "error",
+          );
+
+          if (result.ok && result.redirect) {
+            // Short pause so the toast is readable before the browser navigates.
+            // The button stays disabled throughout, so the form cannot be
+            // submitted twice while the redirect is pending.
+            redirectTimer = setTimeout(() => {
+              redirectTimer = null;
+              window.location.href = result.redirect;
+            }, 1200);
+            return;
+          }
+        } catch (error) {
+          showToast("Network error", "Please check your connection and try again.", "error");
+        }
+
+        setBusy(false);
+      });
+    });
+
+    // Coming Back from the signup site restores the page from the browser's
+    // back/forward cache with the DOM exactly as it was left - button disabled,
+    // label still "Please wait..." - and DOMContentLoaded does not fire a second
+    // time. pageshow does, so the forms are put back into a usable state there.
+    //
+    // The pending redirect is cancelled in the same breath: bfcache freezes
+    // timers rather than dropping them, so a resumed one would throw the
+    // visitor straight back out of the page they just returned to. Stale toasts
+    // go too - their progress bars froze with everything else.
+    window.addEventListener("pageshow", () => {
+      if (redirectTimer !== null) {
+        clearTimeout(redirectTimer);
+        redirectTimer = null;
+      }
+      while (stack.firstChild) stack.firstChild.remove();
+      resetters.forEach((reset) => reset());
+    });
+  }
+
+  // Bundled scripts are deferred modules, so the DOM may already be parsed by
+  // the time this one runs.
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initLeadCapture);
+  } else {
+    initLeadCapture();
+  }
+</script>

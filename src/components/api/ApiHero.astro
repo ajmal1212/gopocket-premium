@@ -1,0 +1,258 @@
+---
+/**
+ * Hero for the GoPocket API page.
+ *
+ * Mirrors the homepage hero's shape - spinning-border badge pill, animated
+ * word-by-word headline, then the call to action - but swaps the app mockup for
+ * a code panel, which is the right "screenshot" for a developer page.
+ */
+
+// Illustrative only. Point these at the real endpoint and key format once the
+// developer portal is live.
+const SAMPLE_REQUEST = [
+  { text: "curl -X POST https://api.gopocket.in/v1/orders \\", tone: "cmd" },
+  { text: '  -H "Authorization: Bearer $GOPOCKET_API_KEY" \\', tone: "flag" },
+  { text: '  -H "Content-Type: application/json" \\', tone: "flag" },
+  { text: "  -d '{", tone: "flag" },
+  { text: '       "symbol": "RELIANCE",', tone: "body" },
+  { text: '       "exchange": "NSE",', tone: "body" },
+  { text: '       "side": "BUY",', tone: "body" },
+  { text: '       "quantity": 10,', tone: "body" },
+  { text: '       "order_type": "MARKET",', tone: "body" },
+  { text: '       "product": "INTRADAY"', tone: "body" },
+  { text: "     }'", tone: "flag" },
+];
+
+const SAMPLE_RESPONSE = [
+  "{",
+  '  "status": "success",',
+  '  "order_id": "GP2601240000871",',
+  '  "order_status": "TRANSIT"',
+  "}",
+];
+
+/**
+ * The panels are assembled here as markup strings rather than looped over in
+ * the template: `<pre>` preserves whitespace, so an inline `.map()` bakes the
+ * template's own indentation into every rendered line.
+ *
+ * Every value is a literal in this file - nothing here comes from a request -
+ * but it is escaped anyway so the sample can grow without becoming a hole.
+ */
+const escapeHtml = (value: string): string =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+// Each span is display:block, so it is already its own line. Joining with a
+// newline would render a blank line between every pair, because <pre> honours
+// the separator as well.
+const requestHtml = SAMPLE_REQUEST.map(
+  (line) => `<span class="api-code-line api-code-${line.tone}">${escapeHtml(line.text)}</span>`
+).join("");
+
+const responseHtml = SAMPLE_RESPONSE.map(
+  (line) => `<span class="api-code-line api-code-plain">${escapeHtml(line)}</span>`
+).join("");
+---
+
+<section class="home-hero overflow-hidden">
+  <div class="relative">
+    <div class="container">
+      <div class="relative z-10 mx-auto max-w-3xl space-y-8">
+        <!-- Badge pill -->
+        <div
+          data-aos="fade-up-sm"
+          data-aos-delay="200"
+          class="group relative mx-auto mb-5 max-w-fit overflow-hidden rounded-full border p-px aos-init"
+        >
+          <div
+            class="translate-y-centered to-primary absolute left-1/2 -z-10 h-6 w-1/2 origin-left rotate-90 animate-spin rounded-full bg-linear-to-b from-white [animation-duration:10000ms]"
+          >
+          </div>
+          <div class="flex items-center rounded-full bg-white px-1 py-0.5">
+            <span class="bg-dark inline-block gap-1 rounded-full px-3 py-1 text-sm font-normal text-white">Developers</span>
+            <div class="text-text-default ms-3 flex items-center rounded-full py-px font-normal pr-2">
+              REST &amp; WebSocket APIs
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="ms-1 h-4 w-4"
+              >
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Headline -->
+        <div>
+          <h1 class="has-italic-text text-center capitalize">
+            <div
+              class="animated-text is-ready"
+              data-duration="0.6"
+              data-delay="0.2"
+              data-stagger="0.09"
+              style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+            >
+              <span class="word" style="--word-index:0">Trade</span>
+              <span class="word" style="--word-index:1">at</span>
+              <span class="word" style="--word-index:2">the</span>
+              <span class="word" style="--word-index:3">Speed</span>
+              <span class="word" style="--word-index:4">of</span>
+              <span class="word" style="--word-index:5">
+                <strong>Your</strong>
+              </span>
+              <span class="word" style="--word-index:6">
+                <strong>Code</strong>
+              </span>
+            </div>
+          </h1>
+        </div>
+
+        <p
+          data-aos="fade-up-sm"
+          data-aos-delay="700"
+          class="mx-auto max-w-xl text-center text-lg opacity-80 aos-init"
+        >
+          Place orders, stream live ticks and read your portfolio straight from your own code. Free
+          developer-grade APIs for every GoPocket account.
+        </p>
+
+        <!-- Calls to action -->
+        <div
+          data-aos="fade-up-sm"
+          data-aos-delay="900"
+          class="flex flex-col items-center justify-center gap-3 sm:flex-row aos-init"
+        >
+          <a
+            class="btn btn-primary text-flip-hover-anim btn-md w-full text-center sm:w-auto"
+            href="/open-account-call-back?src=Website&tag=API"
+          >
+            <span class="text-flip-inner" data-content="Start Building">Start Building</span>
+            <span
+              class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
+            >
+              <svg
+                class="gradient-shape"
+                width="150"
+                height="28"
+                viewBox="0 0 147 11"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
+                  stroke="currentColor"
+                  stroke-width="8"></path>
+              </svg>
+            </span>
+          </a>
+          <a
+            class="btn btn-outline text-flip-hover-anim btn-md w-full text-center sm:w-auto"
+            href="/contact"
+          >
+            <span class="text-flip-inner" data-content="Read The Docs">Read The Docs</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Code panel: the developer page's answer to the app mockup -->
+      <div
+        data-aos="fade-up-sm"
+        data-aos-delay="1000"
+        class="relative mx-auto mt-14 max-w-4xl aos-init md:mt-20"
+      >
+        <div class="api-code-panel rounded-4xl border p-2 shadow-2xl shadow-black/5">
+          <div class="api-code-panel-inner overflow-hidden rounded-[1.75rem]">
+            <!-- Window chrome -->
+            <div class="api-code-bar flex items-center gap-2 border-b px-5 py-3.5">
+              <span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span>
+              <span class="h-3 w-3 rounded-full bg-[#febc2e]"></span>
+              <span class="h-3 w-3 rounded-full bg-[#28c840]"></span>
+              <span class="api-code-title ms-3 text-xs font-medium tracking-wide">place-order.sh</span>
+            </div>
+
+            <div class="grid gap-0 lg:grid-cols-5">
+              <div class="api-code-body overflow-x-auto p-5 lg:col-span-3 lg:p-6">
+                <pre class="text-[0.8125rem] leading-relaxed"><code set:html={requestHtml} /></pre>
+              </div>
+              <div class="api-code-side overflow-x-auto border-t p-5 lg:col-span-2 lg:border-t-0 lg:border-s lg:p-6">
+                <div class="api-code-title mb-3 text-[0.6875rem] font-semibold tracking-[0.12em] uppercase">
+                  Response
+                </div>
+                <pre class="text-[0.8125rem] leading-relaxed"><code set:html={responseHtml} /></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* The panel is a dark surface in both themes - code reads best on one, and it
+     keeps the hero anchored the way the app mockup does on the homepage. */
+  .api-code-panel {
+    background: color-mix(in oklab, #14161f 6%, transparent);
+    border-color: var(--line, #eceef1);
+  }
+
+  .api-code-panel-inner {
+    background: #14161f;
+  }
+
+  .api-code-bar {
+    background: #1b1e29;
+    border-color: #262a36;
+  }
+
+  .api-code-side {
+    border-color: #262a36;
+  }
+
+  .api-code-title {
+    color: #9ba1b0;
+  }
+
+  .api-code-body pre,
+  .api-code-side pre {
+    margin: 0;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  .api-code-body {
+    color: #ced2dc;
+  }
+
+  /* The code lines are injected with set:html, so they never receive Astro's
+     scoping attribute and a plain `.api-code-line` rule would not match them.
+     Anchoring on .api-code-panel - which is in the template and does carry the
+     attribute - keeps these scoped to this component while still reaching the
+     injected spans. Without :global() the right-hand panel falls back to the
+     page's body colour: near-black text on a near-black panel. */
+  .api-code-panel :global(.api-code-line) {
+    display: block;
+    white-space: pre;
+    color: #ced2dc;
+  }
+
+  .api-code-panel :global(.api-code-cmd) {
+    color: #b494ff;
+  }
+
+  .api-code-panel :global(.api-code-flag) {
+    color: #7d8492;
+  }
+</style>

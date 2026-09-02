@@ -1,0 +1,80 @@
+---
+/**
+ * Closing call to action for the API page.
+ *
+ * Uses the same `call-to-action` section treatment as the homepage's FinalCTA
+ * so the page ends on the familiar note, but points at the developer path
+ * rather than the app store badges.
+ */
+---
+
+<section class="call-to-action overflow-hidden">
+  <div class="relative container py-20 md:py-40">
+    <div class="mx-auto space-y-8 text-center lg:max-w-3xl">
+      <h2
+        class="has-italic-text text-display-3 md:text-display-2 mb-8 text-center leading-[1.15] font-normal capitalize"
+      >
+        <div
+          class="animated-text is-ready"
+          data-duration="0.6"
+          data-delay="0.2"
+          data-stagger="0.09"
+          style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+        >
+          <span class="word" style="--word-index:0">Your</span>
+          <span class="word" style="--word-index:1">
+            <strong>Strategy.</strong>
+          </span>
+          <span class="word" style="--word-index:2">Our</span>
+          <span class="word" style="--word-index:3">
+            <strong>Rails.</strong>
+          </span>
+        </div>
+      </h2>
+
+      <div
+        data-aos="fade-down-sm"
+        data-aos-delay="100"
+        class="mx-auto max-w-2xl space-y-1 text-center *:first:text-lg *:first:font-medium *:last:opacity-80 aos-init"
+      >
+        <p>Open an account, generate your keys and send your first order today.</p>
+      </div>
+
+      <div
+        data-aos="fade-down-sm"
+        data-aos-delay="200"
+        class="flex flex-col items-center justify-center gap-3 pt-4 sm:flex-row sm:gap-6 aos-init"
+      >
+        <a
+          class="btn btn-primary text-flip-hover-anim btn-md w-full text-center sm:w-auto"
+          href="/open-account-call-back?src=Website&tag=API"
+        >
+          <span class="text-flip-inner" data-content="Open Account">Open Account</span>
+          <span
+            class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
+          >
+            <svg
+              class="gradient-shape"
+              width="150"
+              height="28"
+              viewBox="0 0 147 11"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
+                stroke="currentColor"
+                stroke-width="8"></path>
+            </svg>
+          </span>
+        </a>
+        <a
+          class="btn btn-outline text-flip-hover-anim btn-md w-full text-center sm:w-auto"
+          href="/api-usage"
+        >
+          <span class="text-flip-inner" data-content="API Usage Policy">API Usage Policy</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

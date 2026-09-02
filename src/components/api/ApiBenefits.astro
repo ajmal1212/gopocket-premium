@@ -1,0 +1,145 @@
+---
+/**
+ * Six reasons to build on GoPocket, in the bordered-card grid SpecialBenefits
+ * already establishes on the homepage.
+ */
+
+interface Benefit {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+const benefits: Benefit[] = [
+  {
+    title: "No Extra Charges",
+    description:
+      "API access is part of your GoPocket account. No monthly platform fee, no per-call billing, no separate subscription to keep alive.",
+    icon: "wallet",
+  },
+  {
+    title: "Built On The Live Stack",
+    description:
+      "The same order gateway that powers the GoPocket app answers your API calls - so what you test is what your users get.",
+    icon: "zap",
+  },
+  {
+    title: "Sandbox First",
+    description:
+      "Point your keys at the sandbox, run your strategy against simulated fills, and only then flip the base URL to production.",
+    icon: "flask",
+  },
+  {
+    title: "SDKs, Not Just Endpoints",
+    description:
+      "Start from a client library instead of hand-rolling auth, retries and WebSocket reconnects for the third time this year.",
+    icon: "package",
+  },
+  {
+    title: "Documented Properly",
+    description:
+      "Every endpoint with its parameters, error codes and a copyable example. Plus a changelog, so upgrades never surprise you.",
+    icon: "book",
+  },
+  {
+    title: "Yours To Shape",
+    description:
+      "Run a personal scalping bot, a research notebook or a full platform for your own users. The API does not assume which.",
+    icon: "sliders",
+  },
+];
+---
+
+<section>
+  <div class="container space-y-10 md:space-y-16">
+    <div class="mx-auto max-w-2xl space-y-4 text-center">
+      <h2 class="has-italic-text capitalize">
+        <div
+          class="animated-text is-ready"
+          data-duration="0.6"
+          data-delay="0.2"
+          data-stagger="0.09"
+          style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+        >
+          <span class="word" style="--word-index:0">Why</span>
+          <span class="word" style="--word-index:1">Developers</span>
+          <span class="word" style="--word-index:2">
+            <strong>Build</strong>
+          </span>
+          <span class="word" style="--word-index:3">
+            <strong>Here</strong>
+          </span>
+        </div>
+      </h2>
+      <p class="opacity-80">
+        The boring parts handled, so you can spend your time on the strategy instead of the plumbing.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        benefits.map((benefit, index) => (
+          <div
+            data-aos="fade-up-sm"
+            data-aos-delay={50 + index * 50}
+            data-aos-duration="900"
+            class="flex flex-col gap-4 border p-5 md:p-8 aos-init"
+          >
+            <span class="text-primary">
+              {benefit.icon === "wallet" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-3xl">
+                  <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" />
+                  <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
+                </svg>
+              )}
+              {benefit.icon === "zap" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-3xl">
+                  <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />
+                </svg>
+              )}
+              {benefit.icon === "flask" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-3xl">
+                  <path d="M10 2v7.31" />
+                  <path d="M14 9.3V1.99" />
+                  <path d="M8.5 2h7" />
+                  <path d="M14 9.3a6.5 6.5 0 1 1-4 0" />
+                  <path d="M5.58 16.5h12.85" />
+                </svg>
+              )}
+              {benefit.icon === "package" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-3xl">
+                  <path d="m7.5 4.27 9 5.15" />
+                  <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                  <path d="m3.3 7 8.7 5 8.7-5" />
+                  <path d="M12 22V12" />
+                </svg>
+              )}
+              {benefit.icon === "book" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-3xl">
+                  <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" />
+                </svg>
+              )}
+              {benefit.icon === "sliders" && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-3xl">
+                  <line x1="4" x2="4" y1="21" y2="14" />
+                  <line x1="4" x2="4" y1="10" y2="3" />
+                  <line x1="12" x2="12" y1="21" y2="12" />
+                  <line x1="12" x2="12" y1="8" y2="3" />
+                  <line x1="20" x2="20" y1="21" y2="16" />
+                  <line x1="20" x2="20" y1="12" y2="3" />
+                  <line x1="1" x2="7" y1="14" y2="14" />
+                  <line x1="9" x2="15" y1="8" y2="8" />
+                  <line x1="17" x2="23" y1="16" y2="16" />
+                </svg>
+              )}
+            </span>
+            <div class="mt-4 space-y-3">
+              <h3 class="text-h5-sm md:text-h5">{benefit.title}</h3>
+              <p class="opacity-80">{benefit.description}</p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

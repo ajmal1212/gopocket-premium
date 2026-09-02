@@ -1,5 +1,14 @@
 ---
+import LeadCapture from "./LeadCapture.astro";
 
+// Optional query parameters carried through to the CRM lead. `src` and `tag`
+// identify where the lead came from; `refer` is a partner code with no default,
+// passed to Frappe as an empty string when absent and appended to the signup
+// redirect when set. `tag` marks this as the homepage hero rather than the
+// dedicated call-back page.
+const srcParam = Astro.url.searchParams.get("src") || "Website";
+const tagParam = Astro.url.searchParams.get("tag") || "Hero";
+const referParam = Astro.url.searchParams.get("refer") || "";
 ---
 
 <section class="home-hero overflow-hidden">
@@ -106,12 +115,17 @@
           </div>
         </div>
         <form
+          data-lead-form
           data-aos="fade-up-sm"
           data-aos-delay="1000"
           data-aos-duration="1000"
           class="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto w-full aos-init aos-animate px-4 sm:px-0"
-          onsubmit="event.preventDefault()"
+          novalidate
         >
+          <!-- Hidden Tracking Query Parameters -->
+          <input type="hidden" name="src" value={srcParam} />
+          <input type="hidden" name="tag" value={tagParam} />
+          <input type="hidden" name="refer" value={referParam} />
           <div class="relative w-full sm:w-auto flex-1 min-w-[240px]">
             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
               <svg
@@ -129,17 +143,24 @@
               </svg>
             </div>
             <input
+              data-lead-mobile
               type="tel"
+              name="mobile"
+              inputmode="numeric"
+              autocomplete="tel"
+              maxlength="10"
+              pattern="[0-9]{10}"
               placeholder="Enter mobile number"
               class="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-300 rounded-full text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm sm:text-base shadow-xs transition-all"
               required
             />
           </div>
           <button
+            data-lead-submit
             type="submit"
-            class="btn btn-primary text-flip-hover-anim btn-md whitespace-nowrap cursor-pointer w-full sm:w-auto flex items-center justify-center"
+            class="btn btn-primary text-flip-hover-anim btn-md whitespace-nowrap cursor-pointer w-full sm:w-auto flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <span class="text-flip-inner" data-content="SIGNUP NOW">SIGNUP NOW</span>
+            <span class="text-flip-inner" data-lead-label data-content="SIGNUP NOW">SIGNUP NOW</span>
             <span
               class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
             >
@@ -551,3 +572,5 @@
     </div>
   </div>
 </section>
+
+<LeadCapture />

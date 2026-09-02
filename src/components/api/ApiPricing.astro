@@ -1,0 +1,141 @@
+---
+/**
+ * API pricing, in the two-card shape PricingSection uses on the homepage -
+ * tinted card, oversized price, ticked inclusion list, button at the foot.
+ *
+ * Deliberately no throughput or latency figures here. Rate limits belong in the
+ * docs where they can be kept current; a marketing page that quotes them goes
+ * stale the first time they change.
+ */
+
+interface Tier {
+  name: string;
+  price: string;
+  priceNote: string;
+  description: string;
+  includes: string[];
+  cta: { label: string; href: string };
+  featured: boolean;
+}
+
+const tiers: Tier[] = [
+  {
+    name: "Trading APIs",
+    price: "₹0",
+    priceNote: "with your account",
+    description: "Everything you need to trade from your own code, included with every GoPocket account.",
+    includes: [
+      "Place, modify and cancel orders",
+      "Order book and trade book",
+      "Positions, holdings and margins",
+      "Statements, P&L and charges",
+      "Full sandbox environment",
+    ],
+    cta: { label: "Start Building", href: "/open-account-call-back?src=Website&tag=API" },
+    featured: true,
+  },
+  {
+    name: "Market Data APIs",
+    price: "On request",
+    priceNote: "",
+    description: "Live and historical market data for research, backtesting and data-hungry platforms.",
+    includes: [
+      "Live WebSocket market feed",
+      "Full market depth",
+      "Historical OHLC with volume and OI",
+      "Index and derivatives data",
+      "Onboarding support from our team",
+    ],
+    cta: { label: "Talk To Us", href: "/contact" },
+    featured: false,
+  },
+];
+---
+
+<section>
+  <div class="container space-y-10 md:space-y-16">
+    <div class="mx-auto max-w-2xl space-y-4 text-center">
+      <h2 class="has-italic-text capitalize">
+        <div
+          class="animated-text is-ready"
+          data-duration="0.6"
+          data-delay="0.2"
+          data-stagger="0.09"
+          style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+        >
+          <span class="word" style="--word-index:0">What</span>
+          <span class="word" style="--word-index:1">It</span>
+          <span class="word" style="--word-index:2">
+            <strong>Costs</strong>
+          </span>
+        </div>
+      </h2>
+      <p class="opacity-80">
+        Trading APIs come free with your GoPocket account. You only ever pay the brokerage on the
+        trades you place.
+      </p>
+    </div>
+
+    <div class="mx-auto grid max-w-4xl grid-cols-1 gap-8 md:grid-cols-2 xl:gap-12">
+      {
+        tiers.map((tier, index) => (
+          <div
+            data-aos={index === 0 ? "fade-right-sm" : "fade-left-sm"}
+            data-aos-delay={250 + index * 100}
+            class="text-text-default bg-theme-light flex min-h-full flex-col gap-8 rounded-3xl transition duration-500 aos-init"
+          >
+            <div class="bg-theme-light relative z-10 flex min-h-full flex-col space-y-5 rounded-3xl p-8">
+              <h3 class="md:text-h6 text-h6-sm mb-7">{tier.name}</h3>
+
+              <div class="space-y-5">
+                <div class="relative flex flex-wrap items-end gap-1.5">
+                  <span class="flex gap-0 text-4xl leading-none md:text-6xl/[1.125]">{tier.price}</span>
+                  {tier.priceNote && <span class="pb-2 text-sm">{tier.priceNote}</span>}
+                </div>
+                <p class="text-lg">{tier.description}</p>
+              </div>
+
+              <ul class="mt-5 space-y-4 border-t border-black/25 py-4 pt-10">
+                {tier.includes.map((item) => (
+                  <li class="relative ps-10">
+                    <span class="absolute top-px left-0 me-4 inline-flex h-5 w-5 items-center justify-center rounded-full text-white bg-primary">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="text-xs"
+                      >
+                        <path d="M20 6 9 17l-5-5" />
+                      </svg>
+                    </span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <a
+                class={`btn text-flip-hover-anim btn-md mt-auto text-center ${tier.featured ? "btn-primary" : "btn-outline"}`}
+                href={tier.cta.href}
+              >
+                <span class="text-flip-inner" data-content={tier.cta.label}>
+                  {tier.cta.label}
+                </span>
+              </a>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="mx-auto max-w-2xl text-center text-sm opacity-70">
+      Rate limits and throughput are published in the API documentation, so they stay current as the
+      platform grows.
+    </p>
+  </div>
+</section>

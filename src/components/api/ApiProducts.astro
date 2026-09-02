@@ -1,0 +1,122 @@
+---
+import ApiProductCard from "./ApiProductCard.astro";
+
+/**
+ * The API surface, one card per product area.
+ *
+ * Two wide cards over three narrower ones, matching the bento rhythm
+ * PowerfulTools sets on the homepage - but built as two plain grids rather than
+ * one six-column grid with per-card spans.
+ *
+ * That is deliberate. Spans would have to be carried on the data as class
+ * strings and interpolated into `class`, and Tailwind only emits a utility it
+ * can find as a literal while scanning. A constructed class name is the one
+ * pattern its docs tell you to avoid: it survives a clean build but collapses
+ * the moment a scan misses the file - a running dev server that never picked up
+ * this directory, for instance. Two static grids cannot fail that way, and they
+ * stay centred at any width because each row divides evenly.
+ */
+
+interface ApiProduct {
+  name: string;
+  description: string;
+  /** Endpoint or channel shown as a monospace chip on the card. */
+  endpoint: string;
+  icon: string;
+}
+
+/** Row one: the two products most people come here for. */
+const featured: ApiProduct[] = [
+  {
+    name: "Order Management",
+    description:
+      "Place, modify and cancel orders across every segment you trade - equity, futures, options, currency and commodity.",
+    endpoint: "POST /v1/orders",
+    icon: "orders",
+  },
+  {
+    name: "Market Feed",
+    description:
+      "Stream live prices, market depth and index ticks over WebSocket. One connection, every instrument you subscribe to.",
+    endpoint: "WSS /v1/feed",
+    icon: "feed",
+  },
+];
+
+/** Row two. */
+const supporting: ApiProduct[] = [
+  {
+    name: "Portfolio",
+    description: "Read open positions, holdings and margins as they stand right now.",
+    endpoint: "GET /v1/portfolio",
+    icon: "portfolio",
+  },
+  {
+    name: "Historical Data",
+    description: "Pull OHLC candles with volume and open interest for backtesting and research.",
+    endpoint: "GET /v1/candles",
+    icon: "history",
+  },
+  {
+    name: "Statements",
+    description: "Fetch P&L, ledger, contract notes and charge breakups programmatically.",
+    endpoint: "GET /v1/statements",
+    icon: "statements",
+  },
+];
+---
+
+<section>
+  <div class="container space-y-10 md:space-y-16">
+    <div class="mx-auto max-w-2xl space-y-4 text-center">
+      <h2 class="has-italic-text capitalize">
+        <div
+          class="animated-text is-ready"
+          data-duration="0.6"
+          data-delay="0.2"
+          data-stagger="0.09"
+          style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+        >
+          <span class="word" style="--word-index:0">Simple,</span>
+          <span class="word" style="--word-index:1">Modern</span>
+          <span class="word" style="--word-index:2">
+            <strong>APIs</strong>
+          </span>
+        </div>
+      </h2>
+      <p class="opacity-80">
+        Everything the GoPocket app does, available to your code over plain HTTP and WebSocket.
+      </p>
+    </div>
+
+    <div class="space-y-6 md:space-y-8">
+      <div class="grid gap-6 md:grid-cols-2 md:gap-8">
+        {
+          featured.map((product, index) => (
+            <ApiProductCard
+              name={product.name}
+              description={product.description}
+              endpoint={product.endpoint}
+              icon={product.icon}
+              delay={200 + index * 100}
+            />
+          ))
+        }
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-3 md:gap-8">
+        {
+          supporting.map((product, index) => (
+            <ApiProductCard
+              name={product.name}
+              description={product.description}
+              endpoint={product.endpoint}
+              icon={product.icon}
+              delay={400 + index * 100}
+            />
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>

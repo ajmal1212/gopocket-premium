@@ -57,21 +57,21 @@ const cards: Card[] = [
     title: "Become Financially Aware by learning basics.",
     body: "With easy-to-understand modules, explore the basics of Trading.",
     tint: "#6b1aff",
-    img: "/assets/images/gopocket/1.webp",
+    img: "/assets/images/gopocket/1",
     alt: "A person stepping through a doorway onto steps marked Learn, Understand, Apply and Grow, beside panels listing the financial basics: income and expense, budgeting, debt management, investing, risk and returns.",
   },
   {
     title: "Financial Experts are one call away!",
     body: "Our experts help you every step of the way, from start to finish.",
     tint: "#14b8a6",
-    img: "/assets/images/gopocket/2.webp",
+    img: "/assets/images/gopocket/2",
     alt: "A phone showing a call icon above steps marked Connect, Consult, Plan and Prosper, flanked by panels for certified experts, personalised advice and long-term support across investments, insurance, tax and retirement planning.",
   },
   {
     title: "Everyone can Learn and Earn effectively.",
     body: "Not just investing, but creating Smart Investors.",
     tint: "#f5a524",
-    img: "/assets/images/gopocket/3.webp",
+    img: "/assets/images/gopocket/3",
     alt: "A Learn panel and an Earn panel either side of a rising progress chart, with steps marked Study, Understand, Apply and Earn leading up to it.",
   },
   {
@@ -80,7 +80,7 @@ const cards: Card[] = [
     title: "Live workshops, whenever you are ready.",
     body: "Join weekly masterclasses and webinars, or download the material from any session you missed.",
     tint: "#f43f5e",
-    img: "/assets/images/gopocket/4.webp",
+    img: "/assets/images/gopocket/4",
     alt: "A mentor presenting a live session to seated attendees, beside panels for flexible scheduling, live interaction, session recordings and a certificate of participation.",
   },
 ];
@@ -146,10 +146,12 @@ const cards: Card[] = [
 
                 <img
                   class="edu-figure"
-                  src={card.img}
+                  src={`${card.img}-840.webp`}
+                  srcset={`${card.img}-420.webp 420w, ${card.img}-840.webp 840w`}
+                  sizes="(min-width: 768px) 420px, 100vw"
                   alt={card.alt}
-                  width="1254"
-                  height="1254"
+                  width="840"
+                  height="840"
                   loading="lazy"
                   decoding="async"
                 />
@@ -253,7 +255,14 @@ const cards: Card[] = [
     transform-origin: 50% 0;
     transform: scale(calc(1 - var(--p) * 0.05));
     opacity: calc(1 - var(--p) * 0.25);
-    will-change: transform, opacity;
+
+    /* No `will-change` here, deliberately. It reads as the obvious win for a
+       scroll-driven transform, but it pins all four cards into permanent
+       compositor layers — each one a rounded, clipped surface holding a large
+       image, re-rastered in tiles every time --p changes. Tiles that lose the
+       race show up as blocks of stale or half-decoded pixels across the
+       artwork. The scale is 5% on four elements; the browser handles it fine
+       promoting on its own terms, and the image stays crisp. */
   }
 
   /* surface-1 is what bg-white resolves to in dark. The tint has to be mixed

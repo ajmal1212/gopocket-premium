@@ -1,6 +1,19 @@
 @import "tailwindcss";
 @import "aos/dist/aos.css";
 
+/* ===================================================================
+   -webkit-backdrop-filter MUST be written BEFORE the unprefixed
+   backdrop-filter, not after.
+
+   Tailwind v4 runs this file through Lightning CSS, which treats the
+   two as one property and keeps only the LAST form it sees, then
+   re-adds prefixes from that. With the standard declaration last the
+   build emitted -webkit-backdrop-filter alone, so every glass surface
+   (header bar, Learn/Pages mega-menus, search + accessibility panels)
+   lost its blur in Firefox - which has no -webkit- alias - while the
+   unminified dev server still shipped both and looked correct.
+   =================================================================== */
+
 /* Permanently hide floating demo widget (Buy Now & Theme Details) */
 #action-buttons {
   display: none !important;
@@ -250,8 +263,8 @@ a {
   position: absolute;
   inset: 0;
   background: rgba(15, 15, 20, 0.3);
-  backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
 }
 .global-search-panel {
   position: relative;
@@ -266,8 +279,8 @@ a {
      page behind it. */
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid #eceef1;
-  backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
   border-radius: 1.25rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   overflow: hidden;
@@ -3651,8 +3664,8 @@ html {
     border-radius: inherit;
     pointer-events: none;
     background-color: rgba(255, 255, 255, 0.55);
-    backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
   }
 
   @supports (color: color-mix(in lab, red, red)) {
@@ -3682,8 +3695,8 @@ html {
 .header > .container > nav {
   position: relative;
   background-color: transparent;
-  backdrop-filter: none;
   -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .header > .container > nav::before {
@@ -3694,8 +3707,8 @@ html {
   border-radius: inherit;
   pointer-events: none;
   background-color: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
 
 @supports (color: color-mix(in lab, red, red)) {
@@ -3716,8 +3729,8 @@ html {
      the panel matches the header's LOOK rather than its number. */
   background-color: rgba(255, 255, 255, 0.55);
   border-color: #eceef1;
-  backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
   box-shadow: 0 24px 48px -20px rgba(16, 18, 28, 0.28);
 }
 

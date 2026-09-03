@@ -267,8 +267,8 @@ html.dark .hs-dropdown-menu:not(.navbar) {
 
   html.dark .header .navbar .nav-dropdown-list::before {
     background-color: var(--glass);
-    backdrop-filter: blur(24px) saturate(140%);
     -webkit-backdrop-filter: blur(24px) saturate(140%);
+    backdrop-filter: blur(24px) saturate(140%);
   }
 
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -281,8 +281,8 @@ html.dark .hs-dropdown-menu:not(.navbar) {
 html.dark .header .hs-dropdown-menu.mega-menu {
   background-color: var(--glass) !important;
   border-color: var(--line) !important;
-  backdrop-filter: blur(24px) saturate(140%);
   -webkit-backdrop-filter: blur(24px) saturate(140%);
+  backdrop-filter: blur(24px) saturate(140%);
   box-shadow: 0 24px 48px -20px var(--shadow-strong) !important;
 }
 
@@ -406,8 +406,8 @@ html.dark .global-search-backdrop { background: var(--scrim); }
 html.dark .global-search-panel {
   background: var(--glass);
   border-color: var(--line);
-  backdrop-filter: blur(28px) saturate(140%);
   -webkit-backdrop-filter: blur(28px) saturate(140%);
+  backdrop-filter: blur(28px) saturate(140%);
   box-shadow: 0 20px 60px var(--shadow-strong);
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {

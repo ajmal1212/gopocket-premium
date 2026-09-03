@@ -14,11 +14,6 @@
    unminified dev server still shipped both and looked correct.
    =================================================================== */
 
-/* Permanently hide floating demo widget (Buy Now & Theme Details) */
-#action-buttons {
-  display: none !important;
-}
-
 @custom-variant hs-dropdown-open (&:where(.open, .open *, .active, .active *));
 
 

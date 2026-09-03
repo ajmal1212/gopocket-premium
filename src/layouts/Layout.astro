@@ -30,8 +30,8 @@ const DEFAULT_OG_IMAGE = "/og-image.png";
 const DEFAULT_OG_IMAGE_SIZE = 512;
 
 const {
-  title = "GoPocket - Open a Free Demat Account | Online Stock Trading App",
-  description = "GoPocket is a SEBI-registered online trading and demat account platform. Trade stocks, F&O, mutual funds, commodities and IPOs at flat ₹20 per order or 0.03%, whichever is lower.",
+  title = "GoPocket: Open Demat Account | Online Trading App India",
+  description = "Open a FREE demat account with GoPocket in 5 mins. Trade stocks, F&O, mutual funds & IPOs on NSE, BSE & MCX. India's trusted SEBI-registered broker.",
   keywords = "demat account, online trading, stock broker India, discount broker, GoPocket, F&O trading, mutual funds, IPO",
   canonical = Astro.url.href,
   ogImage = DEFAULT_OG_IMAGE,
@@ -89,17 +89,18 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
     {/* Replaced by the theme script below once the resolved theme is known. */}
     <meta name="theme-color" content="#ffffff" />
 
-    {/*
+    {
+      /*
       Resolves the theme and accessibility settings before first paint so the page
       never flashes incorrect styles.
-    */}
+    */
+    }
     <script is:inline>
       (function () {
         try {
           var stored = localStorage.getItem("gp-theme");
           var isDark =
-            stored === "dark" ||
-            (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+            stored === "dark" || (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
           if (isDark) {
             document.documentElement.classList.add("dark");
             var meta = document.querySelector('meta[name="theme-color"]');
@@ -112,7 +113,8 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
             var html = document.documentElement;
             if (a11y.contrast === "high") html.setAttribute("data-a11y-contrast", "high");
             else if (a11y.contrast === "invert") html.setAttribute("data-a11y-contrast", "invert");
-            if (a11y.fontScale && a11y.fontScale !== "normal") html.setAttribute("data-a11y-font-scale", a11y.fontScale);
+            if (a11y.fontScale && a11y.fontScale !== "normal")
+              html.setAttribute("data-a11y-font-scale", a11y.fontScale);
             if (a11y.theme && a11y.theme !== "none") html.setAttribute("data-a11y-theme", a11y.theme);
             if (a11y.hideImages) html.setAttribute("data-a11y-hide-images", "true");
             if (a11y.grayscale) html.setAttribute("data-a11y-grayscale", "true");
@@ -205,18 +207,19 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
       })}
     />
 
-    {/*
+    {
+      /*
       Figtree and Instrument Serif are self-hosted from /public/fonts and declared
       via @font-face in global.css. Preload them here so the browser can start the
       download immediately instead of waiting for the stylesheet to parse - the
       @font-face rules sit inside a large CSS bundle, so discovery is otherwise late.
-    */}
+    */
+    }
     <link rel="preload" href="/fonts/figtree.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/instrument-serif.woff2" as="font" type="font/woff2" crossorigin />
 
     <!-- Per-page head extras (article meta, JSON-LD, etc.) -->
     <slot name="head" />
-
   </head>
 
   <body>

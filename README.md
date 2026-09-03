@@ -1,6 +1,6 @@
-# Stella Recovered
+# GoPocket
 
-This is a reconstructed standalone Astro project.
+Astro site for GoPocket, deployed to Cloudflare Workers.
 
 ## Install
 

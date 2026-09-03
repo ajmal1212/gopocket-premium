@@ -798,7 +798,7 @@ import Footer from "../components/Footer.astro";
                 <div class="absolute top-10 -left-2 h-4 w-4 rounded-full border bg-white lg:left-44.25"></div>
                 <div class="flex-1 space-y-8 ps-5 lg:space-y-10 lg:ps-16">
                   <div>
-                    <h2 class="h4 mt-1.5">Passkeys: A fast and secure way to log in to Stella</h2>
+                    <h2 class="h4 mt-1.5">Passkeys: A fast and secure way to log in to GoPocket</h2>
                     <div class="mt-8 flex flex-wrap gap-x-3 gap-y-3 lg:gap-x-6">
                       <div
                         class="from-primary/10 to-bg-primary/10 text-primary flex items-center gap-3 rounded-full bg-linear-to-r py-1 ps-2.5 pe-5"
@@ -847,7 +847,7 @@ import Footer from "../components/Footer.astro";
                     <img
                       src="/assets/images/video-thumbnail-3.webp"
                       srcset="/assets/images/video-thumbnail-2.webp 640w, /assets/images/video-thumbnail-4.webp 750w, /assets/images/video-thumbnail-1.webp 828w, /assets/images/video-thumbnail-3.webp 900w"
-                      alt="video thumbnail related topasskeys: a fast and secure way to log in to stella"
+                      alt="video thumbnail related topasskeys: a fast and secure way to log in to GoPocket"
                       loading="lazy"
                       decoding="async"
                       sizes="(min-width: 900px) 900px, 100vw"
@@ -1217,87 +1217,6 @@ import Footer from "../components/Footer.astro";
         </div>
       </section>
     </main>
-    <div
-      id="action-buttons"
-      class="pointer-events-none fixed right-0 bottom-5 z-100 flex flex-col space-y-2 rounded-lg bg-white p-2 text-center opacity-0 transition-all duration-300 [.scroll-down]:pointer-events-auto [.scroll-down]:right-5 [.scroll-down]:opacity-100"
-    >
-      <a
-        rel="noopener noreferrer"
-        target="_blank"
-        class="btn btn-primary text-flip-hover-anim"
-        href="https://getastrothemes.com/astro-themes/stella/?initiate-checkout=true&utm_source=direct"
-        id="buy-now-stella"
-        data-umami-event="buy-now-stella"
-        ><span class="text-flip-inner" data-content="Buy Now">Buy Now</span><span
-          class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
-          ><svg
-            class="gradient-shape"
-            width="150"
-            height="28"
-            viewBox="0 0 147 11"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            ><path
-              d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
-              stroke="currentColor"
-              stroke-width="8"></path></svg
-          ></span
-        ></a
-      >
-      <a
-        rel="noopener noreferrer"
-        target="_blank"
-        class="btn btn-outline text-flip-hover-anim"
-        href="https://getastrothemes.com/astro-themes/stella/?utm_source=direct"
-        id="buy-now-stella"
-        data-umami-event="buy-now-stella"
-        ><span class="text-flip-inner" data-content="Theme Details">Theme Details</span><span
-          class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
-          ><svg
-            class="gradient-shape"
-            width="150"
-            height="28"
-            viewBox="0 0 147 11"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            ><path
-              d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
-              stroke="currentColor"
-              stroke-width="8"></path></svg
-          ></span
-        ></a
-      >
-    </div>
-    <script type="module" is:inline>
-      function c() {
-        try {
-          return window.self !== window.top;
-        } catch {
-          return !0;
-        }
-      }
-      if (!c()) {
-        const t = document.getElementById("action-buttons");
-        t &&
-          (t.classList.remove("hidden"),
-          window.addEventListener("scroll", () => {
-            const o = window.scrollY,
-              e = window.innerHeight,
-              r = document.documentElement.scrollHeight - (o + e);
-            (o >= 500 && t.classList.add("scroll-down"), (o <= 500 || r <= 100) && t.classList.remove("scroll-down"));
-          }),
-          (() => {
-            const o = "checkout-ref";
-            let e = localStorage.getItem(o);
-            (e || ((e = document.referrer || "direct"), e && localStorage.setItem(o, e)),
-              e &&
-                t.querySelectorAll("a").forEach((n) => {
-                  const r = n.href.includes("?") ? "&" : "?";
-                  n.href += `${r}utm_source=${encodeURIComponent(e)}`;
-                }));
-          })());
-      }
-    </script>
   </main>
   <Footer />
 </Layout>

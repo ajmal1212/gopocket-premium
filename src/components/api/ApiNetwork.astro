@@ -1,0 +1,342 @@
+---
+/**
+ * ApiNetwork
+ * -----------------------------------------------------------------------------
+ * Hero for the GoPocket API page: the supplied flow animation running full-bleed
+ * above the headline, with the node badge over its centre.
+ *
+ * Carries the page's `h1`, so it must not sit on a page alongside ApiHero — that
+ * component held this slot before and still holds the same h1 and CTAs.
+ *
+ * ASSETS
+ *   /assets/flow.webm   the animation
+ *   /assets/flow.mp4    same, for browsers that will not take webm
+ *   /assets/flow.png    still first frame — the video's poster, so it stands in
+ *                       until the video is ready and stays put for anyone on
+ *                       reduced motion
+ *   /assets/center.png  the node badge, 182x183
+ *
+ * All three assets are 8:5 — video and mp4 at 2400x1500, the poster at
+ * 1729x1080 — so one ratio drives the whole stage.
+ *
+ * WHY THE BADGE IS A SEPARATE LAYER
+ * flow.png leaves a void at its centre for the badge to fill — measured at
+ * x 831-898, y 384-439 of the 1729x1080 frame, which puts the node's centre at
+ * exactly 50% across and 38.1% down. Those two numbers are the whole alignment
+ * contract; if the assets are ever re-exported, re-measure them.
+ *
+ * NOTHING IS CROPPED
+ * The band carries the artwork's own 8:5 ratio, so the full frame is always in
+ * view and the badge's percentages land on the void at every viewport. Do not
+ * give `.apin` a fixed height: an 8:5 frame forced into a shorter box has to
+ * lose the top and bottom, and the top is where the fan is. The height that
+ * buys is taken back with the negative margin below the graphic instead.
+ */
+
+interface Endpoint {
+  name: string;
+  path: string;
+}
+
+/** Mirrors the products in ApiProducts.astro — keep the two in step. */
+const endpoints: Endpoint[] = [
+  { name: "Order Management", path: "POST /v1/orders" },
+  { name: "Market Feed", path: "WSS /v1/feed" },
+  { name: "Portfolio", path: "GET /v1/portfolio" },
+  { name: "Historical Data", path: "GET /v1/candles" },
+  { name: "Statements", path: "GET /v1/statements" },
+];
+---
+
+<section class="apin-section">
+  <!-- Breaks out of `.container` to run the full viewport width. The section
+       clips the x-axis, so the 100vw cannot open a horizontal scrollbar. -->
+  <div class="apin" aria-hidden="true">
+    <video
+      class="apin-flow"
+      data-apin-video
+      poster="/assets/flow.png"
+      autoplay
+      loop
+      muted
+      playsinline
+      preload="metadata"
+      width="2400"
+      height="1500"
+    >
+      <source src="/assets/flow.webm" type="video/webm" />
+      <source src="/assets/flow.mp4" type="video/mp4" />
+    </video>
+
+    <img
+      class="apin-node"
+      src="/assets/center.png"
+      alt=""
+      width="182"
+      height="183"
+      decoding="async"
+    />
+  </div>
+
+  <div class="container apin-content">
+    <div class="mx-auto max-w-3xl space-y-6 text-center">
+      <!-- Badge pill, in the spinning-border form the site's other heroes use. -->
+      <div
+        data-aos="fade-up-sm"
+        data-aos-delay="200"
+        class="group relative mx-auto max-w-fit overflow-hidden rounded-full border p-px aos-init"
+      >
+        <div
+          class="translate-y-centered to-primary absolute left-1/2 -z-10 h-6 w-1/2 origin-left rotate-90 animate-spin rounded-full bg-linear-to-b from-white [animation-duration:10000ms]"
+        >
+        </div>
+        <div class="flex items-center rounded-full bg-white px-1 py-0.5">
+          <span
+            class="bg-dark inline-block gap-1 rounded-full px-3 py-1 text-sm font-normal text-white"
+            >Developers</span
+          >
+          <div class="text-text-default ms-3 flex items-center rounded-full py-px pr-2 font-normal">
+            REST &amp; WebSocket APIs
+          </div>
+        </div>
+      </div>
+
+      <h1 class="has-italic-text capitalize">
+        <div
+          class="animated-text is-ready"
+          data-duration="0.6"
+          data-delay="0.2"
+          data-stagger="0.09"
+          style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+        >
+          <span class="word" style="--word-index:0">One</span>
+          <span class="word" style="--word-index:1">Integration,</span>
+          <span class="word" style="--word-index:2">The</span>
+          <strong>
+            <span class="word" style="--word-index:3">Whole</span>
+            <span class="word" style="--word-index:4">Platform</span>
+          </strong>
+        </div>
+      </h1>
+
+      <p class="text-text-default mx-auto max-w-xl opacity-80 md:text-lg/relaxed">
+        Orders, live feed, portfolio, candles and statements all sit behind the
+        same key and the same base URL. Wire it in once and every segment you
+        trade is reachable from your code.
+      </p>
+
+      <div
+        data-aos="fade-up-sm"
+        data-aos-delay="700"
+        class="flex flex-col items-center justify-center gap-3 pt-1 sm:flex-row aos-init"
+      >
+        <a
+          class="btn btn-primary text-flip-hover-anim btn-md w-full text-center sm:w-auto"
+          href="/open-account-call-back?src=Website&tag=API"
+        >
+          <span class="text-flip-inner" data-content="Start Building">Start Building</span>
+        </a>
+        <a
+          class="btn btn-outline text-flip-hover-anim btn-md w-full text-center sm:w-auto"
+          href="https://docs.gopocket.in/apidocs/v1/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span class="text-flip-inner" data-content="Read The Docs">Read The Docs</span>
+        </a>
+      </div>
+
+      <ul class="apin-chips" role="list">
+        {
+          endpoints.map((endpoint) => (
+            <li>
+              <code class="apin-chip rounded-full px-3 py-1.5 text-xs font-medium">
+                <span class="sr-only">{endpoint.name}: </span>
+                {endpoint.path}
+              </code>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* The graphic runs 100vw, which is wider than the content box on every
+     screen with a scrollbar. Clipping the x-axis here is what keeps that from
+     opening a horizontal scrollbar — the same guard DiversifyShowcase uses. */
+  /* Clipped on both axes, not just x: the graphic is pulled up past the top of
+     this box (see `.apin` margin-top) and this is what trims it. */
+  .apin-section {
+    overflow: clip;
+  }
+
+  /* No lead-in above the hero: the artwork is already faded out at its top by
+     the mask, so it should run straight up under the sticky header the way the
+     reference does — a gap would just reintroduce the hard edge the mask exists
+     to remove.
+
+     The ancestor is matched (and `:global`, since `main` is not this
+     component's) purely to win specificity. `main.has-section-spacing-lg >
+     section` in global.css sets 5rem/8rem here, and a bare `.apin-section`
+     scores under it. This is also why the section does not take `.home-hero`:
+     that class does nothing but set a smaller padding-top, which this cancels
+     anyway. */
+  :global(main.has-section-spacing-lg) > .apin-section {
+    padding-top: 0;
+  }
+
+  .apin {
+    /* Full viewport width, out of the container it is nested in. */
+    position: relative;
+    left: 50%;
+    width: 100vw;
+    margin-left: -50vw;
+
+    /* The whole frame, never cropped: the box carries the artwork's own ratio,
+       so the top of the animation is always in view. A fixed height here would
+       have to crop an 8:5 frame to fit, and the first thing it takes is the top.
+
+       The cost is height — 62.5% of the viewport width, which is 900px at
+       1440. The margin below is what makes that liveable. */
+    aspect-ratio: 8 / 5;
+
+    /* Trims the top of the frame. The box keeps its 8:5 ratio and the badge
+       still sits at a percentage of it, so this crops without shifting the
+       alignment — which giving `.apin` a shorter height would not.
+
+       -5% of the section's width is 8% of the artwork's height. The mask below
+       is moved down to match: without that the cut lands mid-way up the old
+       top fade, where the artwork is already near-opaque, and the soft edge
+       becomes a hard one. */
+    margin-top: -5%;
+
+    /* Percentage margins resolve against the section's width, so this scales
+       with the artwork rather than drifting from it at other viewports.
+
+       The lower half of the frame is just the tail running down through empty
+       space, which is exactly where the reference sits its headline. -28% puts
+       the copy about 5% of the width below the badge, matching it. Raise the
+       number to pull the copy further up, lower it to show more of the tail. */
+    margin-bottom: -28%;
+
+    /* Softens the frame's top and bottom into the page so the traces dissolve
+       instead of ending on a hard cut.
+
+       A mask rather than white gradient overlays: it fades the pixels to
+       transparent, so it works the same on the dark theme without needing a
+       second set of colours.
+
+       The stops are set against four fixed points on the artwork, in its own
+       height:
+          8%    the crop line from margin-top, so the top fade starts here
+         38.1%  the badge, which must stay fully solid
+         43.3%  the bottom of the badge, so the bottom fade cannot start before
+         55.2%  where the copy starts — 62.5% tall artwork, pulled up 28%
+       Hence a fade in over 8%-19% and out over 44%-58%: the fan and the badge
+       are crisp, the new top edge is soft rather than cut, and the tail is down
+       to about a fifth of its strength by the time it reaches the headline.
+       Widening the lower window is what let the tail run through the text. */
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 8%,
+      #000 19%,
+      #000 44%,
+      transparent 58%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 8%,
+      #000 19%,
+      #000 44%,
+      transparent 58%
+    );
+  }
+
+  @media (max-width: 767px) {
+    /* Less overlap on a phone: the whole frame is only ~240px tall there, so
+       there is far less empty tail to reclaim. */
+    .apin {
+      margin-bottom: -14%;
+    }
+  }
+
+  .apin-flow {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* `contain`, not `cover`: the box already carries the artwork's ratio, so
+       this changes nothing today — but if an asset is ever re-exported at
+       another ratio it letterboxes instead of silently cropping the top off. */
+    object-fit: contain;
+  }
+
+  /* Centre taken from the void in flow.png. Percentages are of the uncropped
+     artwork box, so these hold at every viewport.
+
+     center.png is a 2x export: at its nominal 182/1729 = 10.53% it renders at
+     twice the size the artwork is drawn for and swamps the point the traces
+     meet. 6.4% is ~111px against the 67px void — comfortably over the trace
+     ends without dominating the fan. */
+  .apin-node {
+    position: absolute;
+    left: 50%;
+    top: 38.1%;
+    width: 6.4%;
+    height: auto;
+    translate: -50% -50%;
+  }
+
+  /* Sits over the tail rather than under it. */
+  .apin-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .apin-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+  }
+
+  /* Matches the endpoint chip on ApiProductCard, so the same path reads the
+     same way wherever it appears on this page. */
+  .apin-chip {
+    display: inline-block;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--fg-muted);
+    background: var(--surface-1);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+  }
+</style>
+
+<script>
+  /* Reduced motion cannot be honoured in CSS for a video, so it is done here:
+     pausing drops back to the poster, which is the same still the video starts
+     on. Autoplay stays in the markup, so the animation still runs if this
+     never executes. */
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const videos = Array.from(
+    document.querySelectorAll<HTMLVideoElement>("[data-apin-video]"),
+  );
+
+  function applyMotionPreference() {
+    for (const video of videos) {
+      if (reduce.matches) {
+        video.pause();
+        video.currentTime = 0;
+      } else {
+        // A rejected play() is normal — a browser can refuse autoplay outright,
+        // and the poster is a fine resting state.
+        void video.play().catch(() => {});
+      }
+    }
+  }
+
+  applyMotionPreference();
+  reduce.addEventListener("change", applyMotionPreference);
+</script>

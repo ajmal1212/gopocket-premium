@@ -25,18 +25,48 @@ interface Props {
 
 // Site-wide share card. 512x512 - square rather than the 1200x630 that Facebook
 // and X crop to, so it renders best on WhatsApp, LinkedIn and Slack.
-const DEFAULT_OG_IMAGE = "https://gopocket.in/og-image.png";
+// Site-relative on purpose - see toAbsoluteUrl below.
+const DEFAULT_OG_IMAGE = "/og-image.png";
 const DEFAULT_OG_IMAGE_SIZE = 512;
 
 const {
   title = "GoPocket - Open a Free Demat Account | Online Stock Trading App",
   description = "GoPocket is a SEBI-registered online trading and demat account platform. Trade stocks, F&O, mutual funds, commodities and IPOs at flat ₹20 per order or 0.03%, whichever is lower.",
   keywords = "demat account, online trading, stock broker India, discount broker, GoPocket, F&O trading, mutual funds, IPO",
-  canonical = "https://gopocket.in/",
+  canonical = Astro.url.href,
   ogImage = DEFAULT_OG_IMAGE,
   ogImageAlt = "GoPocket - online trading and demat account app",
   ogType = "website",
 } = Astro.props;
+
+/**
+ * Resolve a URL against the origin actually serving this request.
+ *
+ * Every route is SSR - there is no `prerender` anywhere - so Astro.url is the
+ * real request URL rather than the build-time `site`. Hardcoding
+ * https://gopocket.in here is what broke WhatsApp previews on the Workers
+ * deployment: the card pointed at an origin that 301s to www.gopocket.in and
+ * then 404s, so the scraper got an HTML error page where it expected a PNG and
+ * dropped the thumbnail. Resolved off the request origin, the image is always
+ * fetched from the same deployment that served the page - workers.dev,
+ * staging and the live domain alike.
+ *
+ * Absolute inputs (Frappe blog thumbnails on hrms.gopocket.in) pass straight
+ * through; site-relative ones (the default card, and getFullImageUrl's
+ * no-thumbnail fallback) pick up the serving origin.
+ */
+const toAbsoluteUrl = (url: string): string => new URL(url, Astro.url.origin).href;
+
+const absoluteOgImage = toAbsoluteUrl(ogImage);
+
+/**
+ * og:url has to sit on the serving origin too. Facebook and WhatsApp treat it
+ * as the card's canonical address and re-scrape it, so pointing it at another
+ * host hands them that host's tags instead of this page's. Only the path is
+ * taken from `canonical`; the <link rel="canonical"> below still emits what
+ * the page authored, since that one is for search engines.
+ */
+const ogUrl = toAbsoluteUrl(new URL(canonical, Astro.url.origin).pathname);
 
 // Dimensions are only truthful for the site default; pages that pass their own
 // artwork (blog thumbnails) omit them rather than advertise a wrong size.
@@ -113,8 +143,8 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
       })();
     </script>
 
-    <meta property="og:image" content={ogImage} />
-    <meta property="og:image:secure_url" content={ogImage} />
+    <meta property="og:image" content={absoluteOgImage} />
+    <meta property="og:image:secure_url" content={absoluteOgImage} />
     <meta property="og:image:alt" content={ogImageAlt} />
     {
       isDefaultOgImage && (
@@ -130,11 +160,11 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
     <meta property="og:description" content={description} />
     <meta property="og:type" content={ogType} />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:url" content={canonical} />
+    <meta property="og:url" content={ogUrl} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image" content={absoluteOgImage} />
     <meta name="twitter:image:alt" content={ogImageAlt} />
 
     <link rel="apple-touch-icon" href="/favicon.png" />
@@ -150,7 +180,7 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
         "@type": "WebPage",
         name: title,
         description: description,
-        image: ogImage,
+        image: absoluteOgImage,
         url: canonical,
         inLanguage: "en",
         isPartOf: {

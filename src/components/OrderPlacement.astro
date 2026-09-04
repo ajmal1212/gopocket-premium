@@ -1,0 +1,1242 @@
+---
+/**
+ * OrderPlacement
+ * -----------------------------------------------------------------------------
+ * "Hassle-free order placement" — the run from watchlist to a filled order,
+ * played out as one pinned tableau: cards stacking up on the left, the app
+ * itself running in a phone in the middle, and the order details arriving in
+ * glass on the right. One card, one screenshot and one scroll-length per step;
+ * the step count comes from `steps` below and nothing else needs changing to
+ * add or drop one.
+ *
+ * HOW IT MOVES
+ * The section holds a tall, otherwise empty track. The stage inside it is
+ * sticky, so once the track's top passes under the header the tableau holds
+ * still while the rest of the track scrolls past underneath. The script turns
+ * that travel into a 0..1 progress and scrubs everything from it — nothing is
+ * triggered and then handed to a transition, so scrolling back runs the whole
+ * tableau backwards and stopping halfway leaves it halfway:
+ *
+ *   - the step's card flies up from below the stage and lands in the slot;
+ *   - the cards before it collapse to their pill row, so the deck is a column
+ *     of read steps with the one being read open at the bottom of it — they
+ *     never overlap, and the column stays level with the top of the phone;
+ *   - the phone screenshot for the step slides in from the right over the last
+ *     one — a slide rather than a crossfade, because two dense app screenshots
+ *     held at half opacity over each other read as neither;
+ *   - the matching glass panel on the right lifts into place.
+ *
+ * The only thing behind all that is the ripple: three hairline rings centred on
+ * the phone that widen with the same progress, cropped by the stage into arcs
+ * sweeping across the page. The section paints no background of its own.
+ *
+ * Nothing here is measured from the elements themselves, so no step change
+ * costs a layout read.
+ *
+ * WITHOUT THE SCRIPT, NARROW, OR REDUCED-MOTION
+ * The pinned layout is opt-in: the script adds `is-pinned` only above 1280px
+ * and only when prefers-reduced-motion is off. Everything else — a phone that
+ * cannot fit beside two columns, a reader who asked for no motion, JavaScript
+ * that failed — gets the same plain vertical list of cards, each carrying
+ * its own screenshot. That list is what is in the DOM to begin with; the pinned
+ * stage is the enhancement.
+ *
+ * THE ARTWORK
+ * Real app screenshots, cropped to drop the Android status and nav bars
+ * (1080x2168 of the original 1080x2400) so the supplied phone mockup can draw
+ * its own status bar over them. Every shot shares that frame, so the screen
+ * never resizes between steps. The mockup's screen is transparent, so it is
+ * laid over the shots and masks them; the geometry that positions them inside
+ * it is measured off the artwork and written down beside `.ofh-screen`.
+ */
+
+interface Step {
+  /** Short word for the card's pill and the step dots. */
+  tag: string;
+  title: string;
+  body: string;
+  /** Card wash. Light enough to carry near-black text at full strength. */
+  tint: string;
+  img: string;
+  alt: string;
+}
+
+const steps: Step[] = [
+  {
+    tag: "Watchlist",
+    title: "Go to your watchlist",
+    body: "Everything you follow in one live list, a tap from the home screen.",
+    tint: "#d9caff",
+    img: "/assets/images/order-flow/step-1",
+    alt: "The GoPocket app home screen, with Indian indices, quick links and the Watchlist tab in the bottom bar.",
+  },
+  {
+    tag: "Search",
+    title: "Search your stock",
+    body: "Type a symbol. NSE, BSE, F&O and ETFs surface as you type.",
+    tint: "#c3e6ff",
+    img: "/assets/images/order-flow/step-2",
+    alt: "The in-app search screen with SBIN typed in, listing SBIN-EQ on NSE and the matching BSE and mutual fund results.",
+  },
+  {
+    tag: "Swipe to buy",
+    title: "Swipe to buy",
+    body: "Live market depth, bid against offer, and Buy on the same screen.",
+    tint: "#ffe3ad",
+    img: "/assets/images/order-flow/step-3",
+    alt: "The SBIN-EQ quote sheet showing the live price, a buy-versus-sell orders bar, five levels of market depth and Buy and Sell buttons.",
+  },
+  {
+    tag: "Order pad",
+    title: "Set it and confirm",
+    body: "Quantity, price and product type on one screen. Tap Buy.",
+    tint: "#ffd6e4",
+    img: "/assets/images/order-flow/step-4",
+    alt: "The SBIN-EQ order pad with quantity, market price and CNC product type above a full-width Buy button.",
+  },
+  {
+    tag: "Executed",
+    title: "Your order is executed",
+    body: "Straight to the exchange, filled in milliseconds.",
+    tint: "#c4f1e0",
+    img: "/assets/images/order-flow/step-5",
+    alt: "An order confirmation screen: a large tick above the words Order Success and the amount 1,023.80 rupees.",
+  },
+];
+---
+
+<!-- No padding utilities anywhere in here. The page's rhythm is entirely
+     lead-in: `main.has-section-spacing-lg > section` in global.css gives every
+     section its 5rem/8rem of top padding and none of them carry a bottom, so
+     the gap between any two is one lead-in. This wrapper used to add a second
+     `py-20 md:py-32` on top of that, which made the run into and out of this
+     section twice as open as every other. The section paints no background
+     either: it sits on the page colour in both themes. -->
+<section>
+  <div class="ofh-band" data-op-root>
+    <div class="container">
+      <div class="mx-auto max-w-3xl text-center">
+        <span
+          class="mb-4 inline-block rounded-full bg-primary/10 px-4 py-1.5 text-xs font-semibold tracking-wider text-primary uppercase"
+        >
+          Order placement
+        </span>
+        <h2 class="has-italic-text">
+          <div
+            class="animated-text is-ready"
+            data-duration="0.6"
+            data-delay="0.2"
+            data-stagger="0.09"
+            style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+          >
+            <span class="word" style="--word-index:0">Hassle-free</span>
+            <strong>
+              <span class="word" style="--word-index:1">order</span>
+              <span class="word" style="--word-index:2">placement.</span>
+            </strong>
+          </div>
+        </h2>
+        <p
+          class="text-text-default mx-auto mt-5 max-w-xl opacity-80 md:text-lg/relaxed"
+        >
+          Watchlist to a filled order in five screens. Here is the whole
+          journey, exactly as it looks inside the app.
+        </p>
+      </div>
+    </div>
+
+    <!-- The track is empty scroll length; the stage inside it is what pins.
+         Its height is one stage plus one scroll-length per step, so the count
+         comes from the data rather than being repeated in the stylesheet. -->
+    <div class="ofh-track" data-op-track style={`--ofh-steps:${steps.length}`}>
+      <div class="ofh-stage" data-op-stage data-active="0">
+        <div class="ofh-row">
+          <!-- Left: the deck. -->
+          <div class="ofh-cards">
+            {
+              steps.map((step, i) => (
+                <article
+                  class="ofh-card"
+                  data-op-card={i}
+                  style={`--i:${i};--ofh-tint:${step.tint}`}
+                >
+                  {/* The pill row comes first in the card, not last, because it
+                      is the half that survives: a passed card is clipped to
+                      exactly this row's height, so whatever is above the fold
+                      here is what the collapsed card shows. */}
+                  <div class="ofh-card-head">
+                    <span class="ofh-pill">{step.tag}</span>
+                    <span class="ofh-card-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        {i === 0 && <path d="M6 3h12a1 1 0 0 1 1 1v16l-7-4-7 4V4a1 1 0 0 1 1-1Z" />}
+                        {i === 1 && (
+                          <>
+                            <circle cx="11" cy="11" r="7" />
+                            <path d="m20 20-3.5-3.5" />
+                          </>
+                        )}
+                        {i === 2 && (
+                          <>
+                            <path d="M3 16.5 9 10l4 4 8-8" />
+                            <path d="M16 6h5v5" />
+                          </>
+                        )}
+                        {i === 3 && (
+                          <>
+                            <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+                            <circle cx="15" cy="7" r="2" />
+                            <circle cx="9" cy="17" r="2" />
+                          </>
+                        )}
+                        {i === 4 && (
+                          <>
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="m8 12.5 2.5 2.5L16 9.5" />
+                          </>
+                        )}
+                      </svg>
+                    </span>
+                  </div>
+
+                  <div class="ofh-card-more">
+                    <h3 class="ofh-card-title">{step.title}</h3>
+                    <p class="ofh-card-body">{step.body}</p>
+                  </div>
+
+                  {/* The list layout has no phone column, so each card carries
+                      its own screenshot in the same mockup. Same URLs as the
+                      stage, so the browser fetches each file once whichever
+                      layout is live. */}
+                  <div class="ofh-mock ofh-inline">
+                    <div class="ofh-screen">
+                      <img
+                        class="ofh-shot is-only"
+                        src={`${step.img}-420.webp`}
+                        srcset={`${step.img}-420.webp 420w, ${step.img}-840.webp 840w`}
+                        sizes="180px"
+                        alt={step.alt}
+                        width="540"
+                        height="1084"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                    <img
+                      class="ofh-bezel"
+                      src="/assets/images/order-flow/phone-frame.webp"
+                      alt=""
+                      width="500"
+                      height="1017"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                </article>
+              ))
+            }
+          </div>
+
+          <!-- Middle: the app itself. -->
+          <div class="ofh-phone-col">
+            <!-- Rings spreading from behind the phone, sized here rather than
+                 in the stylesheet so the four are one list to tune. `--o` trims
+                 the outer ones, which cross the most page and so read
+                 strongest for the same opacity. -->
+            <div class="ofh-ripple" aria-hidden="true">
+              <span style="--r:200;--start:0.9;--fade:0.35;--ring:#892aca"></span>
+              <span style="--r:80;--start:0.92;--fade:0.42;--ring:#c02daa"></span>
+              <span style="--r:30;--start:1;--fade:0.5;--ring:#892aca"></span>
+            </div>
+
+            <div class="ofh-mock ofh-mock-lg">
+              <div class="ofh-screen">
+                {
+                  steps.map((step, i) => (
+                    <img
+                      class="ofh-shot"
+                      data-op-shot={i}
+                      style={`--i:${i}`}
+                      src={`${step.img}-420.webp`}
+                      srcset={`${step.img}-420.webp 420w, ${step.img}-840.webp 840w`}
+                      sizes="330px"
+                      alt={step.alt}
+                      width="540"
+                      height="1084"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ))
+                }
+                <span class="ofh-glare" aria-hidden="true"></span>
+              </div>
+              {/* The mockup carries the bezel, the buttons, the status bar and
+                  the home indicator, and its screen is transparent — so it goes
+                  over the screenshots and masks them to the rounded screen. */}
+              <img
+                class="ofh-bezel"
+                src="/assets/images/order-flow/phone-frame.webp"
+                alt=""
+                width="500"
+                height="1017"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+
+            <div class="ofh-dots" aria-hidden="true">
+              {steps.map((_, i) => <span data-op-dot={i} />)}
+            </div>
+          </div>
+
+          <!-- Right: what the app is doing, in glass. -->
+          <div class="ofh-side">
+            <!-- The colour the glass refracts. A frosted panel over an empty
+                 white page is just a white panel; this orb sits behind the
+                 stack and peeks out under the last one, so the blur has
+                 something to do and the panels read as glass. -->
+            <span class="ofh-orb" aria-hidden="true"></span>
+
+            <div class="ofh-glass ofh-live" data-op-panel="0">
+              <span class="ofh-dot" aria-hidden="true"></span>
+              <span>Live · NSE + BSE</span>
+            </div>
+
+            <div class="ofh-glass ofh-quote" data-op-panel="1">
+              <div class="ofh-quote-head">
+                <div>
+                  <div class="ofh-quote-name">SBIN-EQ</div>
+                  <div class="ofh-quote-sub">State Bank of India · NSE</div>
+                </div>
+                <span class="ofh-tag-buy">BUY</span>
+              </div>
+              <div class="ofh-quote-price">₹1,023.80</div>
+              <div class="ofh-quote-change">+0.40 (0.04%)</div>
+              {/* An area chart, not a stroke: the fill is what makes it read
+                  as a day's trading rather than a squiggle. Both the line and
+                  the wash take their colour from the panel, so the one green
+                  swaps for the dark theme's lighter one on its own. */}
+              <svg
+                class="ofh-spark"
+                viewBox="0 0 300 110"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <defs>
+                  <linearGradient id="ofhSparkFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="currentColor" stop-opacity="0.38" />
+                    <stop offset="100%" stop-color="currentColor" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+                <path d="M0.0 83.6 L3.6 86.0 L7.2 82.7 L10.8 83.6 L14.5 80.7 L18.1 77.8 L21.7 84.0 L25.3 93.0 L28.9 100.0 L32.5 97.0 L36.1 95.6 L39.8 95.1 L43.4 95.8 L47.0 95.9 L50.6 88.3 L54.2 89.3 L57.8 83.3 L61.4 82.5 L65.1 92.1 L68.7 89.7 L72.3 86.8 L75.9 90.9 L79.5 88.8 L83.1 83.4 L86.7 98.1 L90.4 92.7 L94.0 92.5 L97.6 87.4 L101.2 88.6 L104.8 87.6 L108.4 87.0 L112.0 85.5 L115.7 84.3 L119.3 85.8 L122.9 83.2 L126.5 78.4 L130.1 77.8 L133.7 80.0 L137.3 79.5 L141.0 78.8 L144.6 81.3 L148.2 76.8 L151.8 74.6 L155.4 74.9 L159.0 79.5 L162.7 81.3 L166.3 77.6 L169.9 66.3 L173.5 67.5 L177.1 67.2 L180.7 62.2 L184.3 62.7 L188.0 54.9 L191.6 50.8 L195.2 54.8 L198.8 50.2 L202.4 48.7 L206.0 40.5 L209.6 43.7 L213.3 40.4 L216.9 48.0 L220.5 48.7 L224.1 46.9 L227.7 51.3 L231.3 55.4 L234.9 57.0 L238.6 48.2 L242.2 43.9 L245.8 47.4 L249.4 44.1 L253.0 41.2 L256.6 40.0 L260.2 37.0 L263.9 35.0 L267.5 38.4 L271.1 36.1 L274.7 36.1 L278.3 35.1 L281.9 26.7 L285.5 18.6 L289.2 14.0 L292.8 15.5 L296.4 19.6 L300.0 21.3 L300 110 L0 110 Z" fill="url(#ofhSparkFill)" stroke="none"></path>
+                <path
+                  d="M0.0 83.6 L3.6 86.0 L7.2 82.7 L10.8 83.6 L14.5 80.7 L18.1 77.8 L21.7 84.0 L25.3 93.0 L28.9 100.0 L32.5 97.0 L36.1 95.6 L39.8 95.1 L43.4 95.8 L47.0 95.9 L50.6 88.3 L54.2 89.3 L57.8 83.3 L61.4 82.5 L65.1 92.1 L68.7 89.7 L72.3 86.8 L75.9 90.9 L79.5 88.8 L83.1 83.4 L86.7 98.1 L90.4 92.7 L94.0 92.5 L97.6 87.4 L101.2 88.6 L104.8 87.6 L108.4 87.0 L112.0 85.5 L115.7 84.3 L119.3 85.8 L122.9 83.2 L126.5 78.4 L130.1 77.8 L133.7 80.0 L137.3 79.5 L141.0 78.8 L144.6 81.3 L148.2 76.8 L151.8 74.6 L155.4 74.9 L159.0 79.5 L162.7 81.3 L166.3 77.6 L169.9 66.3 L173.5 67.5 L177.1 67.2 L180.7 62.2 L184.3 62.7 L188.0 54.9 L191.6 50.8 L195.2 54.8 L198.8 50.2 L202.4 48.7 L206.0 40.5 L209.6 43.7 L213.3 40.4 L216.9 48.0 L220.5 48.7 L224.1 46.9 L227.7 51.3 L231.3 55.4 L234.9 57.0 L238.6 48.2 L242.2 43.9 L245.8 47.4 L249.4 44.1 L253.0 41.2 L256.6 40.0 L260.2 37.0 L263.9 35.0 L267.5 38.4 L271.1 36.1 L274.7 36.1 L278.3 35.1 L281.9 26.7 L285.5 18.6 L289.2 14.0 L292.8 15.5 L296.4 19.6 L300.0 21.3"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  vector-effect="non-scaling-stroke"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"></path>
+              </svg>
+            </div>
+
+            <div class="ofh-glass ofh-fill" data-op-panel="4">
+              <span class="ofh-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m5 12.5 4.5 4.5L19 7.5"></path>
+                </svg>
+              </span>
+              <div class="ofh-fill-copy">
+                <div class="ofh-fill-title">Order executed</div>
+                <div class="ofh-fill-meta">1 qty · Market · CNC · 09:33 AM</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{/* The module script below is deferred, so it cannot run until the document
+    has parsed — and until it adds `is-pinned` the browser paints the fallback
+    list: a narrow column of cards each holding its own phone. That flashed for
+    a beat on every load. This runs inline, during parse, immediately after the
+    markup it decides about, so the first paint is already the layout the page
+    will keep. It only sets the class; `applyMode()` below re-runs the same
+    test and owns everything after that. */}
+<script is:inline>
+  (function () {
+    var section = document.currentScript.previousElementSibling;
+    var root = section && section.querySelector("[data-op-root]");
+    if (!root) return;
+    root.classList.toggle(
+      "is-pinned",
+      window.matchMedia("(min-width: 1280px)").matches &&
+        !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    );
+  })();
+</script>
+
+<style>
+  /* ---- the list layout (the default, and the fallback) ----------------- */
+
+  .ofh-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-width: 34rem;
+    margin: 2.5rem auto 0;
+    padding-inline: 1rem;
+  }
+
+  .ofh-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .ofh-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.75rem;
+    border-radius: 1.5rem;
+    background-color: var(--ofh-tint);
+    color: var(--color-dark);
+  }
+
+  /* The pastels are picked to carry near-black text on a white page. On the
+     dark canvas they would be four bright slabs, so there the tint is mixed
+     into the card surface instead and the type flips to the light foreground. */
+  :global(html.dark) .ofh-card {
+    background-color: color-mix(in oklab, var(--ofh-tint) 34%, var(--surface-1));
+    color: var(--fg-strong);
+  }
+
+  .ofh-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .ofh-card-more {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .ofh-card-title {
+    font-size: 1.375rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .ofh-card-icon svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    opacity: 0.75;
+  }
+
+  .ofh-card-body {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    opacity: 0.75;
+    max-width: 32ch;
+  }
+
+  .ofh-pill {
+    border-radius: 999px;
+    background-color: #ffffff;
+    padding: 0.5rem 1.125rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-dark);
+  }
+
+  :global(html.dark) .ofh-pill {
+    background-color: rgb(255 255 255 / 0.1);
+    color: var(--fg-strong);
+  }
+
+  /* ---- the phone mockup ------------------------------------------------
+     One piece of artwork, used at both sizes. Every number here is read off
+     that file (500x1017): the transparent screen sits at 26,23 and measures
+     450x975, its status-bar glyphs end at y=78 and the home indicator starts
+     at y=983. So the screenshot is inset below the glyphs and stopped above
+     the indicator, which leaves it a 450x903 box — 0.498, the ratio the shots
+     are already cropped to, so `cover` has nothing to crop. */
+
+  .ofh-mock {
+    position: relative;
+    width: var(--ofh-mock-w, 200px);
+  }
+
+  /* Over the screenshots, not under them: the mockup's screen is transparent,
+     so the bezel is what masks the shot to the rounded screen and draws the
+     buttons, the status bar and the home indicator on top of it. */
+  .ofh-bezel {
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+  }
+
+  /* White under the whole screen aperture, so the status bar glyphs and the
+     home indicator sit on app-coloured ground rather than on the page. */
+  .ofh-screen {
+    position: absolute;
+    left: 5.2%;
+    top: 2.2615%;
+    width: 90%;
+    height: 95.8702%;
+    z-index: 1;
+    overflow: hidden;
+    /* The aperture's corners are a 72px squircle in the artwork's 500px space.
+       A rounded rect cannot be a squircle, so this is set a little tighter than
+       the real curve: erring inwards hides the difference under the opaque
+       bezel, where erring outwards would spill white past the phone's
+       silhouette at the top corners. Percentages, so it tracks the mockup at
+       any size — 12% of 450 and 5.5% of 975 are both about 54px. */
+    border-radius: 12% / 5.5%;
+    background-color: #ffffff;
+  }
+
+  .ofh-shot {
+    position: absolute;
+    left: 0;
+    top: 5.641%;
+    width: 100%;
+    height: 92.6154%;
+    object-fit: cover;
+    object-position: top center;
+  }
+
+  /* Each card's own mockup, for every layout that has no phone column. */
+  .ofh-inline {
+    margin-inline: auto;
+    filter: drop-shadow(0 22px 30px rgb(15 8 40 / 0.18));
+  }
+
+  /* In the list there is no stage to pin, so the phone column and the glass
+     panels — which only make sense against it — stay out of the way. */
+  .ofh-phone-col,
+  .ofh-side,
+  .ofh-ripple {
+    display: none;
+  }
+
+  /* ---- the pinned stage ------------------------------------------------ */
+
+  /* Everything below is scoped to `.is-pinned`, which the script adds only when
+     the viewport can hold three columns and motion is welcome. */
+  @media (min-width: 1280px) {
+    .is-pinned .ofh-track {
+      /* Clears the sticky header — 1.25rem of offset plus roughly 4rem of nav
+         — and then leaves a clear gap under it, so the pinned tableau never
+         looks tucked behind the bar. */
+      --ofh-top: 8.5rem;
+      /* Deliberately uncapped at the top: the stage has to reach the bottom
+         of the viewport, because that edge is where the cards and the glass
+         panels rise from. Cap it and they appear out of a seam mid-screen. */
+      --ofh-stage: max(560px, calc(100vh - var(--ofh-top) - 1rem));
+      /* How far below their slot the cards and panels start. */
+      --ofh-enter: calc(var(--ofh-stage) * 0.95);
+      /* Scroll length per step. Four steps, so the track is this much longer
+         than the stage — the tableau holds still for exactly that distance. */
+      --ofh-step-scroll: 520px;
+      /* A collapsed card is its pill row plus this padding; the open one adds
+         the copy block below. All three are tied to the viewport height so a
+         short laptop screen gets a tighter deck instead of a clipped one, and
+         from roughly 900px up they sit at their ceilings.
+
+         The copy block is the one to turn to make the open card taller or
+         shorter: it is a floor, not a cap, so the copy is never clipped — the
+         card just carries more air under it, which is where the reference's
+         cards get their proportions from. */
+      --ofh-card-pad: clamp(1.125rem, 2.6vh, 1.625rem);
+      --ofh-card-gap: clamp(0.75rem, 2.2vh, 1.25rem);
+      --ofh-card-row: clamp(2rem, 4.4vh, 2.5rem);
+      --ofh-card-copy: clamp(6rem, 15.5vh, 9rem);
+
+      position: relative;
+      height: calc(var(--ofh-stage) + var(--ofh-steps, 4) * var(--ofh-step-scroll));
+      margin-top: 3rem;
+    }
+
+    .is-pinned .ofh-stage {
+      position: sticky;
+      top: var(--ofh-top);
+      height: var(--ofh-stage);
+      /* The clip is what turns "a card moved up" into "a card was put away":
+         the strip above the stage is where buried cards go. */
+      overflow: hidden;
+    }
+
+    .is-pinned .ofh-row {
+      display: flex;
+      flex-direction: row;
+      /* Top-aligned, not centred: the deck grows downwards as steps are read,
+         and the first card has to stay level with the top of the phone. */
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 2.5rem;
+      height: 100%;
+      /* The same box as `.container` — 80rem here, 96rem from 2xl, 1rem of
+         padding — so the deck's left edge and the glass column's right edge
+         line up with every other section on the page. */
+      max-width: 80rem;
+      margin: 0 auto;
+      padding-inline: 1rem;
+    }
+
+    /* ---- deck ---------------------------------------------------------- */
+
+    .is-pinned .ofh-cards {
+      flex: 0 0 23.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: var(--ofh-card-gap);
+      /* On a short screen the finished deck can be taller than the stage. The
+         script measures that overflow once and the column slides up by it as
+         the section is read, so the card being read is always in view instead
+         of the last one being cut off. Zero when it all fits. */
+      transform: translateY(calc(-1 * var(--ofh-shift, 0px) * var(--ofh-p, 0)));
+    }
+
+    /* Every card sits in the column from the start and is simply painted below
+       the stage until its turn: `--e` is its 0..1 arrival, written by the
+       script from the scroll position, so the card rides the scrollbar up
+       instead of playing a fixed animation on a trigger. */
+    .is-pinned .ofh-card {
+      --e: 0;
+
+      flex: none;
+      padding-block: var(--ofh-card-pad);
+      transform: translateY(calc((1 - var(--e)) * var(--ofh-enter)));
+      opacity: var(--e);
+      box-shadow: 0 24px 50px -34px var(--shadow-strong);
+    }
+
+    .is-pinned .ofh-inline {
+      display: none;
+    }
+
+    /* And `--c` is its 0..1 collapse, which runs while the next card arrives:
+       the copy block closes to nothing, the card shrinks to its pill row, and
+       everything below it slides up into the space. Height, not opacity — the
+       cards must not overlap, so the column has to actually give the room back.
+       `--ofh-more-h` is each card's own copy height, measured once. */
+    /* A collapsed card is exactly this row plus the card's padding, so the
+       row carries the height rather than leaving it to the pill inside it. */
+    .is-pinned .ofh-card-head {
+      flex: none;
+      height: var(--ofh-card-row);
+    }
+
+    .is-pinned .ofh-card-more {
+      --c: 0;
+
+      height: calc(var(--ofh-more-h, 6rem) * (1 - var(--c)));
+      overflow: hidden;
+      opacity: calc(1 - var(--c));
+    }
+
+    /* ---- phone --------------------------------------------------------- */
+
+    /* No z-index here on purpose. The rings below are z-index: -1, which puts
+       them behind everything in the stage's stacking context — but only as
+       long as this column does not open a stacking context of its own. Give it
+       one and the rings are trapped in it, painting over the cards instead of
+       behind them, and the solid cards read as translucent. */
+    .is-pinned .ofh-phone-col {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      flex: 0 0 auto;
+    }
+
+    /* ---- ripple -------------------------------------------------------- */
+
+    /* Thin rings spreading out from behind the phone as the section is read.
+       They are centred on the phone rather than the stage, and the stage's own
+       overflow is what crops them, so what crosses the band is a slice of a
+       very large circle - a wave rather than a bullseye. */
+    .is-pinned .ofh-ripple {
+      display: block;
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      width: 0;
+      height: 0;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Three concentric hairlines on one shared scale — 200px, 80px and 30px
+       across, widening to fifteen times that as the section is read, each
+       fading out at its own rate. By the time they are large enough to leave
+       the stage they are gone, so what crosses the page is an expanding wave
+       rather than a bullseye. Sizes, colours and rates are the reference's. */
+    .is-pinned .ofh-ripple span {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: calc(var(--r) * 1px);
+      height: calc(var(--r) * 1px);
+      margin: calc(var(--r) * -0.5px) 0 0 calc(var(--r) * -0.5px);
+      border: 1px solid var(--ring, #892aca);
+      border-radius: 50%;
+      /* The blur is what stops a 1px ring reading as a diagram. */
+      filter: blur(3px);
+      transform: scale(calc(1 + var(--ofh-rp, 0) * 14));
+      opacity: calc(
+        var(--start, 1) * (1 - min(1, var(--ofh-p, 0) / var(--fade, 0.4)))
+      );
+    }
+
+    :global(html.dark) .is-pinned .ofh-ripple span {
+      border-color: color-mix(in oklab, var(--ring, #892aca) 55%, #ffffff);
+    }
+
+    /* The mockup is 500x1017, so its height is the width times 2.034 — one
+       number sizes the whole phone, and the screen follows from the
+       percentages above. */
+    .is-pinned .ofh-mock-lg {
+      --ofh-mock-h: min(calc(var(--ofh-stage) - 3.5rem), 760px);
+      --ofh-mock-w: calc(var(--ofh-mock-h) / 2.034);
+
+      filter: drop-shadow(0 40px 45px rgb(15 8 40 / 0.28));
+    }
+
+    /* Each shot is opaque and covers the whole screen, so the steps are dealt
+       like cards: the incoming one slides over the one before it and the pile
+       underneath is simply never seen. Sliding also survives being scrubbed
+       backwards — the shot slides back out the way it came. */
+    /* Dealt like cards: each shot is opaque and covers the whole screen, so
+       the incoming one slides over the last and the pile underneath is never
+       seen. Sliding rather than crossfading because two dense app screenshots
+       held at half opacity over each other read as neither — and it survives
+       being scrubbed backwards, since the shot slides back out the way it came.
+       The direction alternates, matching the reference's screens. */
+    .is-pinned .ofh-mock-lg .ofh-shot {
+      --e: 0;
+
+      transform: translateX(calc((1 - var(--e)) * 102%));
+    }
+
+    .is-pinned .ofh-mock-lg .ofh-shot[data-op-shot="2"] {
+      transform: translateY(calc((1 - var(--e)) * 102%));
+    }
+
+    /* The first shot is the screen the phone starts on, not an arrival. */
+    .is-pinned .ofh-mock-lg .ofh-shot[data-op-shot="0"] {
+      transform: none;
+    }
+
+    /* Later shots have to paint over earlier ones — they are dealt onto the
+       pile, not swapped into it — so the order comes from the index rather than
+       from a list that has to be extended every time a step is added. */
+    .is-pinned .ofh-mock-lg .ofh-shot {
+      z-index: calc(var(--i, 0) + 1);
+    }
+
+    /* A single faint diagonal highlight, so the screenshot does not read as a
+       flat sticker pasted into the frame. */
+    .is-pinned .ofh-glare {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+      background-image: linear-gradient(
+        118deg,
+        rgb(255 255 255 / 0.22) 0%,
+        rgb(255 255 255 / 0) 32%,
+        rgb(255 255 255 / 0) 100%
+      );
+    }
+
+    .is-pinned .ofh-dots {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .is-pinned .ofh-dots span {
+      width: 1.75rem;
+      height: 0.25rem;
+      border-radius: 999px;
+      background-color: color-mix(in oklab, var(--color-dark) 15%, transparent);
+      transition: background-color 0.35s ease;
+    }
+
+    :global(html.dark) .is-pinned .ofh-dots span {
+      background-color: rgb(255 255 255 / 0.16);
+    }
+
+    .is-pinned .ofh-stage[data-active="0"] [data-op-dot="0"],
+    .is-pinned .ofh-stage[data-active="1"] [data-op-dot="1"],
+    .is-pinned .ofh-stage[data-active="2"] [data-op-dot="2"],
+    .is-pinned .ofh-stage[data-active="3"] [data-op-dot="3"] {
+      background-color: var(--color-primary);
+    }
+
+    /* ---- glass --------------------------------------------------------- */
+
+    .is-pinned .ofh-side {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1.25rem;
+      flex: 0 0 22rem;
+      z-index: 1;
+    }
+
+    /* Two blurred radial washes rather than one flat circle: a deep violet
+       high on the left and a magenta low on the right, which is the gradient
+       the reference's orb runs through. Sized in rem so it scales with the
+       panels, and pushed below the last one so part of it shows. */
+    .is-pinned .ofh-orb {
+      position: absolute;
+      left: 12%;
+      bottom: -2.75rem;
+      z-index: 0;
+      width: 13.5rem;
+      height: 13.5rem;
+      pointer-events: none;
+      border-radius: 50%;
+      background-image:
+        radial-gradient(
+          closest-side,
+          #5d2883 0%,
+          color-mix(in oklab, #5d2883 0%, transparent) 100%
+        ),
+        radial-gradient(
+          closest-side,
+          #e07cc8 0%,
+          color-mix(in oklab, #e07cc8 0%, transparent) 100%
+        );
+      background-size:
+        80% 80%,
+        68% 68%;
+      background-position:
+        26% 20%,
+        74% 80%;
+      background-repeat: no-repeat;
+      filter: blur(18px);
+      opacity: 0.9;
+    }
+
+    /* The same glass as the header's Sign In / Learn dropdowns — 55% white, a
+       hairline in the site's border colour, and the same blur, saturation and
+       drop shadow. Copied as numbers rather than shared, because those rules
+       are scoped to `.header .hs-dropdown-menu.mega-menu`; if the header's
+       glass is ever retuned, this is the other place to change.
+
+       -webkit-backdrop-filter is written BEFORE the unprefixed property on
+       purpose — see the note at the top of global.css: Lightning CSS keeps only
+       the last form it sees, and the standard one last dropped the blur in
+       Firefox everywhere it was written the other way round. */
+    .is-pinned .ofh-glass {
+      border-radius: 1.25rem;
+      border: 1px solid var(--color-border-light, #eceef1);
+      background-color: rgba(255, 255, 255, 0.55);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      backdrop-filter: blur(24px) saturate(180%);
+      box-shadow: 0 24px 48px -20px rgba(16, 18, 28, 0.28);
+      color: var(--color-dark);
+
+      /* Above the orb, so the panel frosts it rather than hiding under it. */
+      position: relative;
+      z-index: 1;
+
+      /* Panels rise from the bottom of the stage on the same scrub as the
+         cards they belong to, so the two columns arrive together. */
+      --e: 0;
+
+      opacity: var(--e);
+      transform: translateY(calc((1 - var(--e)) * var(--ofh-enter)));
+    }
+
+    @supports (color: color-mix(in lab, red, red)) {
+      .is-pinned .ofh-glass {
+        background-color: color-mix(in oklab, #ffffff 55%, transparent);
+      }
+    }
+
+    :global(html.dark) .is-pinned .ofh-glass {
+      border-color: var(--line);
+      background-color: var(--glass);
+      -webkit-backdrop-filter: blur(24px) saturate(140%);
+      backdrop-filter: blur(24px) saturate(140%);
+      box-shadow: 0 24px 48px -20px var(--shadow-strong);
+      color: var(--fg-strong);
+    }
+
+    /* No backdrop-filter support: a near-opaque panel, as the header does. */
+    @supports not (
+      (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+    ) {
+      .is-pinned .ofh-glass {
+        background-color: rgba(255, 255, 255, 0.97);
+      }
+
+      :global(html.dark) .is-pinned .ofh-glass {
+        background-color: var(--surface-1);
+      }
+    }
+
+    .is-pinned .ofh-live {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-radius: 999px;
+      padding: 0.5rem 1rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .is-pinned .ofh-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background-color: #16a34a;
+      box-shadow: 0 0 0 3px rgb(22 163 74 / 0.2);
+    }
+
+    .is-pinned .ofh-quote {
+      width: 100%;
+      padding: 1.25rem 1.375rem 0;
+      overflow: hidden;
+    }
+
+    .is-pinned .ofh-quote-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .is-pinned .ofh-quote-name {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .is-pinned .ofh-quote-sub {
+      font-size: 0.75rem;
+      opacity: 0.65;
+      margin-top: 0.125rem;
+    }
+
+    .is-pinned .ofh-tag-buy {
+      border-radius: 0.5rem;
+      background-color: rgb(15 138 95 / 0.12);
+      padding: 0.25rem 0.625rem;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #0f8a5f;
+    }
+
+    :global(html.dark) .is-pinned .ofh-tag-buy {
+      color: #4ade80;
+      background-color: rgb(74 222 128 / 0.14);
+    }
+
+    .is-pinned .ofh-quote-price {
+      margin-top: 0.875rem;
+      font-size: 1.75rem;
+      font-weight: 600;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .is-pinned .ofh-quote-change {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #0f8a5f;
+    }
+
+    :global(html.dark) .is-pinned .ofh-quote-change {
+      color: #4ade80;
+    }
+
+    /* Runs to the panel's edges — it is the texture under the number above it,
+       not a chart anyone reads values off — and the stroke is kept at its true
+       width by non-scaling-stroke, since preserveAspectRatio="none" stretches
+       the box and would otherwise thin the line out horizontally. */
+    .is-pinned .ofh-spark {
+      display: block;
+      width: calc(100% + 2.75rem);
+      height: 104px;
+      margin: 0.75rem -1.375rem 0;
+      color: #0f8a5f;
+      opacity: 0.75;
+    }
+
+    :global(html.dark) .is-pinned .ofh-spark {
+      color: #4ade80;
+    }
+
+    .is-pinned .ofh-fill {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem;
+      width: 100%;
+      padding: 1.125rem 1.25rem;
+    }
+
+    .is-pinned .ofh-check {
+      display: grid;
+      place-items: center;
+      flex: none;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 999px;
+      background-color: #0f8a5f;
+      color: #ffffff;
+    }
+
+    .is-pinned .ofh-check svg {
+      width: 1.125rem;
+      height: 1.125rem;
+    }
+
+    .is-pinned .ofh-fill-title {
+      font-size: 0.9375rem;
+      font-weight: 600;
+    }
+
+    .is-pinned .ofh-fill-meta {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-top: 0.125rem;
+    }
+  }
+
+  /* `.container` steps up to 96rem at 2xl; the row follows it so the section
+     keeps the page's edges at every width, and the two outer columns take that
+     extra room rather than leaving all of it in the gaps. */
+  @media (min-width: 1536px) {
+    .is-pinned .ofh-row {
+      max-width: 96rem;
+    }
+
+    .is-pinned .ofh-cards {
+      flex: 0 0 26rem;
+    }
+
+    .is-pinned .ofh-side {
+      flex: 0 0 24rem;
+    }
+  }
+</style>
+
+<script>
+  function initOrderPlacement(root: HTMLElement) {
+    const track = root.querySelector<HTMLElement>("[data-op-track]");
+    const stage = root.querySelector<HTMLElement>("[data-op-stage]");
+    if (!track || !stage) return;
+
+    const cards = Array.from(root.querySelectorAll<HTMLElement>("[data-op-card]"));
+    const copies = cards.map((card) =>
+      card.querySelector<HTMLElement>(".ofh-card-more"),
+    );
+    const shots = Array.from(root.querySelectorAll<HTMLElement>("[data-op-shot]"));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>("[data-op-panel]"));
+    const STEPS = cards.length;
+    if (STEPS < 2) return;
+
+    /**
+     * The share of the whole scroll each step owns, and how much of that share
+     * a card spends arriving. Taken from the reference: its steps are ~430px
+     * apart and each entrance runs ~420px of that, so an arrival is very nearly
+     * the whole step and the next one starts as the last lands.
+     */
+    const STEP_SHARE = 1 / STEPS;
+    const ENTER = STEP_SHARE;
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    // Matches the breakpoint the stylesheet holds the pinned layout behind.
+    const wide = window.matchMedia("(min-width: 1280px)");
+    let frame = 0;
+    let active = -1;
+    let pinned = false;
+    /** The stage's sticky offset. Comes from the stylesheet; only the viewport
+        can change it, so it is read on mode changes rather than per frame. */
+    let stickyTop = 0;
+
+
+    /** Ease-out, fitted to the reference's own curve (remaining = (1-t)^2.4). */
+    function ease(t: number) {
+      const c = Math.min(1, Math.max(0, t));
+      return 1 - Math.pow(1 - c, 2.4);
+    }
+
+    function setActive(next: number) {
+      if (next === active) return;
+      active = next;
+      stage!.dataset.active = String(next);
+    }
+
+    /**
+     * Each card's copy block is collapsed by animating its height, so the card
+     * gives its room back and the ones below move up. That needs the block's
+     * natural height as a number; it only changes when the column is resized.
+     */
+    function measureCopy() {
+      // The open card's copy block is given a floor rather than a min-height:
+      // a min-height would beat the animated height and the card could never
+      // close again. `--ofh-card-copy` is a clamp() in the stylesheet, so it is
+      // resolved the only way a custom property can be — by laying it out.
+      let floor = 0;
+      const probe = copies.find(Boolean);
+      if (probe) {
+        probe.style.height = "var(--ofh-card-copy)";
+        floor = probe.offsetHeight;
+        probe.style.height = "";
+      }
+
+      copies.forEach((copy) => {
+        if (!copy) return;
+        copy.style.height = "auto";
+        const h = Math.max(copy.offsetHeight, floor);
+        copy.style.height = "";
+        copy.style.setProperty("--ofh-more-h", `${h}px`);
+      });
+
+      // How tall the deck ends up: every card collapsed to its pill row bar the
+      // last, which stays open. On a short screen that can be taller than the
+      // stage, and the stylesheet slides the column up by the difference as the
+      // section is read, so the card being read never falls off the crop. The
+      // sum is worked out from the parts rather than measured, because the
+      // finished state does not exist yet at the time this runs.
+      const first = cards[0];
+      const deck = first?.parentElement;
+      if (!first || !deck) return;
+
+      const pad = parseFloat(getComputedStyle(first).paddingTop) || 0;
+      const row =
+        first.querySelector<HTMLElement>(".ofh-card-head")?.offsetHeight || 0;
+      // The copy block stays a flex item at zero height, so the card keeps its
+      // inner gap whether it is open or collapsed — that gap belongs to the
+      // collapsed height, not to the copy.
+      const inner = parseFloat(getComputedStyle(first).rowGap) || 0;
+      const gap = parseFloat(getComputedStyle(deck).rowGap) || 0;
+
+      const shut = pad * 2 + row + inner;
+      const open =
+        shut +
+        (parseFloat(
+          copies[copies.length - 1]?.style.getPropertyValue("--ofh-more-h") || "0",
+        ) || 0);
+      const total = shut * (cards.length - 1) + gap * (cards.length - 1) + open;
+      // Eight pixels of daylight, so the open card is never flush to the crop.
+      const room = stage!.clientHeight - 8;
+
+      deck.style.setProperty(
+        "--ofh-shift",
+        `${Math.max(0, Math.round(total - room))}px`,
+      );
+    }
+
+    function applyMode() {
+      pinned = wide.matches && !reduce.matches;
+      root.classList.toggle("is-pinned", pinned);
+      stickyTop = parseFloat(getComputedStyle(stage!).top) || 0;
+      if (pinned) {
+        measureCopy();
+      } else {
+        // The list shows all four steps at once, all arrived, none collapsed.
+        active = 0;
+        stage!.dataset.active = "0";
+        cards.forEach((card) => card.style.removeProperty("--e"));
+        copies.forEach((copy) => copy?.style.removeProperty("--c"));
+        shots.forEach((shot) => shot.style.removeProperty("--e"));
+        panels.forEach((panel) => panel.style.removeProperty("--e"));
+      }
+    }
+
+    function update() {
+      frame = 0;
+      if (!pinned) return;
+
+      // How far the stage has travelled through the track it is pinned in.
+      // The track is taller than the stage by exactly the scroll length the
+      // tableau is meant to hold for, so this is 0 as it pins and 1 as it lets
+      // go — no element measurement, no reading back what the transitions did.
+      const rect = track!.getBoundingClientRect();
+      const travel = rect.height - stage!.offsetHeight;
+      if (travel <= 0) return;
+
+      const p = Math.min(1, Math.max(0, (stickyTop - rect.top) / travel));
+
+      // The ripple: rings widen over the first two thirds of the read and each
+      // fades on its own schedule, which the stylesheet does from --ofh-p.
+      stage!.style.setProperty("--ofh-p", p.toFixed(3));
+      stage!.style.setProperty("--ofh-rp", Math.min(1, p / 0.65).toFixed(3));
+
+      // Nothing is triggered and then left to a transition: every arrival is a
+      // position on the scrollbar, so scrubbing backwards runs it backwards and
+      // stopping halfway leaves it halfway.
+      for (let i = 0; i < STEPS; i++) {
+        // Arrival of card i, and the collapse it forces on the one before it.
+        const e = ease((p - i * STEP_SHARE) / ENTER);
+
+        cards[i].style.setProperty("--e", e.toFixed(3));
+        if (i > 0) copies[i - 1]?.style.setProperty("--c", e.toFixed(3));
+        if (i === STEPS - 1) copies[i]?.style.setProperty("--c", "0");
+
+        // The first screenshot is the screen the phone starts on, so it has no
+        // arrival of its own; the panels only exist for some steps.
+        if (i > 0) shots[i]?.style.setProperty("--e", e.toFixed(3));
+        const panel = panels.find((el) => el.dataset.opPanel === String(i));
+        panel?.style.setProperty("--e", e.toFixed(3));
+      }
+
+      // Only the step dots read this now.
+      setActive(Math.min(STEPS - 1, Math.floor(p * STEPS)));
+    }
+
+    function schedule() {
+      if (frame === 0) frame = requestAnimationFrame(update);
+    }
+
+    // Don't burn frames on a section nobody is looking at.
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          window.addEventListener("scroll", schedule, { passive: true });
+          schedule();
+        } else {
+          window.removeEventListener("scroll", schedule);
+        }
+      },
+      { rootMargin: "10% 0px" },
+    );
+    observer.observe(track);
+
+    const onChange = () => {
+      applyMode();
+      schedule();
+    };
+    window.addEventListener("resize", onChange, { passive: true });
+    wide.addEventListener("change", onChange);
+    reduce.addEventListener("change", onChange);
+
+    applyMode();
+    update();
+  }
+
+  document
+    .querySelectorAll<HTMLElement>("[data-op-root]")
+    .forEach((root) => initOrderPlacement(root));
+</script>

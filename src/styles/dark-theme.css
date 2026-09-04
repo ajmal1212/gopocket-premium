@@ -562,10 +562,12 @@ html.dark .hero-backdrop-glow {
   background-image: none;
 }
 html.dark .hero-backdrop > svg {
-  /* bg-white would paint a dark panel over the glow - let it through and keep
-     only the faint diagonal stroke. */
-  background-color: transparent;
-  opacity: 0.14;
+  /* The white `bg-white` panel and the 1px `border` both hide the light theme's
+     decorative chevron against its own white ground. On the dark gradient there
+     is nothing to hide them against, so the V-path read as a stray diagonal line
+     across the trust bar. Drop the element in dark instead of restyling it -
+     light theme keeps the utility classes untouched. */
+  display: none;
 }
 
 /* Pricing Section - Pocket Prime Card Gradient in Dark Theme */

@@ -127,7 +127,7 @@ const steps: Step[] = [
             data-duration="0.6"
             data-delay="0.2"
             data-stagger="0.09"
-            style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+            style="font-weight: 600; --animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
           >
             <span class="word" style="--word-index:0">Hassle-free</span>
             <strong>
@@ -136,11 +136,8 @@ const steps: Step[] = [
             </strong>
           </div>
         </h2>
-        <p
-          class="text-text-default mx-auto mt-5 max-w-xl opacity-80 md:text-lg/relaxed"
-        >
-          Watchlist to a filled order in five screens. Here is the whole
-          journey, exactly as it looks inside the app.
+        <p class="text-text-default mx-auto mt-5 max-w-xl opacity-80 md:text-lg/relaxed">
+          Watchlist to a filled order in five screens. Here is the whole journey, exactly as it looks inside the app.
         </p>
       </div>
     </div>
@@ -155,11 +152,7 @@ const steps: Step[] = [
           <div class="ofh-cards">
             {
               steps.map((step, i) => (
-                <article
-                  class="ofh-card"
-                  data-op-card={i}
-                  style={`--i:${i};--ofh-tint:${step.tint}`}
-                >
+                <article class="ofh-card" data-op-card={i} style={`--i:${i};--ofh-tint:${step.tint}`}>
                   {/* The pill row comes first in the card, not last, because it
                       is the half that survives: a passed card is clipped to
                       exactly this row's height, so whatever is above the fold
@@ -167,7 +160,14 @@ const steps: Step[] = [
                   <div class="ofh-card-head">
                     <span class="ofh-pill">{step.tag}</span>
                     <span class="ofh-card-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
                         {i === 0 && <path d="M6 3h12a1 1 0 0 1 1 1v16l-7-4-7 4V4a1 1 0 0 1 1-1Z" />}
                         {i === 1 && (
                           <>
@@ -269,9 +269,11 @@ const steps: Step[] = [
                 }
                 <span class="ofh-glare" aria-hidden="true"></span>
               </div>
-              {/* The mockup carries the bezel, the buttons, the status bar and
+              {
+                /* The mockup carries the bezel, the buttons, the status bar and
                   the home indicator, and its screen is transparent — so it goes
-                  over the screenshots and masks them to the rounded screen. */}
+                  over the screenshots and masks them to the rounded screen. */
+              }
               <img
                 class="ofh-bezel"
                 src="/assets/images/order-flow/phone-frame.webp"
@@ -311,23 +313,23 @@ const steps: Step[] = [
               </div>
               <div class="ofh-quote-price">₹1,023.80</div>
               <div class="ofh-quote-change">+0.40 (0.04%)</div>
-              {/* An area chart, not a stroke: the fill is what makes it read
+              {
+                /* An area chart, not a stroke: the fill is what makes it read
                   as a day's trading rather than a squiggle. Both the line and
                   the wash take their colour from the panel, so the one green
-                  swaps for the dark theme's lighter one on its own. */}
-              <svg
-                class="ofh-spark"
-                viewBox="0 0 300 110"
-                preserveAspectRatio="none"
-                aria-hidden="true"
-              >
+                  swaps for the dark theme's lighter one on its own. */
+              }
+              <svg class="ofh-spark" viewBox="0 0 300 110" preserveAspectRatio="none" aria-hidden="true">
                 <defs>
                   <linearGradient id="ofhSparkFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="currentColor" stop-opacity="0.38" />
-                    <stop offset="100%" stop-color="currentColor" stop-opacity="0" />
+                    <stop offset="0%" stop-color="currentColor" stop-opacity="0.38"></stop>
+                    <stop offset="100%" stop-color="currentColor" stop-opacity="0"></stop>
                   </linearGradient>
                 </defs>
-                <path d="M0.0 83.6 L3.6 86.0 L7.2 82.7 L10.8 83.6 L14.5 80.7 L18.1 77.8 L21.7 84.0 L25.3 93.0 L28.9 100.0 L32.5 97.0 L36.1 95.6 L39.8 95.1 L43.4 95.8 L47.0 95.9 L50.6 88.3 L54.2 89.3 L57.8 83.3 L61.4 82.5 L65.1 92.1 L68.7 89.7 L72.3 86.8 L75.9 90.9 L79.5 88.8 L83.1 83.4 L86.7 98.1 L90.4 92.7 L94.0 92.5 L97.6 87.4 L101.2 88.6 L104.8 87.6 L108.4 87.0 L112.0 85.5 L115.7 84.3 L119.3 85.8 L122.9 83.2 L126.5 78.4 L130.1 77.8 L133.7 80.0 L137.3 79.5 L141.0 78.8 L144.6 81.3 L148.2 76.8 L151.8 74.6 L155.4 74.9 L159.0 79.5 L162.7 81.3 L166.3 77.6 L169.9 66.3 L173.5 67.5 L177.1 67.2 L180.7 62.2 L184.3 62.7 L188.0 54.9 L191.6 50.8 L195.2 54.8 L198.8 50.2 L202.4 48.7 L206.0 40.5 L209.6 43.7 L213.3 40.4 L216.9 48.0 L220.5 48.7 L224.1 46.9 L227.7 51.3 L231.3 55.4 L234.9 57.0 L238.6 48.2 L242.2 43.9 L245.8 47.4 L249.4 44.1 L253.0 41.2 L256.6 40.0 L260.2 37.0 L263.9 35.0 L267.5 38.4 L271.1 36.1 L274.7 36.1 L278.3 35.1 L281.9 26.7 L285.5 18.6 L289.2 14.0 L292.8 15.5 L296.4 19.6 L300.0 21.3 L300 110 L0 110 Z" fill="url(#ofhSparkFill)" stroke="none"></path>
+                <path
+                  d="M0.0 83.6 L3.6 86.0 L7.2 82.7 L10.8 83.6 L14.5 80.7 L18.1 77.8 L21.7 84.0 L25.3 93.0 L28.9 100.0 L32.5 97.0 L36.1 95.6 L39.8 95.1 L43.4 95.8 L47.0 95.9 L50.6 88.3 L54.2 89.3 L57.8 83.3 L61.4 82.5 L65.1 92.1 L68.7 89.7 L72.3 86.8 L75.9 90.9 L79.5 88.8 L83.1 83.4 L86.7 98.1 L90.4 92.7 L94.0 92.5 L97.6 87.4 L101.2 88.6 L104.8 87.6 L108.4 87.0 L112.0 85.5 L115.7 84.3 L119.3 85.8 L122.9 83.2 L126.5 78.4 L130.1 77.8 L133.7 80.0 L137.3 79.5 L141.0 78.8 L144.6 81.3 L148.2 76.8 L151.8 74.6 L155.4 74.9 L159.0 79.5 L162.7 81.3 L166.3 77.6 L169.9 66.3 L173.5 67.5 L177.1 67.2 L180.7 62.2 L184.3 62.7 L188.0 54.9 L191.6 50.8 L195.2 54.8 L198.8 50.2 L202.4 48.7 L206.0 40.5 L209.6 43.7 L213.3 40.4 L216.9 48.0 L220.5 48.7 L224.1 46.9 L227.7 51.3 L231.3 55.4 L234.9 57.0 L238.6 48.2 L242.2 43.9 L245.8 47.4 L249.4 44.1 L253.0 41.2 L256.6 40.0 L260.2 37.0 L263.9 35.0 L267.5 38.4 L271.1 36.1 L274.7 36.1 L278.3 35.1 L281.9 26.7 L285.5 18.6 L289.2 14.0 L292.8 15.5 L296.4 19.6 L300.0 21.3 L300 110 L0 110 Z"
+                  fill="url(#ofhSparkFill)"
+                  stroke="none"></path>
                 <path
                   d="M0.0 83.6 L3.6 86.0 L7.2 82.7 L10.8 83.6 L14.5 80.7 L18.1 77.8 L21.7 84.0 L25.3 93.0 L28.9 100.0 L32.5 97.0 L36.1 95.6 L39.8 95.1 L43.4 95.8 L47.0 95.9 L50.6 88.3 L54.2 89.3 L57.8 83.3 L61.4 82.5 L65.1 92.1 L68.7 89.7 L72.3 86.8 L75.9 90.9 L79.5 88.8 L83.1 83.4 L86.7 98.1 L90.4 92.7 L94.0 92.5 L97.6 87.4 L101.2 88.6 L104.8 87.6 L108.4 87.0 L112.0 85.5 L115.7 84.3 L119.3 85.8 L122.9 83.2 L126.5 78.4 L130.1 77.8 L133.7 80.0 L137.3 79.5 L141.0 78.8 L144.6 81.3 L148.2 76.8 L151.8 74.6 L155.4 74.9 L159.0 79.5 L162.7 81.3 L166.3 77.6 L169.9 66.3 L173.5 67.5 L177.1 67.2 L180.7 62.2 L184.3 62.7 L188.0 54.9 L191.6 50.8 L195.2 54.8 L198.8 50.2 L202.4 48.7 L206.0 40.5 L209.6 43.7 L213.3 40.4 L216.9 48.0 L220.5 48.7 L224.1 46.9 L227.7 51.3 L231.3 55.4 L234.9 57.0 L238.6 48.2 L242.2 43.9 L245.8 47.4 L249.4 44.1 L253.0 41.2 L256.6 40.0 L260.2 37.0 L263.9 35.0 L267.5 38.4 L271.1 36.1 L274.7 36.1 L278.3 35.1 L281.9 26.7 L285.5 18.6 L289.2 14.0 L292.8 15.5 L296.4 19.6 L300.0 21.3"
                   fill="none"
@@ -341,7 +343,14 @@ const steps: Step[] = [
 
             <div class="ofh-glass ofh-fill" data-op-panel="4">
               <span class="ofh-check" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
                   <path d="m5 12.5 4.5 4.5L19 7.5"></path>
                 </svg>
               </span>
@@ -357,13 +366,15 @@ const steps: Step[] = [
   </div>
 </section>
 
-{/* The module script below is deferred, so it cannot run until the document
+{
+  /* The module script below is deferred, so it cannot run until the document
     has parsed — and until it adds `is-pinned` the browser paints the fallback
     list: a narrow column of cards each holding its own phone. That flashed for
     a beat on every load. This runs inline, during parse, immediately after the
     markup it decides about, so the first paint is already the layout the page
     will keep. It only sets the class; `applyMode()` below re-runs the same
-    test and owns everything after that. */}
+    test and owns everything after that. */
+}
 <script is:inline>
   (function () {
     var section = document.currentScript.previousElementSibling;
@@ -696,9 +707,7 @@ const steps: Step[] = [
       /* The blur is what stops a 1px ring reading as a diagram. */
       filter: blur(3px);
       transform: scale(calc(1 + var(--ofh-rp, 0) * 14));
-      opacity: calc(
-        var(--start, 1) * (1 - min(1, var(--ofh-p, 0) / var(--fade, 0.4)))
-      );
+      opacity: calc(var(--start, 1) * (1 - min(1, var(--ofh-p, 0) / var(--fade, 0.4))));
     }
 
     :global(html.dark) .is-pinned .ofh-ripple span {
@@ -812,16 +821,8 @@ const steps: Step[] = [
       pointer-events: none;
       border-radius: 50%;
       background-image:
-        radial-gradient(
-          closest-side,
-          #5d2883 0%,
-          color-mix(in oklab, #5d2883 0%, transparent) 100%
-        ),
-        radial-gradient(
-          closest-side,
-          #e07cc8 0%,
-          color-mix(in oklab, #e07cc8 0%, transparent) 100%
-        );
+        radial-gradient(closest-side, #5d2883 0%, color-mix(in oklab, #5d2883 0%, transparent) 100%),
+        radial-gradient(closest-side, #e07cc8 0%, color-mix(in oklab, #e07cc8 0%, transparent) 100%);
       background-size:
         80% 80%,
         68% 68%;
@@ -880,9 +881,7 @@ const steps: Step[] = [
     }
 
     /* No backdrop-filter support: a near-opaque panel, as the header does. */
-    @supports not (
-      (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
-    ) {
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
       .is-pinned .ofh-glass {
         background-color: rgba(255, 255, 255, 0.97);
       }
@@ -1047,9 +1046,7 @@ const steps: Step[] = [
     if (!track || !stage) return;
 
     const cards = Array.from(root.querySelectorAll<HTMLElement>("[data-op-card]"));
-    const copies = cards.map((card) =>
-      card.querySelector<HTMLElement>(".ofh-card-more"),
-    );
+    const copies = cards.map((card) => card.querySelector<HTMLElement>(".ofh-card-more"));
     const shots = Array.from(root.querySelectorAll<HTMLElement>("[data-op-shot]"));
     const panels = Array.from(root.querySelectorAll<HTMLElement>("[data-op-panel]"));
     const STEPS = cards.length;
@@ -1073,7 +1070,6 @@ const steps: Step[] = [
     /** The stage's sticky offset. Comes from the stylesheet; only the viewport
         can change it, so it is read on mode changes rather than per frame. */
     let stickyTop = 0;
-
 
     /** Ease-out, fitted to the reference's own curve (remaining = (1-t)^2.4). */
     function ease(t: number) {
@@ -1124,8 +1120,7 @@ const steps: Step[] = [
       if (!first || !deck) return;
 
       const pad = parseFloat(getComputedStyle(first).paddingTop) || 0;
-      const row =
-        first.querySelector<HTMLElement>(".ofh-card-head")?.offsetHeight || 0;
+      const row = first.querySelector<HTMLElement>(".ofh-card-head")?.offsetHeight || 0;
       // The copy block stays a flex item at zero height, so the card keeps its
       // inner gap whether it is open or collapsed — that gap belongs to the
       // collapsed height, not to the copy.
@@ -1133,19 +1128,12 @@ const steps: Step[] = [
       const gap = parseFloat(getComputedStyle(deck).rowGap) || 0;
 
       const shut = pad * 2 + row + inner;
-      const open =
-        shut +
-        (parseFloat(
-          copies[copies.length - 1]?.style.getPropertyValue("--ofh-more-h") || "0",
-        ) || 0);
+      const open = shut + (parseFloat(copies[copies.length - 1]?.style.getPropertyValue("--ofh-more-h") || "0") || 0);
       const total = shut * (cards.length - 1) + gap * (cards.length - 1) + open;
       // Eight pixels of daylight, so the open card is never flush to the crop.
       const room = stage!.clientHeight - 8;
 
-      deck.style.setProperty(
-        "--ofh-shift",
-        `${Math.max(0, Math.round(total - room))}px`,
-      );
+      deck.style.setProperty("--ofh-shift", `${Math.max(0, Math.round(total - room))}px`);
     }
 
     function applyMode() {
@@ -1236,7 +1224,5 @@ const steps: Step[] = [
     update();
   }
 
-  document
-    .querySelectorAll<HTMLElement>("[data-op-root]")
-    .forEach((root) => initOrderPlacement(root));
+  document.querySelectorAll<HTMLElement>("[data-op-root]").forEach((root) => initOrderPlacement(root));
 </script>

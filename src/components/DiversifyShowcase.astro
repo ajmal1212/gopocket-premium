@@ -25,43 +25,37 @@ interface Slide {
 const slides: Slide[] = [
   {
     label: "Equity",
-    blurb:
-      "Buy and hold shares across NSE and BSE with live market depth and instant order placement.",
+    blurb: "Buy and hold shares across NSE and BSE with live market depth and instant order placement.",
     img: "/Diversify/equity.webp",
     alt: "Equity — own a part of tomorrow's growth, from large cap to sectoral stocks.",
   },
   {
     label: "Mutual Funds",
-    blurb:
-      "Start an SIP or invest a lump sum in direct plans — zero commission, every folio in one place.",
+    blurb: "Start an SIP or invest a lump sum in direct plans — zero commission, every folio in one place.",
     img: "/Diversify/mutual-fund.webp",
     alt: "Mutual funds — direct plans, SIPs and goal-based investing on GoPocket.",
   },
   {
     label: "IPO",
-    blurb:
-      "Apply to mainboard and SME issues over UPI, then follow the allotment right through to listing.",
+    blurb: "Apply to mainboard and SME issues over UPI, then follow the allotment right through to listing.",
     img: "/Diversify/ipo.webp",
     alt: "IPO — apply to mainboard and SME public issues over UPI on GoPocket.",
   },
   {
     label: "Futures",
-    blurb:
-      "Hedge a holding or take a directional view on index and stock futures, with margins shown upfront.",
+    blurb: "Hedge a holding or take a directional view on index and stock futures, with margins shown upfront.",
     img: "/Diversify/futures.webp",
     alt: "Futures — hedge or take a directional view on index and stock contracts.",
   },
   {
     label: "Options",
-    blurb:
-      "Read the full option chain, build multi-leg strategies and see the payoff before you place the order.",
+    blurb: "Read the full option chain, build multi-leg strategies and see the payoff before you place the order.",
     img: "/Diversify/options.webp",
     alt: "Options — option chain, multi-leg strategies and payoff analysis.",
   },
   {
     label: "Commodities",
-    blurb:
-      "Trade gold, silver, crude and agri contracts on MCX from the same funded account.",
+    blurb: "Trade gold, silver, crude and agri contracts on MCX from the same funded account.",
     img: "/Diversify/commodity.webp",
     alt: "Commodities — gold, silver, crude and agri contracts on MCX.",
   },
@@ -72,14 +66,14 @@ const slides: Slide[] = [
      already sets the lead-in every other homepage section relies on. -->
 <section class="dv-section">
   <div class="container">
-    <div class="mx-auto max-w-2xl text-center">
+    <div class="mx-auto max-w-4xl text-center">
       <h2 class="has-italic-text">
         <div
           class="animated-text is-ready is-animated"
           data-duration="0.6"
           data-delay="0.2"
           data-stagger="0.09"
-          style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+          style="font-weight: 600; --animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
         >
           <span class="word" style="--word-index:0">Never</span>
           <span class="word" style="--word-index:1">put</span>
@@ -134,12 +128,7 @@ const slides: Slide[] = [
       </div>
 
       <div class="dv-controls">
-        <button
-          type="button"
-          class="dv-arrow"
-          data-dv-prev
-          aria-label="Previous product"
-        >
+        <button type="button" class="dv-arrow" data-dv-prev aria-label="Previous product">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path
               d="M15 5 8 12l7 7"
@@ -161,12 +150,7 @@ const slides: Slide[] = [
           }
         </div>
 
-        <button
-          type="button"
-          class="dv-arrow"
-          data-dv-next
-          aria-label="Next product"
-        >
+        <button type="button" class="dv-arrow" data-dv-next aria-label="Next product">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path
               d="m9 5 7 7-7 7"
@@ -253,8 +237,7 @@ const slides: Slide[] = [
     box-shadow:
       0 2px 6px var(--shadow-soft),
       0 24px 60px -18px var(--shadow-strong);
-    transform: translate(-50%, -50%) translateX(var(--tx)) rotateY(var(--ry))
-      scale(var(--sc));
+    transform: translate(-50%, -50%) translateX(var(--tx)) rotateY(var(--ry)) scale(var(--sc));
     transition:
       transform var(--dv-speed) var(--dv-ease),
       opacity var(--dv-speed) var(--dv-ease);
@@ -476,15 +459,9 @@ const slides: Slide[] = [
   };
 
   function initDiversify(root: HTMLElement): Carousel {
-    const slides = Array.from(
-      root.querySelectorAll<HTMLElement>("[data-dv-slide]"),
-    );
-    const captions = Array.from(
-      root.querySelectorAll<HTMLElement>("[data-dv-caption]"),
-    );
-    const pills = Array.from(
-      root.querySelectorAll<HTMLButtonElement>("[data-dv-pill]"),
-    );
+    const slides = Array.from(root.querySelectorAll<HTMLElement>("[data-dv-slide]"));
+    const captions = Array.from(root.querySelectorAll<HTMLElement>("[data-dv-caption]"));
+    const pills = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-dv-pill]"));
     const prev = root.querySelector<HTMLButtonElement>("[data-dv-prev]");
     const next = root.querySelector<HTMLButtonElement>("[data-dv-next]");
 
@@ -596,7 +573,5 @@ const slides: Slide[] = [
     };
   }
 
-  document
-    .querySelectorAll<HTMLElement>("[data-dv]")
-    .forEach((root) => initDiversify(root));
+  document.querySelectorAll<HTMLElement>("[data-dv]").forEach((root) => initDiversify(root));
 </script>

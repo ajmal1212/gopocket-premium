@@ -255,12 +255,18 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
 </section>
 
 <style>
+  /* Every colour below is read through a local variable so the dark theme only
+     has to repoint the variables (see the html.dark block further down). */
   .rl-hero {
-    --rl-hero-black: #000;
-    --rl-hero-ink: #1d1d1d;
-    --rl-hero-muted: #575757;
-    --rl-hero-card-border: #e7e6e6;
-    --rl-hero-card-tile: #f4f4f4;
+    --rl-surface: #fff;
+    --rl-card: #fff;
+    --rl-ink-strong: #000;
+    --rl-ink: #1d1d1d;
+    --rl-ink-muted: #575757;
+    --rl-line: #e7e6e6;
+    --rl-tile: #f4f4f4;
+    --rl-cta-surface: #000;
+    --rl-cta-on-surface: #fff;
     --rl-grid-line: rgba(0, 0, 0, 0.062);
     --rl-grid-accent: rgba(0, 0, 0, 0.032);
 
@@ -273,7 +279,30 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     width: 100%;
     padding: 120px 80px 160px;
     overflow: clip;
-    background-color: #fff;
+    background-color: var(--rl-surface);
+  }
+
+  /* Dark theme. The site toggles `html.dark` on the root and publishes semantic
+     tokens from src/styles/dark-theme.css, so only the locals change here. */
+  :global(html.dark) .rl-hero {
+    --rl-surface: var(--surface-0);
+    --rl-card: var(--surface-1);
+    --rl-ink-strong: var(--fg-strong);
+    --rl-ink: var(--fg-strong);
+    --rl-ink-muted: var(--fg-muted);
+    --rl-line: var(--line);
+    --rl-tile: var(--surface-3);
+    /* The pill has to invert - a black button vanishes on the dark canvas. */
+    --rl-cta-surface: var(--fg-strong);
+    --rl-cta-on-surface: var(--surface-0);
+    --rl-grid-line: rgba(255, 255, 255, 0.055);
+    --rl-grid-accent: rgba(255, 255, 255, 0.03);
+  }
+
+  /* The laurels are solid black artwork; flip them so they read on dark. */
+  :global(html.dark) .rl-hero__leaf {
+    filter: invert(1);
+    opacity: 0.38;
   }
 
   /* ===== Grid background ===== */
@@ -372,7 +401,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     flex: none;
     width: 96px;
     height: 16px;
-    color: var(--rl-hero-black);
+    color: var(--rl-ink-strong);
   }
 
   .rl-hero__rating-label {
@@ -381,7 +410,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     font-size: 14px;
     line-height: 20px;
     font-weight: 600;
-    color: var(--rl-hero-ink);
+    color: var(--rl-ink);
   }
 
   /* ===== Title block ===== */
@@ -404,7 +433,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     line-height: 1.15;
     letter-spacing: -0.01em;
     text-align: center;
-    color: var(--rl-hero-black);
+    color: var(--rl-ink-strong);
   }
 
   /* The reveal wrapper is the element that lays out the text, so line
@@ -422,7 +451,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     font-weight: 400;
     text-align: center;
     text-wrap: balance;
-    color: var(--rl-hero-muted);
+    color: var(--rl-ink-muted);
   }
 
   /* ===== CTA button ===== */
@@ -436,7 +465,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     height: 48px;
     padding: 14px 4px 14px 20px;
     border-radius: 40px;
-    background-color: var(--rl-hero-black);
+    background-color: var(--rl-cta-surface);
     text-decoration: none;
     cursor: pointer;
     isolation: isolate;
@@ -450,7 +479,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     font-size: 14px;
     line-height: 20px;
     font-weight: 500;
-    color: #fff;
+    color: var(--rl-cta-on-surface);
     transition: color 0.3s ease;
   }
 
@@ -468,7 +497,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     place-content: center flex-end;
     padding: 0 10.5px 0 0;
     border-radius: 999px;
-    background-color: #fff;
+    background-color: var(--rl-cta-on-surface);
     transition:
       top 0.35s cubic-bezier(0.44, 0, 0.56, 1),
       right 0.35s cubic-bezier(0.44, 0, 0.56, 1),
@@ -495,7 +524,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     width: 19px;
     height: 19px;
     aspect-ratio: 1;
-    color: var(--rl-hero-black);
+    color: var(--rl-cta-surface);
     transition: transform 0.35s cubic-bezier(0.44, 0, 0.56, 1);
   }
 
@@ -521,7 +550,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
 
   .rl-hero__cta:hover .rl-hero__cta-text,
   .rl-hero__cta:focus-visible .rl-hero__cta-text {
-    color: var(--rl-hero-black);
+    color: var(--rl-cta-surface);
   }
 
   .rl-hero__cta:hover .rl-hero__cta-arrow--1,
@@ -535,7 +564,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
   }
 
   .rl-hero__cta:focus-visible {
-    outline: 2px solid var(--rl-hero-black);
+    outline: 2px solid var(--rl-ink-strong);
     outline-offset: 3px;
   }
 
@@ -572,9 +601,9 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     gap: 8px;
     width: 163px;
     padding: 8px;
-    border: 1px solid var(--rl-hero-card-border);
+    border: 1px solid var(--rl-line);
     border-radius: 12px;
-    background-color: #fff;
+    background-color: var(--rl-card);
   }
 
   .rl-hero__stat-icon {
@@ -585,8 +614,8 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     width: 40px;
     height: 40px;
     border-radius: 8px;
-    background-color: var(--rl-hero-card-tile);
-    color: var(--rl-hero-muted);
+    background-color: var(--rl-tile);
+    color: var(--rl-ink-muted);
   }
 
   .rl-hero__stat-icon svg {
@@ -605,7 +634,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     font-size: 14px;
     line-height: 20px;
     font-weight: 600;
-    color: var(--rl-hero-black);
+    color: var(--rl-ink-strong);
   }
 
   .rl-hero__stat-label {
@@ -613,7 +642,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     line-height: 20px;
     font-weight: 600;
     overflow-wrap: break-word;
-    color: var(--rl-hero-muted);
+    color: var(--rl-ink-muted);
   }
 
   .rl-hero__float-image {
@@ -646,7 +675,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     height: 32px;
     border-radius: 999px;
     background-color: rgba(255, 255, 255, 0.92);
-    color: var(--rl-hero-black);
+    color: #111;
   }
 
   .rl-hero__play svg {

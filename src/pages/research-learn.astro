@@ -39,79 +39,127 @@ const seminars = await getSeminars();
               >
             </div>
           </h2>
-          <p class="text-text-default opacity-80 mt-3">Register for live upcoming workshops or download materials from completed sessions.</p>
+          <p class="text-text-default opacity-80 mt-3">
+            Register for live upcoming workshops or download materials from completed sessions.
+          </p>
         </div>
 
         <div class="grid grid-cols-1 gap-8 md:gap-10 max-w-5xl mx-auto">
-          {seminars.length === 0 ? (
-            <div class="text-center py-12 text-gray-500 bg-theme-light rounded-3xl border border-border-light">
-              <p class="text-lg font-medium">No upcoming seminars found at the moment.</p>
-              <p class="text-sm mt-1">Please check back soon for live masterclasses & webinars.</p>
-            </div>
-          ) : (
-            seminars.map((item, index) => (
-              <div
-                data-aos="fade-up-sm"
-                data-aos-delay={100 + index * 100}
-                class="bg-theme-light flex flex-col md:flex-row rounded-4xl p-6 md:p-8 gap-6 md:gap-10 items-center md:items-start border border-border-light hover:border-black/20 transition-all duration-300 shadow-xs"
-              >
-                <div
-                  class="rounded-3xl overflow-hidden bg-white border border-border-light shadow-sm shrink-0"
-                  style="width: 310px; max-width: 100%; aspect-ratio: 500 / 625; flex: 0 0 310px;"
-                >
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    class="w-full h-full object-cover rounded-3xl"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="flex flex-col justify-between space-y-6 w-full h-full" style="flex: 1 1 0%; min-width: 0;">
-                  <div class="space-y-5">
-                    <div class="flex flex-wrap items-center gap-2.5">
-                      <span class="bg-white text-emerald-700 px-3.5 py-1 rounded-full text-xs font-semibold border border-border-light uppercase">{item.type}</span>
-                      <span class="bg-primary/10 text-primary px-3.5 py-1 rounded-full text-xs font-semibold uppercase">{item.cost}</span>
-                      <span class="text-xs text-text-default opacity-70 font-semibold">| {item.language}</span>
-                    </div>
-                    <h3 class="text-2xl md:text-3xl font-bold text-dark leading-snug">
-                      {item.title}
-                    </h3>
-                    <div class="flex items-center gap-2.5 text-sm md:text-base font-mono text-text-default opacity-90 font-medium my-4 py-2 border-y border-border-light/60 max-w-fit">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-                        <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
-                        <line x1="16" x2="16" y1="2" y2="6"></line>
-                        <line x1="8" x2="8" y1="2" y2="6"></line>
-                        <line x1="3" x2="21" y1="10" y2="10"></line>
-                      </svg>
-                      <span>{item.date_and_time || item.formattedDate}</span>
-                    </div>
-                    <p class="text-text-default opacity-85 text-base md:text-lg/relaxed pt-1 whitespace-pre-line">
-                      {item.description}
-                    </p>
-                  </div>
-
-                  <div class="flex items-center gap-3 pt-4">
-                    <a class="btn btn-primary text-flip-hover-anim cursor-pointer" href={`/research-learn/${item.slug}`}>
-                      <span class="text-flip-inner" data-content="Register">Register</span>
-                      <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
-                        <svg class="gradient-shape" width="150" height="28" viewBox="0 0 147 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433" stroke="currentColor" stroke-width="8"></path>
-                        </svg>
-                      </span>
-                    </a>
-                    <button class="p-3 bg-white border border-border-light rounded-full hover:bg-gray-50 text-dark transition-colors cursor-pointer shadow-xs" title="Download Material">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" x2="12" y1="15" y2="3"></line>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
+          {
+            seminars.length === 0 ? (
+              <div class="text-center py-12 text-gray-500 bg-theme-light rounded-3xl border border-border-light">
+                <p class="text-lg font-medium">No upcoming seminars found at the moment.</p>
+                <p class="text-sm mt-1">Please check back soon for live masterclasses & webinars.</p>
               </div>
-            ))
-          )}
+            ) : (
+              seminars.map((item, index) => (
+                <div
+                  data-aos="fade-up-sm"
+                  data-aos-delay={100 + index * 100}
+                  class="bg-theme-light flex flex-col md:flex-row rounded-4xl p-6 md:p-8 gap-6 md:gap-10 items-center md:items-start border border-border-light hover:border-black/20 transition-all duration-300 shadow-xs"
+                >
+                  <div
+                    class="rounded-3xl overflow-hidden bg-white border border-border-light shadow-sm shrink-0"
+                    style="width: 310px; max-width: 100%; aspect-ratio: 500 / 625; flex: 0 0 310px;"
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      class="w-full h-full object-cover rounded-3xl"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div
+                    class="flex flex-col justify-between space-y-6 w-full h-full"
+                    style="flex: 1 1 0%; min-width: 0;"
+                  >
+                    <div class="space-y-5">
+                      <div class="flex flex-wrap items-center gap-2.5">
+                        <span class="bg-white text-emerald-700 px-3.5 py-1 rounded-full text-xs font-semibold border border-border-light uppercase">
+                          {item.type}
+                        </span>
+                        <span class="bg-primary/10 text-primary px-3.5 py-1 rounded-full text-xs font-semibold uppercase">
+                          {item.cost}
+                        </span>
+                        <span class="text-xs text-text-default opacity-70 font-semibold">| {item.language}</span>
+                      </div>
+                      <h3 class="text-2xl md:text-3xl font-bold text-dark leading-snug">{item.title}</h3>
+                      <div class="flex items-center gap-2.5 text-sm md:text-base font-mono text-text-default opacity-90 font-medium my-4 py-2 border-y border-border-light/60 max-w-fit">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          class="text-primary"
+                        >
+                          <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                          <line x1="16" x2="16" y1="2" y2="6" />
+                          <line x1="8" x2="8" y1="2" y2="6" />
+                          <line x1="3" x2="21" y1="10" y2="10" />
+                        </svg>
+                        <span>{item.date_and_time || item.formattedDate}</span>
+                      </div>
+                      <p class="text-text-default opacity-85 text-base md:text-lg/relaxed pt-1 whitespace-pre-line">
+                        {item.description}
+                      </p>
+                    </div>
 
+                    <div class="flex items-center gap-3 pt-4">
+                      <a
+                        class="btn btn-primary text-flip-hover-anim cursor-pointer"
+                        href={`/research-learn/${item.slug}`}
+                      >
+                        <span class="text-flip-inner" data-content="Register">
+                          Register
+                        </span>
+                        <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
+                          <svg
+                            class="gradient-shape"
+                            width="150"
+                            height="28"
+                            viewBox="0 0 147 11"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
+                              stroke="currentColor"
+                              stroke-width="8"
+                            />
+                          </svg>
+                        </span>
+                      </a>
+                      <button
+                        class="p-3 bg-white border border-border-light rounded-full hover:bg-gray-50 text-dark transition-colors cursor-pointer shadow-xs"
+                        title="Download Material"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" x2="12" y1="15" y2="3" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )
+          }
         </div>
       </div>
     </section>
@@ -138,113 +186,111 @@ const seminars = await getSeminars();
               </strong>
             </div>
           </h2>
-          <p class="text-text-default opacity-80 mt-3">Comprehensive educational modules designed to sharpen your trading performance.</p>
+          <p class="text-text-default opacity-80 mt-3">
+            Comprehensive educational modules designed to sharpen your trading performance.
+          </p>
         </div>
 
-        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <!-- Card 1 -->
-          <div
+        <!-- Bento grid: one 2-column feature card + a plain card on row 1,
+             then three equal cards on row 2. -->
+        <div class="mx-auto grid max-w-7xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <!-- Card 1 - image feature, spans two columns -->
+          <article
             data-aos="fade-up-sm"
             data-aos-delay="50"
             data-aos-duration="900"
-            class="flex flex-col gap-4 border border-border-light p-6 md:p-8 rounded-3xl bg-theme-light aos-init"
+            class="relative flex min-h-80 flex-col justify-between overflow-hidden rounded-xl p-8 md:col-span-2 lg:min-h-88"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-              <polyline points="17 6 23 6 23 12"></polyline>
-            </svg>
-            <div class="mt-4 space-y-3">
-              <h3 class="text-h5-sm md:text-h5 text-dark font-medium">Equity &amp; Stock Analysis</h3>
-              <p class="text-text-default opacity-80 text-sm/relaxed">Deep dive into fundamental balance sheet analysis, quarterly earnings reports, and sectorial growth trends.</p>
-            </div>
-          </div>
+            <img
+              src="/assets/rectangle-5.png"
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              width="956"
+              height="599"
+              class="absolute inset-0 size-full object-cover"
+            />
+            <h3 class="relative text-h5 md:text-h4 font-normal text-white!">Equity &amp; Stock Analysis</h3>
+            <p class="relative mt-10 max-w-sm text-sm/relaxed text-white/85 md:text-base/relaxed">
+              Deep dive into fundamental balance sheet analysis, quarterly earnings reports, and sectorial growth
+              trends.
+            </p>
+          </article>
 
-          <!-- Card 2 -->
-          <div
+          <!-- Card 2 - plain -->
+          <article
             data-aos="fade-up-sm"
             data-aos-delay="100"
             data-aos-duration="900"
-            class="flex flex-col gap-4 border border-border-light p-6 md:p-8 rounded-3xl bg-theme-light aos-init"
+            class="flex min-h-80 flex-col justify-between rounded-xl border border-border-light bg-theme-light p-8 lg:min-h-88"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-              <line x1="12" y1="2" x2="12" y2="22"></line>
-              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-            </svg>
-            <div class="mt-4 space-y-3">
-              <h3 class="text-h5-sm md:text-h5 text-dark font-medium">Options Trading Strategies</h3>
-              <p class="text-text-default opacity-80 text-sm/relaxed">Master non-directional option selling, Iron Condors, Short Straddles, and Delta decay hedging techniques.</p>
-            </div>
-          </div>
+            <h3 class="text-h5 md:text-h4 text-dark font-normal">Options Trading Strategies</h3>
+            <p class="text-text-default mt-10 text-sm/relaxed opacity-80 md:text-base/relaxed">
+              Master non-directional option selling, Iron Condors, Short Straddles, and Delta decay hedging techniques.
+            </p>
+          </article>
 
-          <!-- Card 3 -->
-          <div
+          <!-- Card 3 - plain with world map graphic -->
+          <article
             data-aos="fade-up-sm"
             data-aos-delay="150"
             data-aos-duration="900"
-            class="flex flex-col gap-4 border border-border-light p-6 md:p-8 rounded-3xl bg-theme-light aos-init"
+            class="relative flex min-h-80 flex-col justify-between overflow-hidden rounded-xl border border-border-light bg-theme-light p-8 lg:min-h-88"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-            </svg>
-            <div class="mt-4 space-y-3">
-              <h3 class="text-h5-sm md:text-h5 text-dark font-medium">Commodity &amp; MCX Insights</h3>
-              <p class="text-text-default opacity-80 text-sm/relaxed">Learn Crude Oil, Natural Gas, Gold, and Silver futures and options trading with macroeconomic event tracking.</p>
-            </div>
-          </div>
+            <img
+              src="/assets/images/financial-future-world-map.svg"
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              width="309"
+              height="274"
+              class="pointer-events-none absolute top-1/2 left-1/2 w-[115%] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-70"
+            />
+            <h3 class="relative text-h5 md:text-h4 text-dark font-normal">Commodity &amp; MCX Insights</h3>
+            <p class="text-text-default relative mt-10 text-sm/relaxed opacity-80 md:text-base/relaxed">
+              Learn Crude Oil, Natural Gas, Gold, and Silver futures and options trading with macroeconomic event
+              tracking.
+            </p>
+          </article>
 
-          <!-- Card 4 -->
-          <div
+          <!-- Card 4 - solid brand colour -->
+          <article
             data-aos="fade-up-sm"
             data-aos-delay="200"
             data-aos-duration="900"
-            class="flex flex-col gap-4 border border-border-light p-6 md:p-8 rounded-3xl bg-theme-light aos-init"
+            class="bg-primary flex min-h-80 flex-col justify-between rounded-xl p-8 lg:min-h-88"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M12 6v6l4 2"></path>
-            </svg>
-            <div class="mt-4 space-y-3">
-              <h3 class="text-h5-sm md:text-h5 text-dark font-medium">Price Action Candlesticks</h3>
-              <p class="text-text-default opacity-80 text-sm/relaxed">Identify high-probability breakout patterns, Hikkaki candlestick setups, and dynamic support &amp; resistance.</p>
-            </div>
-          </div>
+            <h3 class="text-h5 md:text-h4 font-normal text-white!">Price Action Candlesticks</h3>
+            <p class="mt-10 text-sm/relaxed text-white/85 md:text-base/relaxed">
+              Identify high-probability breakout patterns, Hikkaki candlestick setups, and dynamic support &amp;
+              resistance.
+            </p>
+          </article>
 
-          <!-- Card 5 -->
-          <div
+          <!-- Card 5 - image -->
+          <article
             data-aos="fade-up-sm"
             data-aos-delay="250"
             data-aos-duration="900"
-            class="flex flex-col gap-4 border border-border-light p-6 md:p-8 rounded-3xl bg-theme-light aos-init"
+            class="relative flex min-h-80 flex-col justify-between overflow-hidden rounded-xl p-8 lg:min-h-88"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-            <div class="mt-4 space-y-3">
-              <h3 class="text-h5-sm md:text-h5 text-dark font-medium">Risk &amp; Portfolio Management</h3>
-              <p class="text-text-default opacity-80 text-sm/relaxed">Protect your account capital with strict stop-loss rules, position sizing, and risk-to-reward discipline.</p>
-            </div>
-          </div>
-
-          <!-- Card 6 -->
-          <div
-            data-aos="fade-up-sm"
-            data-aos-delay="300"
-            data-aos-duration="900"
-            class="flex flex-col gap-4 border border-border-light p-6 md:p-8 rounded-3xl bg-theme-light aos-init"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            <div class="mt-4 space-y-3">
-              <h3 class="text-h5-sm md:text-h5 text-dark font-medium">Live Q&amp;A Mentorship</h3>
-              <p class="text-text-default opacity-80 text-sm/relaxed">Interact directly with certified research analysts and clear your doubts during live market sessions.</p>
-            </div>
-          </div>
-
+            <img
+              src="/assets/rectangle-8.png"
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              width="937"
+              height="537"
+              class="absolute inset-0 size-full object-cover"
+            />
+            <h3 class="relative text-h5 md:text-h4 font-normal text-white!">Risk &amp; Portfolio Management</h3>
+            <p class="relative mt-10 text-sm/relaxed text-white/85 md:text-base/relaxed">
+              Protect your account capital with strict stop-loss rules, position sizing, and risk-to-reward discipline.
+            </p>
+          </article>
         </div>
       </div>
     </section>
@@ -272,17 +318,23 @@ const seminars = await getSeminars();
             <div class="space-y-4">
               <h2 class="has-italic-text capitalize"><strong>Empowering Traders</strong> With Market Research</h2>
               <p class="text-text-default opacity-80">
-                GoPocket provides institutional-grade market research, real-time data feeds, and actionable technical analysis to help you trade smarter and with confidence.
+                GoPocket provides institutional-grade market research, real-time data feeds, and actionable technical
+                analysis to help you trade smarter and with confidence.
               </p>
             </div>
             <div class="space-y-6 divide-y divide-dashed border-border-light">
               <div class="space-y-2.5 odd:pb-6">
                 <h3 class="text-xl font-medium text-dark">Real-Time Market Webinars</h3>
-                <p class="text-text-default opacity-80 text-sm">Join live interactive webinars hosted by seasoned research analysts covering Nifty, Bank Nifty, and MCX commodities.</p>
+                <p class="text-text-default opacity-80 text-sm">
+                  Join live interactive webinars hosted by seasoned research analysts covering Nifty, Bank Nifty, and
+                  MCX commodities.
+                </p>
               </div>
               <div class="space-y-2.5 odd:pb-6 pt-4">
                 <h3 class="text-xl font-medium text-dark">Downloadable Study Materials</h3>
-                <p class="text-text-default opacity-80 text-sm">Access comprehensive PDF strategy guides, candlestick cheat sheets, and webinar recordings anytime.</p>
+                <p class="text-text-default opacity-80 text-sm">
+                  Access comprehensive PDF strategy guides, candlestick cheat sheets, and webinar recordings anytime.
+                </p>
               </div>
             </div>
           </div>

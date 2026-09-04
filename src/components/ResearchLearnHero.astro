@@ -1,0 +1,730 @@
+---
+// ResearchLearnHero - Hero section for the Research & Learn page.
+//
+// Mirrors the reference layout: a laurel-flanked rating pill, a large centred
+// headline, a supporting paragraph and a pill CTA whose arrow badge expands
+// across the button on hover, all sitting on a masked rounded-cell grid.
+// Two floating stat/image cards flank the container on wide desktop only,
+// matching the reference's `hidden` breakpoint classes (>= 1440px).
+interface Props {
+  ratingText?: string;
+  title?: string;
+  description?: string;
+  ctaText?: string;
+  ctaHref?: string;
+  leftStat?: string;
+  leftStatLabel?: string;
+  leftImage?: string;
+  leftImageAlt?: string;
+  rightStat?: string;
+  rightStatLabel?: string;
+  rightImage?: string;
+  rightImageAlt?: string;
+}
+
+const {
+  ratingText = "Trusted by 25,000+ traders",
+  title = "Build skills for smarter investing.",
+  description =
+    "GoPocket gives you a complete learning experience that helps you gain real, market-ready skills and take the next step in your trading journey.",
+  ctaText = "Explore our courses",
+  ctaHref = "#webinars",
+  leftStat = "150+",
+  leftStatLabel = "Expert Mentors",
+  leftImage = "/assets/images/career-gallery-1.webp",
+  leftImageAlt = "GoPocket research and learning team at work",
+  rightStat = "80+",
+  rightStatLabel = "Video Lessons",
+  rightImage = "/assets/images/learn1.jpeg",
+  rightImageAlt = "GoPocket trading masterclass session",
+} = Astro.props as Props;
+
+// Split for the per-word reveal, same as the Hero 1 headline and paragraph.
+const titleWords: string[] = title.trim().split(/\s+/);
+const descriptionWords: string[] = description.trim().split(/\s+/);
+---
+
+<section class="rl-hero">
+  <!--
+    Grid background. The reference ships this as a PNG of rounded-square cells
+    (~80px pitch on a 1440px band) with a handful of tinted accent cells, masked
+    to fade out at the left and right edges. Rebuilt here as an SVG pattern so
+    it stays crisp and needs no external asset; the cells are scaled up to a
+    120px pitch. Change the pattern/rect width+height together to resize them.
+  -->
+  <div class="rl-hero__grid" aria-hidden="true">
+    <svg width="100%" height="100%" preserveAspectRatio="xMidYMin slice" viewBox="0 0 1440 960" fill="none">
+      <defs>
+        <pattern id="rl-hero-grid-cells" width="120" height="120" patternUnits="userSpaceOnUse">
+          <!-- Full-tile rect: adjacent strokes coincide, so shared edges stay 1px
+               and the rounded corners leave the diamond gaps at intersections. -->
+          <rect
+            x="0"
+            y="0"
+            width="120"
+            height="120"
+            rx="18"
+            ry="18"
+            fill="none"
+            stroke="var(--rl-grid-line)"
+            stroke-width="1"></rect>
+        </pattern>
+      </defs>
+
+      <rect width="1440" height="960" fill="url(#rl-hero-grid-cells)"></rect>
+
+      <!-- Tinted accent cells, scattered on the same 120px lattice -->
+      <g fill="var(--rl-grid-accent)">
+        <rect x="120" y="120" width="120" height="120" rx="18"></rect>
+        <rect x="1080" y="240" width="120" height="120" rx="18"></rect>
+        <rect x="720" y="480" width="120" height="120" rx="18"></rect>
+        <rect x="1080" y="600" width="120" height="120" rx="18"></rect>
+        <rect x="360" y="720" width="120" height="120" rx="18"></rect>
+        <rect x="720" y="840" width="120" height="120" rx="18"></rect>
+      </g>
+    </svg>
+  </div>
+
+  <div class="rl-hero__container">
+    <!-- No AOS on this wrapper: a block-level fade-up would slide the headline
+         bottom-to-top and drown out the per-word reveal. Hero 1 keeps AOS on
+         the badge only and lets the heading animate purely word by word. -->
+    <div class="rl-hero__top">
+      <div class="rl-hero__intro">
+        <!-- Rating pill: laurel, stars + label, laurel. Same word reveal as the
+             headline, and first in the sequence: pill -> heading -> paragraph.
+             The leaves are wrapped so the reveal animates the wrapper's opacity
+             0 -> 1 while the image keeps its own 30% tint. -->
+        <div
+          class="rl-hero__tag animated-text is-ready is-animated"
+          data-duration="0.6"
+          data-delay="0.1"
+          data-stagger="0.06"
+          style="--animated-text-duration:0.6s;--animated-text-delay:0.1s;--animated-text-stagger:0.06s;"
+        >
+          <span class="word rl-hero__leaf-wrap" style="--word-index:0">
+            <img
+              src="/assets/right.avif"
+              alt=""
+              aria-hidden="true"
+              width="224"
+              height="224"
+              loading="eager"
+              decoding="async"
+              class="rl-hero__leaf"
+            />
+          </span>
+          <div class="rl-hero__reviews">
+            <svg class="rl-hero__stars word" style="--word-index:1" viewBox="0 0 96 16" fill="none" aria-hidden="true">
+              <path
+                d="M 6.731 1.764 C 7.128 0.532 8.871 0.532 9.269 1.764 L 10.374 5.191 L 13.961 5.191 C 15.25 5.191 15.789 6.839 14.748 7.6 L 11.838 9.731 L 12.947 13.172 C 13.344 14.402 11.934 15.421 10.891 14.657 L 8 12.541 L 5.109 14.657 C 4.066 15.421 2.656 14.402 3.052 13.172 L 4.162 9.731 L 1.251 7.6 C 0.211 6.839 0.75 5.191 2.039 5.191 L 5.626 5.191 Z"
+                fill="currentColor"></path>
+              <path
+                d="M 26.731 1.764 C 27.128 0.532 28.872 0.532 29.269 1.764 L 30.374 5.191 L 33.961 5.191 C 35.25 5.191 35.788 6.839 34.748 7.6 L 31.838 9.731 L 32.947 13.172 C 33.344 14.402 31.934 15.421 30.891 14.657 L 28 12.541 L 25.109 14.657 C 24.066 15.421 22.656 14.402 23.052 13.172 L 24.162 9.731 L 21.251 7.6 C 20.211 6.839 20.75 5.191 22.039 5.191 L 25.626 5.191 Z"
+                fill="currentColor"></path>
+              <path
+                d="M 46.731 1.764 C 47.128 0.532 48.871 0.532 49.269 1.764 L 50.374 5.191 L 53.961 5.191 C 55.25 5.191 55.788 6.839 54.748 7.6 L 51.838 9.731 L 52.947 13.172 C 53.344 14.402 51.934 15.421 50.891 14.657 L 48 12.541 L 45.109 14.657 C 44.066 15.421 42.656 14.402 43.052 13.172 L 44.162 9.731 L 41.251 7.6 C 40.211 6.839 40.75 5.191 42.039 5.191 L 45.626 5.191 Z"
+                fill="currentColor"></path>
+              <path
+                d="M 66.731 1.764 C 67.128 0.532 68.871 0.532 69.269 1.764 L 70.374 5.191 L 73.961 5.191 C 75.25 5.191 75.788 6.839 74.748 7.6 L 71.838 9.731 L 72.947 13.172 C 73.344 14.402 71.934 15.421 70.891 14.657 L 68 12.541 L 65.109 14.657 C 64.066 15.421 62.656 14.402 63.052 13.172 L 64.162 9.731 L 61.251 7.6 C 60.211 6.839 60.75 5.191 62.039 5.191 L 65.626 5.191 Z"
+                fill="currentColor"></path>
+              <path
+                d="M 86.731 1.764 C 87.128 0.532 88.871 0.532 89.269 1.764 L 90.374 5.191 L 93.961 5.191 C 95.25 5.191 95.788 6.839 94.748 7.6 L 91.838 9.731 L 92.947 13.172 C 93.344 14.402 91.934 15.421 90.891 14.657 L 88 12.541 L 85.109 14.657 C 84.066 15.421 82.656 14.402 83.052 13.172 L 84.162 9.731 L 81.251 7.6 C 80.211 6.839 80.75 5.191 82.039 5.191 L 85.626 5.191 Z"
+                fill="currentColor"></path>
+            </svg>
+            <p class="rl-hero__rating-label word" style="--word-index:2">{ratingText}</p>
+          </div>
+          <span class="word rl-hero__leaf-wrap" style="--word-index:3">
+            <img
+              src="/assets/left.avif"
+              alt=""
+              aria-hidden="true"
+              width="224"
+              height="224"
+              loading="eager"
+              decoding="async"
+              class="rl-hero__leaf"
+            />
+          </span>
+        </div>
+
+        <!-- Title + description -->
+        <div class="rl-hero__title-block">
+          <h1 class="rl-hero__title">
+            <div
+              class="animated-text text-display-3 lg:text-display-2 rl-hero__title-text is-ready is-animated"
+              data-duration="0.6"
+              data-delay="0.4"
+              data-stagger="0.1"
+              style="--animated-text-duration:0.6s;--animated-text-delay:0.4s;--animated-text-stagger:0.1s;"
+            >
+              {/* prettier-ignore */}
+              {titleWords.map((word, i) => (<><span class="word" style={`--word-index:${i}`}>{word}</span>{i < titleWords.length - 1 ? " " : ""}</>))}
+            </div>
+          </h1>
+          <!-- Same word reveal as the Hero 1 paragraph: 0.6s duration, 0.9s
+               delay so it follows the headline, 0.03s stagger. -->
+          <p
+            class="rl-hero__description animated-text is-ready is-animated"
+            data-duration="0.6"
+            data-delay="1.2"
+            data-stagger="0.03"
+            style="--animated-text-duration:0.6s;--animated-text-delay:1.2s;--animated-text-stagger:0.03s;"
+          >
+            {/* prettier-ignore */}
+            {descriptionWords.map((word, i) => (<><span class="word" style={`--word-index:${i}`}>{word}</span>{i < descriptionWords.length - 1 ? " " : ""}</>))}
+          </p>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <a class="rl-hero__cta" href={ctaHref}>
+        <span class="rl-hero__cta-text">{ctaText}</span>
+        <span class="rl-hero__cta-badge" aria-hidden="true">
+          <span class="rl-hero__cta-arrows">
+            <svg class="rl-hero__cta-arrow rl-hero__cta-arrow--1" viewBox="0 0 20 20" fill="none">
+              <path
+                d="M4 10h11M10.5 5.5 15 10l-4.5 4.5"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+            <svg class="rl-hero__cta-arrow rl-hero__cta-arrow--2" viewBox="0 0 20 20" fill="none">
+              <path
+                d="M4 10h11M10.5 5.5 15 10l-4.5 4.5"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+          </span>
+        </span>
+      </a>
+    </div>
+
+    <!-- Floating card, left of the container -->
+    <div class="rl-hero__float rl-hero__float--left" data-aos="fade-right" data-aos-delay="250">
+      <div class="rl-hero__stat">
+        <span class="rl-hero__stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M16 19v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 17.5V19M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM20 19v-1.5a3.5 3.5 0 0 0-2.6-3.4M15.4 4.2a3.5 3.5 0 0 1 0 6.6"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+        </span>
+        <span class="rl-hero__stat-text">
+          <span class="rl-hero__stat-value">{leftStat}</span>
+          <span class="rl-hero__stat-label">{leftStatLabel}</span>
+        </span>
+      </div>
+      <div class="rl-hero__float-image">
+        <img src={leftImage} alt={leftImageAlt} width="148" height="180" loading="lazy" decoding="async" />
+      </div>
+    </div>
+
+    <!-- Floating card, right of the container -->
+    <div class="rl-hero__float rl-hero__float--right" data-aos="fade-left" data-aos-delay="250">
+      <div class="rl-hero__stat">
+        <span class="rl-hero__stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3.5 7.5A2.5 2.5 0 0 1 6 5h7a2.5 2.5 0 0 1 2.5 2.5v9A2.5 2.5 0 0 1 13 19H6a2.5 2.5 0 0 1-2.5-2.5v-9ZM15.5 10.5l3.4-2.3a.7.7 0 0 1 1.1.6v6.4a.7.7 0 0 1-1.1.6l-3.4-2.3"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+        </span>
+        <span class="rl-hero__stat-text">
+          <span class="rl-hero__stat-value">{rightStat}</span>
+          <span class="rl-hero__stat-label">{rightStatLabel}</span>
+        </span>
+      </div>
+      <div class="rl-hero__float-image">
+        <img src={rightImage} alt={rightImageAlt} width="148" height="180" loading="lazy" decoding="async" />
+        <span class="rl-hero__play" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 6.5v11l9-5.5-9-5.5Z"></path></svg>
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .rl-hero {
+    --rl-hero-black: #000;
+    --rl-hero-ink: #1d1d1d;
+    --rl-hero-muted: #575757;
+    --rl-hero-card-border: #e7e6e6;
+    --rl-hero-card-tile: #f4f4f4;
+    --rl-grid-line: rgba(0, 0, 0, 0.062);
+    --rl-grid-accent: rgba(0, 0, 0, 0.032);
+
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    place-content: center;
+    width: 100%;
+    padding: 120px 80px 160px;
+    overflow: clip;
+    background-color: #fff;
+  }
+
+  /* ===== Grid background ===== */
+  .rl-hero__grid {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(50% - 720px);
+    z-index: 0;
+    width: 1440px;
+    pointer-events: none;
+    user-select: none;
+    /* Same edge fade as the reference, plus a bottom fade so the grid dies out
+       before the section ends. */
+    -webkit-mask-image:
+      linear-gradient(270deg, transparent 0%, #000 14.6187%, #000 85%, transparent 100%),
+      linear-gradient(180deg, #000 0%, #000 58%, transparent 100%);
+    mask-image:
+      linear-gradient(270deg, transparent 0%, #000 14.6187%, #000 85%, transparent 100%),
+      linear-gradient(180deg, #000 0%, #000 58%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+
+  .rl-hero__grid svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ===== Layout ===== */
+  .rl-hero__container {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    place-content: center;
+    gap: 96px;
+    width: 100%;
+    max-width: 1280px;
+  }
+
+  .rl-hero__top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    place-content: center;
+    gap: 56px;
+    width: 100%;
+  }
+
+  .rl-hero__intro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    place-content: center;
+    gap: 24px;
+    width: 100%;
+  }
+
+  /* ===== Rating pill ===== */
+  .rl-hero__tag {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    place-content: center;
+    width: min-content;
+  }
+
+  /* Reveal wrapper. The .word animation drives this element's opacity 0 -> 1,
+     so the leaf's own 30% tint has to live on the image inside it. */
+  .rl-hero__leaf-wrap {
+    flex: none;
+    line-height: 0;
+  }
+
+  .rl-hero__leaf {
+    display: block;
+    width: 56px;
+    height: 56px;
+    aspect-ratio: 1;
+    object-fit: contain;
+    opacity: 0.3;
+  }
+
+  .rl-hero__reviews {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: min-content;
+  }
+
+  .rl-hero__stars {
+    flex: none;
+    width: 96px;
+    height: 16px;
+    color: var(--rl-hero-black);
+  }
+
+  .rl-hero__rating-label {
+    margin: 0;
+    white-space: pre;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    color: var(--rl-hero-ink);
+  }
+
+  /* ===== Title block ===== */
+  .rl-hero__title-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    place-content: center;
+    gap: 32px;
+    width: 100%;
+    max-width: 1026px;
+  }
+
+  /* Weight, leading and size scale match the Hero 1 headline. No italic,
+     no secondary/serif face - project font only. */
+  .rl-hero__title {
+    width: 100%;
+    margin: 0;
+    font-weight: 550;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    text-align: center;
+    color: var(--rl-hero-black);
+  }
+
+  /* The reveal wrapper is the element that lays out the text, so line
+     balancing has to live here rather than on the h1. */
+  .rl-hero__title-text {
+    text-wrap: balance;
+  }
+
+  .rl-hero__description {
+    width: 100%;
+    max-width: 580px;
+    margin: 0;
+    font-size: 20px;
+    line-height: 30px;
+    font-weight: 400;
+    text-align: center;
+    text-wrap: balance;
+    color: var(--rl-hero-muted);
+  }
+
+  /* ===== CTA button ===== */
+  .rl-hero__cta {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    place-content: center space-between;
+    width: min-content;
+    height: 48px;
+    padding: 14px 4px 14px 20px;
+    border-radius: 40px;
+    background-color: var(--rl-hero-black);
+    text-decoration: none;
+    cursor: pointer;
+    isolation: isolate;
+  }
+
+  .rl-hero__cta-text {
+    position: relative;
+    z-index: 2;
+    padding-right: 64px;
+    white-space: pre;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    color: #fff;
+    transition: color 0.3s ease;
+  }
+
+  /* Sized with four length insets (never `auto`) so the expand animates. */
+  .rl-hero__cta-badge {
+    position: absolute;
+    z-index: 0;
+    top: 4px;
+    right: 4px;
+    bottom: 4px;
+    left: calc(100% - 44px);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    place-content: center flex-end;
+    padding: 0 10.5px 0 0;
+    border-radius: 999px;
+    background-color: #fff;
+    transition:
+      top 0.35s cubic-bezier(0.44, 0, 0.56, 1),
+      right 0.35s cubic-bezier(0.44, 0, 0.56, 1),
+      bottom 0.35s cubic-bezier(0.44, 0, 0.56, 1),
+      left 0.35s cubic-bezier(0.44, 0, 0.56, 1),
+      padding 0.35s cubic-bezier(0.44, 0, 0.56, 1);
+  }
+
+  .rl-hero__cta-arrows {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    place-content: center;
+    width: 19px;
+    height: 19px;
+    overflow: hidden;
+  }
+
+  .rl-hero__cta-arrow {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 19px;
+    height: 19px;
+    aspect-ratio: 1;
+    color: var(--rl-hero-black);
+    transition: transform 0.35s cubic-bezier(0.44, 0, 0.56, 1);
+  }
+
+  .rl-hero__cta-arrow--1 {
+    left: 0;
+    transform: translateX(0);
+  }
+
+  .rl-hero__cta-arrow--2 {
+    left: 0;
+    transform: translateX(-42px);
+  }
+
+  /* Hover: the white badge expands across the button, arrows slide right */
+  .rl-hero__cta:hover .rl-hero__cta-badge,
+  .rl-hero__cta:focus-visible .rl-hero__cta-badge {
+    top: 2px;
+    right: 2px;
+    bottom: 2px;
+    left: 2px;
+    padding: 0 20px 0 0;
+  }
+
+  .rl-hero__cta:hover .rl-hero__cta-text,
+  .rl-hero__cta:focus-visible .rl-hero__cta-text {
+    color: var(--rl-hero-black);
+  }
+
+  .rl-hero__cta:hover .rl-hero__cta-arrow--1,
+  .rl-hero__cta:focus-visible .rl-hero__cta-arrow--1 {
+    transform: translateX(42px);
+  }
+
+  .rl-hero__cta:hover .rl-hero__cta-arrow--2,
+  .rl-hero__cta:focus-visible .rl-hero__cta-arrow--2 {
+    transform: translateX(0);
+  }
+
+  .rl-hero__cta:focus-visible {
+    outline: 2px solid var(--rl-hero-black);
+    outline-offset: 3px;
+  }
+
+  /* ===== Floating side cards ===== */
+  .rl-hero__float {
+    position: absolute;
+    z-index: 1;
+    display: none;
+    flex-direction: row;
+    align-items: center;
+    place-content: center;
+    gap: 10px;
+    width: min-content;
+  }
+
+  .rl-hero__float--left {
+    top: 59px;
+    left: 40px;
+  }
+
+  .rl-hero__float--right {
+    top: 121px;
+    right: -40px;
+  }
+
+  .rl-hero__stat {
+    position: absolute;
+    z-index: 2;
+    bottom: 20px;
+    left: -75px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    width: 163px;
+    padding: 8px;
+    border: 1px solid var(--rl-hero-card-border);
+    border-radius: 12px;
+    background-color: #fff;
+  }
+
+  .rl-hero__stat-icon {
+    flex: none;
+    display: flex;
+    align-items: center;
+    place-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background-color: var(--rl-hero-card-tile);
+    color: var(--rl-hero-muted);
+  }
+
+  .rl-hero__stat-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .rl-hero__stat-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 0;
+    width: 1px;
+  }
+
+  .rl-hero__stat-value {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    color: var(--rl-hero-black);
+  }
+
+  .rl-hero__stat-label {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    overflow-wrap: break-word;
+    color: var(--rl-hero-muted);
+  }
+
+  .rl-hero__float-image {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    width: 148px;
+    height: 180px;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .rl-hero__float-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .rl-hero__play {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    place-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.92);
+    color: var(--rl-hero-black);
+  }
+
+  .rl-hero__play svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* The reference only shows these on the widest breakpoint. */
+  @media (min-width: 1440px) {
+    .rl-hero__float {
+      display: flex;
+    }
+  }
+
+  /* ===== Tablet ===== */
+  @media (min-width: 810px) and (max-width: 1439.98px) {
+    .rl-hero {
+      padding: 96px 40px 96px;
+    }
+
+    .rl-hero__container {
+      gap: 56px;
+      max-width: 900px;
+    }
+
+    .rl-hero__grid {
+      width: auto;
+      left: 0;
+      right: 0;
+    }
+
+    .rl-hero__description {
+      font-size: 18px;
+      line-height: 26px;
+    }
+  }
+
+  /* ===== Mobile ===== */
+  @media (max-width: 809.98px) {
+    .rl-hero {
+      padding: 72px 16px 48px;
+    }
+
+    .rl-hero__container {
+      gap: 40px;
+      max-width: 400px;
+    }
+
+    .rl-hero__grid {
+      width: auto;
+      left: 0;
+      right: 0;
+    }
+
+    .rl-hero__top {
+      gap: 40px;
+    }
+
+    .rl-hero__title-block {
+      gap: 24px;
+    }
+
+    .rl-hero__description {
+      font-size: 16px;
+      line-height: 24px;
+    }
+
+    .rl-hero__leaf {
+      width: 44px;
+      height: 44px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rl-hero__cta-badge,
+    .rl-hero__cta-arrow,
+    .rl-hero__cta-text {
+      transition: none;
+    }
+  }
+</style>

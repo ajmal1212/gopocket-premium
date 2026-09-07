@@ -185,19 +185,34 @@ const referParam = Astro.url.searchParams.get("refer") || "";
     <!-- Banner Image -->
     <div class="relative mx-6 mt-12 hidden max-w-425 rounded-b-[6.25rem] md:m-0 md:mx-auto md:mt-20 md:block">
       <div class="banner-image container" style="zoom: 1;">
-        <img
-          src="/assets/images/gopocket/Gopocket%20Home.webp"
-          alt="GoPocket trading platform dashboard"
-          loading="eager"
-          decoding="sync"
-          fetchpriority="high"
-          data-astro-image="constrained"
-          data-astro-image-fit="cover"
-          data-astro-image-pos="center"
-          width="1320"
-          height="761"
-          class="mx-auto rounded-3xl border-8 border-white/35 md:rounded-[2.25rem] md:border-[1.25rem]"
-        />
+        <!--
+          Desktop-only, and deliberately so: the box above is `hidden md:block`.
+          But `display: none` does not cancel a fetch, and this carried
+          fetchpriority="high" - so a phone spent top-priority bandwidth on
+          pixels it never paints, queued ahead of figtree.woff2. The hero h1 is
+          this page's LCP element and it waits on that font, so those bytes were
+          being paid for twice.
+
+          The <source> keeps desktop byte-for-byte identical; a phone matches no
+          source and loads the 43-byte blank instead. `display: contents` on the
+          <picture> means it creates no box, so the layout is unchanged.
+        -->
+        <picture style="display: contents">
+          <source media="(min-width: 768px)" srcset="/assets/images/gopocket/Gopocket%20Home.webp" />
+          <img
+            src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+            alt="GoPocket trading platform dashboard"
+            loading="eager"
+            decoding="sync"
+            fetchpriority="high"
+            data-astro-image="constrained"
+            data-astro-image-fit="cover"
+            data-astro-image-pos="center"
+            width="1320"
+            height="761"
+            class="mx-auto rounded-3xl border-8 border-white/35 md:rounded-[2.25rem] md:border-[1.25rem]"
+          />
+        </picture>
       </div>
       <script>
         const heroSec = document.querySelector<HTMLElement>(".home-hero");
@@ -524,19 +539,34 @@ const referParam = Astro.url.searchParams.get("refer") || "";
         >
           <path d="M0.5 0.5L457 457L913.5 0.5" stroke="currentColor"></path>
         </svg>
-        <img
-          src="/assets/images/hero-bg-4.webp"
-          alt=""
-          loading="eager"
-          decoding="async"
-          fetchpriority="high"
-          data-astro-image="constrained"
-          data-astro-image-fit="cover"
-          data-astro-image-pos="center"
-          width="640"
-          height="620"
-          class="hero-backdrop-image hidden h-full w-full object-cover opacity-80 mix-blend-multiply md:block"
-        />
+        <!--
+          Desktop-only, and deliberately so: the box above is `hidden md:block`.
+          But `display: none` does not cancel a fetch, and this carried
+          fetchpriority="high" - so a phone spent top-priority bandwidth on
+          pixels it never paints, queued ahead of figtree.woff2. The hero h1 is
+          this page's LCP element and it waits on that font, so those bytes were
+          being paid for twice.
+
+          The <source> keeps desktop byte-for-byte identical; a phone matches no
+          source and loads the 43-byte blank instead. `display: contents` on the
+          <picture> means it creates no box, so the layout is unchanged.
+        -->
+        <picture style="display: contents">
+          <source media="(min-width: 768px)" srcset="/assets/images/hero-bg-4.webp" />
+          <img
+            src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+            alt=""
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+            data-astro-image="constrained"
+            data-astro-image-fit="cover"
+            data-astro-image-pos="center"
+            width="640"
+            height="620"
+            class="hero-backdrop-image hidden h-full w-full object-cover opacity-80 mix-blend-multiply md:block"
+          />
+        </picture>
         <div class="hero-backdrop-glow to-primary absolute inset-0 -z-10 bg-linear-to-b from-transparent"></div>
       </div>
     </div>

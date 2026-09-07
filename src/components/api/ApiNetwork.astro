@@ -9,18 +9,28 @@
  * component held this slot before and still holds the same h1 and CTAs.
  *
  * ASSETS
- *   /assets/flow.webm   the animation
- *   /assets/flow.mp4    same, for browsers that will not take webm
- *   /assets/flow.png    still first frame — the video's poster, so it stands in
- *                       until the video is ready and stays put for anyone on
- *                       reduced motion
- *   /assets/center.png  the node badge, 182x183
+ *   /assets/flow.webm         the animation
+ *   /assets/flow.mp4          same, for browsers that will not take webm
+ *   /assets/flow-poster.webp  still first frame — the video's poster, so it
+ *                             stands in until the video is ready and stays put
+ *                             for anyone on reduced motion. Derived from
+ *                             flow.png (1729x1080, kept as the master); the
+ *                             1400px webp is a tenth of its weight and this
+ *                             sits several viewports down
+ *   /assets/center.webp       the node badge, drawn at 92x93
  *
- * All three assets are 8:5 — video and mp4 at 2400x1500, the poster at
- * 1729x1080 — so one ratio drives the whole stage.
+ * All of it is 8:5 — video and mp4 at 2400x1500, the poster at 1400x874 — so
+ * one ratio drives the whole stage.
+ *
+ * THE VIDEO IS NOT FETCHED UNTIL IT IS NEARLY IN VIEW
+ * The sources carry `data-src`, not `src`, and are promoted by the script at
+ * the foot of this file. The band is a long way down the homepage, and its
+ * bytes were arriving during the initial burst where they crowded out the
+ * hero's webfont — which is what that page's LCP heading waits on. The poster
+ * is a real attribute, so there is always a still to rest on.
  *
  * WHY THE BADGE IS A SEPARATE LAYER
- * flow.png leaves a void at its centre for the badge to fill — measured at
+ * The artwork leaves a void at its centre for the badge to fill — measured at
  * x 831-898, y 384-439 of the 1729x1080 frame, which puts the node's centre at
  * exactly 50% across and 38.1% down. Those two numbers are the whole alignment
  * contract; if the assets are ever re-exported, re-measure them.
@@ -55,20 +65,28 @@ const endpoints: Endpoint[] = [
     <video
       class="apin-flow"
       data-apin-video
-      poster="/assets/flow.png"
-      autoplay
+      poster="/assets/flow-poster.webp"
       loop
       muted
       playsinline
-      preload="metadata"
+      preload="none"
       width="2400"
       height="1500"
     >
-      <source src="/assets/flow.webm" type="video/webm" />
-      <source src="/assets/flow.mp4" type="video/mp4" />
+      <source data-src="/assets/flow.webm" type="video/webm" />
+      <source data-src="/assets/flow.mp4" type="video/mp4" />
     </video>
 
-    <img class="apin-node" src="/assets/center.png" alt="" width="182" height="183" decoding="async" />
+    <img
+      class="apin-node"
+      src="/assets/center.webp"
+      alt=""
+      width="182"
+      height="183"
+      loading="lazy"
+      decoding="async"
+      fetchpriority="low"
+    />
   </div>
 
   <div class="container apin-content">
@@ -249,10 +267,11 @@ const endpoints: Endpoint[] = [
     object-fit: contain;
   }
 
-  /* Centre taken from the void in flow.png. Percentages are of the uncropped
+  /* Centre taken from the void in the flow artwork. Percentages are of the uncropped
      artwork box, so these hold at every viewport.
 
-     center.png is a 2x export: at its nominal 182/1729 = 10.53% it renders at
+     The badge art is exported well above its drawn size: at a nominal
+     182/1729 = 10.53% it renders at
      twice the size the artwork is drawn for and swamps the point the traces
      meet. 6.4% is ~111px against the 67px void — comfortably over the trace
      ends without dominating the fan. */
@@ -294,24 +313,59 @@ const endpoints: Endpoint[] = [
 <script>
   /* Reduced motion cannot be honoured in CSS for a video, so it is done here:
      pausing drops back to the poster, which is the same still the video starts
-     on. Autoplay stays in the markup, so the animation still runs if this
-     never executes. */
+     on.
+
+     The clip is also not fetched until the band is nearly on screen. It sits
+     several viewports below the fold, and on a slow connection its bytes were
+     competing with the hero's own webfont — which is what the homepage's LCP
+     text waits on. Hence `preload="none"` and `data-src` on the sources: the
+     poster is a real attribute, so there is always a still to rest on, and
+     under reduced motion the video is never fetched at all. */
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
   const videos = Array.from(document.querySelectorAll<HTMLVideoElement>("[data-apin-video]"));
 
-  function applyMotionPreference() {
+  /** Promotes `data-src` to `src` and kicks off the load. Idempotent. */
+  function hydrate(video: HTMLVideoElement) {
+    if (video.dataset.apinLoaded) return;
+    video.dataset.apinLoaded = "1";
+    for (const source of Array.from(video.querySelectorAll<HTMLSourceElement>("source[data-src]"))) {
+      source.src = source.dataset.src!;
+      source.removeAttribute("data-src");
+    }
+    video.load();
+  }
+
+  function play(video: HTMLVideoElement) {
+    // A rejected play() is normal — a browser can refuse autoplay outright,
+    // and the poster is a fine resting state.
+    void video.play().catch(() => {});
+  }
+
+  if (!reduce.matches) {
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          obs.unobserve(entry.target);
+          hydrate(entry.target as HTMLVideoElement);
+          play(entry.target as HTMLVideoElement);
+        }
+      },
+      // Wide enough that the clip is decoded and running before it is scrolled to.
+      { rootMargin: "600px 0px" },
+    );
+    for (const video of videos) observer.observe(video);
+  }
+
+  reduce.addEventListener("change", () => {
     for (const video of videos) {
       if (reduce.matches) {
         video.pause();
         video.currentTime = 0;
       } else {
-        // A rejected play() is normal — a browser can refuse autoplay outright,
-        // and the poster is a fine resting state.
-        void video.play().catch(() => {});
+        hydrate(video);
+        play(video);
       }
     }
-  }
-
-  applyMotionPreference();
-  reduce.addEventListener("change", applyMotionPreference);
+  });
 </script>

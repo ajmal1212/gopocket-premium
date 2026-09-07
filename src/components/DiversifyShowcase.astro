@@ -124,14 +124,7 @@ const slides: Slide[] = [
             {
               slides.map((slide, i) => (
                 <div class="dv-slide" data-dv-slide data-pos="hidden">
-                  <img
-                    src={slide.img}
-                    alt={slide.alt}
-                    width="1280"
-                    height="720"
-                    loading={i === 0 ? "eager" : "lazy"}
-                    decoding="async"
-                  />
+                  <img src={slide.img} alt={slide.alt} width="1280" height="720" loading="lazy" decoding="async" />
                 </div>
               ))
             }

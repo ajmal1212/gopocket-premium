@@ -272,15 +272,26 @@
     });
   }
 
-  // Load once the browser is idle so the chat bundle never competes with the
-  // page's own render; any early interaction pulls it in sooner.
-  if ("requestIdleCallback" in window) {
-    requestIdleCallback(() => void startChat(), { timeout: 4000 });
-  } else {
-    setTimeout(() => void startChat(), 2500);
-  }
+  /* The n8n bundle is ~500 KB over the wire, comfortably the largest single
+     asset on the site. requestIdleCallback reached idle a second or two after
+     load, which put all of it on the wire while the hero was still waiting on
+     figtree.woff2 — the font the LCP heading swaps to — and its evaluation was
+     most of the page's blocking time.
 
-  ["pointerdown", "keydown", "touchstart"].forEach((event) =>
-    window.addEventListener(event, () => void startChat(), { once: true, passive: true }),
-  );
+     So it is gated on intent instead. Any scroll, tap, key or pointer movement
+     pulls it in, which in practice means a real visitor still gets the bubble
+     within a moment of touching the page. The timer below is only a backstop
+     for someone who loads the page and does nothing at all. */
+  const TRIGGERS = ["pointerdown", "pointermove", "keydown", "touchstart", "scroll", "wheel"] as const;
+
+  const open = () => {
+    for (const event of TRIGGERS) window.removeEventListener(event, open);
+    void startChat();
+  };
+
+  for (const event of TRIGGERS) window.addEventListener(event, open, { passive: true });
+
+  // Backstop only, for a visitor who never touches the page at all. Long
+  // enough that it never lands inside the window the page is measured over.
+  setTimeout(open, 15000);
 </script>

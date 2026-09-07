@@ -73,8 +73,16 @@
           <div class="tfc-mock">
             <div class="tfc-frame">
               <div class="tfc-screen">
-                <video autoplay loop muted playsinline preload="metadata" width="1080" height="1920">
-                  <source src="/assets/images/trade-from-chart.webm" type="video/webm" />
+                <!--
+                  `preload="none"` + `data-src`: at 674 KB this clip was the
+                  second-heaviest thing on the homepage and it was being pulled
+                  during the initial burst, competing with the hero's webfont.
+                  It is fetched a viewport early instead (see the script below);
+                  until then `.tfc-screen`'s white background is the resting
+                  state, which is what the aperture is painted for anyway.
+                -->
+                <video loop muted playsinline preload="none" width="1080" height="1920" data-tfc-video>
+                  <source data-src="/assets/images/trade-from-chart.webm" type="video/webm" />
                 </video>
               </div>
               <img
@@ -228,3 +236,46 @@
     height: auto;
   }
 </style>
+
+<script>
+  /* Pulls the Trade-from-Chart clip in a viewport before it is reached, rather
+     than during the initial page burst where its 674 KB were crowding out the
+     hero's webfont. Reduced motion never fetches it at all — the aperture's
+     white background stands in, as it does before any load completes. */
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  /* Observation only starts once the page has loaded. The card sits barely a
+     viewport down, so any rootMargin wide enough to have the clip ready before
+     it is scrolled to also matches on first paint — which is exactly the burst
+     this was moved out of. Waiting for `load` decouples the two: nothing
+     competes with the hero, and the moment the page is done the clip is
+     fetched, long before a reader gets there. */
+  const startObserving = () => {
+    if (reduce.matches) return;
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          obs.unobserve(entry.target);
+
+          const video = entry.target as HTMLVideoElement;
+          for (const source of Array.from(video.querySelectorAll<HTMLSourceElement>("source[data-src]"))) {
+            source.src = source.dataset.src!;
+            source.removeAttribute("data-src");
+          }
+          video.load();
+          // A rejected play() is normal — a browser can refuse autoplay outright.
+          void video.play().catch(() => {});
+        }
+      },
+      { rootMargin: "1000px 0px" },
+    );
+
+    for (const video of Array.from(document.querySelectorAll<HTMLVideoElement>("[data-tfc-video]"))) {
+      observer.observe(video);
+    }
+  };
+
+  if (document.readyState === "complete") startObserving();
+  else window.addEventListener("load", startObserving, { once: true });
+</script>

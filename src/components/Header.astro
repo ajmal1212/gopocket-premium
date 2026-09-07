@@ -5,6 +5,13 @@ interface Props {
   currentPath?: string;
 }
 const { currentPath = "/" } = Astro.props;
+
+/**
+ * The Pages dropdown is parked, not removed: its entries are template demo
+ * routes rather than anything the site needs in its main nav. Flip this to
+ * true to bring the menu - and every link under it - back.
+ */
+const showPagesMenu = false;
 ---
 
 <header class="header group/header mt-5 sticky-header">
@@ -205,7 +212,9 @@ const { currentPath = "/" } = Astro.props;
               </div>
             </div>
           </div>
-        </li><li
+        </li>
+        {showPagesMenu && (
+        <li
           class="hs-dropdown nav-dropdown group [--auto-close:inside] [--offset:0px] nav-item relative lg:[--strategy:absolute]"
         >
           <span
@@ -322,7 +331,9 @@ const { currentPath = "/" } = Astro.props;
               <a href="/terms-and-conditions" class="nav-dropdown-link block"> Terms &amp; Conditions </a>
             </li>
           </ul>
-        </li><li class="nav-item">
+        </li>
+        )}
+        <li class="nav-item">
           <a href="/partner-with-us" class={`nav-link whitespace-nowrap ${currentPath === "/partner-with-us" || currentPath === "/partner-with-us/" ? "nav-link-active" : ""}`}
             >Partner With Us<span class="badge badge-accent whitespace-nowrap">NEW</span></a
           >

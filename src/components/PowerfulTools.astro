@@ -54,24 +54,40 @@
         data-aos-delay="450"
         class="bg-theme-light flex flex-col justify-between rounded-4xl sm:col-span-3 aos-init aos-animate"
       >
-        <img
-          src="/assets/images/collaboration-3.webp"
-          srcset="/assets/images/collaboration-3.webp 559w, /assets/images/collaboration-6.webp 640w, /assets/images/collaboration-4.webp 750w, /assets/images/collaboration-5.webp 828w, /assets/images/collaboration-1.webp 1080w, /assets/images/collaboration-2.webp 1118w"
-          alt="3-in-1 Account"
-          loading="lazy"
-          decoding="async"
-          fetchpriority="low"
-          sizes="(min-width: 559px) 559px, 100vw"
-          data-astro-image="constrained"
-          data-astro-image-fit="cover"
-          data-astro-image-pos="center"
-          width="559"
-          height="326"
-          class="mx-auto block order-2 pt-6 lg:pt-12"
-        />
+        <!--
+          Phone mock-up. Same artwork and the same measured geometry as
+          OrderPlacement's `.ofh-mock`: phone-frame.webp (500x1017) has a
+          transparent screen, so it goes OVER the video and masks it to the
+          rounded aperture while drawing the bezel and the status bar on top.
+          The video runs at full aperture width, flush with the top of the
+          screen so it carries under the status bar, which at 1080x1920 makes it
+          800 tall; the card crops the frame well above that, so the phone runs
+          off the card and only the top of the clip is on screen.
+        -->
+        <div class="order-2 pt-6 lg:pt-12">
+          <div class="tfc-mock">
+            <div class="tfc-frame">
+              <div class="tfc-screen">
+                <video autoplay loop muted playsinline preload="metadata" width="1080" height="1920">
+                  <source src="/assets/images/trade-from-chart.webm" type="video/webm" />
+                </video>
+              </div>
+              <img
+                class="tfc-bezel"
+                src="/assets/images/order-flow/phone-frame.webp"
+                alt="Trade from Chart"
+                loading="lazy"
+                decoding="async"
+                fetchpriority="low"
+                width="500"
+                height="1017"
+              />
+            </div>
+          </div>
+        </div>
         <div class="space-y-4 order-1 py-6 lg:pt-12 px-6 lg:px-12">
-          <h3 class="h4">3-in-1 Account</h3>
-          <p>One account links your trading, demat and bank — funds move in seconds.</p>
+          <h3 class="h4">Trade from Chart</h3>
+          <p>Analyze, decide, and place trades directly from the chart — all in one seamless experience.</p>
         </div>
       </div>
       <div
@@ -152,3 +168,64 @@
     </div>
   </div>
 </section>
+
+<style>
+  /* Trade from Chart mock-up. Aperture geometry is measured off
+     phone-frame.webp and matches OrderPlacement's `.ofh-screen`: the screen is
+     450x975 at (26, 23) in the artwork's 500x1017 space, and its status-bar
+     glyphs end at y=78. */
+
+  .tfc-mock {
+    width: 100%;
+    max-width: 20rem;
+    margin-inline: auto;
+    overflow: hidden;
+    /* Cuts the frame off at y=508, so the phone runs off the bottom of the card
+       and the clip — 800 tall at this width — shows only its top ~430px. */
+    aspect-ratio: 500 / 508;
+  }
+
+  .tfc-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 500 / 1017;
+  }
+
+  /* Over the video, not under it: the mockup's screen is transparent, so the
+     bezel is what masks the clip to the rounded screen and draws the buttons,
+     the status bar and the home indicator on top of it. */
+  .tfc-bezel {
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+  }
+
+  /* White under the whole aperture, so the status bar glyphs sit on
+     app-coloured ground rather than on the card. */
+  .tfc-screen {
+    position: absolute;
+    left: 5.2%;
+    top: 2.2615%;
+    width: 90%;
+    height: 95.8702%;
+    z-index: 1;
+    overflow: hidden;
+    /* Set a little tighter than the artwork's squircle: erring inwards hides
+       the difference under the opaque bezel. 12% of 450 and 5.5% of 975 are
+       both about 54px, so it tracks the mockup at any size. */
+    border-radius: 12% / 5.5%;
+    background-color: #ffffff;
+  }
+
+  .tfc-screen video {
+    position: absolute;
+    left: 0;
+    top: 0; /* flush with the top of the aperture, under the status bar */
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>

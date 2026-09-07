@@ -16,18 +16,26 @@ const posts = await getBlogPosts(3);
               data-duration="0.6"
               data-delay="0.2"
               data-stagger="0.09"
-              style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+              style="font-weight: 600; --animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
             >
               {/* Inside a JSX expression Astro collapses the newlines between
                   these spans, so the word gaps must be explicit. */}
-              <span class="word" style="--word-index:0">Latest</span>{" "}
-              <span class="word" style="--word-index:1">Insights</span>{" "}
-              <span class="word" style="--word-index:2">From</span>{" "}
+              <span class="word" style="--word-index:0">
+                Latest
+              </span>{" "}
+              <span class="word" style="--word-index:1">
+                Insights
+              </span>{" "}
+              <span class="word" style="--word-index:2">
+                From
+              </span>{" "}
               <span class="word" style="--word-index:3">
                 <strong>Our</strong>
               </span>{" "}
               <strong>
-                <span class="word" style="--word-index:4">Expert</span>
+                <span class="word" style="--word-index:4">
+                  Expert
+                </span>
               </strong>
             </div>
           </h2>
@@ -79,7 +87,9 @@ const posts = await getBlogPosts(3);
                   <span class="bg-dark inline-block h-1 w-1 rounded-full" />
                   <span class="text-inherit">{post.category}</span>
                 </div>
-                <h3 class="text-base md:text-lg font-semibold leading-snug mb-3 text-gray-900 dark:text-white">{post.title}</h3>
+                <h3 class="text-base md:text-lg font-semibold leading-snug mb-3 text-gray-900 dark:text-white">
+                  {post.title}
+                </h3>
                 <a
                   class="btn btn-outline text-flip-hover-anim btn-sm btn-outline-white mt-3 capitalize"
                   href={`/blog/${post.slug}`}

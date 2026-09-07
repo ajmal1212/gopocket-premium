@@ -292,12 +292,6 @@ const steps: Step[] = [
 
           <!-- Right: what the app is doing, in glass. -->
           <div class="ofh-side">
-            <!-- The colour the glass refracts. A frosted panel over an empty
-                 white page is just a white panel; this orb sits behind the
-                 stack and peeks out under the last one, so the blur has
-                 something to do and the panels read as glass. -->
-            <span class="ofh-orb" aria-hidden="true"></span>
-
             <div class="ofh-glass ofh-live" data-op-panel="0">
               <span class="ofh-dot" aria-hidden="true"></span>
               <span>Live · NSE + BSE</span>
@@ -807,33 +801,6 @@ const steps: Step[] = [
       z-index: 1;
     }
 
-    /* Two blurred radial washes rather than one flat circle: a deep violet
-       high on the left and a magenta low on the right, which is the gradient
-       the reference's orb runs through. Sized in rem so it scales with the
-       panels, and pushed below the last one so part of it shows. */
-    .is-pinned .ofh-orb {
-      position: absolute;
-      left: 12%;
-      bottom: -2.75rem;
-      z-index: 0;
-      width: 13.5rem;
-      height: 13.5rem;
-      pointer-events: none;
-      border-radius: 50%;
-      background-image:
-        radial-gradient(closest-side, #5d2883 0%, color-mix(in oklab, #5d2883 0%, transparent) 100%),
-        radial-gradient(closest-side, #e07cc8 0%, color-mix(in oklab, #e07cc8 0%, transparent) 100%);
-      background-size:
-        80% 80%,
-        68% 68%;
-      background-position:
-        26% 20%,
-        74% 80%;
-      background-repeat: no-repeat;
-      filter: blur(18px);
-      opacity: 0.9;
-    }
-
     /* The same glass as the header's Sign In / Learn dropdowns — 55% white, a
        hairline in the site's border colour, and the same blur, saturation and
        drop shadow. Copied as numbers rather than shared, because those rules
@@ -853,7 +820,7 @@ const steps: Step[] = [
       box-shadow: 0 24px 48px -20px rgba(16, 18, 28, 0.28);
       color: var(--color-dark);
 
-      /* Above the orb, so the panel frosts it rather than hiding under it. */
+      /* Own stacking context, so the panels layer over the column cleanly. */
       position: relative;
       z-index: 1;
 

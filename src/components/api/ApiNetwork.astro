@@ -68,14 +68,7 @@ const endpoints: Endpoint[] = [
       <source src="/assets/flow.mp4" type="video/mp4" />
     </video>
 
-    <img
-      class="apin-node"
-      src="/assets/center.png"
-      alt=""
-      width="182"
-      height="183"
-      decoding="async"
-    />
+    <img class="apin-node" src="/assets/center.png" alt="" width="182" height="183" decoding="async" />
   </div>
 
   <div class="container apin-content">
@@ -91,8 +84,7 @@ const endpoints: Endpoint[] = [
         >
         </div>
         <div class="flex items-center rounded-full bg-white px-1 py-0.5">
-          <span
-            class="bg-dark inline-block gap-1 rounded-full px-3 py-1 text-sm font-normal text-white"
+          <span class="bg-dark inline-block gap-1 rounded-full px-3 py-1 text-sm font-normal text-white"
             >Developers</span
           >
           <div class="text-text-default ms-3 flex items-center rounded-full py-px pr-2 font-normal">
@@ -107,22 +99,19 @@ const endpoints: Endpoint[] = [
           data-duration="0.6"
           data-delay="0.2"
           data-stagger="0.09"
-          style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+          style="font-weight: 600; --animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
         >
           <span class="word" style="--word-index:0">One</span>
           <span class="word" style="--word-index:1">Integration,</span>
-          <span class="word" style="--word-index:2">The</span>
+          <span class="word" style="--word-index:2">One</span>
           <strong>
-            <span class="word" style="--word-index:3">Whole</span>
-            <span class="word" style="--word-index:4">Platform</span>
+            <span class="word" style="--word-index:3">API</span>
           </strong>
         </div>
       </h1>
 
       <p class="text-text-default mx-auto max-w-xl opacity-80 md:text-lg/relaxed">
-        Orders, live feed, portfolio, candles and statements all sit behind the
-        same key and the same base URL. Wire it in once and every segment you
-        trade is reachable from your code.
+        Orders, live feed, holdings, historical data all in the same key and the same base URL.
       </p>
 
       <div
@@ -238,20 +227,8 @@ const endpoints: Endpoint[] = [
        are crisp, the new top edge is soft rather than cut, and the tail is down
        to about a fifth of its strength by the time it reaches the headline.
        Widening the lower window is what let the tail run through the text. */
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      transparent 8%,
-      #000 19%,
-      #000 44%,
-      transparent 58%
-    );
-    mask-image: linear-gradient(
-      to bottom,
-      transparent 8%,
-      #000 19%,
-      #000 44%,
-      transparent 58%
-    );
+    -webkit-mask-image: linear-gradient(to bottom, transparent 8%, #000 19%, #000 44%, transparent 58%);
+    mask-image: linear-gradient(to bottom, transparent 8%, #000 19%, #000 44%, transparent 58%);
   }
 
   @media (max-width: 767px) {
@@ -320,9 +297,7 @@ const endpoints: Endpoint[] = [
      on. Autoplay stays in the markup, so the animation still runs if this
      never executes. */
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const videos = Array.from(
-    document.querySelectorAll<HTMLVideoElement>("[data-apin-video]"),
-  );
+  const videos = Array.from(document.querySelectorAll<HTMLVideoElement>("[data-apin-video]"));
 
   function applyMotionPreference() {
     for (const video of videos) {

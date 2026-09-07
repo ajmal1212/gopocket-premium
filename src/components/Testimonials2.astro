@@ -96,6 +96,7 @@ const rows = [
         data-delay="0.2"
         data-stagger="0.09"
         class="has-italic-text capitalize max-w-lg animated-text text-4xl md:text-5xl font-medium"
+        style="font-weight: 600; --animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
       >
         <span>Customers</span>
         <strong><span>First</span></strong>
@@ -145,47 +146,51 @@ const rows = [
               {[...row.items, ...row.items].map((testimonial, index) => {
                 const isDuplicate = index >= row.items.length;
                 return (
-                <div class="w-[340px] md:w-[420px] shrink-0" aria-hidden={isDuplicate ? "true" : undefined}>
-                  <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 shadow-xs">
-                    <div class="space-y-3">
-                      <div class="flex shrink-0 items-center space-x-1 text-yellow-500" role="img" aria-label="Rated 5 out of 5">
-                        {Array.from({ length: 5 }).map(() => (
-                          <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                        ))}
-                      </div>
-                      {/* Quotes run from one line to a full paragraph. The box is a fixed five
+                  <div class="w-[340px] md:w-[420px] shrink-0" aria-hidden={isDuplicate ? "true" : undefined}>
+                    <div class="flex h-full flex-col justify-between rounded-2xl border border-border-light bg-theme-light p-6 shadow-xs">
+                      <div class="space-y-3">
+                        <div
+                          class="flex shrink-0 items-center space-x-1 text-yellow-500"
+                          role="img"
+                          aria-label="Rated 5 out of 5"
+                        >
+                          {Array.from({ length: 5 }).map(() => (
+                            <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          ))}
+                        </div>
+                        {/* Quotes run from one line to a full paragraph. The box is a fixed five
                           lines tall (5 x 1.625 leading-relaxed = 8.125em, so it tracks the
                           text-base -> text-lg step on its own) plus a 12px strip for the
                           scroll fade, so all five lines stay crisp; longer quotes scroll
                           inside it, which keeps every card the same height.
                           tabindex only on the real cards — the marquee's duplicate copies are
                           aria-hidden and must not be focus stops. */}
-                      <blockquote
-                        class="testimonial-quote h-[calc(8.125em+0.75rem)] overflow-y-auto pr-3 text-base md:text-lg leading-relaxed text-gray-800"
-                        tabindex={isDuplicate ? undefined : 0}
-                      >
-                        "{testimonial.quote}"
-                      </blockquote>
-                    </div>
-                    <div class="mt-4 flex shrink-0 items-center gap-4 pt-4 border-t border-gray-200/60">
-                      <img
-                        src={testimonial.image}
-                        alt={`${testimonial.name} - GoPocket customer`}
-                        width="48"
-                        height="48"
-                        loading="lazy"
-                        decoding="async"
-                        class="h-12 w-12 rounded-full object-cover border"
-                      />
-                      <div>
-                        <div class="text-base font-semibold text-gray-900">{testimonial.name}</div>
-                        <p class="text-xs text-gray-500">{testimonial.location}</p>
+                        <blockquote
+                          class="testimonial-quote h-[calc(8.125em+0.75rem)] overflow-y-auto pr-3 text-base md:text-lg leading-relaxed text-gray-800"
+                          tabindex={isDuplicate ? undefined : 0}
+                        >
+                          "{testimonial.quote}"
+                        </blockquote>
+                      </div>
+                      <div class="mt-4 flex shrink-0 items-center gap-4 pt-4 border-t border-gray-200/60">
+                        <img
+                          src={testimonial.image}
+                          alt={`${testimonial.name} - GoPocket customer`}
+                          width="48"
+                          height="48"
+                          loading="lazy"
+                          decoding="async"
+                          class="h-12 w-12 rounded-full object-cover border"
+                        />
+                        <div>
+                          <div class="text-base font-semibold text-gray-900">{testimonial.name}</div>
+                          <p class="text-xs text-gray-500">{testimonial.location}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
                 );
               })}
             </div>

@@ -249,6 +249,31 @@ const slides: Slide[] = [
     }
   }
 
+  /* A laptop screen is short before it is narrow. Rather than let the height
+     cap above shrink the card on every 1280x800 display, the tableau gives up
+     its own slack first: less headroom, tighter margins, less padding. */
+  @media (max-height: 860px) {
+    .dv-track {
+      --dv-top: 4.5rem;
+    }
+
+    .dv {
+      --dv-chrome: 24rem;
+    }
+
+    .dv-pin {
+      padding-block: 1rem;
+    }
+
+    .dv-captions {
+      margin-block: 1rem 2rem;
+    }
+
+    .dv-controls {
+      margin-top: 1.75rem;
+    }
+  }
+
   @media (max-width: 767px) {
     .dv-track {
       --dv-top: 4.5rem;
@@ -259,8 +284,26 @@ const slides: Slide[] = [
   }
 
   .dv {
+    /* What the page's width alone would allow. Breakpoints below set this and
+       nothing else; the height cap underneath applies to whatever they pick. */
+    --card-cap: clamp(260px, 46vw, 600px);
+
+    /* Everything above the stage plus everything below it: the heading, the
+       caption block, the pill row, and the padding the pin and the stage carry.
+       An allowance, not a measurement — it only has to be close, because it
+       decides when the card starts giving height back, not the layout itself.
+       Retune it if the heading or the caption block changes shape. */
+    --dv-chrome: 27rem;
+
+    /* The card takes whichever runs out first — the page's width, or what is
+       left of the viewport's height once the chrome has taken its share. The
+       pin is a viewport tall, so without the second term a laptop screen runs
+       the pill row off the bottom of the stage where nothing can scroll it back
+       into view. The floor keeps it a card rather than a stamp on a very short
+       window; a little overflow there is the better failure. */
+    --card-w: max(260px, min(var(--card-cap), calc((100svh - var(--dv-top) - var(--dv-chrome)) * 1672 / 941)));
+
     /* Source ratio of the artwork — every size below is derived from it. */
-    --card-w: clamp(260px, 46vw, 600px);
     --card-h: calc(var(--card-w) * 941 / 1672);
 
     /* Scale of the first and second card out from centre. */
@@ -274,6 +317,16 @@ const slides: Slide[] = [
 
     --dv-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
     --dv-speed: 0.7s;
+  }
+
+  /* Tablet up to a full-width desktop — the 1100 to 1300 band included. Here it
+     is the flanking cards that run out of room first, not the centre one, so
+     the centre gives a little back and the coverflow keeps its depth instead of
+     being two slivers either side of a slab. */
+  @media (min-width: 768px) and (max-width: 1399px) {
+    .dv {
+      --card-cap: clamp(320px, 42vw, 560px);
+    }
   }
 
   /* ---- stage ---------------------------------------------------------- */
@@ -483,7 +536,10 @@ const slides: Slide[] = [
 
   @media (max-width: 767px) {
     .dv {
-      --card-w: min(84vw, 440px);
+      --card-cap: min(84vw, 440px);
+      /* Less chrome to allow for: the heading is smaller, the caption margins
+         are tighter and the pill row has taken the arrows onto its own line. */
+      --dv-chrome: 22rem;
       /* Push the neighbours further out so they read as a peek at the screen
          edge rather than crowding a card that is already nearly full width. */
       --x1: calc(var(--card-w) * 0.66);
@@ -512,10 +568,35 @@ const slides: Slide[] = [
     }
   }
 
+  /* Small phones. Six pills wrap to three rows here, which is most of what is
+     left of the screen, so the row gets tighter type and the card gives up the
+     width that buys. */
+  @media (max-width: 479px) {
+    .dv {
+      --card-cap: min(88vw, 360px);
+      --dv-chrome: 20rem;
+    }
+
+    .dv-pill {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    .dv-captions {
+      margin-block: 0.75rem 1.5rem;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .dv-slide,
     .dv-caption {
       transition-duration: 0.01ms;
+    }
+
+    /* Nothing is pinned here, so the section is as tall as it likes and the
+       card has no reason to answer to the viewport's height. */
+    .dv {
+      --dv-chrome: 0px;
     }
   }
 </style>

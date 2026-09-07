@@ -29,14 +29,19 @@
         data-aos-delay="300"
         class="bg-theme-light flex flex-col justify-between rounded-4xl sm:col-span-3 aos-init aos-animate"
       >
+        {
+          /* One file, no srcset. The six `realtime-report-*` variants were not
+            one picture at six sizes: only -4 was the GoPocket market-data
+            artwork, and the other five were still the template's payments
+            graphic — so every width but exactly 805w served the wrong image.
+            The five have been deleted rather than regenerated. */
+        }
         <img
           src="/assets/images/realtime-report-4.webp"
-          srcset="/assets/images/realtime-report-6.webp 640w, /assets/images/realtime-report-2.webp 750w, /assets/images/realtime-report-4.webp 805w, /assets/images/realtime-report-3.webp 828w, /assets/images/realtime-report-1.webp 1080w, /assets/images/realtime-report-5.webp 1280w"
           alt="Live Market Data"
           loading="lazy"
           decoding="async"
           fetchpriority="low"
-          sizes="(min-width: 805px) 805px, 100vw"
           data-astro-image="constrained"
           data-astro-image-fit="cover"
           data-astro-image-pos="center"
@@ -96,13 +101,11 @@
         class="bg-theme-light flex flex-col justify-between rounded-4xl sm:col-span-3 lg:col-span-2 aos-init aos-animate"
       >
         <img
-          src="/assets/images/metrics-2.webp"
-          srcset="/assets/images/metrics-2.webp 407w, /assets/images/metrics-4.webp 640w, /assets/images/metrics-3.webp 750w, /assets/images/metrics-1.webp 814w"
+          src="/assets/images/metrics-1.webp"
           alt="Trusted by Thousands"
           loading="lazy"
           decoding="async"
           fetchpriority="low"
-          sizes="(min-width: 407px) 407px, 100vw"
           data-astro-image="constrained"
           data-astro-image-fit="cover"
           data-astro-image-pos="center"
@@ -121,13 +124,11 @@
         class="bg-theme-light flex flex-col justify-between rounded-4xl sm:col-span-3 lg:col-span-2 aos-init aos-animate"
       >
         <img
-          src="/assets/images/ai-automation-2.webp"
-          srcset="/assets/images/ai-automation-2.webp 407w, /assets/images/ai-automation-3.webp 640w, /assets/images/ai-automation-1.webp 750w, /assets/images/ai-automation-4.webp 814w"
+          src="/assets/images/ai-automation-4.webp"
           alt="Multi-Asset Trading"
           loading="lazy"
           decoding="async"
           fetchpriority="low"
-          sizes="(min-width: 407px) 407px, 100vw"
           data-astro-image="constrained"
           data-astro-image-fit="cover"
           data-astro-image-pos="center"
@@ -146,13 +147,11 @@
         class="bg-theme-light flex flex-col justify-between rounded-4xl sm:col-span-3 lg:col-span-2 aos-init aos-animate"
       >
         <img
-          src="/assets/images/security-3.webp"
-          srcset="/assets/images/security-3.webp 408w, /assets/images/security-2.webp 640w, /assets/images/security-1.webp 750w, /assets/images/security-4.webp 816w"
+          src="/assets/images/security-4.webp"
           alt="Safe & Secure"
           loading="lazy"
           decoding="async"
           fetchpriority="low"
-          sizes="(min-width: 408px) 408px, 100vw"
           data-astro-image="constrained"
           data-astro-image-fit="cover"
           data-astro-image-pos="center"

@@ -35,12 +35,13 @@
  * costs a layout read.
  *
  * WITHOUT THE SCRIPT, NARROW, OR REDUCED-MOTION
- * The pinned layout is opt-in: the script adds `is-pinned` only above 1280px
- * and only when prefers-reduced-motion is off. Everything else — a phone that
- * cannot fit beside two columns, a reader who asked for no motion, JavaScript
- * that failed — gets the same plain vertical list of cards, each carrying
- * its own screenshot. That list is what is in the DOM to begin with; the pinned
- * stage is the enhancement.
+ * The pinned layout is opt-in: the script adds `is-pinned` only above 1100px
+ * and only when prefers-reduced-motion is off, and between there and 1280px it
+ * runs without the glass column, which needs width the other two need more.
+ * Everything else — a viewport too narrow for the deck beside the phone, a
+ * reader who asked for no motion, JavaScript that failed — gets the same plain
+ * vertical list of cards, each carrying its own screenshot. That list is what
+ * is in the DOM to begin with; the pinned stage is the enhancement.
  *
  * THE ARTWORK
  * Real app screenshots, cropped to drop the Android status and nav bars
@@ -217,9 +218,7 @@ const steps: Step[] = [
                       <div class="ofh-screen">
                         <img
                           class="ofh-shot is-only"
-                          src={`${step.img}-420.webp`}
-                          srcset={`${step.img}-420.webp 420w, ${step.img}-840.webp 840w`}
-                          sizes="180px"
+                          src={`${step.img}-840.webp`}
                           alt={step.alt}
                           width="540"
                           height="1084"
@@ -263,9 +262,7 @@ const steps: Step[] = [
                       class="ofh-shot"
                       data-op-shot={i}
                       style={`--i:${i}`}
-                      src={`${step.img}-420.webp`}
-                      srcset={`${step.img}-420.webp 420w, ${step.img}-840.webp 840w`}
-                      sizes="330px"
+                      src={`${step.img}-840.webp`}
                       alt={step.alt}
                       width="540"
                       height="1084"
@@ -383,7 +380,7 @@ const steps: Step[] = [
     if (!root) return;
     root.classList.toggle(
       "is-pinned",
-      window.matchMedia("(min-width: 1280px)").matches &&
+      window.matchMedia("(min-width: 1100px)").matches &&
         !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     );
   })();
@@ -545,8 +542,10 @@ const steps: Step[] = [
   /* ---- the pinned stage ------------------------------------------------ */
 
   /* Everything below is scoped to `.is-pinned`, which the script adds only when
-     the viewport can hold three columns and motion is welcome. */
-  @media (min-width: 1280px) {
+     the viewport can hold the deck beside the phone and motion is welcome. The
+     glass column needs more width again and drops out on its own below 1280 —
+     see the 1100-to-1280 block after this one. */
+  @media (min-width: 1100px) {
     .is-pinned .ofh-track {
       /* Clears the sticky header — 1.25rem of offset plus roughly 4rem of nav
          — and then leaves a clear gap under it, so the pinned tableau never
@@ -995,6 +994,24 @@ const steps: Step[] = [
     }
   }
 
+  /* Room for the deck and the phone but not for the glass as well, so the glass
+     sits this band out. The remaining pair is centred rather than left pushed
+     to the row's outer edges, which is where `space-between` would strand them
+     once the third column has gone, and the gap between them is opened up —
+     with nothing to their right the two would otherwise read as one crowded
+     block adrift in the middle of the page. Everything else is the tableau as
+     it is at any other width. */
+  @media (min-width: 1100px) and (max-width: 1279.98px) {
+    .is-pinned .ofh-side {
+      display: none;
+    }
+
+    .is-pinned .ofh-row {
+      justify-content: center;
+      gap: 6rem;
+    }
+  }
+
   /* `.container` steps up to 96rem at 2xl; the row follows it so the section
      keeps the page's edges at every width, and the two outer columns take that
      extra room rather than leaving all of it in the gaps. */
@@ -1062,7 +1079,7 @@ const steps: Step[] = [
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     // Matches the breakpoint the stylesheet holds the pinned layout behind.
-    const wide = window.matchMedia("(min-width: 1280px)");
+    const wide = window.matchMedia("(min-width: 1100px)");
     let frame = 0;
     let active = -1;
     let pinned = false;

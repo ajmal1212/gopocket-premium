@@ -8,6 +8,10 @@
  * The active one sits square-on at full size; its neighbours scale down, rotate
  * away on a perspective stage and tuck partly behind it.
  *
+ * It advances three ways, all of which coexist: a timer, the arrows and pills,
+ * and scroll — walking the page past the section steps it on a product at a
+ * time, and back again on the way up.
+ *
  * ARTWORK
  * Sources live in public/Diversify/*.png (1672x941, ~2MB each). Those are far
  * too heavy to ship, so each one is mirrored as a 1280px WebP next to it — that
@@ -65,102 +69,110 @@ const slides: Slide[] = [
 <!-- No padding utilities: `main.has-section-spacing-lg > section` in global.css
      already sets the lead-in every other homepage section relies on. -->
 <section class="dv-section">
-  <div class="container">
-    <div class="mx-auto max-w-4xl text-center">
-      <h2 class="has-italic-text">
+  <!-- The track is the scroll length the pinned tableau is scrubbed over: one
+       viewport for the tableau itself plus one step per product after the
+       first, so the page does not move on until all six have had their turn.
+       `--dv-steps` comes from the data, so adding a slide lengthens it. -->
+  <div class="dv-track" data-dv-track style={`--dv-steps:${slides.length - 1}`}>
+    <div class="dv-pin" data-dv-pin>
+      <div class="container">
+        <div class="mx-auto max-w-4xl text-center">
+          <h2 class="has-italic-text">
+            <div
+              class="animated-text is-ready is-animated"
+              data-duration="0.6"
+              data-delay="0.2"
+              data-stagger="0.09"
+              style="font-weight: 600; --animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+            >
+              <span class="word" style="--word-index:0">Never</span>
+              <span class="word" style="--word-index:1">put</span>
+              <span class="word" style="--word-index:2">all</span>
+              <span class="word" style="--word-index:3">your</span>
+              <span class="word" style="--word-index:4">eggs</span>
+              <span class="word" style="--word-index:5">in</span><strong>
+                <span class="word" style="--word-index:6">one</span>
+                <span class="word" style="--word-index:7">basket!</span></strong
+              >
+            </div>
+          </h2>
+        </div>
+
         <div
-          class="animated-text is-ready is-animated"
-          data-duration="0.6"
-          data-delay="0.2"
-          data-stagger="0.09"
-          style="font-weight: 600; --animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+          class="dv"
+          data-dv
+          data-aos="fade-up-sm"
+          data-aos-delay="200"
+          role="group"
+          aria-roledescription="carousel"
+          aria-label="GoPocket investment products"
         >
-          <span class="word" style="--word-index:0">Never</span>
-          <span class="word" style="--word-index:1">put</span>
-          <span class="word" style="--word-index:2">all</span>
-          <span class="word" style="--word-index:3">your</span>
-          <span class="word" style="--word-index:4">eggs</span>
-          <span class="word" style="--word-index:5">in</span><strong>
-            <span class="word" style="--word-index:6">one</span>
-            <span class="word" style="--word-index:7">basket!</span></strong
-          >
-        </div>
-      </h2>
-    </div>
-
-    <div
-      class="dv"
-      data-dv
-      data-aos="fade-up-sm"
-      data-aos-delay="200"
-      role="group"
-      aria-roledescription="carousel"
-      aria-label="GoPocket investment products"
-    >
-      <!-- Sits above the stage: this is the section's standfirst, and it swaps
+          <!-- Sits above the stage: this is the section's standfirst, and it swaps
            with the active slide. -->
-      <div class="dv-captions" aria-live="polite">
-        {
-          slides.map((slide) => (
-            <div class="dv-caption" data-dv-caption>
-              <h3 class="h5">{slide.label}</h3>
-              <p>{slide.blurb}</p>
+          <div class="dv-captions" aria-live="polite">
+            {
+              slides.map((slide) => (
+                <div class="dv-caption" data-dv-caption>
+                  <h3 class="h5">{slide.label}</h3>
+                  <p>{slide.blurb}</p>
+                </div>
+              ))
+            }
+          </div>
+
+          <div class="dv-stage" data-dv-stage>
+            {
+              slides.map((slide, i) => (
+                <div class="dv-slide" data-dv-slide data-pos="hidden">
+                  <img
+                    src={slide.img}
+                    alt={slide.alt}
+                    width="1280"
+                    height="720"
+                    loading={i === 0 ? "eager" : "lazy"}
+                    decoding="async"
+                  />
+                </div>
+              ))
+            }
+          </div>
+
+          <div class="dv-controls">
+            <button type="button" class="dv-arrow" data-dv-prev aria-label="Previous product">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  d="M15 5 8 12l7 7"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"></path>
+              </svg>
+            </button>
+
+            <div class="dv-pills">
+              {
+                slides.map((slide, i) => (
+                  <button type="button" class="dv-pill" data-dv-pill data-index={i}>
+                    {slide.label}
+                  </button>
+                ))
+              }
             </div>
-          ))
-        }
-      </div>
 
-      <div class="dv-stage" data-dv-stage>
-        {
-          slides.map((slide, i) => (
-            <div class="dv-slide" data-dv-slide data-pos="hidden">
-              <img
-                src={slide.img}
-                alt={slide.alt}
-                width="1280"
-                height="720"
-                loading={i === 0 ? "eager" : "lazy"}
-                decoding="async"
-              />
-            </div>
-          ))
-        }
-      </div>
-
-      <div class="dv-controls">
-        <button type="button" class="dv-arrow" data-dv-prev aria-label="Previous product">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path
-              d="M15 5 8 12l7 7"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"></path>
-          </svg>
-        </button>
-
-        <div class="dv-pills">
-          {
-            slides.map((slide, i) => (
-              <button type="button" class="dv-pill" data-dv-pill data-index={i}>
-                {slide.label}
-              </button>
-            ))
-          }
+            <button type="button" class="dv-arrow" data-dv-next aria-label="Next product">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  d="m9 5 7 7-7 7"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"></path>
+              </svg>
+            </button>
+          </div>
         </div>
-
-        <button type="button" class="dv-arrow" data-dv-next aria-label="Next product">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path
-              d="m9 5 7 7-7 7"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"></path>
-          </svg>
-        </button>
       </div>
     </div>
   </div>
@@ -188,6 +200,61 @@ const slides: Slide[] = [
   @media (min-width: 768px) {
     .dv-section {
       padding-bottom: 5rem;
+    }
+  }
+
+  /* ---- the pinned scrub ------------------------------------------------ */
+
+  /* The tableau sticks to the viewport while the track scrolls past under it,
+     and the script turns that travel into the active product. So a scroll down
+     walks the six rather than skipping the section, and the page carries on to
+     the next one only once the last is showing.
+
+     `overflow-x: clip` on the section above is deliberate rather than
+     `hidden`: clip does not make a scroll container, so it leaves this sticky
+     working. Do not swap it back. */
+  .dv-track {
+    /* Clears the sticky header, and leaves a gap under it. */
+    --dv-top: 6rem;
+    /* Scroll distance per product. Tuned so a normal wheel notch does not skip
+       one, but the whole section is still quick to get past. */
+    --dv-step: 50vh;
+
+    position: relative;
+    height: calc(100svh - var(--dv-top) + var(--dv-steps) * var(--dv-step));
+  }
+
+  .dv-pin {
+    position: sticky;
+    top: var(--dv-top);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: calc(100svh - var(--dv-top));
+    padding-block: 2rem;
+  }
+
+  /* No pin for anyone who asked for less motion: the track collapses to the
+     tableau's own height and the pills and arrows are the way through. The
+     script reads the collapsed track and stops driving from scroll. */
+  @media (prefers-reduced-motion: reduce) {
+    .dv-track {
+      height: auto;
+    }
+
+    .dv-pin {
+      position: static;
+      min-height: 0;
+      padding-block: 0;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .dv-track {
+      --dv-top: 4.5rem;
+      /* Shorter steps: a phone's viewport is the unit here, and six 50vh steps
+         is a long way to thumb past. */
+      --dv-step: 38vh;
     }
   }
 
@@ -464,15 +531,19 @@ const slides: Slide[] = [
     const pills = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-dv-pill]"));
     const prev = root.querySelector<HTMLButtonElement>("[data-dv-prev]");
     const next = root.querySelector<HTMLButtonElement>("[data-dv-next]");
+    const track = root.closest<HTMLElement>("[data-dv-track]");
+    const pin = track?.querySelector<HTMLElement>("[data-dv-pin]") ?? null;
 
     const count = slides.length;
-    const AUTOPLAY_MS = 4200;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    /* Shortest gap between two slide changes. A hard flick covers several
+       steps of the track at once; rather than landing on the third product and
+       skipping the two in between, the carousel walks there at this pace so
+       every one gets shown. A little under the 0.7s slide transition, so the
+       run reads as continuous rather than stop-start. */
+    const STEP_MS = 420;
 
     let active = 0;
-    let timer: number | null = null;
-    let visible = true;
-    let hovered = false;
 
     function render() {
       slides.forEach((slide, i) => {
@@ -499,27 +570,111 @@ const slides: Slide[] = [
     }
 
     function go(index: number) {
-      active = ((index % count) + count) % count;
+      const wrapped = ((index % count) + count) % count;
+      if (wrapped === active) return;
+      active = wrapped;
       render();
     }
 
-    function stop() {
-      if (timer !== null) {
-        window.clearInterval(timer);
-        timer = null;
+    // ---- scroll scrub ----------------------------------------------------
+
+    /* How far the tableau can travel while stuck. Zero when the pin is off —
+       under prefers-reduced-motion, or before layout has settled — which is
+       what every scroll-driven path below tests against. */
+    function travel() {
+      if (!track || !pin) return 0;
+      return Math.max(0, track.offsetHeight - pin.offsetHeight);
+    }
+
+    /* The viewport offset the pin sticks at, read back from the stylesheet so
+       the two cannot drift apart. */
+    function stickyTop() {
+      if (!pin) return 0;
+      const top = parseFloat(window.getComputedStyle(pin).top);
+      return Number.isFinite(top) ? top : 0;
+    }
+
+    let ticking = false;
+    /* Where the track position says we should be, which is not always where we
+       are — see settle(). */
+    let target = 0;
+    let lastStep = 0;
+    let settleTimer: number | null = null;
+    let primed = false;
+
+    /* Walk to the target one product at a time, no faster than STEP_MS. This
+       is what keeps a single hard scroll from changing three tabs: it still
+       ends up on the third, but it plays the two in between on the way. */
+    function settle() {
+      if (settleTimer !== null) {
+        window.clearTimeout(settleTimer);
+        settleTimer = null;
       }
+      if (target === active) return;
+
+      const wait = STEP_MS - (performance.now() - lastStep);
+      if (wait > 0) {
+        settleTimer = window.setTimeout(settle, wait);
+        return;
+      }
+
+      lastStep = performance.now();
+      go(active + Math.sign(target - active));
+      if (target !== active) settleTimer = window.setTimeout(settle, STEP_MS);
     }
 
-    function play() {
-      stop();
-      if (reduce.matches || !visible || hovered) return;
-      timer = window.setInterval(() => go(active + 1), AUTOPLAY_MS);
+    function readScroll() {
+      ticking = false;
+
+      const total = travel();
+      if (!track || total === 0) return;
+
+      // How far into its stuck travel the tableau is, 0 to 1.
+      const scrolled = stickyTop() - track.getBoundingClientRect().top;
+      const p = Math.min(1, Math.max(0, scrolled / total));
+
+      // Even dwell per product: the last one holds the final 1/count of the
+      // track, which is the stretch that runs on into the next section.
+      target = Math.min(count - 1, Math.floor(p * count));
+
+      // Landing mid-section — a reload part-way down, or a jump to an anchor
+      // below it — should show that product, not animate up to it from the
+      // first. Only scrolling from here on is paced.
+      if (!primed) {
+        primed = true;
+        lastStep = performance.now();
+        go(target);
+        return;
+      }
+
+      settle();
     }
 
-    // Advancing on a click should not leave the old timer half-elapsed.
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(readScroll);
+    }
+
+    /* Arrows, pills and the flanking cards drive the page rather than the
+       carousel while it is pinned — moving the slide on its own would only be
+       undone by the next scroll event. Off the pin they just switch slide. */
     function jump(index: number) {
-      go(index);
-      play();
+      const wrapped = ((index % count) + count) % count;
+      const total = travel();
+
+      if (!track || total === 0) {
+        target = wrapped;
+        go(wrapped);
+        return;
+      }
+
+      // Land in the middle of that product's stretch of the track.
+      const trackTop = window.scrollY + track.getBoundingClientRect().top;
+      window.scrollTo({
+        top: trackTop - stickyTop() + (total * (wrapped + 0.5)) / count,
+        behavior: "smooth",
+      });
     }
 
     prev?.addEventListener("click", () => jump(active - 1));
@@ -531,44 +686,17 @@ const slides: Slide[] = [
       }),
     );
 
-    const pause = () => {
-      hovered = true;
-      stop();
-    };
-    const resume = () => {
-      hovered = false;
-      play();
-    };
-
-    root.addEventListener("pointerenter", pause);
-    root.addEventListener("pointerleave", resume);
-    root.addEventListener("focusin", pause);
-    root.addEventListener("focusout", (event) => {
-      if (!root.contains(event.relatedTarget as Node | null)) resume();
-    });
-
-    // Don't burn frames animating a section nobody is looking at.
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        visible = entry.isIntersecting;
-        if (visible) play();
-        else stop();
-      },
-      { threshold: 0.2 },
-    );
-    observer.observe(root);
-
-    const onMotionChange = () => (reduce.matches ? stop() : play());
-    reduce.addEventListener("change", onMotionChange);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
 
     render();
-    play();
+    readScroll();
 
     return {
       destroy() {
-        stop();
-        observer.disconnect();
-        reduce.removeEventListener("change", onMotionChange);
+        if (settleTimer !== null) window.clearTimeout(settleTimer);
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onScroll);
       },
     };
   }

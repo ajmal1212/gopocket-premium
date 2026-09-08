@@ -1,0 +1,40 @@
+---
+import Button from "../Button.astro";
+import DropdownToggle from "./DropdownToggle.astro";
+import MenuItemIcon from "./MenuItemIcon.astro";
+import { learnTopics } from "./header-data";
+---
+
+<li
+  class="hs-dropdown nav-dropdown group [--auto-close:inside] [--offset:0px] nav-item relative lg:[--strategy:absolute]"
+>
+  <DropdownToggle label="Learn" class="max-lg:flex! max-lg:justify-between" />
+  <div
+    class="hs-dropdown-menu mega-menu hs-dropdown-open:pointer-events-auto hs-dropdown-open:opacity-100 hs-dropdown-open:mt-2! pointer-events-none lg:top-full lg:mt-2 top-0 mt-4 hidden max-h-[90vh] overflow-auto overflow-x-hidden rounded-xl border bg-white opacity-0 transition-[opacity,margin] max-lg:static! max-lg:transform-none! lg:absolute lg:left-0 lg:h-fit lg:w-fit"
+    role="menu"
+    tabindex="-1"
+  >
+    <div class="md:flex">
+      <div class="p-2.5 md:p-5">
+        <ul class="[&>li:not(:first-child)>a]:py-3 w-full md:w-[320px]">
+          {
+            learnTopics.map((topic) => (
+              <li>
+                <a href={topic.href} class="group/item flex gap-x-8 rounded-lg p-4 text-inherit transition-colors">
+                  <MenuItemIcon icon={topic.icon} size={24} />
+                  <div class="space-y-1">
+                    <div class="text-lg tracking-normal">{topic.title}</div>
+                    <p class="text-sm/relaxed opacity-80">{topic.description}</p>
+                  </div>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+        <div class="border-border-light mt-2 w-full border-t px-4 pt-4 md:w-[320px]">
+          <Button href="/research-learn" label="Explore Courses" class="w-full justify-center" />
+        </div>
+      </div>
+    </div>
+  </div>
+</li>

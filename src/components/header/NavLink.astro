@@ -1,0 +1,15 @@
+---
+import { isActivePath } from "./header-data";
+
+interface Props {
+  href: string;
+  label: string;
+  currentPath: string;
+  class?: string;
+}
+
+const { href, label, currentPath, class: className = "" } = Astro.props;
+const activeClass = isActivePath(currentPath, href) ? "nav-link-active" : "";
+---
+
+<a href={href} class={`nav-link ${className} ${activeClass}`.trim()}>{label}<slot /></a>

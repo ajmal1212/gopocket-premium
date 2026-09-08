@@ -1,0 +1,28 @@
+---
+import type { AstroComponent } from "@lucide/astro";
+import MenuItemIcon from "./MenuItemIcon.astro";
+
+interface Props {
+  icon: AstroComponent;
+  title: string;
+  description: string;
+  href: string;
+  /** External links get target/rel; internal ones should pass false. */
+  external?: boolean;
+}
+
+const { icon, title, description, href, external = true } = Astro.props;
+---
+
+<a
+  href={href}
+  target={external ? "_blank" : undefined}
+  rel={external ? "noopener noreferrer" : undefined}
+  class="group/item flex gap-x-4 rounded-lg p-3 text-inherit transition-colors hover:bg-slate-50"
+>
+  <MenuItemIcon {icon} class="shrink-0" />
+  <div class="space-y-0.5">
+    <div class="text-base font-semibold tracking-normal text-gray-900">{title}</div>
+    <p class="text-xs/relaxed opacity-80 text-gray-600">{description}</p>
+  </div>
+</a>

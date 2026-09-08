@@ -1,0 +1,51 @@
+---
+/**
+ * The site's primary button.
+ *
+ * Renders the `.btn` shell, the text-flip hover animation and the gradient glow
+ * that sits under it. `data-content` drives the flip animation's ::before and
+ * ::after (see `.text-flip-inner` in global.css) and must match the visible
+ * label, so it is derived from `label` rather than passed separately.
+ *
+ * `.btn` is `display: inline-block`, so whitespace between the children would
+ * render as a real space. Keep the markup below free of gaps between tags.
+ */
+interface Props {
+  label: string;
+  /** Renders an <a> when set, a <button> otherwise. */
+  href?: string;
+  variant?: "primary" | "outline" | "outline-white" | "black";
+  /** The gradient glow under the button. */
+  glow?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { label, href, variant = "primary", glow = true, class: className = "", ...rest } = Astro.props;
+
+const Tag = href ? "a" : "button";
+const classes = ["btn", `btn-${variant}`, "text-flip-hover-anim", className].filter(Boolean).join(" ");
+---
+
+<Tag class={classes} href={href} {...rest}
+  ><span class="text-flip-inner" data-content={label}>{label}</span>{
+    glow && (
+      <span
+        class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
+        ><svg
+          class="gradient-shape"
+          width="150"
+          height="28"
+          viewBox="0 0 147 11"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          ><path
+            d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
+            stroke="currentColor"
+            stroke-width="8"
+          /></svg
+        ></span
+      >
+    )
+  }</Tag
+>

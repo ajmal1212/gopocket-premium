@@ -1,0 +1,41 @@
+---
+import ChevronDown from "@lucide/astro/icons/chevron-down";
+import RefreshCw from "@lucide/astro/icons/refresh-cw";
+import MegaMenuItem from "./MegaMenuItem.astro";
+import { signInServices, signInRekycServices } from "./header-data";
+---
+
+<li
+  class="hs-dropdown nav-dropdown group [--auto-close:inside] [--offset:0px] nav-item relative lg:[--strategy:absolute]"
+>
+  <span
+    class="nav-dropdown-toggle hs-dropdown-toggle flex items-center nav-link whitespace-nowrap max-lg:flex! max-lg:justify-between"
+  >
+    Sign In <ChevronDown data-icon="" class="hs-dropdown-open:rotate-180 ml-2 h-4 w-4 transition duration-300" />
+  </span>
+  <div
+    class="hs-dropdown-menu mega-menu hs-dropdown-open:pointer-events-auto hs-dropdown-open:opacity-100 hs-dropdown-open:mt-2! pointer-events-none lg:top-full lg:mt-2 top-0 mt-4 hidden max-h-[90vh] overflow-auto overflow-x-hidden rounded-xl border bg-white opacity-0 transition-[opacity,margin] max-lg:static! max-lg:transform-none! lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:right-auto lg:h-fit lg:w-[860px]"
+    role="menu"
+    tabindex="-1"
+  >
+    <div class="p-4 md:p-6 space-y-4">
+      <!-- Top Services Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+        {signInServices.map((item) => <MegaMenuItem {...item} />)}
+      </div>
+
+      <!-- REKYC Header Divider -->
+      <div class="border-t border-gray-100 pt-3 pb-1">
+        <div class="flex items-center gap-2 text-xs font-bold tracking-wider text-purple-700 uppercase">
+          <RefreshCw class="h-4 w-4" />
+          <span>REKYC</span>
+        </div>
+      </div>
+
+      <!-- Bottom REKYC Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+        {signInRekycServices.map((item) => <MegaMenuItem {...item} />)}
+      </div>
+    </div>
+  </div>
+</li>

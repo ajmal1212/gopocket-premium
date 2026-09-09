@@ -1,5 +1,16 @@
 ---
 /* src/components/AccessibilityWidget.astro */
+
+/* Colours here go through the semantic tokens (text-dark, text-text-default,
+   border-border-light, bg-white, border-slate-200, bg-slate-50) rather than a
+   `dark:` counterpart, because dark-theme.css repoints the low and high ends of
+   the grey ramp - --color-slate-100/200 become surface/border greys and
+   --color-slate-800/900 become --fg-strong. Those remaps are unlayered, so they
+   also win over any `dark:` utility. The panel used to write
+   `text-slate-800 dark:text-slate-200`, which in dark mode resolved the label to
+   --line (#262a36) on a #181b25 card - ~1.1:1, effectively invisible - while
+   `dark:border-slate-800/80` resolved the card outline to near-white.
+   Only slate-300..700 survive untouched; those are safe to pair with `dark:`. */
 import Button from "./Button.astro";
 import Accessibility from "@lucide/astro/icons/accessibility";
 import Blend from "@lucide/astro/icons/blend";
@@ -39,23 +50,18 @@ import X from "@lucide/astro/icons/x";
       role="dialog"
       aria-modal="true"
       aria-labelledby="a11y-modal-title"
-      class="a11y-glass-panel relative w-full max-w-2xl text-slate-900 dark:text-slate-100 rounded-3xl p-6 text-left shadow-[0_25px_60px_-15px_rgba(107,26,255,0.25)] transform transition-all my-6 max-h-[90vh] overflow-y-auto"
+      class="a11y-glass-panel relative w-full max-w-2xl text-text-default rounded-3xl p-6 text-left shadow-[0_25px_60px_-15px_rgba(107,26,255,0.25)] transform transition-all my-6 max-h-[90vh] overflow-y-auto"
     >
       <!-- Header -->
-      <div class="flex items-center justify-between pb-3 mb-5 border-b border-slate-100 dark:border-slate-800/80">
+      <div class="flex items-center justify-between pb-3 mb-5 border-b border-border-light">
         <div>
-          <h2
-            id="a11y-modal-title"
-            class="text-sm font-bold tracking-tight text-slate-900 dark:text-white font-primary"
-          >
-            Accessibility
-          </h2>
+          <h2 id="a11y-modal-title" class="text-sm font-bold tracking-tight text-dark font-primary">Accessibility</h2>
           <p class="text-[10px] text-slate-500 dark:text-slate-400">SEBI Compliant PwD Controls</p>
         </div>
         <button
           id="a11y-close-button"
           type="button"
-          class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all duration-200 cursor-pointer"
+          class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 transition-all duration-200 cursor-pointer"
           aria-label="Close Accessibility Modal"
         >
           <X size={20} />
@@ -68,7 +74,7 @@ import X from "@lucide/astro/icons/x";
         <button
           type="button"
           data-a11y-toggle="adhd"
-          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div
             class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200"
@@ -76,14 +82,14 @@ import X from "@lucide/astro/icons/x";
             <Focus size={20} />
           </div>
           <span
-            class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors leading-tight"
+            class="text-xs font-semibold text-dark group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors leading-tight"
             >ADHD Focus Assist</span
           >
         </button>
 
         <!-- 2. Themes -->
         <div
-          class="a11y-card relative flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 text-center min-h-[96px]"
+          class="a11y-card relative flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-200/80 bg-slate-50/70 text-center min-h-[96px]"
         >
           <div class="w-6 h-6 mb-1 flex items-center justify-center text-[#6b1aff] dark:text-purple-400">
             <Palette size={18} />
@@ -115,14 +121,14 @@ import X from "@lucide/astro/icons/x";
 
         <!-- 3. Font Size -->
         <div
-          class="a11y-card relative flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 text-center min-h-[96px]"
+          class="a11y-card relative flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-200/80 bg-slate-50/70 text-center min-h-[96px]"
         >
           <span class="text-sm font-bold text-[#6b1aff] dark:text-purple-300 mb-1">Aa</span>
           <div class="flex items-center gap-1 mb-1">
             <button
               type="button"
               data-a11y-font="small"
-              class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-white dark:bg-[#1c202e] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-[#6b1aff] hover:text-[#6b1aff] transition-all cursor-pointer"
+              class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-white border border-border-light text-text-default hover:border-[#6b1aff] hover:text-[#6b1aff] transition-all cursor-pointer"
               title="Decrease Font Size"
             >
               A-
@@ -130,7 +136,7 @@ import X from "@lucide/astro/icons/x";
             <button
               type="button"
               data-a11y-font="normal"
-              class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-white dark:bg-[#1c202e] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-[#6b1aff] hover:text-[#6b1aff] transition-all cursor-pointer"
+              class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-white border border-border-light text-text-default hover:border-[#6b1aff] hover:text-[#6b1aff] transition-all cursor-pointer"
               title="Reset Font Size"
             >
               A
@@ -138,7 +144,7 @@ import X from "@lucide/astro/icons/x";
             <button
               type="button"
               data-a11y-font="large"
-              class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-white dark:bg-[#1c202e] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-[#6b1aff] hover:text-[#6b1aff] transition-all cursor-pointer"
+              class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-white border border-border-light text-text-default hover:border-[#6b1aff] hover:text-[#6b1aff] transition-all cursor-pointer"
               title="Increase Font Size"
             >
               A+
@@ -151,7 +157,7 @@ import X from "@lucide/astro/icons/x";
         <button
           type="button"
           data-a11y-toggle="speech"
-          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div
             class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200"
@@ -159,7 +165,7 @@ import X from "@lucide/astro/icons/x";
             <VolumeX size={20} />
           </div>
           <span
-            class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
+            class="text-xs font-semibold text-dark group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
             >Screen Reader</span
           >
         </button>
@@ -168,7 +174,7 @@ import X from "@lucide/astro/icons/x";
         <button
           type="button"
           data-a11y-toggle="contrast"
-          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div
             class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200"
@@ -176,7 +182,7 @@ import X from "@lucide/astro/icons/x";
             <Contrast size={20} />
           </div>
           <span
-            class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
+            class="text-xs font-semibold text-dark group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
             >Smart Contrast</span
           >
         </button>
@@ -185,7 +191,7 @@ import X from "@lucide/astro/icons/x";
         <button
           type="button"
           data-a11y-toggle="hide-images"
-          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div
             class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200"
@@ -193,7 +199,7 @@ import X from "@lucide/astro/icons/x";
             <EyeOff size={20} />
           </div>
           <span
-            class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
+            class="text-xs font-semibold text-dark group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
             >Hide Images</span
           >
         </button>
@@ -202,7 +208,7 @@ import X from "@lucide/astro/icons/x";
         <button
           type="button"
           data-a11y-toggle="grayscale"
-          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div
             class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200"
@@ -210,7 +216,7 @@ import X from "@lucide/astro/icons/x";
             <Blend size={20} />
           </div>
           <span
-            class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
+            class="text-xs font-semibold text-dark group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
             >Grayscale</span
           >
         </button>
@@ -219,7 +225,7 @@ import X from "@lucide/astro/icons/x";
         <button
           type="button"
           data-a11y-toggle="bluelight"
-          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div
             class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200"
@@ -227,7 +233,7 @@ import X from "@lucide/astro/icons/x";
             <MoonStar size={20} />
           </div>
           <span
-            class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors leading-tight"
+            class="text-xs font-semibold text-dark group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors leading-tight"
             >Blue Light Filter</span
           >
         </button>
@@ -236,7 +242,7 @@ import X from "@lucide/astro/icons/x";
         <button
           type="button"
           data-a11y-toggle="dyslexia"
-          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div
             class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200"
@@ -244,7 +250,7 @@ import X from "@lucide/astro/icons/x";
             <BookOpen size={20} />
           </div>
           <span
-            class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
+            class="text-xs font-semibold text-dark group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
             >Dyslexia</span
           >
         </button>
@@ -253,7 +259,7 @@ import X from "@lucide/astro/icons/x";
         <button
           type="button"
           data-a11y-toggle="highlight-links"
-          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div
             class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200"
@@ -261,7 +267,7 @@ import X from "@lucide/astro/icons/x";
             <Link size={20} />
           </div>
           <span
-            class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
+            class="text-xs font-semibold text-dark group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
             >Highlight Links</span
           >
         </button>
@@ -270,7 +276,7 @@ import X from "@lucide/astro/icons/x";
         <button
           type="button"
           data-a11y-toggle="focus-indicator"
-          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div
             class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200"
@@ -278,7 +284,7 @@ import X from "@lucide/astro/icons/x";
             <Crosshair size={20} />
           </div>
           <span
-            class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
+            class="text-xs font-semibold text-dark group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors"
             >Focus Indicator</span
           >
         </button>
@@ -415,7 +421,7 @@ import X from "@lucide/astro/icons/x";
             "ring-[#6b1aff]/40",
             "shadow-md",
           );
-          btn.classList.remove("border-slate-200/80", "dark:border-slate-800/80");
+          btn.classList.remove("border-slate-200/80");
           if (iconBox) {
             // The icon chip is transparent by default (glass panel shows through),
             // so the active fill comes from a dedicated class, not a bg utility.
@@ -431,7 +437,7 @@ import X from "@lucide/astro/icons/x";
             "ring-[#6b1aff]/40",
             "shadow-md",
           );
-          btn.classList.add("border-slate-200/80", "dark:border-slate-800/80");
+          btn.classList.add("border-slate-200/80");
           if (iconBox) {
             iconBox.classList.remove("a11y-icon-box--active");
             iconBox.classList.add("text-[#6b1aff]", "dark:text-purple-400");
@@ -446,10 +452,10 @@ import X from "@lucide/astro/icons/x";
         const isCurrent = settings.fontScale === mode || (mode === "large" && settings.fontScale === "xlarge");
         if (isCurrent) {
           btn.classList.add("bg-[#6b1aff]", "text-white", "border-[#6b1aff]", "shadow-sm");
-          btn.classList.remove("bg-white", "dark:bg-[#1c202e]", "text-slate-700", "dark:text-slate-200");
+          btn.classList.remove("bg-white", "text-text-default");
         } else {
           btn.classList.remove("bg-[#6b1aff]", "text-white", "border-[#6b1aff]", "shadow-sm");
-          btn.classList.add("bg-white", "dark:bg-[#1c202e]", "text-slate-700", "dark:text-slate-200");
+          btn.classList.add("bg-white", "text-text-default");
         }
       });
 

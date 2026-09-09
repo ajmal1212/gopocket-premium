@@ -1,0 +1,217 @@
+---
+import Monitor from "@lucide/astro/icons/monitor";
+import FileText from "@lucide/astro/icons/file-text";
+import Download from "@lucide/astro/icons/download";
+
+/**
+ * DownloadsSection - the file listing under the Downloads hero.
+ *
+ * Everything here is served from cdn.gopocket.in, so the entries carry an
+ * explicit type and size: these are large files (the Dealer terminal is over
+ * 200MB) and a visitor on mobile data deserves to know that before tapping.
+ * Sizes were read from the CDN's Content-Length; if a file is replaced with a
+ * different build, update the number here too.
+ *
+ * Colours are the semantic tokens from dark-theme.css rather than fixed greys,
+ * so the section follows the theme toggle without a second set of rules. The
+ * 810px / 1440px breakpoints are arbitrary variants on purpose: they are the
+ * ones DownloadsHero uses, so the two blocks change shape together.
+ *
+ * The app-store links match the ones already used across the site rather than
+ * the slightly different slug on the legacy page.
+ */
+
+const CDN = "https://cdn.gopocket.in/downloads";
+
+const APP_STORE = "https://apps.apple.com/in/app/gopocket-stocks-mf-ipo/id6465894786";
+const PLAY_STORE = "https://play.google.com/store/apps/details?id=com.codifi.gopocket";
+
+interface DownloadItem {
+  title: string;
+  file: string;
+  type: string;
+  size: string;
+}
+
+/** Windows trading terminals. */
+const terminals: DownloadItem[] = [
+  { title: "Investor Terminal", file: "SKY_TRADE_Investor.zip", type: "ZIP", size: "134.9 MB" },
+  { title: "Dealer Terminal", file: "SKY_TRADE_Dealer.zip", type: "ZIP", size: "213.0 MB" },
+];
+
+/** Account forms and DP documents. */
+const forms: DownloadItem[] = [
+  { title: "Account Opening Form", file: "Account_Opening_Form.pdf", type: "PDF", size: "25.9 MB" },
+  { title: "Address Modification Form", file: "Address_Modification_Form.pdf", type: "PDF", size: "836 KB" },
+  {
+    title: "Mobile / Email / Bank Modification",
+    file: "Mobile_Email_Bank_Modification_Form.pdf",
+    type: "PDF",
+    size: "1.4 MB",
+  },
+  { title: "Financial Details Update Form", file: "Financial_Details_Update_Form.pdf", type: "PDF", size: "45 KB" },
+  {
+    title: "Additional Segment Activation Form",
+    file: "Additional_Segment_Activation_Form.pdf",
+    type: "PDF",
+    size: "8.0 MB",
+  },
+  { title: "Nomination Form", file: "Nomination_Form.pdf", type: "PDF", size: "2.5 MB" },
+  { title: "Demat Account Opening Form", file: "Demat_Account_Opening.pdf", type: "PDF", size: "20.7 MB" },
+  { title: "DDPI Form", file: "DDPI_Form.pdf", type: "PDF", size: "581 KB" },
+  { title: "Account Closure Form", file: "Account_Closure_Form.pdf", type: "PDF", size: "336 KB" },
+  { title: "Non Individual Form", file: "Non_Individual_Form.pdf", type: "PDF", size: "17.2 MB" },
+  { title: "Non Individual DP Form", file: "Non_individual_DP.pdf", type: "PDF", size: "1.9 MB" },
+  { title: "Account Re-activation Form", file: "Account_Reactivation_Form.pdf", type: "PDF", size: "878 KB" },
+];
+
+/** One card. Shared by both lists so the two grids cannot drift apart. */
+const itemClass =
+  "group flex h-full items-center gap-3.5 rounded-2xl border border-[var(--line)] bg-[var(--surface-1)] px-4.5 py-4 no-underline transition duration-300 hover:-translate-y-0.5 hover:border-primary hover:shadow-[0_8px_24px_rgb(107_26_255/0.08)] focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-primary motion-reduce:transition-none motion-reduce:hover:translate-y-0";
+const tileClass =
+  "flex size-10 flex-none items-center justify-center rounded-[10px] bg-[var(--surface-3)] text-[var(--fg-muted)]";
+const actionClass =
+  "flex size-8 flex-none items-center justify-center rounded-full text-[var(--fg-muted)] transition-colors duration-300 group-hover:bg-primary group-hover:text-white motion-reduce:transition-none";
+---
+
+<section
+  id="downloads"
+  class="flex w-full scroll-mt-24 justify-center px-4 pb-18 min-[810px]:px-10 min-[810px]:pb-28 min-[1440px]:px-20 min-[1440px]:pb-35"
+>
+  <div class="flex w-full max-w-100 flex-col gap-12 min-[810px]:max-w-225 min-[810px]:gap-18 min-[1440px]:max-w-270">
+    {/* ===== Mobile app ===== */}
+    <div class="flex flex-col gap-7">
+      <div class="flex flex-col gap-2">
+        <h2 class="text-2xl leading-tight font-medium tracking-tight text-[var(--fg-strong)] min-[810px]:text-[30px]">
+          The GoPocket app
+        </h2>
+        <p class="text-[15px] leading-relaxed text-[var(--fg-muted)] min-[810px]:text-[17px]">
+          Trade stocks, F&amp;O, mutual funds and IPOs from your phone.
+        </p>
+      </div>
+
+      <div
+        class="flex flex-col items-stretch gap-5 rounded-[20px] border border-[var(--line)] bg-[var(--surface-1)] p-5 min-[810px]:flex-row min-[810px]:items-center min-[810px]:justify-between min-[810px]:gap-8 min-[810px]:px-8 min-[810px]:py-7"
+      >
+        <div class="flex flex-wrap gap-3.5">
+          <a
+            class="block rounded-lg leading-none transition duration-300 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+            href={APP_STORE}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="/assets/images/app-store-badge.svg"
+              alt="Download GoPocket on the App Store"
+              width="135"
+              height="40"
+              loading="lazy"
+              decoding="async"
+              class="block h-11 w-auto"
+            />
+          </a>
+          <a
+            class="block rounded-lg leading-none transition duration-300 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+            href={PLAY_STORE}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="/assets/images/play-store-badge.svg"
+              alt="Get GoPocket on Google Play"
+              width="135"
+              height="40"
+              loading="lazy"
+              decoding="async"
+              class="block h-11 w-auto"
+            />
+          </a>
+        </div>
+
+        {/* Hidden below 810px: you cannot scan a code on the screen you hold. */}
+        <div class="hidden flex-none items-center gap-3.5 min-[810px]:flex">
+          <img
+            src="/assets/images/gopocket/GoPocketAppQR.svg"
+            alt="QR code to download the GoPocket app"
+            width="259"
+            height="259"
+            loading="lazy"
+            decoding="async"
+            class="block size-21 rounded-xl border border-[var(--line)] bg-white p-1.5"
+          />
+          <span class="text-sm leading-5 font-semibold text-[var(--fg-muted)]">Scan to install</span>
+        </div>
+      </div>
+    </div>
+
+    {/* ===== Desktop terminals ===== */}
+    <div class="flex flex-col gap-7">
+      <div class="flex flex-col gap-2">
+        <h2 class="text-2xl leading-tight font-medium tracking-tight text-[var(--fg-strong)] min-[810px]:text-[30px]">
+          Desktop terminals
+        </h2>
+        <p class="text-[15px] leading-relaxed text-[var(--fg-muted)] min-[810px]:text-[17px]">
+          Windows trading terminals for investors and dealers.
+        </p>
+      </div>
+
+      <ul class="m-0 grid list-none grid-cols-1 gap-3.5 p-0 min-[810px]:grid-cols-2">
+        {
+          terminals.map((item) => (
+            <li>
+              <a class={itemClass} href={`${CDN}/${item.file}`} target="_blank" rel="noopener noreferrer">
+                <span class={tileClass}>
+                  <Monitor class="size-5.5" stroke-width={1.6} aria-hidden="true" />
+                </span>
+                <span class="flex w-px flex-1 flex-col">
+                  <span class="text-[15px] leading-[21px] font-semibold text-[var(--fg-strong)]">{item.title}</span>
+                  <span class="text-[13px] leading-[19px] font-medium text-[var(--fg-muted)]">
+                    {item.type} · {item.size}
+                  </span>
+                </span>
+                <span class={actionClass}>
+                  <Download class="size-4.5" stroke-width={1.8} aria-hidden="true" />
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    {/* ===== Forms ===== */}
+    <div class="flex flex-col gap-7">
+      <div class="flex flex-col gap-2">
+        <h2 class="text-2xl leading-tight font-medium tracking-tight text-[var(--fg-strong)] min-[810px]:text-[30px]">
+          Forms &amp; documents
+        </h2>
+        <p class="text-[15px] leading-relaxed text-[var(--fg-muted)] min-[810px]:text-[17px]">
+          Print, fill and submit. Every file opens in a new tab.
+        </p>
+      </div>
+
+      <ul class="m-0 grid list-none grid-cols-1 gap-3.5 p-0 min-[810px]:grid-cols-2">
+        {
+          forms.map((item) => (
+            <li>
+              <a class={itemClass} href={`${CDN}/${item.file}`} target="_blank" rel="noopener noreferrer">
+                <span class={tileClass}>
+                  <FileText class="size-5.5" stroke-width={1.6} aria-hidden="true" />
+                </span>
+                <span class="flex w-px flex-1 flex-col">
+                  <span class="text-[15px] leading-[21px] font-semibold text-[var(--fg-strong)]">{item.title}</span>
+                  <span class="text-[13px] leading-[19px] font-medium text-[var(--fg-muted)]">
+                    {item.type} · {item.size}
+                  </span>
+                </span>
+                <span class={actionClass}>
+                  <Download class="size-4.5" stroke-width={1.8} aria-hidden="true" />
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>

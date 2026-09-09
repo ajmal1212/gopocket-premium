@@ -23,12 +23,12 @@ const faqCategories = post.faqs.length
       {
         id: "article",
         label: post.categories[0] || "General",
-        items: post.faqs.map(({ question, answer }) => ({ question, answer }))
-      }
+        items: post.faqs.map(({ question, answer }) => ({ question, answer })),
+      },
     ]
   : [];
 
-const SITE = "https://gopocket.in";
+const SITE = Astro.site?.origin ?? Astro.url.origin;
 const postUrl = `${SITE}/blog/${post.slug}`;
 
 // Both images point at the same file when a post only sets one of them, so
@@ -53,8 +53,8 @@ const articleSchema = {
     "@type": "Organization",
     name: "GoPocket",
     url: `${SITE}/`,
-    logo: { "@type": "ImageObject", url: `${SITE}/gopocket-logo.svg` }
-  }
+    logo: { "@type": "ImageObject", url: `${SITE}/gopocket-logo.svg` },
+  },
 };
 
 const breadcrumbSchema = {
@@ -63,8 +63,8 @@ const breadcrumbSchema = {
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
     { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE}/blog` },
-    { "@type": "ListItem", position: 3, name: post.title, item: postUrl }
-  ]
+    { "@type": "ListItem", position: 3, name: post.title, item: postUrl },
+  ],
 };
 
 // Only emit FAQPage when the post actually carries FAQ rows - an empty
@@ -76,8 +76,8 @@ const faqSchema = post.faqs.length
       mainEntity: post.faqs.map((faq) => ({
         "@type": "Question",
         name: faq.question,
-        acceptedAnswer: { "@type": "Answer", text: faq.answer }
-      }))
+        acceptedAnswer: { "@type": "Answer", text: faq.answer },
+      })),
     }
   : null;
 ---
@@ -93,7 +93,7 @@ const faqSchema = post.faqs.length
   <Fragment slot="head">
     <meta property="article:published_time" content={post.publishedISO} />
     <meta property="article:modified_time" content={post.modifiedISO || post.publishedISO} />
-    <meta property="article:publisher" content="https://gopocket.in/" />
+    <meta property="article:publisher" content={`${SITE}/`} />
     {post.categories[0] && <meta property="article:section" content={post.categories[0]} />}
     {post.categories.map((category) => <meta property="article:tag" content={category} />)}
     <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />

@@ -1,8 +1,6 @@
 import type { APIRoute } from "astro";
 import { getBlogPosts } from "../lib/frappe";
 
-const SITE = "https://gopocket.in";
-
 /**
  * Routes that exist under src/pages but are deliberately kept out of the
  * sitemap: the error page, the theme's kitchen-sink demo, and /index2 -- a
@@ -27,7 +25,12 @@ function staticRoutes(): string[] {
   const modules = import.meta.glob("./**/*.astro");
 
   return Object.keys(modules)
-    .map((file) => file.replace(/^\./, "").replace(/\.astro$/, "").replace(/\/index$/, "/"))
+    .map((file) =>
+      file
+        .replace(/^\./, "")
+        .replace(/\.astro$/, "")
+        .replace(/\/index$/, "/"),
+    )
     .filter((route) => !route.includes("["))
     .map((route) => (route !== "/" && route.endsWith("/") ? route.slice(0, -1) : route))
     .filter((route) => !EXCLUDED.has(route))
@@ -52,7 +55,11 @@ function renderEntry(entry: Entry): string {
   </url>`;
 }
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ site, url }) => {
+  // `site` is the astro.config.mjs value; the request origin is only a
+  // fallback for a config with no `site` set.
+  const SITE = (site ?? new URL(url)).origin;
+
   const entries: Entry[] = [];
 
   for (const route of staticRoutes()) {

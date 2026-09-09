@@ -1,17 +1,12 @@
 ---
-import IndianRupee from "@lucide/astro/icons/indian-rupee";
-import CalendarDays from "@lucide/astro/icons/calendar-days";
-// PartnerHero - Hero section for the Partner With Us page.
+import Download from "@lucide/astro/icons/download";
+import Monitor from "@lucide/astro/icons/monitor";
+// DownloadsHero - Hero section for the Downloads page.
 //
-// Structurally identical to ResearchLearnHero: same masked rounded-cell grid,
-// laurel-flanked rating pill, per-word headline reveal, pill CTA whose arrow
-// badge expands on hover, and the two floating stat cards that appear only at
-// >= 1440px. Class names carry a pw- prefix so the two can diverge later
-// without one page's tweak leaking into the other.
-//
-// The enquiry form that used to sit in this hero now lives in PartnerEnquiry,
-// directly below - the CTA scrolls to it. A centred hero has nowhere to put a
-// five-field form without breaking the layout it is copying.
+// Same layout as PartnerHero, which in turn mirrors ResearchLearnHero: masked
+// rounded-cell grid, laurel-flanked pill, per-word headline reveal, pill CTA
+// with the expanding arrow badge, and two floating stat cards above 1440px.
+// Prefixed dl- so the three can be tuned independently.
 interface Props {
   ratingText?: string;
   title?: string;
@@ -29,27 +24,46 @@ interface Props {
 }
 
 const {
-  ratingText = "Highest revenue sharing in the industry",
-  title = "Grow your business. Partner with GoPocket.",
-  description = "Build your own broking business on industry-leading revenue sharing, with a dedicated relationship manager, zero deposit charges, and a CRM that tracks every client you onboard.",
-  ctaText = "Become a Partner",
-  ctaHref = "#partner-enquiry",
-  leftStat = "Industry-best",
-  leftStatLabel = "Revenue Sharing",
-  leftImage = "/assets/images/career-gallery-2.webp",
-  leftImageAlt = "GoPocket partnership team meeting a business partner",
-  rightStat = "By 5th",
-  rightStatLabel = "Payout Every Month",
-  rightImage = "/assets/images/group-photo-1.webp",
-  rightImageAlt = "The GoPocket team supporting its partner network",
+  ratingText = "Optimised for laptops, PCs, tablets and mobiles",
+  // A newline forces a line break in the headline - see titleLines below.
+  title = "Downloads for PC, mobile and\ntablet.",
+  description = "Download the software or form you are looking for and get the process started. Every file here is served straight from our CDN.",
+  ctaText = "Browse downloads",
+  ctaHref = "#downloads",
+  leftStat = "12",
+  leftStatLabel = "Forms & Documents",
+  leftImage = "/assets/images/mobile-app-preview.webp",
+  leftImageAlt = "The GoPocket trading app running on a phone",
+  rightStat = "2",
+  rightStatLabel = "Desktop Terminals",
+  rightImage = "/assets/images/mobile-app-preview-2.webp",
+  rightImageAlt = "GoPocket order and portfolio screens",
 } = Astro.props as Props;
 
-// Split for the per-word reveal, same as the Hero 1 headline and paragraph.
-const titleWords: string[] = title.trim().split(/\s+/);
+/*
+ * Split for the per-word reveal, same as the Hero 1 headline and paragraph.
+ *
+ * The headline splits into lines on a newline first, then into words, so a
+ * caller can pin where the heading breaks instead of leaving it to the wrap.
+ * `titleLineOffsets` carries the running word count into each line, so
+ * --word-index keeps climbing across the break and the stagger still runs in
+ * reading order over the whole heading rather than restarting per line.
+ */
+const titleLines: string[][] = title
+  .trim()
+  .split("\n")
+  .map((line) => line.trim().split(/\s+/));
+
+const titleLineOffsets: number[] = [];
+titleLines.reduce((count, line) => {
+  titleLineOffsets.push(count);
+  return count + line.length;
+}, 0);
+
 const descriptionWords: string[] = description.trim().split(/\s+/);
 ---
 
-<section class="pw-hero">
+<section class="dl-hero">
   <!--
     Grid background. The reference ships this as a PNG of rounded-square cells
     (~80px pitch on a 1440px band) with a handful of tinted accent cells, masked
@@ -57,10 +71,10 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     it stays crisp and needs no external asset; the cells are scaled up to a
     120px pitch. Change the pattern/rect width+height together to resize them.
   -->
-  <div class="pw-hero__grid" aria-hidden="true">
+  <div class="dl-hero__grid" aria-hidden="true">
     <svg width="100%" height="100%" preserveAspectRatio="xMidYMin slice" viewBox="0 0 1440 960" fill="none">
       <defs>
-        <pattern id="pw-hero-grid-cells" width="120" height="120" patternUnits="userSpaceOnUse">
+        <pattern id="dl-hero-grid-cells" width="120" height="120" patternUnits="userSpaceOnUse">
           <!-- Full-tile rect: adjacent strokes coincide, so shared edges stay 1px
                and the rounded corners leave the diamond gaps at intersections. -->
           <rect
@@ -71,15 +85,15 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
             rx="18"
             ry="18"
             fill="none"
-            stroke="var(--pw-grid-line)"
+            stroke="var(--dl-grid-line)"
             stroke-width="1"></rect>
         </pattern>
       </defs>
 
-      <rect width="1440" height="960" fill="url(#pw-hero-grid-cells)"></rect>
+      <rect width="1440" height="960" fill="url(#dl-hero-grid-cells)"></rect>
 
       <!-- Tinted accent cells, scattered on the same 120px lattice -->
-      <g fill="var(--pw-grid-accent)">
+      <g fill="var(--dl-grid-accent)">
         <rect x="120" y="120" width="120" height="120" rx="18"></rect>
         <rect x="1080" y="240" width="120" height="120" rx="18"></rect>
         <rect x="720" y="480" width="120" height="120" rx="18"></rect>
@@ -90,24 +104,24 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     </svg>
   </div>
 
-  <div class="pw-hero__container">
+  <div class="dl-hero__container">
     <!-- No AOS on this wrapper: a block-level fade-up would slide the headline
          bottom-to-top and drown out the per-word reveal. Hero 1 keeps AOS on
          the badge only and lets the heading animate purely word by word. -->
-    <div class="pw-hero__top">
-      <div class="pw-hero__intro">
+    <div class="dl-hero__top">
+      <div class="dl-hero__intro">
         <!-- Rating pill: laurel, stars + label, laurel. Same word reveal as the
              headline, and first in the sequence: pill -> heading -> paragraph.
              The leaves are wrapped so the reveal animates the wrapper's opacity
              0 -> 1 while the image keeps its own 30% tint. -->
         <div
-          class="pw-hero__tag animated-text is-ready is-animated"
+          class="dl-hero__tag animated-text is-ready is-animated"
           data-duration="0.6"
           data-delay="0.1"
           data-stagger="0.06"
           style="--animated-text-duration:0.6s;--animated-text-delay:0.1s;--animated-text-stagger:0.06s;"
         >
-          <span class="word pw-hero__leaf-wrap" style="--word-index:0">
+          <span class="word dl-hero__leaf-wrap" style="--word-index:0">
             <img
               src="/assets/right.avif"
               alt=""
@@ -116,11 +130,11 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
               height="224"
               loading="eager"
               decoding="async"
-              class="pw-hero__leaf"
+              class="dl-hero__leaf"
             />
           </span>
-          <div class="pw-hero__reviews">
-            <svg class="pw-hero__stars word" style="--word-index:1" viewBox="0 0 96 16" fill="none" aria-hidden="true">
+          <div class="dl-hero__reviews">
+            <svg class="dl-hero__stars word" style="--word-index:1" viewBox="0 0 96 16" fill="none" aria-hidden="true">
               <path
                 d="M 6.731 1.764 C 7.128 0.532 8.871 0.532 9.269 1.764 L 10.374 5.191 L 13.961 5.191 C 15.25 5.191 15.789 6.839 14.748 7.6 L 11.838 9.731 L 12.947 13.172 C 13.344 14.402 11.934 15.421 10.891 14.657 L 8 12.541 L 5.109 14.657 C 4.066 15.421 2.656 14.402 3.052 13.172 L 4.162 9.731 L 1.251 7.6 C 0.211 6.839 0.75 5.191 2.039 5.191 L 5.626 5.191 Z"
                 fill="currentColor"></path>
@@ -137,9 +151,9 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
                 d="M 86.731 1.764 C 87.128 0.532 88.871 0.532 89.269 1.764 L 90.374 5.191 L 93.961 5.191 C 95.25 5.191 95.788 6.839 94.748 7.6 L 91.838 9.731 L 92.947 13.172 C 93.344 14.402 91.934 15.421 90.891 14.657 L 88 12.541 L 85.109 14.657 C 84.066 15.421 82.656 14.402 83.052 13.172 L 84.162 9.731 L 81.251 7.6 C 80.211 6.839 80.75 5.191 82.039 5.191 L 85.626 5.191 Z"
                 fill="currentColor"></path>
             </svg>
-            <p class="pw-hero__rating-label word" style="--word-index:2">{ratingText}</p>
+            <p class="dl-hero__rating-label word" style="--word-index:2">{ratingText}</p>
           </div>
-          <span class="word pw-hero__leaf-wrap" style="--word-index:3">
+          <span class="word dl-hero__leaf-wrap" style="--word-index:3">
             <img
               src="/assets/left.avif"
               alt=""
@@ -148,16 +162,16 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
               height="224"
               loading="eager"
               decoding="async"
-              class="pw-hero__leaf"
+              class="dl-hero__leaf"
             />
           </span>
         </div>
 
         <!-- Title + description -->
-        <div class="pw-hero__title-block">
-          <h1 class="pw-hero__title">
+        <div class="dl-hero__title-block">
+          <h1 class="dl-hero__title">
             <div
-              class="animated-text text-display-3 lg:text-display-2 pw-hero__title-text is-ready is-animated"
+              class="animated-text text-display-3 lg:text-display-2 dl-hero__title-text is-ready is-animated"
               data-duration="0.6"
               data-delay="0.4"
               data-stagger="0.1"
@@ -165,12 +179,17 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
             >
               {/* prettier-ignore */}
               {
-                titleWords.map((word, i) => (
+                titleLines.map((line, lineIndex) => (
                   <>
-                    <span class="word" style={`--word-index:${i}`}>
-                      {word}
-                    </span>
-                    {i < titleWords.length - 1 ? " " : ""}
+                    {line.map((word, wordIndex) => (
+                      <>
+                        <span class="word" style={`--word-index:${titleLineOffsets[lineIndex] + wordIndex}`}>
+                          {word}
+                        </span>
+                        {wordIndex < line.length - 1 ? " " : ""}
+                      </>
+                    ))}
+                    {lineIndex < titleLines.length - 1 ? <br /> : ""}
                   </>
                 ))
               }
@@ -179,7 +198,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
           <!-- Same word reveal as the Hero 1 paragraph: 0.6s duration, 0.9s
                delay so it follows the headline, 0.03s stagger. -->
           <p
-            class="pw-hero__description animated-text is-ready is-animated"
+            class="dl-hero__description animated-text is-ready is-animated"
             data-duration="0.6"
             data-delay="1.2"
             data-stagger="0.03"
@@ -201,11 +220,11 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
       </div>
 
       <!-- CTA -->
-      <a class="pw-hero__cta" href={ctaHref}>
-        <span class="pw-hero__cta-text">{ctaText}</span>
-        <span class="pw-hero__cta-badge" aria-hidden="true">
-          <span class="pw-hero__cta-arrows">
-            <svg class="pw-hero__cta-arrow pw-hero__cta-arrow--1" viewBox="0 0 20 20" fill="none">
+      <a class="dl-hero__cta" href={ctaHref}>
+        <span class="dl-hero__cta-text">{ctaText}</span>
+        <span class="dl-hero__cta-badge" aria-hidden="true">
+          <span class="dl-hero__cta-arrows">
+            <svg class="dl-hero__cta-arrow dl-hero__cta-arrow--1" viewBox="0 0 20 20" fill="none">
               <path
                 d="M4 10h11M10.5 5.5 15 10l-4.5 4.5"
                 stroke="currentColor"
@@ -213,7 +232,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
                 stroke-linecap="round"
                 stroke-linejoin="round"></path>
             </svg>
-            <svg class="pw-hero__cta-arrow pw-hero__cta-arrow--2" viewBox="0 0 20 20" fill="none">
+            <svg class="dl-hero__cta-arrow dl-hero__cta-arrow--2" viewBox="0 0 20 20" fill="none">
               <path
                 d="M4 10h11M10.5 5.5 15 10l-4.5 4.5"
                 stroke="currentColor"
@@ -227,33 +246,33 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     </div>
 
     <!-- Floating card, left of the container -->
-    <div class="pw-hero__float pw-hero__float--left" data-aos="fade-right" data-aos-delay="250">
-      <div class="pw-hero__stat">
-        <span class="pw-hero__stat-icon" aria-hidden="true">
-          <IndianRupee class="pw-hero__stat-svg" stroke-width={1.6} />
+    <div class="dl-hero__float dl-hero__float--left" data-aos="fade-right" data-aos-delay="250">
+      <div class="dl-hero__stat">
+        <span class="dl-hero__stat-icon" aria-hidden="true">
+          <Download class="dl-hero__stat-svg" stroke-width={1.6} />
         </span>
-        <span class="pw-hero__stat-text">
-          <span class="pw-hero__stat-value">{leftStat}</span>
-          <span class="pw-hero__stat-label">{leftStatLabel}</span>
+        <span class="dl-hero__stat-text">
+          <span class="dl-hero__stat-value">{leftStat}</span>
+          <span class="dl-hero__stat-label">{leftStatLabel}</span>
         </span>
       </div>
-      <div class="pw-hero__float-image">
+      <div class="dl-hero__float-image">
         <img src={leftImage} alt={leftImageAlt} width="148" height="180" loading="lazy" decoding="async" />
       </div>
     </div>
 
     <!-- Floating card, right of the container -->
-    <div class="pw-hero__float pw-hero__float--right" data-aos="fade-left" data-aos-delay="250">
-      <div class="pw-hero__stat">
-        <span class="pw-hero__stat-icon" aria-hidden="true">
-          <CalendarDays class="pw-hero__stat-svg" stroke-width={1.6} />
+    <div class="dl-hero__float dl-hero__float--right" data-aos="fade-left" data-aos-delay="250">
+      <div class="dl-hero__stat">
+        <span class="dl-hero__stat-icon" aria-hidden="true">
+          <Monitor class="dl-hero__stat-svg" stroke-width={1.6} />
         </span>
-        <span class="pw-hero__stat-text">
-          <span class="pw-hero__stat-value">{rightStat}</span>
-          <span class="pw-hero__stat-label">{rightStatLabel}</span>
+        <span class="dl-hero__stat-text">
+          <span class="dl-hero__stat-value">{rightStat}</span>
+          <span class="dl-hero__stat-label">{rightStatLabel}</span>
         </span>
       </div>
-      <div class="pw-hero__float-image">
+      <div class="dl-hero__float-image">
         <img src={rightImage} alt={rightImageAlt} width="148" height="180" loading="lazy" decoding="async" />
       </div>
     </div>
@@ -263,18 +282,18 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
 <style>
   /* Every colour below is read through a local variable so the dark theme only
      has to repoint the variables (see the html.dark block further down). */
-  .pw-hero {
-    --pw-surface: #fff;
-    --pw-card: #fff;
-    --pw-ink-strong: #000;
-    --pw-ink: #1d1d1d;
-    --pw-ink-muted: #575757;
-    --pw-line: #e7e6e6;
-    --pw-tile: #f4f4f4;
-    --pw-cta-surface: #000;
-    --pw-cta-on-surface: #fff;
-    --pw-grid-line: rgba(0, 0, 0, 0.062);
-    --pw-grid-accent: rgba(0, 0, 0, 0.032);
+  .dl-hero {
+    --dl-surface: #fff;
+    --dl-card: #fff;
+    --dl-ink-strong: #000;
+    --dl-ink: #1d1d1d;
+    --dl-ink-muted: #575757;
+    --dl-line: #e7e6e6;
+    --dl-tile: #f4f4f4;
+    --dl-cta-surface: #000;
+    --dl-cta-on-surface: #fff;
+    --dl-grid-line: rgba(0, 0, 0, 0.062);
+    --dl-grid-accent: rgba(0, 0, 0, 0.032);
 
     position: relative;
     z-index: 1;
@@ -285,34 +304,34 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     width: 100%;
     padding: 120px 80px 160px;
     overflow: clip;
-    background-color: var(--pw-surface);
+    background-color: var(--dl-surface);
   }
 
   /* Dark theme. The site toggles `html.dark` on the root and publishes semantic
      tokens from src/styles/dark-theme.css, so only the locals change here. */
-  :global(html.dark) .pw-hero {
-    --pw-surface: var(--surface-0);
-    --pw-card: var(--surface-1);
-    --pw-ink-strong: var(--fg-strong);
-    --pw-ink: var(--fg-strong);
-    --pw-ink-muted: var(--fg-muted);
-    --pw-line: var(--line);
-    --pw-tile: var(--surface-3);
+  :global(html.dark) .dl-hero {
+    --dl-surface: var(--surface-0);
+    --dl-card: var(--surface-1);
+    --dl-ink-strong: var(--fg-strong);
+    --dl-ink: var(--fg-strong);
+    --dl-ink-muted: var(--fg-muted);
+    --dl-line: var(--line);
+    --dl-tile: var(--surface-3);
     /* The pill has to invert - a black button vanishes on the dark canvas. */
-    --pw-cta-surface: var(--fg-strong);
-    --pw-cta-on-surface: var(--surface-0);
-    --pw-grid-line: rgba(255, 255, 255, 0.055);
-    --pw-grid-accent: rgba(255, 255, 255, 0.03);
+    --dl-cta-surface: var(--fg-strong);
+    --dl-cta-on-surface: var(--surface-0);
+    --dl-grid-line: rgba(255, 255, 255, 0.055);
+    --dl-grid-accent: rgba(255, 255, 255, 0.03);
   }
 
   /* The laurels are solid black artwork; flip them so they read on dark. */
-  :global(html.dark) .pw-hero__leaf {
+  :global(html.dark) .dl-hero__leaf {
     filter: invert(1);
     opacity: 0.38;
   }
 
   /* ===== Grid background ===== */
-  .pw-hero__grid {
+  .dl-hero__grid {
     position: absolute;
     top: 0;
     bottom: 0;
@@ -333,14 +352,14 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     mask-composite: intersect;
   }
 
-  .pw-hero__grid svg {
+  .dl-hero__grid svg {
     display: block;
     width: 100%;
     height: 100%;
   }
 
   /* ===== Layout ===== */
-  .pw-hero__container {
+  .dl-hero__container {
     position: relative;
     z-index: 2;
     display: flex;
@@ -352,7 +371,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     max-width: 1280px;
   }
 
-  .pw-hero__top {
+  .dl-hero__top {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -361,7 +380,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     width: 100%;
   }
 
-  .pw-hero__intro {
+  .dl-hero__intro {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -371,7 +390,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
   }
 
   /* ===== Rating pill ===== */
-  .pw-hero__tag {
+  .dl-hero__tag {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -381,12 +400,12 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
 
   /* Reveal wrapper. The .word animation drives this element's opacity 0 -> 1,
      so the leaf's own 30% tint has to live on the image inside it. */
-  .pw-hero__leaf-wrap {
+  .dl-hero__leaf-wrap {
     flex: none;
     line-height: 0;
   }
 
-  .pw-hero__leaf {
+  .dl-hero__leaf {
     display: block;
     width: 56px;
     height: 56px;
@@ -395,7 +414,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     opacity: 0.3;
   }
 
-  .pw-hero__reviews {
+  .dl-hero__reviews {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -403,24 +422,24 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     width: min-content;
   }
 
-  .pw-hero__stars {
+  .dl-hero__stars {
     flex: none;
     width: 96px;
     height: 16px;
-    color: var(--pw-ink-strong);
+    color: var(--dl-ink-strong);
   }
 
-  .pw-hero__rating-label {
+  .dl-hero__rating-label {
     margin: 0;
     white-space: pre;
     font-size: 14px;
     line-height: 20px;
     font-weight: 600;
-    color: var(--pw-ink);
+    color: var(--dl-ink);
   }
 
   /* ===== Title block ===== */
-  .pw-hero__title-block {
+  .dl-hero__title-block {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -432,23 +451,23 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
 
   /* Weight, leading and size scale match the Hero 1 headline. No italic,
      no secondary/serif face - project font only. */
-  .pw-hero__title {
+  .dl-hero__title {
     width: 100%;
     margin: 0;
     font-weight: 550;
     line-height: 1.15;
     letter-spacing: -0.01em;
     text-align: center;
-    color: var(--pw-ink-strong);
+    color: var(--dl-ink-strong);
   }
 
   /* The reveal wrapper is the element that lays out the text, so line
      balancing has to live here rather than on the h1. */
-  .pw-hero__title-text {
+  .dl-hero__title-text {
     text-wrap: balance;
   }
 
-  .pw-hero__description {
+  .dl-hero__description {
     width: 100%;
     max-width: 580px;
     margin: 0;
@@ -457,11 +476,11 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     font-weight: 400;
     text-align: center;
     text-wrap: balance;
-    color: var(--pw-ink-muted);
+    color: var(--dl-ink-muted);
   }
 
   /* ===== CTA button ===== */
-  .pw-hero__cta {
+  .dl-hero__cta {
     position: relative;
     display: flex;
     flex-direction: row;
@@ -471,13 +490,13 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     height: 48px;
     padding: 14px 4px 14px 20px;
     border-radius: 40px;
-    background-color: var(--pw-cta-surface);
+    background-color: var(--dl-cta-surface);
     text-decoration: none;
     cursor: pointer;
     isolation: isolate;
   }
 
-  .pw-hero__cta-text {
+  .dl-hero__cta-text {
     position: relative;
     z-index: 2;
     padding-right: 64px;
@@ -485,12 +504,12 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     font-size: 14px;
     line-height: 20px;
     font-weight: 500;
-    color: var(--pw-cta-on-surface);
+    color: var(--dl-cta-on-surface);
     transition: color 0.3s ease;
   }
 
   /* Sized with four length insets (never `auto`) so the expand animates. */
-  .pw-hero__cta-badge {
+  .dl-hero__cta-badge {
     position: absolute;
     z-index: 0;
     top: 4px;
@@ -503,7 +522,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     place-content: center flex-end;
     padding: 0 10.5px 0 0;
     border-radius: 999px;
-    background-color: var(--pw-cta-on-surface);
+    background-color: var(--dl-cta-on-surface);
     transition:
       top 0.35s cubic-bezier(0.44, 0, 0.56, 1),
       right 0.35s cubic-bezier(0.44, 0, 0.56, 1),
@@ -512,7 +531,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
       padding 0.35s cubic-bezier(0.44, 0, 0.56, 1);
   }
 
-  .pw-hero__cta-arrows {
+  .dl-hero__cta-arrows {
     position: relative;
     display: flex;
     flex-direction: row;
@@ -523,30 +542,30 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     overflow: hidden;
   }
 
-  .pw-hero__cta-arrow {
+  .dl-hero__cta-arrow {
     position: absolute;
     top: 0;
     bottom: 0;
     width: 19px;
     height: 19px;
     aspect-ratio: 1;
-    color: var(--pw-cta-surface);
+    color: var(--dl-cta-surface);
     transition: transform 0.35s cubic-bezier(0.44, 0, 0.56, 1);
   }
 
-  .pw-hero__cta-arrow--1 {
+  .dl-hero__cta-arrow--1 {
     left: 0;
     transform: translateX(0);
   }
 
-  .pw-hero__cta-arrow--2 {
+  .dl-hero__cta-arrow--2 {
     left: 0;
     transform: translateX(-42px);
   }
 
   /* Hover: the white badge expands across the button, arrows slide right */
-  .pw-hero__cta:hover .pw-hero__cta-badge,
-  .pw-hero__cta:focus-visible .pw-hero__cta-badge {
+  .dl-hero__cta:hover .dl-hero__cta-badge,
+  .dl-hero__cta:focus-visible .dl-hero__cta-badge {
     top: 2px;
     right: 2px;
     bottom: 2px;
@@ -554,28 +573,28 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     padding: 0 20px 0 0;
   }
 
-  .pw-hero__cta:hover .pw-hero__cta-text,
-  .pw-hero__cta:focus-visible .pw-hero__cta-text {
-    color: var(--pw-cta-surface);
+  .dl-hero__cta:hover .dl-hero__cta-text,
+  .dl-hero__cta:focus-visible .dl-hero__cta-text {
+    color: var(--dl-cta-surface);
   }
 
-  .pw-hero__cta:hover .pw-hero__cta-arrow--1,
-  .pw-hero__cta:focus-visible .pw-hero__cta-arrow--1 {
+  .dl-hero__cta:hover .dl-hero__cta-arrow--1,
+  .dl-hero__cta:focus-visible .dl-hero__cta-arrow--1 {
     transform: translateX(42px);
   }
 
-  .pw-hero__cta:hover .pw-hero__cta-arrow--2,
-  .pw-hero__cta:focus-visible .pw-hero__cta-arrow--2 {
+  .dl-hero__cta:hover .dl-hero__cta-arrow--2,
+  .dl-hero__cta:focus-visible .dl-hero__cta-arrow--2 {
     transform: translateX(0);
   }
 
-  .pw-hero__cta:focus-visible {
-    outline: 2px solid var(--pw-ink-strong);
+  .dl-hero__cta:focus-visible {
+    outline: 2px solid var(--dl-ink-strong);
     outline-offset: 3px;
   }
 
   /* ===== Floating side cards ===== */
-  .pw-hero__float {
+  .dl-hero__float {
     position: absolute;
     z-index: 1;
     display: none;
@@ -586,17 +605,17 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     width: min-content;
   }
 
-  .pw-hero__float--left {
+  .dl-hero__float--left {
     top: 59px;
     left: 40px;
   }
 
-  .pw-hero__float--right {
+  .dl-hero__float--right {
     top: 121px;
     right: -40px;
   }
 
-  .pw-hero__stat {
+  .dl-hero__stat {
     position: absolute;
     z-index: 2;
     bottom: 20px;
@@ -607,12 +626,12 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     gap: 8px;
     width: 163px;
     padding: 8px;
-    border: 1px solid var(--pw-line);
+    border: 1px solid var(--dl-line);
     border-radius: 12px;
-    background-color: var(--pw-card);
+    background-color: var(--dl-card);
   }
 
-  .pw-hero__stat-icon {
+  .dl-hero__stat-icon {
     flex: none;
     display: flex;
     align-items: center;
@@ -620,38 +639,38 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     width: 40px;
     height: 40px;
     border-radius: 8px;
-    background-color: var(--pw-tile);
-    color: var(--pw-ink-muted);
+    background-color: var(--dl-tile);
+    color: var(--dl-ink-muted);
   }
 
-  .pw-hero__stat-svg {
+  .dl-hero__stat-svg {
     width: 24px;
     height: 24px;
   }
 
-  .pw-hero__stat-text {
+  .dl-hero__stat-text {
     display: flex;
     flex-direction: column;
     flex: 1 0 0;
     width: 1px;
   }
 
-  .pw-hero__stat-value {
+  .dl-hero__stat-value {
     font-size: 14px;
     line-height: 20px;
     font-weight: 600;
-    color: var(--pw-ink-strong);
+    color: var(--dl-ink-strong);
   }
 
-  .pw-hero__stat-label {
+  .dl-hero__stat-label {
     font-size: 14px;
     line-height: 20px;
     font-weight: 600;
     overflow-wrap: break-word;
-    color: var(--pw-ink-muted);
+    color: var(--dl-ink-muted);
   }
 
-  .pw-hero__float-image {
+  .dl-hero__float-image {
     position: relative;
     z-index: 1;
     flex: none;
@@ -661,7 +680,7 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
     overflow: hidden;
   }
 
-  .pw-hero__float-image img {
+  .dl-hero__float-image img {
     display: block;
     width: 100%;
     height: 100%;
@@ -670,29 +689,29 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
 
   /* The reference only shows these on the widest breakpoint. */
   @media (min-width: 1440px) {
-    .pw-hero__float {
+    .dl-hero__float {
       display: flex;
     }
   }
 
   /* ===== Tablet ===== */
   @media (min-width: 810px) and (max-width: 1439.98px) {
-    .pw-hero {
+    .dl-hero {
       padding: 96px 40px 96px;
     }
 
-    .pw-hero__container {
+    .dl-hero__container {
       gap: 56px;
       max-width: 900px;
     }
 
-    .pw-hero__grid {
+    .dl-hero__grid {
       width: auto;
       left: 0;
       right: 0;
     }
 
-    .pw-hero__description {
+    .dl-hero__description {
       font-size: 18px;
       line-height: 26px;
     }
@@ -700,44 +719,44 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
 
   /* ===== Mobile ===== */
   @media (max-width: 809.98px) {
-    .pw-hero {
+    .dl-hero {
       padding: 72px 16px 48px;
     }
 
-    .pw-hero__container {
+    .dl-hero__container {
       gap: 40px;
       max-width: 400px;
     }
 
-    .pw-hero__grid {
+    .dl-hero__grid {
       width: auto;
       left: 0;
       right: 0;
     }
 
-    .pw-hero__top {
+    .dl-hero__top {
       gap: 40px;
     }
 
-    .pw-hero__title-block {
+    .dl-hero__title-block {
       gap: 24px;
     }
 
-    .pw-hero__description {
+    .dl-hero__description {
       font-size: 16px;
       line-height: 24px;
     }
 
-    .pw-hero__leaf {
+    .dl-hero__leaf {
       width: 44px;
       height: 44px;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .pw-hero__cta-badge,
-    .pw-hero__cta-arrow,
-    .pw-hero__cta-text {
+    .dl-hero__cta-badge,
+    .dl-hero__cta-arrow,
+    .dl-hero__cta-text {
       transition: none;
     }
   }

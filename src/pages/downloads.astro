@@ -1,0 +1,25 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import DownloadsHero from "../components/downloads/DownloadsHero.astro";
+import DownloadsSection from "../components/downloads/DownloadsSection.astro";
+import CallToAction2 from "../components/CallToAction2.astro";
+---
+
+<Layout
+  title="Downloads | GoPocket Trading App, Terminals, Forms & Documents"
+  description="Download the GoPocket app, the Investor and Dealer desktop terminals, and every account form - account opening, nomination, DDPI, modification and closure."
+  keywords="gopocket download, trading terminal download, account opening form, nomination form, ddpi form, demat account form, gopocket app"
+  canonical="/downloads"
+>
+  <Header currentPath="/downloads" />
+
+  <main class="has-section-spacing-lg">
+    <DownloadsHero />
+    <DownloadsSection />
+    <CallToAction2 />
+  </main>
+
+  <Footer />
+</Layout>

@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import PartnerHero from "../components/partner/PartnerHero.astro";
+import PartnerEnquiry from "../components/partner/PartnerEnquiry.astro";
 import PartnerBenefits from "../components/partner/PartnerBenefits.astro";
 import PartnerAdvantages from "../components/partner/PartnerAdvantages.astro";
 import PartnerPlatforms from "../components/partner/PartnerPlatforms.astro";
@@ -61,12 +62,13 @@ const partnerFaqs = [
   title="Partner With Us | Become a GoPocket Business Partner"
   description="Become an authorized GoPocket partner. High revenue sharing, zero deposit charges, free RM and dealing support, and a CRM to track every client you onboard."
   keywords="gopocket partner, business partner, authorized person, sub broker, franchise, stock broking partner india, refer and earn"
-  canonical="https://gopocket.in/partner-with-us"
+  canonical="/partner-with-us"
 >
   <Header currentPath="/partner-with-us" />
 
   <main class="has-section-spacing-lg">
     <PartnerHero />
+    <PartnerEnquiry />
     <PartnerBenefits />
     <PartnerAdvantages />
     <PartnerPlatforms />

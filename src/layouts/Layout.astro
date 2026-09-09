@@ -17,6 +17,7 @@ interface Props {
   title?: string;
   description?: string;
   keywords?: string;
+  /** Site-relative path ("/pricing"). An absolute URL is also accepted. */
   canonical?: string;
   ogImage?: string;
   ogImageAlt?: string;
@@ -33,7 +34,7 @@ const {
   title = "GoPocket: Open Demat Account | Online Trading App India",
   description = "Open a FREE demat account with GoPocket in 5 mins. Trade stocks, F&O, mutual funds & IPOs on NSE, BSE & MCX. India's trusted SEBI-registered broker.",
   keywords = "demat account, online trading, stock broker India, discount broker, GoPocket, F&O trading, mutual funds, IPO",
-  canonical = Astro.url.href,
+  canonical = Astro.url.pathname,
   ogImage = DEFAULT_OG_IMAGE,
   ogImageAlt = "GoPocket - online trading and demat account app",
   ogType = "website",
@@ -56,6 +57,22 @@ const {
  * no-thumbnail fallback) pick up the serving origin.
  */
 const toAbsoluteUrl = (url: string): string => new URL(url, Astro.url.origin).href;
+
+/**
+ * The canonical URL deliberately does NOT follow the request origin the way the
+ * share card does. A staging or workers.dev deployment that pointed its
+ * canonical at itself would be inviting search engines to index the preview
+ * copy, so this always resolves against the published origin: `site` in
+ * astro.config.mjs, surfaced here as Astro.site. It falls back to the request
+ * origin only if `site` is ever unset, which would also disable the sitemap.
+ *
+ * Pages pass a path ("/pricing"); an absolute URL still passes through intact.
+ * The default is this request's pathname, so query strings - ?src=, ?tag= and
+ * the other tracking params - never reach the canonical and split a page into
+ * duplicates.
+ */
+const SITE_ORIGIN = Astro.site?.origin ?? Astro.url.origin;
+const canonicalUrl = new URL(canonical, SITE_ORIGIN).href;
 
 const absoluteOgImage = toAbsoluteUrl(ogImage);
 
@@ -84,8 +101,8 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
     <meta name="keywords" content={keywords} />
     <meta name="author" content="GoPocket" />
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href={canonical} item-prop="url" />
-    <link rel="alternate" hreflang="en" href={canonical} />
+    <link rel="canonical" href={canonicalUrl} item-prop="url" />
+    <link rel="alternate" hreflang="en" href={canonicalUrl} />
     {/* Replaced by the theme script below once the resolved theme is known. */}
     <meta name="theme-color" content="#ffffff" />
 
@@ -183,26 +200,26 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
         name: title,
         description: description,
         image: absoluteOgImage,
-        url: canonical,
+        url: canonicalUrl,
         inLanguage: "en",
         isPartOf: {
           "@type": "WebSite",
           name: "GoPocket",
           description:
             "GoPocket is a SEBI-registered online trading and demat account platform for stocks, F&O, mutual funds, commodities and IPOs.",
-          url: "https://gopocket.in/",
+          url: `${SITE_ORIGIN}/`,
         },
         publisher: {
           "@type": "Organization",
           name: "GoPocket",
-          url: "https://gopocket.in/",
+          url: `${SITE_ORIGIN}/`,
           sameAs: [
             "https://www.facebook.com",
             "https://twitter.com",
             "https://www.instagram.com",
             "https://www.linkedin.com",
           ],
-          logo: { "@type": "ImageObject", url: "https://gopocket.in/gopocket-logo.svg" },
+          logo: { "@type": "ImageObject", url: `${SITE_ORIGIN}/gopocket-logo.svg` },
         },
       })}
     />

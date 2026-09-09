@@ -25,9 +25,9 @@ export default defineConfig({
         name: "polyfill-message-channel",
         renderChunk(code) {
           return polyfillCode + "\n" + code;
-        }
+        },
       },
-      tailwindcss()
-    ]
-  }
+      tailwindcss(),
+    ],
+  },
 });

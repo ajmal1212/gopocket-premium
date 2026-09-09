@@ -1,0 +1,419 @@
+---
+import IndianRupee from "@lucide/astro/icons/indian-rupee";
+import CalendarDays from "@lucide/astro/icons/calendar-days";
+import Check from "@lucide/astro/icons/check";
+import LeadCapture from "../LeadCapture.astro";
+
+/**
+ * PartnerEnquiry - the partner application form.
+ *
+ * This used to sit in the right column of PartnerHero. The hero is now the
+ * centred research-learn layout, which has no column to host a five-field
+ * form, so the form moved here and the hero CTA scrolls to #partner-enquiry.
+ *
+ * The form itself is unchanged: same fields, same /api/partner-enquiry
+ * endpoint, same LeadCapture behaviour. A partner applicant must not be
+ * redirected into the retail signup flow, which is why it does not post to the
+ * retail lead endpoint.
+ *
+ * The three trust metrics above it came across from the hero too - in the
+ * hero's new form they would only appear above 1440px as floating cards, and
+ * they are worth showing at every width.
+ */
+
+const srcParam = Astro.url.searchParams.get("src") || "Website";
+const tagParam = Astro.url.searchParams.get("tag") || "Partner";
+const referParam = Astro.url.searchParams.get("refer") || "";
+
+/** States and union territories, for the dropdown. */
+const STATES = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry",
+];
+---
+
+<section id="partner-enquiry" class="pw-enquiry">
+  <div class="pw-enquiry__inner">
+    <div class="pw-enquiry__head">
+      <h2 class="pw-enquiry__title">Become a Partner</h2>
+      <p class="pw-enquiry__subtitle">Tell us how to reach you and our partnership team will take it from there.</p>
+    </div>
+
+    <div class="pw-metrics">
+      <div class="pw-metric">
+        <span class="pw-metric__icon" aria-hidden="true">
+          <IndianRupee class="pw-metric__svg" stroke-width={1.8} />
+        </span>
+        <span class="pw-metric__text">
+          <span class="pw-metric__value">Industry-best</span>
+          <span class="pw-metric__label">Revenue Sharing</span>
+        </span>
+      </div>
+      <div class="pw-metric">
+        <span class="pw-metric__icon" aria-hidden="true">
+          <CalendarDays class="pw-metric__svg" stroke-width={1.8} />
+        </span>
+        <span class="pw-metric__text">
+          <span class="pw-metric__value">By 5th</span>
+          <span class="pw-metric__label">Payout Every Month</span>
+        </span>
+      </div>
+      <div class="pw-metric">
+        <span class="pw-metric__icon" aria-hidden="true">
+          <Check class="pw-metric__svg" stroke-width={1.8} />
+        </span>
+        <span class="pw-metric__text">
+          <span class="pw-metric__value">Zero</span>
+          <span class="pw-metric__label">Deposit Charges</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="pw-enquiry__card">
+      <form data-lead-form data-lead-endpoint="/api/partner-enquiry" class="space-y-5" novalidate>
+        <!-- Hidden Tracking Query Parameters -->
+        <input type="hidden" name="src" value={srcParam} />
+        <input type="hidden" name="tag" value={tagParam} />
+        <input type="hidden" name="refer" value={referParam} />
+
+        <div class="space-y-2">
+          <label for="partner-name" class="text-dark block text-sm font-semibold">Name</label>
+          <input
+            id="partner-name"
+            type="text"
+            name="name"
+            autocomplete="name"
+            maxlength="80"
+            placeholder="Your Full Name"
+            class="partner-field w-full rounded-2xl px-4 py-3.5 text-base font-medium"
+            required
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label for="partner-mobile" class="text-dark block text-sm font-semibold">Mobile</label>
+          <div class="relative flex items-center">
+            <div
+              class="text-dark pointer-events-none absolute left-3.5 z-10 flex items-center gap-1.5 text-sm font-medium"
+            >
+              <span class="text-base">🇮🇳</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 text-gray-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+            <input
+              id="partner-mobile"
+              data-lead-mobile
+              type="tel"
+              name="mobile"
+              inputmode="numeric"
+              autocomplete="tel"
+              maxlength="10"
+              pattern="[0-9]{10}"
+              placeholder="Your Mobile Number"
+              class="partner-field w-full rounded-2xl py-3.5 pr-4 pl-16 text-base font-medium"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label for="partner-email" class="text-dark block text-sm font-semibold">Email</label>
+          <input
+            id="partner-email"
+            type="email"
+            name="email"
+            autocomplete="email"
+            maxlength="120"
+            placeholder="you@example.com"
+            class="partner-field w-full rounded-2xl px-4 py-3.5 text-base font-medium"
+            required
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label for="partner-state" class="text-dark block text-sm font-semibold">State</label>
+          <div class="relative flex items-center">
+            <select
+              id="partner-state"
+              name="state"
+              class="partner-field w-full appearance-none rounded-2xl py-3.5 pr-11 pl-4 text-base font-medium"
+              required
+            >
+              <option value="">Select your state</option>
+              {STATES.map((state) => <option value={state}>{state}</option>)}
+            </select>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="pointer-events-none absolute right-4 h-4 w-4 text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+        </div>
+
+        <button
+          data-lead-submit
+          type="submit"
+          class="flex w-full cursor-pointer items-center justify-center rounded-2xl bg-[#7c3aed] py-4 text-lg font-bold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#6d28d9] active:scale-[0.98] disabled:transform-none disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          <span data-lead-label>Become a Partner</span>
+        </button>
+      </form>
+
+      <div
+        class="rounded-2xl border border-[#bbf7d0] bg-[#dcfce7] p-4 text-xs leading-relaxed font-medium text-emerald-900"
+      >
+        Note: By submitting above details, you are authorizing GoPocket / its sub-brokers / agents to call you and send
+        promotional communication even though you being registered under DND.
+      </div>
+    </div>
+  </div>
+</section>
+
+<LeadCapture />
+
+<style>
+  /* Local tokens, same approach as the hero: the dark theme only repoints
+     these rather than restating every rule. */
+  .pw-enquiry {
+    --pw-surface: #fff;
+    --pw-card: #fff;
+    --pw-ink-strong: #000;
+    --pw-ink-muted: #575757;
+    --pw-line: #e7e6e6;
+    --pw-tile: #f4f4f4;
+
+    display: flex;
+    place-content: center;
+    width: 100%;
+    padding: 0 80px 120px;
+    background-color: var(--pw-surface);
+  }
+
+  :global(html.dark) .pw-enquiry {
+    --pw-surface: var(--surface-0);
+    --pw-card: var(--surface-1);
+    --pw-ink-strong: var(--fg-strong);
+    --pw-ink-muted: var(--fg-muted);
+    --pw-line: var(--line);
+    --pw-tile: var(--surface-3);
+  }
+
+  .pw-enquiry__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .pw-enquiry__head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .pw-enquiry__title {
+    margin: 0;
+    font-size: 36px;
+    line-height: 1.15;
+    font-weight: 550;
+    letter-spacing: -0.01em;
+    color: var(--pw-ink-strong);
+  }
+
+  .pw-enquiry__subtitle {
+    max-width: 480px;
+    margin: 0;
+    font-size: 18px;
+    line-height: 26px;
+    text-wrap: balance;
+    color: var(--pw-ink-muted);
+  }
+
+  /* ===== Trust metrics ===== */
+  .pw-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+  }
+
+  .pw-metric {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--pw-line);
+    border-radius: 12px;
+    background-color: var(--pw-card);
+  }
+
+  .pw-metric__icon {
+    flex: none;
+    display: flex;
+    align-items: center;
+    place-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background-color: var(--pw-tile);
+    color: var(--pw-ink-muted);
+  }
+
+  .pw-metric__svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .pw-metric__text {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 0;
+    width: 1px;
+  }
+
+  .pw-metric__value {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    color: var(--pw-ink-strong);
+  }
+
+  .pw-metric__label {
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 500;
+    overflow-wrap: break-word;
+    color: var(--pw-ink-muted);
+  }
+
+  /* ===== Form card ===== */
+  .pw-enquiry__card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    padding: 32px;
+    border: 1px solid var(--pw-line);
+    border-radius: 24px;
+    background-color: var(--pw-card);
+  }
+
+  /* One rule for every control in the form, so the text inputs and the select
+     share a border, focus ring and height rather than drifting apart. */
+  .partner-field {
+    color: var(--fg-strong, #322b2b);
+    background: var(--surface-1, #fff);
+    border: 1px solid var(--line, #eceef1);
+    transition:
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .partner-field::placeholder {
+    color: var(--fg-subtle, #9ca3af);
+  }
+
+  .partner-field:focus {
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 4px rgb(124 58 237 / 0.1);
+  }
+
+  /* A select with nothing chosen shows its placeholder option, which should
+     read as placeholder text rather than as an answer. Scoped to the select:
+     on a text input this would grey out whatever the visitor is still typing. */
+  select.partner-field:invalid {
+    color: var(--fg-subtle, #9ca3af);
+  }
+
+  .partner-field option {
+    color: var(--fg-strong, #322b2b);
+  }
+
+  /* ===== Tablet ===== */
+  @media (min-width: 810px) and (max-width: 1439.98px) {
+    .pw-enquiry {
+      padding: 0 40px 96px;
+    }
+  }
+
+  /* ===== Mobile ===== */
+  @media (max-width: 809.98px) {
+    .pw-enquiry {
+      padding: 0 16px 64px;
+    }
+
+    .pw-enquiry__inner {
+      gap: 32px;
+      max-width: 400px;
+    }
+
+    .pw-enquiry__title {
+      font-size: 28px;
+    }
+
+    .pw-enquiry__subtitle {
+      font-size: 16px;
+      line-height: 24px;
+    }
+
+    /* Three across is too tight under 810px; stack them. */
+    .pw-metrics {
+      grid-template-columns: 1fr;
+    }
+
+    .pw-enquiry__card {
+      padding: 20px;
+      border-radius: 20px;
+    }
+  }
+</style>

@@ -7,61 +7,81 @@ import Footer from "../components/Footer.astro";
 <Layout
   title="404 - Page Not Found | GoPocket"
   description="Sorry, that page not be found. Let's get you back to somewhere familiar."
-  canonical="https://gopocket.in/404"
+  canonical="/404"
 >
   <Header currentPath="/404" />
 
   {/* Sky Background Section */}
-  <main class="error-page-main">
-    
+  <main class="error-page-main" data-error-stage>
     {/* 404 Hero Section */}
     <div class="error-hero">
-      
       {/* 404 Text with Monster Overlay */}
       <div class="error-numbers-wrapper">
         {/* The "404" text */}
         <span class="error-digit">4</span>
         <span class="error-digit error-digit-zero">0</span>
         <span class="error-digit">4</span>
-        
+
         {/* Monster overlapping the "0" */}
         <div class="error-monster-wrapper">
-          <img
-            src="/assets/images/gopocket/404.png"
-            alt="404 Mascot Monster"
-            class="error-monster-img"
-            loading="eager"
-            decoding="async"
-          />
+          {
+            /*
+            Two nested elements on purpose: the wrapper carries the pointer
+            transform and the inner one carries the idle float keyframes. One
+            element cannot do both - the animation would overwrite the pointer
+            transform on every frame.
+          */
+          }
+          <div class="error-monster-float">
+            <img
+              src="/assets/images/gopocket/404.png"
+              alt="404 Mascot Monster"
+              class="error-monster-img"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
         </div>
       </div>
 
       {/* Text & Button */}
       <div class="error-text-section">
-        <h1 class="error-heading">
-          Sorry, that page not be found
-        </h1>
-        <p class="error-subtitle">
-          Let's get you back to somewhere familiar
-        </p>
+        <h1 class="error-heading">Sorry, that page not be found</h1>
+        <p class="error-subtitle">Let's get you back to somewhere familiar</p>
       </div>
 
       <div class="error-button-wrapper">
         <a href="/" class="error-home-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            ></path>
           </svg>
           <span>Go to Home</span>
         </a>
       </div>
-
     </div>
   </main>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@700&display=swap');
+    @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@700&display=swap");
 
+    /*
+      --pointer-x / --pointer-y are a -1..1 offset from the centre of the stage,
+      written and smoothed by the script at the bottom of this file. Every layer
+      below reads the same pair and moves by its own amount. They default to 0,
+      which is the resting pose, so the page is correct with no JS at all.
+    */
     .error-page-main {
+      --pointer-x: 0;
+      --pointer-y: 0;
+
       position: relative;
       min-height: 85vh;
       width: 100%;
@@ -95,10 +115,12 @@ import Footer from "../components/Footer.astro";
       user-select: none;
       width: 100%;
       line-height: 1;
+      /* Gives the monster's rotateX/rotateY somewhere to project into. */
+      perspective: 900px;
     }
 
     .error-digit {
-      font-family: 'Outfit', sans-serif;
+      font-family: "Outfit", sans-serif;
       font-size: clamp(200px, 35vw, 480px);
       font-weight: 700;
       background: linear-gradient(180deg, #4a00c8 0%, #8b48ff 50%, #c4a0ff 100%);
@@ -110,6 +132,13 @@ import Footer from "../components/Footer.astro";
       line-height: 0.85;
       position: relative;
       z-index: 1;
+      /*
+        Drifts against the monster, which reads as depth between the layers.
+        Deliberately no `will-change` here: promoting a background-clip:text
+        element to its own layer is what makes the gradient fill drop out in
+        Chrome, and a 10px drift does not need the hint.
+      */
+      transform: translate3d(calc(var(--pointer-x) * -10px), calc(var(--pointer-y) * -6px), 0);
     }
 
     .error-digit-zero {
@@ -121,19 +150,42 @@ import Footer from "../components/Footer.astro";
       position: absolute;
       left: 50%;
       bottom: 0;
-      transform: translateX(-46%);
       z-index: 5;
       display: flex;
       align-items: flex-end;
       justify-content: center;
       pointer-events: none;
+      transform-style: preserve-3d;
+      /*
+        translateX(-46%) is the original centring and has to stay first; the
+        pointer offset and tilt compose after it. Travelling further than the
+        digits and rotating into the cursor is what sells the lean.
+      */
+      transform: translateX(-46%) translate3d(calc(var(--pointer-x) * 26px), calc(var(--pointer-y) * 16px), 0)
+        rotateY(calc(var(--pointer-x) * 11deg)) rotateX(calc(var(--pointer-y) * -8deg));
+      will-change: transform;
+    }
+
+    /* Idle bob, on its own element so it survives the pointer transform. */
+    .error-monster-float {
+      animation: error-monster-bob 4.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes error-monster-bob {
+      from {
+        transform: translateY(0) rotate(-1.1deg);
+      }
+      to {
+        transform: translateY(-14px) rotate(1.1deg);
+      }
     }
 
     .error-monster-img {
       height: clamp(160px, 28vw, 340px);
       width: auto;
       object-fit: contain;
-      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.15));
+      /* The shadow slides opposite the tilt, as if the light stayed put. */
+      filter: drop-shadow(calc(var(--pointer-x) * -14px) calc(8px + var(--pointer-y) * -6px) 24px rgba(0, 0, 0, 0.15));
     }
 
     /* Text section */
@@ -203,7 +255,102 @@ import Footer from "../components/Footer.astro";
         margin-top: 1.5rem;
       }
     }
+
+    /*
+      No pointer to follow on touch: the bob stays, the parallax is dropped so a
+      stray tap cannot leave the layers frozen at an offset.
+    */
+    @media not all and (hover: hover) and (pointer: fine) {
+      .error-digit {
+        transform: none;
+      }
+
+      .error-monster-wrapper {
+        transform: translateX(-46%);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .error-monster-float {
+        animation: none;
+      }
+
+      .error-digit {
+        transform: none;
+      }
+
+      .error-monster-wrapper {
+        transform: translateX(-46%);
+      }
+    }
   </style>
+
+  <script>
+    /*
+     * Pointer parallax for the 404 mascot.
+     *
+     * The script writes only two numbers - --pointer-x and --pointer-y, each
+     * -1..1 from the centre of the stage - and the stylesheet decides what each
+     * layer does with them. Values are eased toward the target inside a rAF
+     * loop rather than applied straight from the event, so the monster trails
+     * the cursor instead of snapping to it, and the loop parks itself once it
+     * has settled rather than repainting an idle page.
+     */
+    const stage = document.querySelector<HTMLElement>("[data-error-stage]");
+
+    // Touch and reduced-motion visitors get the static page the CSS describes.
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    if (stage && finePointer.matches && !reducedMotion.matches) {
+      let targetX = 0;
+      let targetY = 0;
+      let currentX = 0;
+      let currentY = 0;
+      let frame = 0;
+
+      const clamp = (value: number) => Math.max(-1, Math.min(1, value));
+
+      const render = () => {
+        // Close 12% of the remaining distance per frame.
+        currentX += (targetX - currentX) * 0.12;
+        currentY += (targetY - currentY) * 0.12;
+
+        stage.style.setProperty("--pointer-x", currentX.toFixed(4));
+        stage.style.setProperty("--pointer-y", currentY.toFixed(4));
+
+        if (Math.abs(targetX - currentX) < 0.001 && Math.abs(targetY - currentY) < 0.001) {
+          frame = 0;
+          return;
+        }
+        frame = requestAnimationFrame(render);
+      };
+
+      const start = () => {
+        if (!frame) frame = requestAnimationFrame(render);
+      };
+
+      const onPointerMove = (event: PointerEvent) => {
+        const rect = stage.getBoundingClientRect();
+        // Normalised across the stage, so the effect scales with the viewport
+        // rather than being tied to a pixel distance.
+        targetX = clamp((event.clientX - rect.left - rect.width / 2) / (rect.width / 2));
+        targetY = clamp((event.clientY - rect.top - rect.height / 2) / (rect.height / 2));
+        start();
+      };
+
+      const settleBack = () => {
+        targetX = 0;
+        targetY = 0;
+        start();
+      };
+
+      stage.addEventListener("pointermove", onPointerMove);
+      stage.addEventListener("pointerleave", settleBack);
+      // A pointer that leaves through the window edge fires no pointerleave.
+      window.addEventListener("blur", settleBack);
+    }
+  </script>
 
   <Footer />
 </Layout>

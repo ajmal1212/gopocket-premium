@@ -40,21 +40,17 @@ const SAMPLE_RESPONSE = [
  * but it is escaped anyway so the sample can grow without becoming a hole.
  */
 const escapeHtml = (value: string): string =>
-  value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 // Each span is display:block, so it is already its own line. Joining with a
 // newline would render a blank line between every pair, because <pre> honours
 // the separator as well.
 const requestHtml = SAMPLE_REQUEST.map(
-  (line) => `<span class="api-code-line api-code-${line.tone}">${escapeHtml(line.text)}</span>`
+  (line) => `<span class="api-code-line api-code-${line.tone}">${escapeHtml(line.text)}</span>`,
 ).join("");
 
 const responseHtml = SAMPLE_RESPONSE.map(
-  (line) => `<span class="api-code-line api-code-plain">${escapeHtml(line)}</span>`
+  (line) => `<span class="api-code-line api-code-plain">${escapeHtml(line)}</span>`,
 ).join("");
 ---
 
@@ -73,7 +69,9 @@ const responseHtml = SAMPLE_RESPONSE.map(
           >
           </div>
           <div class="flex items-center rounded-full bg-white px-1 py-0.5">
-            <span class="bg-dark inline-block gap-1 rounded-full px-3 py-1 text-sm font-normal text-white">Developers</span>
+            <span class="bg-dark inline-block gap-1 rounded-full px-3 py-1 text-sm font-normal text-white"
+              >Developers</span
+            >
             <div class="text-text-default ms-3 flex items-center rounded-full py-px font-normal pr-2">
               REST &amp; WebSocket APIs
               <svg
@@ -120,13 +118,9 @@ const responseHtml = SAMPLE_RESPONSE.map(
           </h1>
         </div>
 
-        <p
-          data-aos="fade-up-sm"
-          data-aos-delay="700"
-          class="mx-auto max-w-xl text-center text-lg opacity-80 aos-init"
-        >
-          Place orders, stream live ticks and read your portfolio straight from your own code. Free
-          developer-grade APIs for every GoPocket account.
+        <p data-aos="fade-up-sm" data-aos-delay="700" class="mx-auto max-w-xl text-center text-lg opacity-80 aos-init">
+          Place orders, stream live ticks and read your portfolio straight from your own code. Free developer-grade APIs
+          for every GoPocket account.
         </p>
 
         <!-- Calls to action -->
@@ -158,21 +152,14 @@ const responseHtml = SAMPLE_RESPONSE.map(
               </svg>
             </span>
           </a>
-          <a
-            class="btn btn-outline text-flip-hover-anim btn-md w-full text-center sm:w-auto"
-            href="/contact"
-          >
+          <a class="btn btn-outline text-flip-hover-anim btn-md w-full text-center sm:w-auto" href="/contact">
             <span class="text-flip-inner" data-content="Read The Docs">Read The Docs</span>
           </a>
         </div>
       </div>
 
       <!-- Code panel: the developer page's answer to the app mockup -->
-      <div
-        data-aos="fade-up-sm"
-        data-aos-delay="1000"
-        class="relative mx-auto mt-14 max-w-4xl aos-init md:mt-20"
-      >
+      <div data-aos="fade-up-sm" data-aos-delay="1000" class="relative mx-auto mt-14 max-w-4xl aos-init md:mt-20">
         <div class="api-code-panel rounded-4xl border p-2 shadow-2xl shadow-black/5">
           <div class="api-code-panel-inner overflow-hidden rounded-[1.75rem]">
             <!-- Window chrome -->

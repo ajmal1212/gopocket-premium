@@ -25,8 +25,7 @@ interface Props {
 const {
   ratingText = "Trusted by 25,000+ traders",
   title = "Build skills for smarter investing.",
-  description =
-    "GoPocket gives you a complete learning experience that helps you gain real, market-ready skills and take the next step in your trading journey.",
+  description = "GoPocket gives you a complete learning experience that helps you gain real, market-ready skills and take the next step in your trading journey.",
   ctaText = "Explore our courses",
   ctaHref = "#webinars",
   leftStat = "150+",
@@ -159,7 +158,16 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
               style="--animated-text-duration:0.6s;--animated-text-delay:0.4s;--animated-text-stagger:0.1s;"
             >
               {/* prettier-ignore */}
-              {titleWords.map((word, i) => (<><span class="word" style={`--word-index:${i}`}>{word}</span>{i < titleWords.length - 1 ? " " : ""}</>))}
+              {
+                titleWords.map((word, i) => (
+                  <>
+                    <span class="word" style={`--word-index:${i}`}>
+                      {word}
+                    </span>
+                    {i < titleWords.length - 1 ? " " : ""}
+                  </>
+                ))
+              }
             </div>
           </h1>
           <!-- Same word reveal as the Hero 1 paragraph: 0.6s duration, 0.9s
@@ -172,7 +180,16 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
             style="--animated-text-duration:0.6s;--animated-text-delay:1.2s;--animated-text-stagger:0.03s;"
           >
             {/* prettier-ignore */}
-            {descriptionWords.map((word, i) => (<><span class="word" style={`--word-index:${i}`}>{word}</span>{i < descriptionWords.length - 1 ? " " : ""}</>))}
+            {
+              descriptionWords.map((word, i) => (
+                <>
+                  <span class="word" style={`--word-index:${i}`}>
+                    {word}
+                  </span>
+                  {i < descriptionWords.length - 1 ? " " : ""}
+                </>
+              ))
+            }
           </p>
         </div>
       </div>

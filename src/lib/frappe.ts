@@ -1,6 +1,6 @@
-import { FrappeApp } from 'frappe-js-sdk';
+import { FrappeApp } from "frappe-js-sdk";
 
-export const DEFAULT_FRAPPE_URL = 'https://hrms.gopocket.in';
+export const DEFAULT_FRAPPE_URL = "https://hrms.gopocket.in";
 
 export function getFrappeUrl(): string {
   const proc = (globalThis as any).process;
@@ -22,9 +22,9 @@ export function getFrappeToken(): string {
     return import.meta.env.FRAPPE_TOKEN;
   }
   throw new Error(
-    'FRAPPE_TOKEN is not set. Add it to .env for local runs and builds, and to ' +
-      'the Cloudflare Worker environment for deploys. It is deliberately not ' +
-      'hardcoded here so the credential never lands in version control.'
+    "FRAPPE_TOKEN is not set. Add it to .env for local runs and builds, and to " +
+      "the Cloudflare Worker environment for deploys. It is deliberately not " +
+      "hardcoded here so the credential never lands in version control.",
   );
 }
 
@@ -32,7 +32,7 @@ export function getFrappeInstance(): FrappeApp {
   return new FrappeApp(getFrappeUrl(), {
     useToken: true,
     token: () => getFrappeToken(),
-    type: 'token'
+    type: "token",
   });
 }
 
@@ -86,15 +86,15 @@ export interface FormattedSeminar {
 export function getFullImageUrl(imagePath?: string | null): string {
   const baseUrl = getFrappeUrl();
   if (!imagePath) {
-    return '/assets/images/learn1.jpeg';
+    return "/assets/images/learn1.jpeg";
   }
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-    if (imagePath.includes('192.168.')) {
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    if (imagePath.includes("192.168.")) {
       return imagePath.replace(/^http:\/\/[^/]+/, baseUrl);
     }
     return imagePath;
   }
-  const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+  const cleanPath = imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
   return `${baseUrl}${encodeFilePath(cleanPath)}`;
 }
 
@@ -105,42 +105,42 @@ export function getFullImageUrl(imagePath?: string | null): string {
  * untouched so they are not double-escaped.
  */
 function encodeFilePath(path: string): string {
-  const [pathname, query = ''] = path.split(/\?(.*)/s);
+  const [pathname, query = ""] = path.split(/\?(.*)/s);
 
   const encoded = pathname
-    .split('/')
+    .split("/")
     .map((segment) => (/%[0-9A-Fa-f]{2}/.test(segment) ? segment : encodeURIComponent(segment)))
-    .join('/');
+    .join("/");
 
   return query ? `${encoded}?${query}` : encoded;
 }
 
 export function formatSeminar(doc: SeminarDoc): FormattedSeminar {
-  const title = doc.tittle || doc.title || 'Untitled Masterclass';
-  const description = (doc.description || '').trim();
-  const rawDateTime = doc.date_and_time || '';
-  
-  let formattedDate = 'Upcoming';
-  let formattedTime = '';
+  const title = doc.tittle || doc.title || "Untitled Masterclass";
+  const description = (doc.description || "").trim();
+  const rawDateTime = doc.date_and_time || "";
+
+  let formattedDate = "Upcoming";
+  let formattedTime = "";
 
   if (rawDateTime) {
     try {
-      const dt = new Date(rawDateTime.replace(' ', 'T'));
+      const dt = new Date(rawDateTime.replace(" ", "T"));
       if (!isNaN(dt.getTime())) {
-        formattedDate = dt.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
+        formattedDate = dt.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
         });
-        formattedTime = dt.toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
+        formattedTime = dt.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
         });
       } else {
-        const parts = rawDateTime.split(' ');
+        const parts = rawDateTime.split(" ");
         formattedDate = parts[0] || rawDateTime;
-        formattedTime = parts[1] || '';
+        formattedTime = parts[1] || "";
       }
     } catch {
       formattedDate = rawDateTime;
@@ -155,11 +155,11 @@ export function formatSeminar(doc: SeminarDoc): FormattedSeminar {
     date_and_time: rawDateTime,
     formattedDate,
     formattedTime,
-    type: doc.type || 'Online',
-    cost: doc.cost || 'Free',
-    language: doc.language || 'Tamil',
+    type: doc.type || "Online",
+    cost: doc.cost || "Free",
+    language: doc.language || "Tamil",
     image: getFullImageUrl(doc.image),
-    rawImage: doc.image
+    rawImage: doc.image,
   };
 }
 
@@ -174,7 +174,7 @@ export const SEMINAR_GRACE_HOURS = 2;
  * in. Every comparison against those values has to be built in this zone, not
  * the host's, or the filter drifts by the offset between them.
  */
-export const FRAPPE_TIMEZONE = 'Asia/Kolkata';
+export const FRAPPE_TIMEZONE = "Asia/Kolkata";
 
 /**
  * Formats "now" as a Frappe-style "YYYY-MM-DD HH:MM:SS" timestamp in
@@ -188,22 +188,21 @@ export const FRAPPE_TIMEZONE = 'Asia/Kolkata';
 export function getCurrentFrappeDateTime(offsetHours = 0): string {
   const instant = new Date(Date.now() + offsetHours * 60 * 60 * 1000);
 
-  const parts = new Intl.DateTimeFormat('en-GB', {
+  const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: FRAPPE_TIMEZONE,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
     // h23 keeps midnight as "00"; hour12:false reports it as "24" in some engines.
-    hourCycle: 'h23'
+    hourCycle: "h23",
   }).formatToParts(instant);
 
-  const part = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((entry) => entry.type === type)?.value ?? '00';
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((entry) => entry.type === type)?.value ?? "00";
 
-  return `${part('year')}-${part('month')}-${part('day')} ${part('hour')}:${part('minute')}:${part('second')}`;
+  return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}:${part("second")}`;
 }
 
 /**
@@ -212,7 +211,7 @@ export function getCurrentFrappeDateTime(offsetHours = 0): string {
 async function fetchSeminarsViaNativeFetch(filters?: any[]): Promise<SeminarDoc[]> {
   const baseUrl = getFrappeUrl();
   const token = getFrappeToken();
-  
+
   let url = `${baseUrl}/api/resource/Seminar?fields=["*"]&order_by=date_and_time asc`;
   if (filters && filters.length > 0) {
     url += `&filters=${encodeURIComponent(JSON.stringify(filters))}`;
@@ -220,9 +219,9 @@ async function fetchSeminarsViaNativeFetch(filters?: any[]): Promise<SeminarDoc[
 
   const res = await fetch(url, {
     headers: {
-      'Authorization': `token ${token}`,
-      'Content-Type': 'application/json'
-    }
+      Authorization: `token ${token}`,
+      "Content-Type": "application/json",
+    },
   });
 
   if (!res.ok) {
@@ -239,7 +238,7 @@ async function fetchSeminarsViaNativeFetch(filters?: any[]): Promise<SeminarDoc[
 export async function getSeminars(cutoffDate?: string): Promise<FormattedSeminar[]> {
   // Keep a seminar listed until SEMINAR_GRACE_HOURS after it starts.
   const targetDate = cutoffDate || getCurrentFrappeDateTime(-SEMINAR_GRACE_HOURS);
-  const filters: any[] = [['Seminar', 'date_and_time', '>=', targetDate]];
+  const filters: any[] = [["Seminar", "date_and_time", ">=", targetDate]];
 
   // The two attempts below are TRANSPORT fallbacks only - the SDK is not always
   // usable on the Edge runtime, so a native fetch stands in for it. Whichever
@@ -249,21 +248,21 @@ export async function getSeminars(cutoffDate?: string): Promise<FormattedSeminar
   try {
     const frappe = getFrappeInstance();
     const db = frappe.db();
-    const docs = await db.getDocList<SeminarDoc>('Seminar', {
-      fields: ['*'],
+    const docs = await db.getDocList<SeminarDoc>("Seminar", {
+      fields: ["*"],
       filters,
-      orderBy: { field: 'date_and_time', order: 'asc' }
+      orderBy: { field: "date_and_time", order: "asc" },
     });
     return (docs || []).map(formatSeminar);
   } catch (error) {
-    console.warn('Frappe SDK seminar query failed, trying native fetch...', error);
+    console.warn("Frappe SDK seminar query failed, trying native fetch...", error);
   }
 
   try {
     const docs = await fetchSeminarsViaNativeFetch(filters);
     return docs.map(formatSeminar);
   } catch (error) {
-    console.error('All seminar fetch strategies failed:', error);
+    console.error("All seminar fetch strategies failed:", error);
     return [];
   }
 }
@@ -276,7 +275,7 @@ export async function getSeminarById(id: string): Promise<FormattedSeminar | nul
   try {
     const frappe = getFrappeInstance();
     const db = frappe.db();
-    const doc = await db.getDoc<SeminarDoc>('Seminar', id);
+    const doc = await db.getDoc<SeminarDoc>("Seminar", id);
     if (doc) {
       return formatSeminar(doc);
     }
@@ -290,9 +289,9 @@ export async function getSeminarById(id: string): Promise<FormattedSeminar | nul
     const token = getFrappeToken();
     const res = await fetch(`${baseUrl}/api/resource/Seminar/${encodeURIComponent(id)}`, {
       headers: {
-        'Authorization': `token ${token}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `token ${token}`,
+        "Content-Type": "application/json",
+      },
     });
 
     if (res.ok) {
@@ -320,10 +319,10 @@ const SEMINAR_SLUG_PATTERN = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})$/;
  * value regardless of the host's timezone. Falls back to the Frappe record id
  * when the timestamp is missing or malformed, so a link is never broken.
  */
-export function seminarSlug(doc: Pick<SeminarDoc, 'name' | 'date_and_time'>): string {
-  const raw = (doc.date_and_time || '').trim();
+export function seminarSlug(doc: Pick<SeminarDoc, "name" | "date_and_time">): string {
+  const raw = (doc.date_and_time || "").trim();
   const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
-  if (!match) return String(doc.name || '');
+  if (!match) return String(doc.name || "");
   const [, year, month, day, hour, minute] = match;
   return `${year}${month}${day}-${hour}${minute}`;
 }
@@ -338,22 +337,22 @@ export function seminarSlugToDateTime(slug: string): string | null {
 
 /** Looks up a single seminar by its exact start time. */
 async function findSeminarByDateTime(dateTime: string): Promise<SeminarDoc | null> {
-  const filters: any[] = [['Seminar', 'date_and_time', '=', dateTime]];
+  const filters: any[] = [["Seminar", "date_and_time", "=", dateTime]];
 
   try {
     const frappe = getFrappeInstance();
     const db = frappe.db();
-    const docs = await db.getDocList<SeminarDoc>('Seminar', { fields: ['*'], filters, limit: 1 });
+    const docs = await db.getDocList<SeminarDoc>("Seminar", { fields: ["*"], filters, limit: 1 });
     return docs && docs.length > 0 ? docs[0] : null;
   } catch (error) {
-    console.warn('SDK seminar slug lookup failed, trying native fetch...', error);
+    console.warn("SDK seminar slug lookup failed, trying native fetch...", error);
   }
 
   try {
     const docs = await fetchSeminarsViaNativeFetch(filters);
     return docs[0] || null;
   } catch (error) {
-    console.error('Native fetch seminar slug lookup failed:', error);
+    console.error("Native fetch seminar slug lookup failed:", error);
     return null;
   }
 }
@@ -364,7 +363,7 @@ async function findSeminarByDateTime(dateTime: string): Promise<SeminarDoc | nul
  * existed - a raw Frappe record id.
  */
 export async function getSeminarBySlugOrId(identifier: string): Promise<FormattedSeminar | null> {
-  const value = (identifier || '').trim();
+  const value = (identifier || "").trim();
   if (!value) return null;
 
   const dateTime = seminarSlugToDateTime(value);
@@ -379,14 +378,14 @@ export async function getSeminarBySlugOrId(identifier: string): Promise<Formatte
 /** Fetches the raw Seminar document, including its registration_details rows. */
 export async function getSeminarDocByName(name: string): Promise<SeminarDoc | null> {
   const url = `${getFrappeUrl()}/api/resource/Seminar/${encodeURIComponent(name)}`;
-  return frappeResourceGet<SeminarDoc>(url, 'getSeminarDocByName');
+  return frappeResourceGet<SeminarDoc>(url, "getSeminarDocByName");
 }
 
 export type SeminarRegistrationResult =
-  | { status: 'ok'; registrations: number }
-  | { status: 'not_found' }
-  | { status: 'duplicate' }
-  | { status: 'error'; message: string };
+  | { status: "ok"; registrations: number }
+  | { status: "not_found" }
+  | { status: "duplicate" }
+  | { status: "error"; message: string };
 
 /**
  * Appends one attendee to a seminar's `registration_details` child table.
@@ -401,51 +400,51 @@ export type SeminarRegistrationResult =
  */
 export async function addSeminarRegistration(
   seminarName: string,
-  row: SeminarRegistrationRow
+  row: SeminarRegistrationRow,
 ): Promise<SeminarRegistrationResult> {
   const doc = await getSeminarDocByName(seminarName);
-  if (!doc) return { status: 'not_found' };
+  if (!doc) return { status: "not_found" };
 
   const existing = Array.isArray(doc.registration_details) ? doc.registration_details : [];
-  const mobile = (row.mobile_number || '').trim();
+  const mobile = (row.mobile_number || "").trim();
 
-  if (existing.some((entry) => (entry?.mobile_number || '').trim() === mobile)) {
-    return { status: 'duplicate' };
+  if (existing.some((entry) => (entry?.mobile_number || "").trim() === mobile)) {
+    return { status: "duplicate" };
   }
 
   const registration_details = [...existing, row];
 
   try {
     const frappe = getFrappeInstance();
-    await frappe.db().updateDoc('Seminar', seminarName, { registration_details });
-    return { status: 'ok', registrations: registration_details.length };
+    await frappe.db().updateDoc("Seminar", seminarName, { registration_details });
+    return { status: "ok", registrations: registration_details.length };
   } catch (error) {
-    console.warn('SDK updateDoc failed for seminar registration, trying native fetch...', error);
+    console.warn("SDK updateDoc failed for seminar registration, trying native fetch...", error);
   }
 
   try {
     const res = await fetch(`${getFrappeUrl()}/api/resource/Seminar/${encodeURIComponent(seminarName)}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
         Authorization: `token ${getFrappeToken()}`,
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ registration_details })
+      body: JSON.stringify({ registration_details }),
     });
 
-    if (res.ok) return { status: 'ok', registrations: registration_details.length };
+    if (res.ok) return { status: "ok", registrations: registration_details.length };
 
     // mobile_number is `unique` on the child doctype, so Frappe rejects a number
     // that is already registered for ANY seminar, not just this one.
     const detail = await res.text();
     if (/DuplicateEntry|already exists|Duplicate entry/i.test(detail)) {
-      return { status: 'duplicate' };
+      return { status: "duplicate" };
     }
-    console.error('Seminar registration rejected by Frappe:', res.status, detail.slice(0, 300));
-    return { status: 'error', message: `Registration service returned ${res.status}.` };
+    console.error("Seminar registration rejected by Frappe:", res.status, detail.slice(0, 300));
+    return { status: "error", message: `Registration service returned ${res.status}.` };
   } catch (error) {
-    console.error('Native fetch seminar registration failed:', error);
-    return { status: 'error', message: 'Could not reach the registration service.' };
+    console.error("Native fetch seminar registration failed:", error);
+    return { status: "error", message: "Could not reach the registration service." };
   }
 }
 
@@ -509,7 +508,7 @@ export interface FormattedBlog {
 }
 
 export function formatPostBody(rawBody?: string): string {
-  if (!rawBody) return '';
+  if (!rawBody) return "";
 
   let html = rawBody.trim();
 
@@ -522,7 +521,9 @@ export function formatPostBody(rawBody?: string): string {
 
   // 1. Mask existing relative <img> src attributes so they don't contain '/files/' or '/private/files/'
   html = html.replace(/src=["'](\/(?:private\/)?files\/[^"']+)["']/gi, (_match, imgPath) => {
-    const fullUrl = getFullImageUrl(imgPath).replace('/files/', '/__MASKED_FILES__/').replace('/private/files/', '/__MASKED_PRIVATE_FILES__/');
+    const fullUrl = getFullImageUrl(imgPath)
+      .replace("/files/", "/__MASKED_FILES__/")
+      .replace("/private/files/", "/__MASKED_PRIVATE_FILES__/");
     return `src="${fullUrl}"`;
   });
 
@@ -532,11 +533,11 @@ export function formatPostBody(rawBody?: string): string {
     (match) => {
       const fullUrl = getFullImageUrl(match);
       return `<img src="${fullUrl}" alt="Blog Image" class="w-full h-auto object-cover rounded-3xl my-6 border border-border-light shadow-lg" loading="lazy" />`;
-    }
+    },
   );
 
   // 3. Unmask existing <img> src attributes back to normal /files/ and /private/files/
-  html = html.replace(/__MASKED_FILES__/g, 'files').replace(/__MASKED_PRIVATE_FILES__/g, 'private/files');
+  html = html.replace(/__MASKED_FILES__/g, "files").replace(/__MASKED_PRIVATE_FILES__/g, "private/files");
 
   return html;
 }
@@ -547,51 +548,51 @@ export function formatPostBody(rawBody?: string): string {
  * for schema.org and OpenGraph `article:*` tags.
  */
 export function toIsoDate(value?: string | null): string {
-  if (!value) return '';
-  const dt = new Date(value.replace(' ', 'T'));
-  return isNaN(dt.getTime()) ? '' : dt.toISOString();
+  if (!value) return "";
+  const dt = new Date(value.replace(" ", "T"));
+  return isNaN(dt.getTime()) ? "" : dt.toISOString();
 }
 
 export function formatBlog(doc: BlogDoc): FormattedBlog {
   // Editor-entered fields regularly carry stray whitespace; trim so titles read
   // cleanly and slugs never produce a "%20" tail in the URL.
-  const title = (doc.meta_tittle || doc.meta_title || 'Untitled Article').trim();
-  const description = (doc.meta_description || doc.post_summary || '').trim();
-  const slug = (doc.slug || '').trim() || String(doc.name);
-  const creation = doc.creation || '';
-  
-  let formattedDate = 'Recent';
+  const title = (doc.meta_tittle || doc.meta_title || "Untitled Article").trim();
+  const description = (doc.meta_description || doc.post_summary || "").trim();
+  const slug = (doc.slug || "").trim() || String(doc.name);
+  const creation = doc.creation || "";
+
+  let formattedDate = "Recent";
   if (creation) {
     try {
-      const dt = new Date(creation.replace(' ', 'T'));
+      const dt = new Date(creation.replace(" ", "T"));
       if (!isNaN(dt.getTime())) {
-        formattedDate = dt.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
+        formattedDate = dt.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
         });
       }
     } catch {
-      formattedDate = creation.split(' ')[0] || creation;
+      formattedDate = creation.split(" ")[0] || creation;
     }
   }
 
   // The Blog doctype replaced the single `blog_category` with up to three
   // category fields; collapse them into one ordered, de-duplicated list.
   const categories = [doc.category1, doc.category2, doc.category3]
-    .map((value) => (value || '').trim())
+    .map((value) => (value || "").trim())
     .filter((value, index, all) => value.length > 0 && all.indexOf(value) === index);
 
   // `faq` is a child table, so it only arrives from the single-document
   // endpoint; list responses omit it entirely, hence the array guard.
   const faqs = (Array.isArray(doc.faq) ? doc.faq : [])
-    .filter((row) => (row?.question || '').trim() && (row?.answer || '').trim())
+    .filter((row) => (row?.question || "").trim() && (row?.answer || "").trim())
     .slice()
     .sort((a, b) => (a.idx ?? 0) - (b.idx ?? 0))
     .map((row, index) => ({
       id: `blog-faq-${row.name || index + 1}`,
-      question: (row.question || '').trim(),
-      answer: (row.answer || '').trim()
+      question: (row.question || "").trim(),
+      answer: (row.answer || "").trim(),
     }));
 
   return {
@@ -602,15 +603,15 @@ export function formatBlog(doc: BlogDoc): FormattedBlog {
     summary: doc.post_summary || description,
     mainImage: getFullImageUrl(doc.main_image || doc.thumbnail_image),
     thumbnailImage: getFullImageUrl(doc.thumbnail_image || doc.main_image),
-    category: categories[0] || 'Finance',
+    category: categories[0] || "Finance",
     categories,
     faqs,
     formattedDate,
     creation,
-    modified: doc.modified || '',
+    modified: doc.modified || "",
     publishedISO: toIsoDate(doc.creation),
     modifiedISO: toIsoDate(doc.modified || doc.creation),
-    postBody: formatPostBody(doc.post_body)
+    postBody: formatPostBody(doc.post_body),
   };
 }
 
@@ -619,34 +620,34 @@ export function formatBlog(doc: BlogDoc): FormattedBlog {
  */
 export async function getBlogPosts(limit = 20): Promise<FormattedBlog[]> {
   const fields = [
-    'name',
-    'meta_tittle',
-    'meta_description',
-    'slug',
-    'main_image',
-    'thumbnail_image',
-    'category1',
-    'category2',
-    'category3',
-    'creation',
-    'modified'
+    "name",
+    "meta_tittle",
+    "meta_description",
+    "slug",
+    "main_image",
+    "thumbnail_image",
+    "category1",
+    "category2",
+    "category3",
+    "creation",
+    "modified",
   ];
 
   // 1. Try SDK
   try {
     const frappe = getFrappeInstance();
     const db = frappe.db();
-    const docs = await db.getDocList<BlogDoc>('Blog', {
+    const docs = await db.getDocList<BlogDoc>("Blog", {
       fields: fields as any,
       limit,
-      orderBy: { field: 'creation', order: 'desc' }
+      orderBy: { field: "creation", order: "desc" },
     });
 
     if (docs && docs.length > 0) {
       return docs.map(formatBlog);
     }
   } catch (error) {
-    console.warn('Frappe SDK getBlogPosts failed, trying native fetch...', error);
+    console.warn("Frappe SDK getBlogPosts failed, trying native fetch...", error);
   }
 
   // 2. Native fetch
@@ -657,9 +658,9 @@ export async function getBlogPosts(limit = 20): Promise<FormattedBlog[]> {
 
     const res = await fetch(url, {
       headers: {
-        'Authorization': `token ${token}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `token ${token}`,
+        "Content-Type": "application/json",
+      },
     });
 
     if (res.ok) {
@@ -669,7 +670,7 @@ export async function getBlogPosts(limit = 20): Promise<FormattedBlog[]> {
       }
     }
   } catch (error) {
-    console.error('Native fetch getBlogPosts failed:', error);
+    console.error("Native fetch getBlogPosts failed:", error);
   }
 
   return [];
@@ -683,9 +684,9 @@ async function frappeResourceGet<T>(url: string, context: string): Promise<T | n
   try {
     const res = await fetch(url, {
       headers: {
-        'Authorization': `token ${getFrappeToken()}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `token ${getFrappeToken()}`,
+        "Content-Type": "application/json",
+      },
     });
 
     if (!res.ok) {
@@ -710,7 +711,7 @@ async function frappeResourceGet<T>(url: string, context: string): Promise<T | n
  */
 export async function getBlogDocByName(name: string | number): Promise<BlogDoc | null> {
   const url = `${getFrappeUrl()}/api/resource/Blog/${encodeURIComponent(String(name))}`;
-  return frappeResourceGet<BlogDoc>(url, 'getBlogDocByName');
+  return frappeResourceGet<BlogDoc>(url, "getBlogDocByName");
 }
 
 /**
@@ -719,13 +720,13 @@ export async function getBlogDocByName(name: string | number): Promise<BlogDoc |
  */
 export async function getBlogNameBySlug(slug: string): Promise<string | null> {
   const params = new URLSearchParams({
-    filters: JSON.stringify([['slug', '=', slug]]),
-    fields: JSON.stringify(['name']),
-    limit_page_length: '1'
+    filters: JSON.stringify([["slug", "=", slug]]),
+    fields: JSON.stringify(["name"]),
+    limit_page_length: "1",
   });
 
   const url = `${getFrappeUrl()}/api/resource/Blog?${params.toString()}`;
-  const rows = await frappeResourceGet<Array<{ name: string | number }>>(url, 'getBlogNameBySlug');
+  const rows = await frappeResourceGet<Array<{ name: string | number }>>(url, "getBlogNameBySlug");
 
   if (Array.isArray(rows) && rows.length > 0 && rows[0]?.name != null) {
     return String(rows[0].name);
@@ -741,7 +742,7 @@ export async function getBlogNameBySlug(slug: string): Promise<string | null> {
  * always renders the same complete document.
  */
 export async function getBlogPostBySlugOrId(identifier: string): Promise<FormattedBlog | null> {
-  const id = (identifier || '').trim();
+  const id = (identifier || "").trim();
   if (!id) return null;
 
   // 1. Numeric identifiers are record ids - fetch the document directly.
@@ -770,7 +771,7 @@ export async function getBlogPostBySlugOrId(identifier: string): Promise<Formatt
    LEAD CREATION (open-account call-back form)
    ============================================================================ */
 
-export const CREATE_LEAD_METHOD = 'gopocket.website.create_lead';
+export const CREATE_LEAD_METHOD = "gopocket.website.create_lead";
 
 /** Payload accepted by the `create_lead` whitelisted method. */
 export interface CreateLeadParams {
@@ -791,14 +792,12 @@ export interface CreateLeadResponse {
   lead?: string;
 }
 
-export type CreateLeadResult =
-  | { ok: true; data: CreateLeadResponse }
-  | { ok: false; message: string };
+export type CreateLeadResult = { ok: true; data: CreateLeadResponse } | { ok: false; message: string };
 
 /** Frappe wraps whitelisted-method return values in a top-level `message` key. */
 function unwrapMessage(payload: any): CreateLeadResponse | null {
-  const body = payload && typeof payload === 'object' ? payload.message : null;
-  return body && typeof body === 'object' ? (body as CreateLeadResponse) : null;
+  const body = payload && typeof payload === "object" ? payload.message : null;
+  return body && typeof body === "object" ? (body as CreateLeadResponse) : null;
 }
 
 /**
@@ -813,10 +812,10 @@ function unwrapMessage(payload: any): CreateLeadResponse | null {
  */
 export async function createLead(params: CreateLeadParams): Promise<CreateLeadResult> {
   const payload: CreateLeadParams = {
-    mobile: params.mobile || '',
-    refer: params.refer || '',
-    src: params.src || '',
-    tag: params.tag || ''
+    mobile: params.mobile || "",
+    refer: params.refer || "",
+    src: params.src || "",
+    tag: params.tag || "",
   };
 
   try {
@@ -824,13 +823,13 @@ export async function createLead(params: CreateLeadParams): Promise<CreateLeadRe
     const response = await frappe.call().post<any>(CREATE_LEAD_METHOD, payload);
     const data = unwrapMessage(response);
     if (data) return { ok: true, data };
-    console.error('create_lead returned an unexpected body:', JSON.stringify(response).slice(0, 300));
+    console.error("create_lead returned an unexpected body:", JSON.stringify(response).slice(0, 300));
   } catch (error) {
-    console.warn('SDK call().post failed for create_lead, trying native fetch...', error);
+    console.warn("SDK call().post failed for create_lead, trying native fetch...", error);
   }
 
   try {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
     // The method is whitelisted for guests, so a missing token is not fatal
     // here - send the credential when we have one and carry on when we do not.
     try {
@@ -840,23 +839,23 @@ export async function createLead(params: CreateLeadParams): Promise<CreateLeadRe
     }
 
     const res = await fetch(`${getFrappeUrl()}/api/method/${CREATE_LEAD_METHOD}`, {
-      method: 'POST',
+      method: "POST",
       headers,
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     const text = await res.text();
 
     if (!res.ok) {
-      console.error('create_lead rejected by Frappe:', res.status, text.slice(0, 300));
+      console.error("create_lead rejected by Frappe:", res.status, text.slice(0, 300));
       return { ok: false, message: `Lead service returned ${res.status}.` };
     }
 
     const data = unwrapMessage(JSON.parse(text));
-    if (!data) return { ok: false, message: 'Lead service returned an unexpected response.' };
+    if (!data) return { ok: false, message: "Lead service returned an unexpected response." };
     return { ok: true, data };
   } catch (error) {
-    console.error('Native fetch create_lead failed:', error);
-    return { ok: false, message: 'Could not reach the lead service.' };
+    console.error("Native fetch create_lead failed:", error);
+    return { ok: false, message: "Could not reach the lead service." };
   }
 }

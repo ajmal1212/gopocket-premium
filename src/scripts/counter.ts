@@ -116,7 +116,7 @@ export function initAnimatedNumbers() {
         }
       });
     },
-    { threshold: 0.15 }
+    { threshold: 0.15 },
   );
 
   elements.forEach((el) => {

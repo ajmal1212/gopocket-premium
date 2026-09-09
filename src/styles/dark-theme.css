@@ -32,27 +32,27 @@
 :root {
   color-scheme: light;
 
-  --surface-0: #ffffff;              /* page canvas                        */
-  --surface-1: #ffffff;              /* cards, menus, raised panels        */
-  --surface-2: #f8f8f8;              /* muted sections (= theme-light)     */
-  --surface-3: #f3f3f6;              /* hover fills, chips                 */
-  --surface-inset: #f7f7f9;          /* inputs, wells                      */
+  --surface-0: #ffffff; /* page canvas                        */
+  --surface-1: #ffffff; /* cards, menus, raised panels        */
+  --surface-2: #f8f8f8; /* muted sections (= theme-light)     */
+  --surface-3: #f3f3f6; /* hover fills, chips                 */
+  --surface-inset: #f7f7f9; /* inputs, wells                      */
 
-  --fg-strong: #322b2b;              /* headings                           */
-  --fg: #3b3b3b;                     /* body copy                          */
-  --fg-muted: #6b7280;               /* secondary copy                     */
-  --fg-subtle: #9ca3af;              /* captions, placeholders             */
+  --fg-strong: #322b2b; /* headings                           */
+  --fg: #3b3b3b; /* body copy                          */
+  --fg-muted: #6b7280; /* secondary copy                     */
+  --fg-subtle: #9ca3af; /* captions, placeholders             */
 
-  --line: #eceef1;                   /* default border                     */
-  --line-strong: #e3e2e8;            /* input + control borders            */
+  --line: #eceef1; /* default border                     */
+  --line-strong: #e3e2e8; /* input + control borders            */
 
-  --accent: #6b1aff;                 /* brand fill                         */
-  --accent-ink: #6b1aff;             /* brand used AS TEXT                 */
-  --accent-tint: #f3edff;            /* selected chip background           */
-  --accent-tint-soft: #f5f3ff;       /* row hover                          */
-  --on-accent: #fff6f6;              /* ink on a brand fill                */
+  --accent: #6b1aff; /* brand fill                         */
+  --accent-ink: #6b1aff; /* brand used AS TEXT                 */
+  --accent-tint: #f3edff; /* selected chip background           */
+  --accent-tint-soft: #f5f3ff; /* row hover                          */
+  --on-accent: #fff6f6; /* ink on a brand fill                */
 
-  --scrim: rgb(0 0 0 / 0.5);         /* modal backdrop                     */
+  --scrim: rgb(0 0 0 / 0.5); /* modal backdrop                     */
   --glass: color-mix(in oklab, #ffffff 70%, transparent); /* sticky nav bar */
   --shadow-strong: rgb(0 0 0 / 0.25);
   --shadow-soft: rgb(0 0 0 / 0.15);
@@ -75,10 +75,10 @@ html.dark {
   --surface-3: #22252f;
   --surface-inset: #0f111a;
 
-  --fg-strong: #f3f4f7;              /* 16.8:1 on surface-1 */
-  --fg: #ced2dc;                     /* 11.6:1 */
-  --fg-muted: #9ba1b0;               /*  7.0:1 */
-  --fg-subtle: #7d8492;              /*  4.8:1 */
+  --fg-strong: #f3f4f7; /* 16.8:1 on surface-1 */
+  --fg: #ced2dc; /* 11.6:1 */
+  --fg-muted: #9ba1b0; /*  7.0:1 */
+  --fg-subtle: #7d8492; /*  4.8:1 */
 
   --line: #262a36;
   --line-strong: #333846;
@@ -86,8 +86,8 @@ html.dark {
   /* Brand fill is nudged brighter so white ink on it still clears 5:1, while
      staying recognisably the same violet. Brand-as-text needs a much lighter
      tint - #6b1aff on #14161f is only 2.4:1 and fails outright. */
-  --accent: #7c3aff;                 /* white ink on this = 5.4:1 */
-  --accent-ink: #b494ff;             /* 7.5:1 on surface-1        */
+  --accent: #7c3aff; /* white ink on this = 5.4:1 */
+  --accent-ink: #b494ff; /* 7.5:1 on surface-1        */
   --accent-tint: color-mix(in oklab, #7c3aff 20%, #14161f);
   --accent-tint-soft: color-mix(in oklab, #7c3aff 12%, #14161f);
   --on-accent: #ffffff;
@@ -109,12 +109,12 @@ html.dark {
    redefining the variable is safe and covers every call site at once.
    ------------------------------------------------------------------------- */
 html.dark {
-  --color-theme-light: var(--surface-2);   /* bg/from/fill-theme-light */
-  --color-theme-dark: #2b2f3c;             /* only ever used as bg-theme-dark/30 */
-  --color-border-light: var(--line);       /* bg/border-border-light   */
-  --color-text-default: var(--fg);         /* text-text-default        */
-  --color-dark: var(--fg-strong);          /* text-dark (see .bg-dark below) */
-  --color-primary: var(--accent);          /* bg/from/border/ring-primary */
+  --color-theme-light: var(--surface-2); /* bg/from/fill-theme-light */
+  --color-theme-dark: #2b2f3c; /* only ever used as bg-theme-dark/30 */
+  --color-border-light: var(--line); /* bg/border-border-light   */
+  --color-text-default: var(--fg); /* text-text-default        */
+  --color-dark: var(--fg-strong); /* text-dark (see .bg-dark below) */
+  --color-primary: var(--accent); /* bg/from/border/ring-primary */
 
   /* Neutral ramp is inverted so the greys keep their relative role. */
   --color-gray-50: var(--surface-2);
@@ -142,39 +142,87 @@ html.dark {
    ------------------------------------------------------------------------- */
 
 /* -- white used as a surface ------------------------------------------------ */
-html.dark .bg-white { background-color: var(--surface-1); }
-html.dark .bg-white\/90 { background-color: color-mix(in oklab, var(--surface-1) 90%, transparent); }
-html.dark .bg-white\/85 { background-color: color-mix(in oklab, var(--surface-1) 85%, transparent); }
-html.dark .bg-white\/80 { background-color: color-mix(in oklab, var(--surface-1) 80%, transparent); }
-html.dark .bg-white\/50 { background-color: color-mix(in oklab, var(--surface-1) 50%, transparent); }
-html.dark .bg-white\/5 { background-color: color-mix(in oklab, var(--fg-strong) 5%, transparent); }
-html.dark .fill-white { fill: var(--surface-1); }
+html.dark .bg-white {
+  background-color: var(--surface-1);
+}
+html.dark .bg-white\/90 {
+  background-color: color-mix(in oklab, var(--surface-1) 90%, transparent);
+}
+html.dark .bg-white\/85 {
+  background-color: color-mix(in oklab, var(--surface-1) 85%, transparent);
+}
+html.dark .bg-white\/80 {
+  background-color: color-mix(in oklab, var(--surface-1) 80%, transparent);
+}
+html.dark .bg-white\/50 {
+  background-color: color-mix(in oklab, var(--surface-1) 50%, transparent);
+}
+html.dark .bg-white\/5 {
+  background-color: color-mix(in oklab, var(--fg-strong) 5%, transparent);
+}
+html.dark .fill-white {
+  fill: var(--surface-1);
+}
 
 /* -- white used as a hairline / gradient stop ------------------------------- */
-html.dark .border-white { border-color: var(--line); }
-html.dark .border-white\/60 { border-color: color-mix(in oklab, var(--fg-strong) 12%, transparent); }
-html.dark .border-white\/35 { border-color: color-mix(in oklab, var(--fg-strong) 8%, transparent); }
-html.dark .ring-white\/50 { --tw-ring-color: color-mix(in oklab, var(--fg-strong) 18%, transparent); }
-html.dark .from-white { --tw-gradient-from: var(--surface-1); }
-html.dark .via-white { --tw-gradient-via: var(--surface-1); }
-html.dark .via-white\/40 { --tw-gradient-via: color-mix(in oklab, var(--surface-1) 40%, transparent); }
-html.dark .to-white { --tw-gradient-to: var(--surface-1); }
+html.dark .border-white {
+  border-color: var(--line);
+}
+html.dark .border-white\/60 {
+  border-color: color-mix(in oklab, var(--fg-strong) 12%, transparent);
+}
+html.dark .border-white\/35 {
+  border-color: color-mix(in oklab, var(--fg-strong) 8%, transparent);
+}
+html.dark .ring-white\/50 {
+  --tw-ring-color: color-mix(in oklab, var(--fg-strong) 18%, transparent);
+}
+html.dark .from-white {
+  --tw-gradient-from: var(--surface-1);
+}
+html.dark .via-white {
+  --tw-gradient-via: var(--surface-1);
+}
+html.dark .via-white\/40 {
+  --tw-gradient-via: color-mix(in oklab, var(--surface-1) 40%, transparent);
+}
+html.dark .to-white {
+  --tw-gradient-to: var(--surface-1);
+}
 
 /* text-white is deliberately absent - it sits on brand fills and dark panels,
    where it must stay white. */
 
 /* -- black used as ink ------------------------------------------------------ */
-html.dark .text-black { color: var(--fg-strong); }
-html.dark .text-black\/55 { color: var(--fg-muted); }
+html.dark .text-black {
+  color: var(--fg-strong);
+}
+html.dark .text-black\/55 {
+  color: var(--fg-muted);
+}
 
 /* -- black used as a hairline (invisible against a dark canvas) ------------- */
-html.dark .border-black\/50 { border-color: var(--line-strong); }
-html.dark .border-black\/30 { border-color: var(--line); }
-html.dark .border-black\/25 { border-color: var(--line); }
-html.dark .border-black\/20 { border-color: var(--line); }
-html.dark .border-black\/10 { border-color: color-mix(in oklab, var(--fg-strong) 8%, transparent); }
-html.dark .hover\:border-black\/50:hover { border-color: var(--fg-subtle); }
-html.dark .hover\:border-black\/20:hover { border-color: var(--line-strong); }
+html.dark .border-black\/50 {
+  border-color: var(--line-strong);
+}
+html.dark .border-black\/30 {
+  border-color: var(--line);
+}
+html.dark .border-black\/25 {
+  border-color: var(--line);
+}
+html.dark .border-black\/20 {
+  border-color: var(--line);
+}
+html.dark .border-black\/10 {
+  border-color: color-mix(in oklab, var(--fg-strong) 8%, transparent);
+}
+html.dark .hover\:border-black\/50:hover {
+  border-color: var(--fg-subtle);
+}
+html.dark .hover\:border-black\/20:hover {
+  border-color: var(--line-strong);
+}
 html.dark .group-hover\/item\:bg-black\/30:is(:where(.group\/item):hover *) {
   background-color: color-mix(in oklab, var(--fg-strong) 35%, transparent);
 }
@@ -182,11 +230,17 @@ html.dark .group-hover\/item\:bg-black\/30:is(:where(.group\/item):hover *) {
    scrims and shadows, which stay dark in both themes. */
 
 /* -- dark is a foreground token, so bg-dark has to be pinned back ----------- */
-html.dark .bg-dark { background-color: var(--surface-0); }
+html.dark .bg-dark {
+  background-color: var(--surface-0);
+}
 
 /* -- brand colour used as ink needs the lighter tint ------------------------ */
-html.dark .text-primary { color: var(--accent-ink); }
-html.dark .fill-primary { fill: var(--accent-ink); }
+html.dark .text-primary {
+  color: var(--accent-ink);
+}
+html.dark .fill-primary {
+  fill: var(--accent-ink);
+}
 
 /* ---------------------------------------------------------------------------
    5. Base elements
@@ -210,9 +264,15 @@ html.dark .fill-primary { fill: var(--accent-ink); }
 :where(html.dark) h6 {
   color: var(--fg-strong);
 }
-:where(html.dark) a { color: var(--fg); }
-:where(html.dark) hr { border-color: var(--line); }
-:where(html.dark) ::placeholder { color: var(--fg-subtle); }
+:where(html.dark) a {
+  color: var(--fg);
+}
+:where(html.dark) hr {
+  border-color: var(--line);
+}
+:where(html.dark) ::placeholder {
+  color: var(--fg-subtle);
+}
 :where(html.dark) ::selection {
   background-color: color-mix(in oklab, var(--accent) 45%, transparent);
   color: #ffffff;
@@ -235,9 +295,13 @@ html.dark footer .logo-wrapper .logo-text {
   color: var(--fg-strong);
 }
 
-html.dark .navbar .nav-link { color: var(--fg); }
+html.dark .navbar .nav-link {
+  color: var(--fg);
+}
 html.dark .navbar .nav-link:hover,
-html.dark .navbar .nav-link-active { color: var(--accent-ink); }
+html.dark .navbar .nav-link-active {
+  color: var(--accent-ink);
+}
 
 /* Navigation Dropdown Popups & Nested Menus */
 html.dark .nav-dropdown-list,
@@ -351,7 +415,9 @@ html.dark .header .language-switcher .language-switcher-dropdown li a {
   }
 }
 
-html.dark .navbar .badge.badge-info { color: var(--fg-strong); }
+html.dark .navbar .badge.badge-info {
+  color: var(--fg-strong);
+}
 html.dark .navbar .badge.badge-dark,
 html.dark .navbar .badge.badge-dark.badge-dot {
   color: var(--surface-0);
@@ -387,7 +453,9 @@ html.dark .btn-outline-white .text-flip-inner::after {
   color: var(--fg-strong) !important;
 }
 
-html.dark :is(.text-flip-hover-anim.btn-outline, .text-flip-hover-anim.btn-outline-white):hover .text-flip-inner::before,
+html.dark
+  :is(.text-flip-hover-anim.btn-outline, .text-flip-hover-anim.btn-outline-white):hover
+  .text-flip-inner::before,
 html.dark :is(.text-flip-hover-anim.btn-outline, .text-flip-hover-anim.btn-outline-white):hover .text-flip-inner::after,
 html.dark .btn-outline:hover .text-flip-inner::before,
 html.dark .btn-outline:hover .text-flip-inner::after {
@@ -397,12 +465,16 @@ html.dark .btn-outline:hover .text-flip-inner::after {
 html.dark .creative-hover-anim:not([disabled="true"]).btn-primary .hover-bg {
   background-color: #3a2a5c;
 }
-html.dark .text-flip-inner:after { color: var(--on-accent); }
+html.dark .text-flip-inner:after {
+  color: var(--on-accent);
+}
 
 /* ---------------------------------------------------------------------------
    8. Global search modal
    ------------------------------------------------------------------------- */
-html.dark .global-search-backdrop { background: var(--scrim); }
+html.dark .global-search-backdrop {
+  background: var(--scrim);
+}
 html.dark .global-search-panel {
   background: var(--glass);
   border-color: var(--line);
@@ -415,8 +487,12 @@ html.dark .global-search-panel {
     background: var(--surface-1);
   }
 }
-html.dark .global-search-input-row { border-bottom-color: var(--line); }
-html.dark .global-search-input-row svg { color: var(--fg); }
+html.dark .global-search-input-row {
+  border-bottom-color: var(--line);
+}
+html.dark .global-search-input-row svg {
+  color: var(--fg);
+}
 html.dark #global-search-input {
   border-color: var(--line-strong);
   background: var(--surface-inset);
@@ -430,7 +506,9 @@ html.dark .global-search-close {
   background: var(--surface-3);
   color: var(--fg);
 }
-html.dark .global-search-tabs { border-bottom-color: var(--line); }
+html.dark .global-search-tabs {
+  border-bottom-color: var(--line);
+}
 html.dark .global-search-tab {
   border-color: var(--line-strong);
   background: var(--surface-2);
@@ -441,18 +519,37 @@ html.dark .global-search-tab.is-active {
   border-color: var(--accent-ink);
   color: var(--accent-ink);
 }
-html.dark .global-search-tab:hover:not(.is-active) { border-color: var(--fg-subtle); }
-html.dark .global-search-label { color: var(--fg-muted); opacity: 1; }
-html.dark .global-search-item a { color: var(--accent-ink); }
-html.dark .global-search-item a:hover { background: var(--accent-tint-soft); }
-html.dark .global-search-item .item-icon { color: var(--fg-muted); opacity: 1; }
-html.dark .global-search-empty { color: var(--fg-muted); opacity: 1; }
+html.dark .global-search-tab:hover:not(.is-active) {
+  border-color: var(--fg-subtle);
+}
+html.dark .global-search-label {
+  color: var(--fg-muted);
+  opacity: 1;
+}
+html.dark .global-search-item a {
+  color: var(--accent-ink);
+}
+html.dark .global-search-item a:hover {
+  background: var(--accent-tint-soft);
+}
+html.dark .global-search-item .item-icon {
+  color: var(--fg-muted);
+  opacity: 1;
+}
+html.dark .global-search-empty {
+  color: var(--fg-muted);
+  opacity: 1;
+}
 
 /* ---------------------------------------------------------------------------
    9. Long-form content (blog / legal / prose)
    ------------------------------------------------------------------------- */
-html.dark .prose-styles { color: var(--fg); }
-html.dark .prose-styles :where(h1, h2, h3, h4, h5, h6, th, strong, b):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+html.dark .prose-styles {
+  color: var(--fg);
+}
+html.dark
+  .prose-styles
+  :where(h1, h2, h3, h4, h5, h6, th, strong, b):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
   color: var(--fg-strong) !important;
 }
 html.dark .prose-styles :where(p, li):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
@@ -472,7 +569,9 @@ html.dark .prose-styles pre.astro-code {
   background-color: var(--surface-inset) !important;
   color: var(--fg);
 }
-html.dark .prose-styles .stats-component p { color: var(--fg); }
+html.dark .prose-styles .stats-component p {
+  color: var(--fg);
+}
 
 /* Blog tables rendered from the CMS */
 html.dark .ql-editor .blog-table-scroll,
@@ -480,13 +579,19 @@ html.dark .ql-editor table {
   background: var(--surface-1);
   border-color: var(--line);
 }
-html.dark .ql-editor tbody tr:nth-child(even) { background: var(--surface-2); }
-html.dark .ql-editor tbody tr:hover { background: var(--accent-tint-soft); }
+html.dark .ql-editor tbody tr:nth-child(even) {
+  background: var(--surface-2);
+}
+html.dark .ql-editor tbody tr:hover {
+  background: var(--accent-tint-soft);
+}
 html.dark .ql-editor .blog-table-wrap::after {
   background: linear-gradient(to right, rgb(20 22 31 / 0), var(--surface-1));
 }
 @media (max-width: 639px) {
-  html.dark .ql-editor tbody tr { background: var(--surface-1) !important; }
+  html.dark .ql-editor tbody tr {
+    background: var(--surface-1) !important;
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -497,7 +602,9 @@ html.dark .form-checkbox {
   border-color: var(--line-strong);
   color: var(--accent);
 }
-html.dark .form-checkbox:focus { --tw-ring-offset-color: var(--surface-0); }
+html.dark .form-checkbox:focus {
+  --tw-ring-offset-color: var(--surface-0);
+}
 
 /* Same :where() reasoning as section 5 - a field carrying its own bg-* utility
    must still win. .form-checkbox above is class-scoped, so it stays ahead of
@@ -519,7 +626,9 @@ html.dark .form-checkbox:focus { --tw-ring-offset-color: var(--surface-0); }
    Photography and product screenshots are left untouched. Only the striped
    pattern layers are dimmed so they do not glow against the dark canvas.
    ------------------------------------------------------------------------- */
-html.dark .pattern-shape { opacity: 0.12; }
+html.dark .pattern-shape {
+  opacity: 0.12;
+}
 
 /* -- Hero backdrop ----------------------------------------------------------
    hero-bg-*.webp is a white-to-violet gradient composited with
@@ -622,8 +731,12 @@ html.dark :focus-visible {
   animation: none;
   mix-blend-mode: normal;
 }
-::view-transition-old(root) { z-index: 1; }
-::view-transition-new(root) { z-index: 2; }
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .theme-fade-overlay {

@@ -30,22 +30,22 @@ const classes = ["btn", `btn-${variant}`, "text-flip-hover-anim", className].fil
 <Tag class={classes} href={href} {...rest}
   ><span class="text-flip-inner" data-content={label}>{label}</span>{
     glow && (
-      <span
-        class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
-        ><svg
+      <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
+        <svg
           class="gradient-shape"
           width="150"
           height="28"
           viewBox="0 0 147 11"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          ><path
+        >
+          <path
             d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
             stroke="currentColor"
             stroke-width="8"
-          /></svg
-        ></span
-      >
+          />
+        </svg>
+      </span>
     )
   }</Tag
 >

@@ -16,7 +16,6 @@
 
 @custom-variant hs-dropdown-open (&:where(.open, .open *, .active, .active *));
 
-
 @theme {
   --color-primary: #6b1aff;
   --color-theme-light: #f8f8f8;
@@ -861,7 +860,6 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
     pointer-events: auto;
   }
 
-
   /* Sticky Header Scroll & Fade Animations */
   .header {
     /* Every part of the compact-mode switch (container width, nav-link padding,
@@ -892,7 +890,10 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
-      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s ease;
+      transition:
+        opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0.25s ease;
     }
 
     /* Primary top-level dropdowns position directly below nav items */
@@ -921,7 +922,6 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
       transform: rotate(180deg);
     }
 
-
     /* Nested flyout menus position to the side */
     .nav-dropdown-item.hs-dropdown > .hs-dropdown-menu {
       position: absolute !important;
@@ -932,7 +932,6 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
       transform: none !important; /* see note above - keeps nested glass working */
     }
   }
-
 
   /* Mobile Layout Dropdowns & Navigation (< 1024px) */
   @media (max-width: 1023px) {
@@ -990,9 +989,6 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
       transform: translateY(1.5rem) !important;
     }
   }
-
-
-
 }
 @layer components {
   @media (min-width: 1024px) {
@@ -2039,7 +2035,7 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
     --tw-prose-quote-borders: oklch(92.8% 0.006 264.531);
     --tw-prose-captions: oklch(55.1% 0.027 264.364);
     --tw-prose-kbd: oklch(21% 0.034 264.665);
-    --tw-prose-kbd-shadows: oklab(21% -0.00316127 -0.0338527/.1);
+    --tw-prose-kbd-shadows: oklab(21% -0.00316127 -0.0338527/0.1);
     --tw-prose-code: oklch(21% 0.034 264.665);
     --tw-prose-pre-code: oklch(92.8% 0.006 264.531);
     --tw-prose-pre-bg: oklch(27.8% 0.033 256.848);

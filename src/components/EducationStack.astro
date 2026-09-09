@@ -121,26 +121,15 @@ const cards: Card[] = [
       <div class="edu-stack" data-edu-stack>
         {
           cards.map((card, i) => (
-            <article
-              class="edu-card"
-              data-edu-card
-              style={`--i:${i};--edu-tint:${card.tint}`}
-            >
+            <article class="edu-card" data-edu-card style={`--i:${i};--edu-tint:${card.tint}`}>
               <div class="edu-card-inner rounded-4xl">
                 <div class="edu-main">
-                  <div
-                    class="edu-num text-h3-sm md:text-h3 text-dark/70 font-medium"
-                    aria-hidden="true"
-                  >
+                  <div class="edu-num text-h3-sm md:text-h3 text-dark/70 font-medium" aria-hidden="true">
                     {String(i + 1).padStart(2, "0")}
                   </div>
                   <div class="edu-copy">
-                    <h3 class="text-h4-sm md:text-h4 text-dark font-medium">
-                      {card.title}
-                    </h3>
-                    <p class="text-text-default opacity-80 md:text-lg/relaxed">
-                      {card.body}
-                    </p>
+                    <h3 class="text-h4-sm md:text-h4 text-dark font-medium">{card.title}</h3>
+                    <p class="text-text-default opacity-80 md:text-lg/relaxed">{card.body}</p>
                   </div>
                 </div>
 
@@ -177,11 +166,7 @@ const cards: Card[] = [
   }
 
   :global(html.dark) .edu-band {
-    background-image: linear-gradient(
-      to bottom,
-      var(--surface-2) 0%,
-      var(--surface-0) 100%
-    );
+    background-image: linear-gradient(to bottom, var(--surface-2) 0%, var(--surface-0) 100%);
   }
 
   .edu-stack {
@@ -238,11 +223,7 @@ const cards: Card[] = [
        bands as you scroll, and you can see how deep the pile is. The tint is
        mixed at 10%, which is a wash rather than a colour; the cards still read
        as the white panels the rest of the homepage uses. */
-    background-image: linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--edu-tint) 10%, #ffffff) 0%,
-      #ffffff 100%
-    );
+    background-image: linear-gradient(to bottom, color-mix(in oklab, var(--edu-tint) 10%, #ffffff) 0%, #ffffff 100%);
 
     /* These slide over one another, so a hairline of lift is what separates
        the card on top from the one it is burying. */
@@ -398,9 +379,7 @@ const cards: Card[] = [
 
 <script>
   function initEduStack(stack: HTMLElement) {
-    const cards = Array.from(
-      stack.querySelectorAll<HTMLElement>("[data-edu-card]"),
-    );
+    const cards = Array.from(stack.querySelectorAll<HTMLElement>("[data-edu-card]"));
     if (cards.length < 2) return;
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -430,14 +409,11 @@ const cards: Card[] = [
         // shrinking to `pinned` once both have stuck. offsetTop is the layout
         // position, so it holds still while sticky moves the painted box.
         const rest = next.offsetTop - card.offsetTop;
-        const pinned =
-          (parseFloat(getComputedStyle(next).top) || 0) -
-          (parseFloat(getComputedStyle(card).top) || 0);
+        const pinned = (parseFloat(getComputedStyle(next).top) || 0) - (parseFloat(getComputedStyle(card).top) || 0);
         const span = rest - pinned;
         if (span <= 0) continue;
 
-        const live =
-          next.getBoundingClientRect().top - card.getBoundingClientRect().top;
+        const live = next.getBoundingClientRect().top - card.getBoundingClientRect().top;
         const p = Math.min(1, Math.max(0, (rest - live) / span));
 
         inner.style.setProperty("--p", p.toFixed(3));
@@ -473,7 +449,5 @@ const cards: Card[] = [
     update();
   }
 
-  document
-    .querySelectorAll<HTMLElement>("[data-edu-stack]")
-    .forEach((stack) => initEduStack(stack));
+  document.querySelectorAll<HTMLElement>("[data-edu-stack]").forEach((stack) => initEduStack(stack));
 </script>

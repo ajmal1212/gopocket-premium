@@ -78,8 +78,8 @@ html[data-a11y-bluelight="true"]::before {
 
 /* Dyslexia Font Support */
 @font-face {
-  font-family: 'OpenDyslexic';
-  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.woff') format('woff');
+  font-family: "OpenDyslexic";
+  src: url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.woff") format("woff");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -98,7 +98,7 @@ html[data-a11y-dyslexia="true"] a,
 html[data-a11y-dyslexia="true"] button,
 html[data-a11y-dyslexia="true"] input,
 html[data-a11y-dyslexia="true"] label {
-  font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif !important;
+  font-family: "OpenDyslexic", "Comic Sans MS", sans-serif !important;
   letter-spacing: 0.08em !important;
   word-spacing: 0.12em !important;
   line-height: 1.7 !important;
@@ -177,10 +177,15 @@ html[data-a11y-adhd="true"] #a11y-adhd-bar {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 10px 25px -5px rgba(37, 99, 235, 0.4),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   border: 2px solid #ffffff;
-  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .a11y-trigger-btn:hover {
   transform: scale(1.08);
@@ -204,7 +209,10 @@ html[data-a11y-adhd="true"] #a11y-adhd-bar {
   align-items: center !important;
   justify-content: center !important;
   box-sizing: border-box !important;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease !important;
 }
 
 .header .language-switcher .language-switcher-button {
@@ -229,7 +237,9 @@ html[data-a11y-adhd="true"] #a11y-adhd-bar {
   justify-content: center;
   color: inherit;
   position: relative;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 .a11y-toggle-btn:hover {
   color: #6b1aff;
@@ -285,7 +295,10 @@ html[data-a11y-active="true"] .a11y-active-dot {
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s ease;
+  transition:
+    opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0.2s ease;
   z-index: 99999;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
 
@@ -308,7 +321,10 @@ html[data-a11y-active="true"] .a11y-active-dot {
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s ease;
+  transition:
+    opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0.2s ease;
   z-index: 99999;
 }
 
@@ -361,7 +377,6 @@ html.dark [data-header-tooltip]::after {
 html.dark #a11y-modal-backdrop {
   background: var(--scrim, rgba(0, 0, 0, 0.6));
 }
-
 
 /* ===================================================
    Accessibility Modal Panel - same glassmorphism recipe

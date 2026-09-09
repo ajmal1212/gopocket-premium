@@ -14,9 +14,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   :root {
-    --cursor-brand:
-      url("/cursors/gp-cursor.svg") 0 3, url("/cursors/gp-cursor.png") 0 3,
-      auto;
+    --cursor-brand: url("/cursors/gp-cursor.svg") 0 3, url("/cursors/gp-cursor.png") 0 3, auto;
   }
 
   /* The brand arrow is the default (idle) cursor only. */
@@ -56,7 +54,8 @@
 
   /* Native cursors that carry meaning stay native — overriding these would
      cost more in usability than it gains in branding. */
-  :root input:not(
+  :root
+    input:not(
       [type="button"],
       [type="submit"],
       [type="reset"],

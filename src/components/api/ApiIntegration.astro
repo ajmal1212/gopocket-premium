@@ -19,8 +19,7 @@ const steps: Step[] = [
   {
     number: "01",
     title: "Get Your Keys",
-    description:
-      "Open a GoPocket account, enable API access from the developer portal and generate a key and secret.",
+    description: "Open a GoPocket account, enable API access from the developer portal and generate a key and secret.",
     cta: { label: "Open Account", href: "/open-account-call-back?src=Website&tag=API" },
   },
   {
@@ -94,17 +93,9 @@ const sdks = ["Python", "Node.js", "Java", "Go", "REST", "WebSocket"];
         }
       </div>
 
-      <div
-        data-aos="fade-up-sm"
-        data-aos-delay="200"
-        class="flex flex-wrap items-center justify-center gap-3 aos-init"
-      >
+      <div data-aos="fade-up-sm" data-aos-delay="200" class="flex flex-wrap items-center justify-center gap-3 aos-init">
         <span class="text-sm opacity-70">Connect with</span>
-        {
-          sdks.map((sdk) => (
-            <span class="api-sdk-chip rounded-full px-4 py-1.5 text-sm font-medium">{sdk}</span>
-          ))
-        }
+        {sdks.map((sdk) => <span class="api-sdk-chip rounded-full px-4 py-1.5 text-sm font-medium">{sdk}</span>)}
       </div>
     </div>
   </div>

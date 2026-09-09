@@ -13,9 +13,21 @@ const { icon: Icon, size = 20, class: className = "" } = Astro.props;
 
 <span class={`relative -mt-0.5 inline-block min-w-4 bg-white ${className}`.trim()}>
   {/* Decorative crosshair framing the icon - fades in on row hover. */}
-  <span aria-hidden="true" class="translate-x-centered bg-border-light absolute bottom-full h-px w-10 transition-all duration-300 group-hover/item:bg-black/30"></span>
-  <span aria-hidden="true" class="translate-x-centered bg-border-light absolute top-8 h-px w-10 transition-all duration-300 group-hover/item:bg-black/30"></span>
-  <span aria-hidden="true" class="bg-border-light absolute -top-2.5 -left-2 h-12 w-px transition-all duration-300 group-hover/item:bg-black/30"></span>
-  <span aria-hidden="true" class="bg-border-light absolute -top-2.5 -right-2 h-12 w-px transition-all duration-300 group-hover/item:bg-black/30"></span>
+  <span
+    aria-hidden="true"
+    class="translate-x-centered bg-border-light absolute bottom-full h-px w-10 transition-all duration-300 group-hover/item:bg-black/30"
+  ></span>
+  <span
+    aria-hidden="true"
+    class="translate-x-centered bg-border-light absolute top-8 h-px w-10 transition-all duration-300 group-hover/item:bg-black/30"
+  ></span>
+  <span
+    aria-hidden="true"
+    class="bg-border-light absolute -top-2.5 -left-2 h-12 w-px transition-all duration-300 group-hover/item:bg-black/30"
+  ></span>
+  <span
+    aria-hidden="true"
+    class="bg-border-light absolute -top-2.5 -right-2 h-12 w-px transition-all duration-300 group-hover/item:bg-black/30"
+  ></span>
   <Icon size={size} class="text-text-default mt-1 inline-block h-4 w-4" />
 </span>

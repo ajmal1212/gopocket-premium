@@ -11,7 +11,9 @@ const tagParam = Astro.url.searchParams.get("tag") || "Hero";
 const referParam = Astro.url.searchParams.get("refer") || "";
 ---
 
-<section class="relative overflow-hidden bg-linear-to-b from-gray-50/80 via-white to-gray-50/50 pt-6 md:pt-10 lg:pt-12 pb-12 md:pb-20 lg:pb-24">
+<section
+  class="relative overflow-hidden bg-linear-to-b from-gray-50/80 via-white to-gray-50/50 pt-6 md:pt-10 lg:pt-12 pb-12 md:pb-20 lg:pb-24"
+>
   <!-- Line Background Shapes from GoPocket assets -->
   <img
     src="/assets/images/hero-line-937w.svg"
@@ -54,10 +56,8 @@ const referParam = Astro.url.searchParams.get("refer") || "";
 
   <div class="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
     <div class="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-8">
-      
       <!-- LEFT COLUMN: Content & Form -->
       <div class="space-y-8 lg:col-span-6 xl:col-span-6">
-        
         <!-- Animated Badge: New | Open Account in 5 Min -->
         <div
           data-aos="fade-up"
@@ -69,8 +69,12 @@ const referParam = Astro.url.searchParams.get("refer") || "";
           >
           </div>
           <div class="flex items-center rounded-full bg-white px-1 py-0.5">
-            <span class="bg-dark inline-block gap-1 rounded-full px-3 py-1 text-xs md:text-sm font-normal text-white">New</span>
-            <div class="text-text-default ms-3 flex items-center rounded-full py-px text-xs md:text-sm font-normal pr-2">
+            <span class="bg-dark inline-block gap-1 rounded-full px-3 py-1 text-xs md:text-sm font-normal text-white"
+              >New</span
+            >
+            <div
+              class="text-text-default ms-3 flex items-center rounded-full py-px text-xs md:text-sm font-normal pr-2"
+            >
               Open Account in 5 Min
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -93,7 +97,9 @@ const referParam = Astro.url.searchParams.get("refer") || "";
 
         <!-- Main Title -->
         <div data-aos="fade-up" data-aos-delay="200" class="space-y-3">
-          <h1 class="has-italic-text text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-gray-900 leading-[1.12]">
+          <h1
+            class="has-italic-text text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-gray-900 leading-[1.12]"
+          >
             Built for every <strong class="text-primary font-serif italic">Trader.</strong><br />
             Designed for every investor.
           </h1>
@@ -104,11 +110,7 @@ const referParam = Astro.url.searchParams.get("refer") || "";
 
         <!-- Phone Input & CTA Form -->
         <div data-aos="fade-up" data-aos-delay="300" class="pt-2">
-          <form
-            data-lead-form
-            class="flex flex-col sm:flex-row items-center gap-3 max-w-lg"
-            novalidate
-          >
+          <form data-lead-form class="flex flex-col sm:flex-row items-center gap-3 max-w-lg" novalidate>
             <!-- Hidden Tracking Query Parameters -->
             <input type="hidden" name="src" value={srcParam} />
             <input type="hidden" name="tag" value={tagParam} />
@@ -171,12 +173,20 @@ const referParam = Astro.url.searchParams.get("refer") || "";
         </div>
 
         <!-- Trust Metrics Row -->
-        <div data-aos="fade-up" data-aos-delay="400" class="grid grid-cols-3 gap-3 sm:gap-6 pt-6 border-t border-gray-200/80">
+        <div
+          data-aos="fade-up"
+          data-aos-delay="400"
+          class="grid grid-cols-3 gap-3 sm:gap-6 pt-6 border-t border-gray-200/80"
+        >
           <!-- Metric 1 -->
           <div class="flex items-center gap-2.5 sm:gap-3">
-            <div class="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full bg-purple-100/80 text-primary shadow-2xs">
+            <div
+              class="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full bg-purple-100/80 text-primary shadow-2xs"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 24 24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                <path
+                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                ></path>
               </svg>
             </div>
             <div>
@@ -187,9 +197,12 @@ const referParam = Astro.url.searchParams.get("refer") || "";
 
           <!-- Metric 2 -->
           <div class="flex items-center gap-2.5 sm:gap-3">
-            <div class="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full bg-purple-100/80 text-primary shadow-2xs">
+            <div
+              class="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full bg-purple-100/80 text-primary shadow-2xs"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 24 24">
-                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"
+                ></path>
               </svg>
             </div>
             <div>
@@ -200,9 +213,13 @@ const referParam = Astro.url.searchParams.get("refer") || "";
 
           <!-- Metric 3 -->
           <div class="flex items-center gap-2.5 sm:gap-3">
-            <div class="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full bg-purple-100/80 text-primary shadow-2xs">
+            <div
+              class="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-full bg-purple-100/80 text-primary shadow-2xs"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-current" viewBox="0 0 24 24">
-                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V17a1 1 0 0 1-2 0v-.07a3.86 3.86 0 0 1-1.63-.7 1 1 0 0 1 1.34-1.5 2.1 2.1 0 0 0 1.29.47 1.84 1.84 0 0 0 1.87-1.87c0-1.28-.77-1.74-2.48-2.16C7.57 10.7 6.4 9.68 6.4 7.9 6.4 6.3 7.6 5.16 9.3 4.93V4a1 1 0 0 1 2 0v.07a3.86 3.86 0 0 1 1.43.6 1 1 0 0 1-1.24 1.57 2 2 0 0 0-1.19-.4 1.64 1.64 0 0 0-1.7 1.66c0 1.15.68 1.6 2.37 2 2.1.52 3.43 1.4 3.43 3.32 0 1.76-1.3 3.01-3.4 3.11z"/>
+                <path
+                  d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V17a1 1 0 0 1-2 0v-.07a3.86 3.86 0 0 1-1.63-.7 1 1 0 0 1 1.34-1.5 2.1 2.1 0 0 0 1.29.47 1.84 1.84 0 0 0 1.87-1.87c0-1.28-.77-1.74-2.48-2.16C7.57 10.7 6.4 9.68 6.4 7.9 6.4 6.3 7.6 5.16 9.3 4.93V4a1 1 0 0 1 2 0v.07a3.86 3.86 0 0 1 1.43.6 1 1 0 0 1-1.24 1.57 2 2 0 0 0-1.19-.4 1.64 1.64 0 0 0-1.7 1.66c0 1.15.68 1.6 2.37 2 2.1.52 3.43 1.4 3.43 3.32 0 1.76-1.3 3.01-3.4 3.11z"
+                ></path>
               </svg>
             </div>
             <div>
@@ -211,21 +228,26 @@ const referParam = Astro.url.searchParams.get("refer") || "";
             </div>
           </div>
         </div>
-
       </div>
 
       <!-- RIGHT COLUMN: Two Mobile Images Side-by-Side (Using mobile-frame) -->
       <div class="relative flex items-center justify-center lg:col-span-6 xl:col-span-6 pt-6 md:pt-10">
-        
         <!-- Background Radial Ambient Glow -->
-        <div class="absolute inset-0 bg-radial from-purple-300/40 via-purple-100/20 to-transparent blur-3xl -z-10 pointer-events-none"></div>
+        <div
+          class="absolute inset-0 bg-radial from-purple-300/40 via-purple-100/20 to-transparent blur-3xl -z-10 pointer-events-none"
+        >
+        </div>
 
         <!-- Mobile Images Container with Bottom Opacity Mask -->
-        <div class="relative flex items-center justify-center -space-x-12 sm:-space-x-16 lg:-space-x-20 pt-6 sm:pt-8 pb-4 [mask-image:linear-gradient(to_bottom,rgba(0,0,0,1)_0%,rgba(0,0,0,1)_65%,rgba(0,0,0,0)_100%)]">
-          
+        <div
+          class="relative flex items-center justify-center -space-x-12 sm:-space-x-16 lg:-space-x-20 pt-6 sm:pt-8 pb-4 [mask-image:linear-gradient(to_bottom,rgba(0,0,0,1)_0%,rgba(0,0,0,1)_65%,rgba(0,0,0,0)_100%)]"
+        >
           <!-- Bottom Gradient Fade Layer -->
-          <div class="pointer-events-none absolute bottom-0 inset-x-0 h-32 bg-linear-to-b from-transparent via-white/40 to-white z-30"></div>
-          
+          <div
+            class="pointer-events-none absolute bottom-0 inset-x-0 h-32 bg-linear-to-b from-transparent via-white/40 to-white z-30"
+          >
+          </div>
+
           <!-- MOBILE 1 (Left Phone - Lower Offset) -->
           <div
             data-aos="fade-right"
@@ -281,11 +303,8 @@ const referParam = Astro.url.searchParams.get("refer") || "";
               class="absolute top-0 left-0 w-full h-auto pointer-events-none drop-shadow-2xl"
             />
           </div>
-
         </div>
-
       </div>
-
     </div>
   </div>
 </section>

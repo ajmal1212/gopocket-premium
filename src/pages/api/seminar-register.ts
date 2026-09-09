@@ -20,10 +20,7 @@ interface Payload {
 
 const asText = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
 
-function json(
-  body: { ok: boolean; title: string; message: string },
-  status: number,
-): Response {
+function json(body: { ok: boolean; title: string; message: string }, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { "Content-Type": "application/json" },
@@ -55,7 +52,9 @@ export const POST: APIRoute = async ({ request }) => {
   const clientCode = asText(payload.clientCode);
   // Strip spaces, dashes and a +91 prefix before validating, so a correctly
   // typed number is not rejected over formatting.
-  const mobile = asText(payload.mobile).replace(/[\s-]/g, "").replace(/^\+?91/, "");
+  const mobile = asText(payload.mobile)
+    .replace(/[\s-]/g, "")
+    .replace(/^\+?91/, "");
 
   if (!seminar) {
     return json(
@@ -86,8 +85,7 @@ export const POST: APIRoute = async ({ request }) => {
         {
           ok: true,
           title: "Registration Successful!",
-          message:
-            "Thank you for registering. We have sent the webinar joining link to your registered mobile number.",
+          message: "Thank you for registering. We have sent the webinar joining link to your registered mobile number.",
         },
         200,
       );

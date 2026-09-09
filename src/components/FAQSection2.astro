@@ -174,95 +174,107 @@ const {
 
       <!-- Tab Navigation -->
       <div class="faq2-tabs-wrapper">
-        {categories.length > 1 && (
-        <div class="faq2-tab-nav flex flex-wrap gap-2 mb-8" role="tablist">
-          {categories.map((cat, catIndex) => (
-            <button
-              role="tab"
-              aria-selected={catIndex === 0 ? "true" : "false"}
-              aria-controls={`faq2-tab-${cat.id}`}
-              data-faq2-tab={cat.id}
-              class={`faq2-tab-btn rounded-full px-5 py-2 text-sm font-medium tracking-wider transition-all duration-300 cursor-pointer ${catIndex === 0 ? "bg-dark text-white" : "bg-white text-dark hover:bg-gray-100"}`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-        )}
+        {
+          categories.length > 1 && (
+            <div class="faq2-tab-nav flex flex-wrap gap-2 mb-8" role="tablist">
+              {categories.map((cat, catIndex) => (
+                <button
+                  role="tab"
+                  aria-selected={catIndex === 0 ? "true" : "false"}
+                  aria-controls={`faq2-tab-${cat.id}`}
+                  data-faq2-tab={cat.id}
+                  class={`faq2-tab-btn rounded-full px-5 py-2 text-sm font-medium tracking-wider transition-all duration-300 cursor-pointer ${catIndex === 0 ? "bg-dark text-white" : "bg-white text-dark hover:bg-gray-100"}`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          )
+        }
 
         <!-- Tab Panels -->
-        {categories.map((cat, catIndex) => (
-          <div
-            role="tabpanel"
-            id={`faq2-tab-${cat.id}`}
-            data-faq2-panel={cat.id}
-            class={`faq2-tab-panel space-y-5 ${catIndex === 0 ? "block" : "hidden"}`}
-          >
-            <div class="faq2-accordion-group space-y-5">
-              {cat.items.map((item, itemIndex) => {
-                const faqId = `faq2-${cat.id}-${itemIndex + 1}`;
-                const isFirstOfFirst = catIndex === 0 && itemIndex === 0;
-                return (
-                  <div
-                    class={`faq2-accordion rounded-xl px-6 bg-white border border-gray-100 dark:border-gray-800 transition-all duration-300 ${isFirstOfFirst ? "active shadow-xs" : ""}`}
-                    id={faqId}
-                  >
-                    <button
-                      aria-expanded={isFirstOfFirst ? "true" : "false"}
-                      class="faq2-accordion-toggle flex w-full items-center justify-between py-5 text-start text-lg sm:text-xl font-bold cursor-pointer group"
-                      aria-controls={`faq2-content-${faqId}`}
-                      data-faq2-trigger
-                    >
-                      <span class="text-dark transition-colors duration-200 group-hover:text-primary">{item.question}</span>
-                      <span class={`faq2-icon-wrapper rounded-lg p-1.5 transition-all duration-300 ${isFirstOfFirst ? "bg-theme-light rotate-180" : ""}`}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          class={`faq2-icon-plus text-xl ${isFirstOfFirst ? "hidden" : ""}`}
-                        >
-                          <path d="M5 12h14"></path>
-                          <path d="M12 5v14"></path>
-                        </svg>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          class={`faq2-icon-minus text-xl ${isFirstOfFirst ? "" : "hidden"}`}
-                        >
-                          <path d="M5 12h14"></path>
-                        </svg>
-                      </span>
-                    </button>
+        {
+          categories.map((cat, catIndex) => (
+            <div
+              role="tabpanel"
+              id={`faq2-tab-${cat.id}`}
+              data-faq2-panel={cat.id}
+              class={`faq2-tab-panel space-y-5 ${catIndex === 0 ? "block" : "hidden"}`}
+            >
+              <div class="faq2-accordion-group space-y-5">
+                {cat.items.map((item, itemIndex) => {
+                  const faqId = `faq2-${cat.id}-${itemIndex + 1}`;
+                  const isFirstOfFirst = catIndex === 0 && itemIndex === 0;
+                  return (
                     <div
-                      role="region"
-                      id={`faq2-content-${faqId}`}
-                      aria-labelledby={faqId}
-                      class="faq2-accordion-content overflow-hidden"
-                      style={isFirstOfFirst ? "max-height: none; opacity: 1; display: block;" : "max-height: 0px; opacity: 0; display: none;"}
+                      class={`faq2-accordion rounded-xl px-6 bg-white border border-gray-100 dark:border-gray-800 transition-all duration-300 ${isFirstOfFirst ? "active shadow-xs" : ""}`}
+                      id={faqId}
                     >
-                      <div class="prose-styles pb-6 text-base sm:text-lg text-text-default opacity-85 leading-relaxed md:max-w-4xl border-t border-gray-100 dark:border-gray-800/60 pt-4">
-                        <p>{item.answer}</p>
+                      <button
+                        aria-expanded={isFirstOfFirst ? "true" : "false"}
+                        class="faq2-accordion-toggle flex w-full items-center justify-between py-5 text-start text-lg sm:text-xl font-bold cursor-pointer group"
+                        aria-controls={`faq2-content-${faqId}`}
+                        data-faq2-trigger
+                      >
+                        <span class="text-dark transition-colors duration-200 group-hover:text-primary">
+                          {item.question}
+                        </span>
+                        <span
+                          class={`faq2-icon-wrapper rounded-lg p-1.5 transition-all duration-300 ${isFirstOfFirst ? "bg-theme-light rotate-180" : ""}`}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class={`faq2-icon-plus text-xl ${isFirstOfFirst ? "hidden" : ""}`}
+                          >
+                            <path d="M5 12h14" />
+                            <path d="M12 5v14" />
+                          </svg>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class={`faq2-icon-minus text-xl ${isFirstOfFirst ? "" : "hidden"}`}
+                          >
+                            <path d="M5 12h14" />
+                          </svg>
+                        </span>
+                      </button>
+                      <div
+                        role="region"
+                        id={`faq2-content-${faqId}`}
+                        aria-labelledby={faqId}
+                        class="faq2-accordion-content overflow-hidden"
+                        style={
+                          isFirstOfFirst
+                            ? "max-height: none; opacity: 1; display: block;"
+                            : "max-height: 0px; opacity: 0; display: none;"
+                        }
+                      >
+                        <div class="prose-styles pb-6 text-base sm:text-lg text-text-default opacity-85 leading-relaxed md:max-w-4xl border-t border-gray-100 dark:border-gray-800/60 pt-4">
+                          <p>{item.answer}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        }
       </div>
     </div>
   </div>
@@ -276,7 +288,7 @@ const {
     content.style.maxHeight = "0px";
     content.style.opacity = "0";
     content.style.transition = "max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease";
-    
+
     requestAnimationFrame(() => {
       content.style.maxHeight = height;
       content.style.opacity = "1";
@@ -295,7 +307,7 @@ const {
       content.style.maxHeight = content.scrollHeight + "px";
     }
     content.style.transition = "max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease";
-    
+
     requestAnimationFrame(() => {
       content.style.maxHeight = "0px";
       content.style.opacity = "0";

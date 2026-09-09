@@ -14,14 +14,29 @@ npm run build     # astro build
 npm run format    # prettier --write "src/**/*.{astro,js,ts,jsx,tsx,css,json}"
 ```
 
-Prettier is configured (120 cols, 2 spaces, double quotes, semicolons), but
-**do not run `npm run format`** — the repo is not currently Prettier-clean, so
-the repo-wide script rewrites ~90 untouched files and buries your change in
-thousands of lines of reformatting. Format only what you edited:
+**Run `npm run format` before committing.** The repo is Prettier-clean (120
+cols, 2 spaces, double quotes, semicolons) and must stay that way — a clean
+baseline is what keeps a real diff readable. Verify with:
 
 ```
-npx prettier --write src/components/MyComponent.astro
+npx prettier --check "src/**/*.{astro,js,ts,jsx,tsx,css,json}"
 ```
+
+Two things to know about Prettier here:
+
+- **Never put an HTML comment inside a `{}` expression.** Only JSX comments are
+  valid there, and while Astro's compiler tolerates `<!-- … -->`, Prettier's
+  parser fails outright on the whole file (`SyntaxError: Unexpected token`).
+  Inside a `.map()` or any expression, write `{/* … */}` — which also has the
+  advantage of being stripped at build time instead of shipped to the browser.
+  An HTML comment in plain template markup is fine.
+- `src/pages/components.astro` is in `.prettierignore` because
+  prettier-plugin-astro crashes on its Shiki-highlighted `<pre>` blocks. Leave
+  it alone; the reasoning is in the ignore file.
+
+If `npm run format` ever reports a file changed on a second consecutive run, the
+plugin is being non-idempotent on that file — run it once more to converge
+rather than hand-editing the whitespace.
 
 ```
 src/components/       # section components, grouped in subfolders per page (api/, partner/, downloads/, header/)

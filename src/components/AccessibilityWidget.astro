@@ -1,5 +1,18 @@
 ---
 /* src/components/AccessibilityWidget.astro */
+import Button from "./Button.astro";
+import Accessibility from "@lucide/astro/icons/accessibility";
+import Blend from "@lucide/astro/icons/blend";
+import BookOpen from "@lucide/astro/icons/book-open";
+import Contrast from "@lucide/astro/icons/contrast";
+import Crosshair from "@lucide/astro/icons/crosshair";
+import EyeOff from "@lucide/astro/icons/eye-off";
+import Focus from "@lucide/astro/icons/focus";
+import Link from "@lucide/astro/icons/link";
+import MoonStar from "@lucide/astro/icons/moon-star";
+import Palette from "@lucide/astro/icons/palette";
+import VolumeX from "@lucide/astro/icons/volume-x";
+import X from "@lucide/astro/icons/x";
 ---
 
 <!-- Floating Accessibility Button Trigger -->
@@ -10,13 +23,7 @@
   title="Accessibility Controls (Alt + A)"
   type="button"
 >
-  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="4" r="2"></circle>
-    <path d="m18 19 1-7-6 1"></path>
-    <path d="m5 8 7-3 7 3"></path>
-    <path d="M5 19l1-7 6 1"></path>
-    <path d="M12 12v7"></path>
-  </svg>
+  <Accessibility size={26} />
 </button>
 
 <!-- Backdrop Overlay & Modal -->
@@ -44,46 +51,40 @@
           class="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all duration-200 cursor-pointer"
           aria-label="Close Accessibility Modal"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
+          <X size={20} />
         </button>
       </div>
 
       <!-- Controls Grid (4 Columns Desktop, 2 Columns Mobile) -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         
-        <!-- 1. Screen Reader -->
+        <!-- 1. ADHD Focus Assist -->
         <button
           type="button"
-          data-a11y-toggle="speech"
+          data-a11y-toggle="adhd"
           class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
-              <line x1="23" y1="9" x2="17" y2="15"></line>
-              <line x1="17" y1="9" x2="23" y2="15"></line>
-            </svg>
+            <Focus size={20} />
           </div>
-          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Screen Reader</span>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors leading-tight">ADHD Focus Assist</span>
         </button>
 
-        <!-- 2. Smart Contrast -->
-        <button
-          type="button"
-          data-a11y-toggle="contrast"
-          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+        <!-- 2. Themes -->
+        <div
+          class="a11y-card relative flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 text-center min-h-[96px]"
         >
-          <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor"></path>
-            </svg>
+          <div class="w-6 h-6 mb-1 flex items-center justify-center text-[#6b1aff] dark:text-purple-400">
+            <Palette size={18} />
           </div>
-          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Smart Contrast</span>
-        </button>
+          <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">Themes</span>
+          <div class="flex items-center gap-1.5">
+            <button type="button" data-a11y-theme="blue" class="w-4 h-4 rounded-full bg-blue-300 hover:scale-125 transition-transform cursor-pointer" title="Blue Tint"></button>
+            <button type="button" data-a11y-theme="yellow" class="w-4 h-4 rounded-full bg-amber-300 hover:scale-125 transition-transform cursor-pointer" title="Yellow Tint"></button>
+            <button type="button" data-a11y-theme="green" class="w-4 h-4 rounded-full bg-emerald-300 hover:scale-125 transition-transform cursor-pointer" title="Green Tint"></button>
+            <button type="button" data-a11y-theme="pink" class="w-4 h-4 rounded-full bg-rose-300 hover:scale-125 transition-transform cursor-pointer" title="Pink Tint"></button>
+          </div>
+        </div>
 
         <!-- 3. Font Size -->
         <div
@@ -119,93 +120,64 @@
           <span class="text-[10px] text-slate-500 dark:text-slate-400">Font Size</span>
         </div>
 
-        <!-- 4. Themes -->
-        <div
-          class="a11y-card relative flex flex-col items-center justify-center p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 text-center min-h-[96px]"
+        <!-- 4. Screen Reader -->
+        <button
+          type="button"
+          data-a11y-toggle="speech"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
-          <div class="w-6 h-6 mb-1 flex items-center justify-center text-[#6b1aff] dark:text-purple-400">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
-              <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
-              <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
-              <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
-              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.7-.72 1.7-1.61 0-.43-.17-.83-.44-1.13-.24-.26-.4-.6-.4-1 0-.88.72-1.6 1.61-1.6H17c2.76 0 5-2.24 5-5 0-4.42-4.03-8-10-8z"></path>
-            </svg>
+          <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
+            <VolumeX size={20} />
           </div>
-          <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">Themes</span>
-          <div class="flex items-center gap-1.5">
-            <button type="button" data-a11y-theme="blue" class="w-4 h-4 rounded-full bg-blue-300 hover:scale-125 transition-transform cursor-pointer" title="Blue Tint"></button>
-            <button type="button" data-a11y-theme="yellow" class="w-4 h-4 rounded-full bg-amber-300 hover:scale-125 transition-transform cursor-pointer" title="Yellow Tint"></button>
-            <button type="button" data-a11y-theme="green" class="w-4 h-4 rounded-full bg-emerald-300 hover:scale-125 transition-transform cursor-pointer" title="Green Tint"></button>
-            <button type="button" data-a11y-theme="pink" class="w-4 h-4 rounded-full bg-rose-300 hover:scale-125 transition-transform cursor-pointer" title="Pink Tint"></button>
-          </div>
-        </div>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Screen Reader</span>
+        </button>
 
-        <!-- 5. Hide Images -->
+        <!-- 5. Smart Contrast -->
+        <button
+          type="button"
+          data-a11y-toggle="contrast"
+          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
+        >
+          <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
+            <Contrast size={20} />
+          </div>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Smart Contrast</span>
+        </button>
+
+        <!-- 6. Hide Images -->
         <button
           type="button"
           data-a11y-toggle="hide-images"
           class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
-              <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
-              <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
-              <line x1="2" y1="2" x2="22" y2="22"></line>
-            </svg>
+            <EyeOff size={20} />
           </div>
           <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Hide Images</span>
         </button>
 
-        <!-- 6. Grayscale -->
+        <!-- 7. Grayscale -->
         <button
           type="button"
           data-a11y-toggle="grayscale"
           class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <path d="M3 15h18"></path>
-              <path d="m15 3-12 12"></path>
-            </svg>
+            <Blend size={20} />
           </div>
           <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Grayscale</span>
         </button>
 
-        <!-- 7. Blue Light Filter -->
+        <!-- 8. Blue Light Filter -->
         <button
           type="button"
           data-a11y-toggle="bluelight"
           class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-              <path d="M19 3v4"></path>
-              <path d="M21 5h-4"></path>
-            </svg>
+            <MoonStar size={20} />
           </div>
           <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors leading-tight">Blue Light Filter</span>
-        </button>
-
-        <!-- 8. ADHD Focus Assist -->
-        <button
-          type="button"
-          data-a11y-toggle="adhd"
-          class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
-        >
-          <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 8V4h4"></path>
-              <path d="M20 8V4h-4"></path>
-              <path d="M4 16v4h4"></path>
-              <path d="M20 16v4h-4"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-          </div>
-          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors leading-tight">ADHD Focus Assist</span>
         </button>
 
         <!-- 9. Dyslexia Font -->
@@ -215,10 +187,7 @@
           class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-            </svg>
+            <BookOpen size={20} />
           </div>
           <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Dyslexia</span>
         </button>
@@ -230,10 +199,7 @@
           class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-            </svg>
+            <Link size={20} />
           </div>
           <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Highlight Links</span>
         </button>
@@ -245,13 +211,7 @@
           class="a11y-card group relative flex flex-col items-center justify-center p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50/70 dark:bg-[#151821]/70 hover:border-[#6b1aff]/50 hover:bg-purple-50/40 dark:hover:bg-[#1a1c2b] transition-all duration-200 text-center cursor-pointer min-h-[96px]"
         >
           <div class="a11y-icon-box w-10 h-10 mb-2 rounded-xl flex items-center justify-center text-[#6b1aff] dark:text-purple-400 group-hover:scale-110 transition-transform duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="22" y1="12" x2="18" y2="12"></line>
-              <line x1="6" y1="12" x2="2" y2="12"></line>
-              <line x1="12" y1="6" x2="12" y2="2"></line>
-              <line x1="12" y1="22" x2="12" y2="18"></line>
-            </svg>
+            <Crosshair size={20} />
           </div>
           <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-[#6b1aff] dark:group-hover:text-purple-300 transition-colors">Focus Indicator</span>
         </button>
@@ -260,29 +220,12 @@
 
       <!-- Footer Primary Reset Button -->
       <div class="pt-2 w-full flex justify-center">
-        <button
+        <Button
           id="a11y-reset-button"
           type="button"
-          class="btn btn-primary text-flip-hover-anim btn-primary w-full justify-center cursor-pointer"
-        >
-          <span class="text-flip-inner" data-content="RESET ALL">RESET ALL</span>
-          <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
-            <svg
-              class="gradient-shape"
-              width="150"
-              height="28"
-              viewBox="0 0 147 11"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
-                stroke="currentColor"
-                stroke-width="8"
-              ></path>
-            </svg>
-          </span>
-        </button>
+          label="RESET ALL"
+          class="w-full justify-center cursor-pointer"
+        />
       </div>
     </div>
   </div>

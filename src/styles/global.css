@@ -16,6 +16,22 @@
 
 @custom-variant hs-dropdown-open (&:where(.open, .open *, .active, .active *));
 
+/* Bind Tailwind's `dark:` variant to the theme toggle instead of the OS.
+   ThemeToggle.astro writes `class="dark"` onto <html>, but v4 ships `dark:` as
+   `@media (prefers-color-scheme: dark)` - so without this line the variant
+   tracked the operating system and ignored the toggle entirely. A reader on a
+   dark-OS machine who chose light got dark cards on a light page (the
+   sip-calculator panels are the clearest case), and choosing dark on a light-OS
+   machine got none of them.
+
+   This only governs `dark:` utilities. The site's own dark theme still works by
+   repointing tokens under `html.dark` in dark-theme.css, and those rules are
+   UNLAYERED, so they outrank any `dark:` utility in @layer utilities regardless
+   of specificity: on an element written `bg-white dark:bg-[#1c202e]` the token
+   remap wins and the `dark:` class is inert. Prefer the semantic tokens over
+   hand-picked hex for anything new. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary: #6b1aff;
   --color-theme-light: #f8f8f8;

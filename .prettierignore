@@ -1,0 +1,19 @@
+# Build output and caches
+dist
+.astro
+.wrangler
+
+# prettier-plugin-astro crashes on this file:
+#   TypeError: r.children is not iterable
+#     at printRaw (prettier-plugin-astro/dist/index.js:113)
+#
+# It is the theme's kitchen-sink demo page, and its ~12 Shiki-highlighted
+# <pre> blocks hold element children (<code><span style=...>) rather than the
+# raw text printRaw assumes, so the plugin's walk hits a node with no
+# `children` and throws. Astro itself compiles the page fine.
+#
+# Ignored rather than reformatted: the fix would mean rewriting generated
+# syntax-highlighting markup by hand, and the page is a demo that is already
+# kept out of the sitemap (see EXCLUDED in src/pages/sitemap.xml.ts). Drop this
+# entry if the plugin bug is ever fixed upstream.
+src/pages/components.astro

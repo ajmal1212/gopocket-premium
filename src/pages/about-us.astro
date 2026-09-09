@@ -490,7 +490,8 @@ const leadershipTeam = [
               <p>Empowering retail and active traders across India</p>
             </div><div class="space-y-3.5 md:text-center">
               <div class="inline-flex place-items-stretch leading-none has-animated-number text-h2-sm md:text-h2 block">
-                <span data-count="1000" style="--odometer-duration:1.2s" class="odometer odometer-auto-theme">1000</span>
+                <span data-count="1000" style="--odometer-duration:1.2s" class="odometer odometer-auto-theme">1000</span
+                >
                 <span class="append">Cr+</span>
               </div>
               <h3 class="text-h6-sm md:text-h6">Daily Turnover</h3>
@@ -724,48 +725,51 @@ const leadershipTeam = [
               </div>
             </h2>
             <p class="mt-4 opacity-80 animate-fade-in max-w-2xl mx-auto" data-aos="fade-up-sm" data-aos-delay="200">
-              Our leadership team is an assembly of visionaries with a cumulative experience exceeding 30 years. They are devoted to advancing financial literacy and empowerment throughout India.
+              Our leadership team is an assembly of visionaries with a cumulative experience exceeding 30 years. They
+              are devoted to advancing financial literacy and empowerment throughout India.
             </p>
           </div>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {leadershipTeam.map((member, index) => (
-              <div
-                data-aos={index % 2 === 0 ? "fade-right-sm" : "fade-left-sm"}
-                data-aos-delay={(index % 4) * 100 + 100}
-                class="from-theme-light flex w-full flex-col md:flex-row items-center md:items-stretch gap-6 rounded-2xl bg-linear-to-b to-white p-6 border border-black/5 shadow-xs"
-              >
-                <!-- Left: Image -->
-                <div class="w-56 h-56 md:w-52 md:h-52 lg:w-56 lg:h-56 flex-shrink-0 self-start">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    loading="lazy"
-                    class="w-full h-full rounded-xl object-cover aspect-square shadow-xs"
-                  />
-                </div>
-                <!-- Right: Content -->
-                <div class="flex-grow flex flex-col justify-between space-y-4 text-center md:text-left">
-                  <div class="space-y-2">
-                    <p class="text-xs font-semibold text-primary uppercase tracking-wider">{member.role}</p>
-                    <h3 class="md:text-h6 text-h6-sm text-black font-bold">{member.name}</h3>
-                    <p class="text-sm opacity-80 leading-relaxed">{member.bio}</p>
+            {
+              leadershipTeam.map((member, index) => (
+                <div
+                  data-aos={index % 2 === 0 ? "fade-right-sm" : "fade-left-sm"}
+                  data-aos-delay={(index % 4) * 100 + 100}
+                  class="from-theme-light flex w-full flex-col md:flex-row items-center md:items-stretch gap-6 rounded-2xl bg-linear-to-b to-white p-6 border border-black/5 shadow-xs"
+                >
+                  {/* Left: Image */}
+                  <div class="w-56 h-56 md:w-52 md:h-52 lg:w-56 lg:h-56 flex-shrink-0 self-start">
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      loading="lazy"
+                      class="w-full h-full rounded-xl object-cover aspect-square shadow-xs"
+                    />
                   </div>
-                  <div class="pt-4 border-t border-black/5 flex justify-center md:justify-start">
-                    <a
-                      href={member.linkedin}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="text-black hover:text-primary transition-colors duration-200"
-                      aria-label={`${member.name}'s LinkedIn profile`}
-                    >
-                      <svg class="h-8 w-8 fill-current" viewBox="0 0 24 24">
-                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                      </svg>
-                    </a>
+                  {/* Right: Content */}
+                  <div class="flex-grow flex flex-col justify-between space-y-4 text-center md:text-left">
+                    <div class="space-y-2">
+                      <p class="text-xs font-semibold text-primary uppercase tracking-wider">{member.role}</p>
+                      <h3 class="md:text-h6 text-h6-sm text-black font-bold">{member.name}</h3>
+                      <p class="text-sm opacity-80 leading-relaxed">{member.bio}</p>
+                    </div>
+                    <div class="pt-4 border-t border-black/5 flex justify-center md:justify-start">
+                      <a
+                        href={member.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-black hover:text-primary transition-colors duration-200"
+                        aria-label={`${member.name}'s LinkedIn profile`}
+                      >
+                        <svg class="h-8 w-8 fill-current" viewBox="0 0 24 24">
+                          <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                        </svg>
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            }
           </div>
         </div>
       </section>
@@ -787,7 +791,8 @@ const leadershipTeam = [
                 </div>
               </h2>
               <p class="mt-4 opacity-80 max-w-2xl mx-auto" data-aos="fade-up-sm" data-aos-delay="200">
-                Our greatest achievement is the success and growth of our clients. GoPocket’s sole aim is to educate and empower investors.
+                Our greatest achievement is the success and growth of our clients. GoPocket’s sole aim is to educate and
+                empower investors.
               </p>
             </div>
             <div class="grid gap-8 overflow-hidden md:grid-cols-2 lg:grid-cols-3">
@@ -797,7 +802,9 @@ const leadershipTeam = [
                 data-aos-delay="100"
               >
                 <div class="flex flex-col items-start space-y-4 w-full">
-                  <div class="relative w-full h-48 flex items-center justify-center bg-white rounded-lg p-4 border border-black/5 shadow-inner">
+                  <div
+                    class="relative w-full h-48 flex items-center justify-center bg-white rounded-lg p-4 border border-black/5 shadow-inner"
+                  >
                     <img
                       src="/assets/images/gopocket/trophy-image-1.png"
                       alt="Best Broking House - South"
@@ -809,7 +816,8 @@ const leadershipTeam = [
                     <p class="text-sm text-primary font-semibold">Multi Commodity Exchange of India (MCX)</p>
                   </div>
                   <p class="text-sm opacity-80 leading-relaxed">
-                    Awarded in recognition of our exceptional commodities volume, robust compliance practices, and commitment to service excellence in South India.
+                    Awarded in recognition of our exceptional commodities volume, robust compliance practices, and
+                    commitment to service excellence in South India.
                   </p>
                 </div>
               </div>
@@ -819,7 +827,9 @@ const leadershipTeam = [
                 data-aos-delay="200"
               >
                 <div class="flex flex-col items-start space-y-4 w-full">
-                  <div class="relative w-full h-48 flex items-center justify-center bg-white rounded-lg p-4 border border-black/5 shadow-inner">
+                  <div
+                    class="relative w-full h-48 flex items-center justify-center bg-white rounded-lg p-4 border border-black/5 shadow-inner"
+                  >
                     <img
                       src="/assets/images/gopocket/trophy-image-2.png"
                       alt="Leading Member - MCX Awards 2022"
@@ -831,7 +841,8 @@ const leadershipTeam = [
                     <p class="text-sm text-primary font-semibold">Multi Commodity Exchange of India (MCX)</p>
                   </div>
                   <p class="text-sm opacity-80 leading-relaxed">
-                    Recognized as a leading financial member of MCX for driving market penetration, technological growth, and high volume transactions in commodities.
+                    Recognized as a leading financial member of MCX for driving market penetration, technological
+                    growth, and high volume transactions in commodities.
                   </p>
                 </div>
               </div>
@@ -841,7 +852,9 @@ const leadershipTeam = [
                 data-aos-delay="300"
               >
                 <div class="flex flex-col items-start space-y-4 w-full">
-                  <div class="relative w-full h-48 flex items-center justify-center bg-white rounded-lg p-4 border border-black/5 shadow-inner">
+                  <div
+                    class="relative w-full h-48 flex items-center justify-center bg-white rounded-lg p-4 border border-black/5 shadow-inner"
+                  >
                     <img
                       src="/assets/images/gopocket/trophy-image-3.png"
                       alt="Member of the Year - South"
@@ -853,7 +866,8 @@ const leadershipTeam = [
                     <p class="text-sm text-primary font-semibold">Multi Commodity Exchange of India (MCX)</p>
                   </div>
                   <p class="text-sm opacity-80 leading-relaxed">
-                    Honored with the Member of the Year award in the southern region for our remarkable contribution to the exchange's trading ecosystem.
+                    Honored with the Member of the Year award in the southern region for our remarkable contribution to
+                    the exchange's trading ecosystem.
                   </p>
                 </div>
               </div>
@@ -861,10 +875,12 @@ const leadershipTeam = [
           </div>
         </div>
       </section>
-      
+
       <section class="timeline-section text-white relative py-24 overflow-hidden rounded-3xl mx-4 md:mx-8 my-12">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(124,58,237,0.08),transparent_40%)]"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(99,102,241,0.08),transparent_40%)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(124,58,237,0.08),transparent_40%)]">
+        </div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(99,102,241,0.08),transparent_40%)]">
+        </div>
         <div class="container relative space-y-10 md:space-y-16">
           <div class="mx-auto max-w-2xl text-center">
             <h2 class="has-italic-text capitalize !text-white" style="color: #ffffff !important;">
@@ -877,39 +893,59 @@ const leadershipTeam = [
               >
                 <span class="word" style="--word-index:0; color: #ffffff !important;">Our</span>
                 <span class="word" style="--word-index:1; color: #ffffff !important;">Incredible</span>
-                <span class="word" style="--word-index:2; color: #ffffff !important;"><strong class="!text-white" style="color: #ffffff !important;">Journey</strong></span>
+                <span class="word" style="--word-index:2; color: #ffffff !important;"
+                  ><strong class="!text-white" style="color: #ffffff !important;">Journey</strong></span
+                >
               </div>
             </h2>
           </div>
-          
+
           <div class="relative mx-auto max-w-4xl pt-8">
             <div class="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-white/10 md:-ml-px"></div>
-            
+
             <div class="space-y-12">
-              {timelineEvents.map((evt, idx) => (
-                <div 
-                  class={`relative flex flex-col md:flex-row items-start md:items-center ${idx % 2 === 0 ? 'md:flex-row-reverse' : ''}`}
-                  data-aos="fade-up-sm"
-                  data-aos-delay="100"
-                >
-                  <div class="absolute left-6 md:left-1/2 z-10 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full timeline-dot-circle border border-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.5)]">
-                    <div class="h-1.5 w-1.5 rounded-full bg-purple-400"></div>
-                  </div>
-                  
-                  <div class="hidden md:block w-1/2"></div>
-                  
-                  <div class={`w-full pl-12 md:pl-0 md:w-1/2 ${idx % 2 === 0 ? 'md:pr-12 md:text-right' : 'md:pl-12 md:text-left'}`}>
-                    <div class="bg-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/5 hover:border-white/10 transition-all duration-300 text-left">
-                      <div class="mb-2 flex items-center gap-2">
-                        <span class="rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 px-3 py-1 text-xs font-bold !text-white" style="color: #ffffff !important;">{evt.year}</span>
-                        <span class="text-xs font-medium uppercase tracking-wider !text-purple-300" style="color: #d8b4fe !important;">{evt.category}</span>
+              {
+                timelineEvents.map((evt, idx) => (
+                  <div
+                    class={`relative flex flex-col md:flex-row items-start md:items-center ${idx % 2 === 0 ? "md:flex-row-reverse" : ""}`}
+                    data-aos="fade-up-sm"
+                    data-aos-delay="100"
+                  >
+                    <div class="absolute left-6 md:left-1/2 z-10 flex h-4 w-4 -translate-x-1/2 items-center justify-center rounded-full timeline-dot-circle border border-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.5)]">
+                      <div class="h-1.5 w-1.5 rounded-full bg-purple-400" />
+                    </div>
+
+                    <div class="hidden md:block w-1/2" />
+
+                    <div
+                      class={`w-full pl-12 md:pl-0 md:w-1/2 ${idx % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12 md:text-left"}`}
+                    >
+                      <div class="bg-white/5 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/5 hover:border-white/10 transition-all duration-300 text-left">
+                        <div class="mb-2 flex items-center gap-2">
+                          <span
+                            class="rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 px-3 py-1 text-xs font-bold !text-white"
+                            style="color: #ffffff !important;"
+                          >
+                            {evt.year}
+                          </span>
+                          <span
+                            class="text-xs font-medium uppercase tracking-wider !text-purple-300"
+                            style="color: #d8b4fe !important;"
+                          >
+                            {evt.category}
+                          </span>
+                        </div>
+                        <h3 class="mb-2 text-h6 font-medium !text-white" style="color: #ffffff !important;">
+                          {evt.title}
+                        </h3>
+                        <p class="text-sm !text-slate-200 leading-relaxed" style="color: #cbd5e1 !important;">
+                          {evt.description}
+                        </p>
                       </div>
-                      <h3 class="mb-2 text-h6 font-medium !text-white" style="color: #ffffff !important;">{evt.title}</h3>
-                      <p class="text-sm !text-slate-200 leading-relaxed" style="color: #cbd5e1 !important;">{evt.description}</p>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              }
             </div>
           </div>
         </div>
@@ -1009,20 +1045,21 @@ const leadershipTeam = [
       </section>
     </main>
     <Footer />
+  </main>
+
+  <style>
+    .timeline-section {
+      background-color: #0f172a !important;
+    }
+    :global(html.dark) .timeline-section {
+      background-color: #0b0d13 !important;
+    }
+
+    .timeline-dot-circle {
+      background-color: #0f172a !important;
+    }
+    :global(html.dark) .timeline-dot-circle {
+      background-color: #0b0d13 !important;
+    }
+  </style>
 </Layout>
-
-<style>
-  .timeline-section {
-    background-color: #0f172a !important;
-  }
-  :global(html.dark) .timeline-section {
-    background-color: #0b0d13 !important;
-  }
-
-  .timeline-dot-circle {
-    background-color: #0f172a !important;
-  }
-  :global(html.dark) .timeline-dot-circle {
-    background-color: #0b0d13 !important;
-  }
-</style>

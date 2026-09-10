@@ -1,6 +1,6 @@
 import { FrappeApp } from "frappe-js-sdk";
 
-export const DEFAULT_FRAPPE_URL = "https://hrms.gopocket.in";
+export const DEFAULT_FRAPPE_URL = "https://pulse.gopocket.in";
 
 export function getFrappeUrl(): string {
   const proc = (globalThis as any).process;

@@ -1,0 +1,68 @@
+---
+import type { Tick } from "@/lib/feed/types";
+
+interface Props {
+  name: string;
+  symbol: string;
+  exchange: string;
+  sector: string;
+  token: string;
+  quote: Tick | null;
+}
+
+const { name, symbol, exchange, sector, token, quote } = Astro.props;
+
+/**
+ * `pc` is the percent change and `c` the previous close, so the rupee change is
+ * derived rather than sent. Both are strings on the wire.
+ */
+const num = (value: string | undefined): number | null => {
+  if (value === undefined || value === "") return null;
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const last = num(quote?.lp);
+const percent = num(quote?.pc);
+const previousClose = num(quote?.c);
+const change = last !== null && previousClose !== null ? last - previousClose : null;
+const isUp = (percent ?? 0) >= 0;
+
+const money = (value: number) =>
+  `₹${value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const signed = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
+---
+
+<header class="flex flex-col gap-3" data-price-header data-token={token}>
+  <p class="text-text-default flex items-center gap-2 text-sm">
+    <span class="font-semibold">{symbol}</span>
+    <span class="border-border-light rounded border px-1.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase">
+      {exchange}
+    </span>
+    <span class="text-text-default/70">{sector}</span>
+  </p>
+
+  <h1 class="text-h3 lg:text-h2 text-dark font-semibold tracking-tight">{name}</h1>
+
+  <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+    <span class="text-h4 text-dark font-semibold tabular-nums" data-field="lp">
+      {last !== null ? money(last) : "—"}
+    </span>
+
+    <span
+      class:list={[
+        "text-sm font-medium tabular-nums",
+        isUp ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400",
+      ]}
+      data-field="change"
+      hidden={change === null || percent === null}
+    >
+      {change !== null && percent !== null ? `${signed(change)} (${signed(percent)}%)` : ""}
+    </span>
+
+    <span class="text-text-default/60 text-xs" data-field="state">
+      <span data-live hidden>Live</span>
+      <span data-stale>Last close</span>
+    </span>
+  </div>
+</header>

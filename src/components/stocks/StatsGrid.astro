@@ -1,0 +1,39 @@
+---
+import type { Tick } from "@/lib/feed/types";
+
+interface Props {
+  quote: Tick | null;
+}
+
+const { quote } = Astro.props;
+
+const rows = [
+  { label: "Open", field: "o" },
+  { label: "High", field: "h" },
+  { label: "Low", field: "l" },
+  { label: "Prev. close", field: "c" },
+  { label: "Avg. price", field: "ap" },
+  { label: "Volume", field: "v" },
+] as const;
+
+const format = (field: string, raw: string | undefined) => {
+  if (!raw) return "—";
+  const value = Number.parseFloat(raw);
+  if (!Number.isFinite(value)) return "—";
+  if (field === "v") return value.toLocaleString("en-IN");
+  return `₹${value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+---
+
+<dl class="border-border-light grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-transparent md:grid-cols-3">
+  {
+    rows.map((row) => (
+      <div class="border-border-light bg-white p-4 dark:bg-transparent">
+        <dt class="text-text-default/70 text-xs">{row.label}</dt>
+        <dd class="text-dark mt-1 text-sm font-semibold tabular-nums" data-field={row.field}>
+          {format(row.field, quote?.[row.field])}
+        </dd>
+      </div>
+    ))
+  }
+</dl>

@@ -1,0 +1,393 @@
+---
+import type { Candle } from "@/lib/feed/candles";
+import { RANGES, isDaily, downsample } from "@/lib/feed/candles";
+
+interface Props {
+  candles: Candle[];
+  /** Previous close, drawn as the reference line and used to colour the series. */
+  previousClose: number | null;
+  token: string;
+  activeRange: string;
+  slug: string;
+  /** Daily history is equity-only upstream, so an index offers no long ranges. */
+  dailyAvailable?: boolean;
+  /** Open/close of the trading session, when the x-axis should span it. */
+  session?: { start: number; end: number } | null;
+  /** Live last price. Decides the colour, so the chart agrees with the header. */
+  lastPrice?: number | null;
+}
+
+const {
+  candles,
+  previousClose,
+  token,
+  activeRange,
+  slug,
+  dailyAvailable = true,
+  session = null,
+  lastPrice = null,
+} = Astro.props;
+
+const ranges = RANGES.filter((range) => dailyAvailable || !isDaily(range));
+
+/**
+ * An inline SVG line-and-area chart, rendered on the server.
+ *
+ * No charting library: this is a path, a fill and a dashed reference line, and
+ * a dependency for that would be bytes on every stock page for markup we can
+ * emit directly. The viewBox is a fixed coordinate space that scales to any
+ * width, so the same path is correct at every breakpoint - and because the
+ * points are computed here, the chart is in the HTML before any script runs.
+ */
+const WIDTH = 720;
+const HEIGHT = 260;
+const PAD_Y = 12;
+
+const points = downsample(candles);
+const closes = points.map((candle) => candle.c);
+const baseline = previousClose ?? (closes.length > 0 ? closes[0] : 0);
+
+// The reference line has to be inside the plotted range, or a session that
+// never crosses it would push it off the chart.
+const low = Math.min(...closes, baseline);
+const high = Math.max(...closes, baseline);
+const span = high - low || 1;
+
+/**
+ * With a session the x-axis is time, so a chart drawn at noon fills half the
+ * width and stops - the same as every broker's intraday chart. Without one
+ * (the multi-day ranges) points are spaced evenly, since the gaps between
+ * sessions would otherwise leave the line hanging over empty nights.
+ */
+const xs = points.map((candle, index) => {
+  if (session) {
+    const fraction = (candle.t - session.start) / (session.end - session.start);
+    return Math.min(WIDTH, Math.max(0, fraction * WIDTH));
+  }
+  return points.length < 2 ? 0 : (index / (points.length - 1)) * WIDTH;
+});
+
+const y = (value: number) => PAD_Y + (1 - (value - low) / span) * (HEIGHT - PAD_Y * 2);
+
+const line = points.map((candle, index) => `${xs[index].toFixed(2)},${y(candle.c).toFixed(2)}`);
+const linePath = line.length > 0 ? `M${line.join(" L")}` : "";
+// Closed under the line's own extent, not the full width, or the fill would
+// run on past where trading has actually reached.
+const areaPath =
+  line.length > 0 ? `${linePath} L${xs[xs.length - 1].toFixed(2)},${HEIGHT} L${xs[0].toFixed(2)},${HEIGHT} Z` : "";
+
+const last = closes.length > 0 ? closes[closes.length - 1] : null;
+/*
+ * Coloured by the live price rather than the last candle's close. The two
+ * disagree while a stock hovers at its previous close - a candle can close a
+ * paisa below it as the ticker reads a paisa above - and a red chart under a
+ * green price is the kind of detail that costs trust.
+ */
+const current = lastPrice ?? last;
+const isUp = current !== null && current >= baseline;
+const baselineY = y(baseline).toFixed(2);
+const hasChart = points.length > 1;
+---
+
+<section
+  class="flex flex-col gap-4"
+  data-price-chart
+  data-token={token}
+  data-slug={slug}
+  data-range={activeRange}
+  data-low={low}
+  data-high={high}
+  data-baseline={baseline}
+  data-width={WIDTH}
+  data-height={HEIGHT}
+  data-pad={PAD_Y}
+  data-closes={closes.join(",")}
+  data-xs={xs.map((value) => value.toFixed(2)).join(",")}
+  data-times={points.map((candle) => candle.t).join(",")}
+>
+  <h2 class="sr-only">Price chart</h2>
+
+  {
+    hasChart ? (
+      <div class="relative w-full touch-pan-y" data-chart-surface>
+        <svg
+          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+          preserveAspectRatio="none"
+          class="h-56 w-full lg:h-72"
+          role="img"
+          aria-label="Price movement"
+        >
+          <g class={isUp ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}>
+            {/*
+              The gradient lives inside this group on purpose: `currentColor` in
+              a stop resolves against the stop's own inherited colour, so a
+              <defs> at the root would paint the fill in the page's text colour
+              - a grey wash under a green line - however the group is classed.
+            */}
+            <defs>
+              <linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="currentColor" stop-opacity="0.20" />
+                <stop offset="100%" stop-color="currentColor" stop-opacity="0.01" />
+              </linearGradient>
+            </defs>
+
+            <line
+              x1="0"
+              x2={WIDTH}
+              y1={baselineY}
+              y2={baselineY}
+              stroke="currentColor"
+              stroke-width="1"
+              stroke-dasharray="4 4"
+              stroke-opacity="0.35"
+              data-chart-baseline
+            />
+            <path d={areaPath} fill="url(#chart-fill)" data-chart-area />
+            <path
+              d={linePath}
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+              vector-effect="non-scaling-stroke"
+              data-chart-line
+            />
+          </g>
+        </svg>
+
+        {/*
+          Crosshair, marker and tooltip are HTML rather than SVG on purpose. The
+          viewBox uses preserveAspectRatio="none" so the chart fills any width,
+          which stretches the coordinate space horizontally - an SVG circle
+          would render as an ellipse and text would come out condensed. HTML
+          positioned by percentage is immune to that.
+        */}
+        <div class="pointer-events-none absolute inset-0 hidden" data-hover>
+          <div class="border-border-light absolute top-0 bottom-0 border-l border-dashed" data-hover-line />
+          <div
+            class="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm dark:border-[#1c202e]"
+            data-hover-dot
+          />
+          <div
+            class="border-border-light absolute min-w-[104px] rounded-xl border bg-white px-3 py-2 text-center shadow-lg dark:bg-[#1c202e]"
+            data-hover-card
+          >
+            <span class="text-dark block text-sm font-semibold tabular-nums" data-hover-price />
+            <span class="text-text-default/70 block text-[11px] whitespace-nowrap" data-hover-time />
+          </div>
+        </div>
+      </div>
+    ) : (
+      <p class="text-text-default/60 flex h-56 items-center justify-center text-sm lg:h-72">
+        No chart data available for this instrument.
+      </p>
+    )
+  }
+
+  <div class="flex flex-wrap gap-2" role="group" aria-label="Chart range">
+    {
+      ranges.map((range) => (
+        <a
+          href={`/stocks/${slug}?range=${range.id}`}
+          class:list={[
+            "rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+            range.id === activeRange
+              ? "border-primary text-primary"
+              : "border-border-light text-text-default/70 hover:text-text-default",
+          ]}
+          aria-current={range.id === activeRange ? "true" : undefined}
+        >
+          {range.label}
+        </a>
+      ))
+    }
+  </div>
+</section>
+
+<script>
+  import { register, subscribe } from "@/lib/feed/client";
+  import type { Tick } from "@/lib/feed/types";
+
+  /**
+   * Extend the server-rendered chart with the live price.
+   *
+   * The closing values are carried in a data attribute rather than re-derived
+   * from the SVG path, because a tick can move the price outside the plotted
+   * range - and rescaling needs the real numbers, not screen coordinates. On
+   * each tick the last point is replaced (the candle still forming) and the
+   * whole path is recomputed, which is a handful of arithmetic on a few hundred
+   * points and cheaper than it sounds.
+   */
+  const chart = document.querySelector<HTMLElement>("[data-price-chart]");
+  const token = chart?.dataset.token;
+
+  if (chart && token && chart.dataset.closes) {
+    const width = Number(chart.dataset.width);
+    const height = Number(chart.dataset.height);
+    const pad = Number(chart.dataset.pad);
+    const baseline = Number(chart.dataset.baseline);
+    const closes = chart.dataset.closes.split(",").map(Number).filter(Number.isFinite);
+    // The x positions come from the server so the time axis is worked out in
+    // one place; a tick only ever moves the last point up or down.
+    const xs = (chart.dataset.xs || "").split(",").map(Number).filter(Number.isFinite);
+    const times = (chart.dataset.times || "").split(",").map(Number);
+    let bound = false;
+
+    const line = chart.querySelector<SVGPathElement>("[data-chart-line]");
+    const area = chart.querySelector<SVGPathElement>("[data-chart-area]");
+    const base = chart.querySelector<SVGLineElement>("[data-chart-baseline]");
+    const group = line?.parentElement;
+
+    if (closes.length > 1 && xs.length === closes.length && line && area && base && group) {
+      // The vertical scale changes whenever a tick moves the price outside the
+      // plotted range, and the hover marker has to sit on the line as drawn -
+      // so the values and their scale live in one place both halves read.
+      let values = closes.slice();
+      let low = Math.min(...values, baseline);
+      let high = Math.max(...values, baseline);
+
+      const yOf = (value: number) => {
+        const span = high - low || 1;
+        return pad + (1 - (value - low) / span) * (height - pad * 2);
+      };
+
+      const draw = (next: number[]) => {
+        values = next;
+        low = Math.min(...values, baseline);
+        high = Math.max(...values, baseline);
+        const y = yOf;
+
+        const points = values.map((value, index) => `${xs[index].toFixed(2)},${y(value).toFixed(2)}`);
+        const path = `M${points.join(" L")}`;
+
+        line.setAttribute("d", path);
+        area.setAttribute("d", `${path} L${xs[xs.length - 1].toFixed(2)},${height} L${xs[0].toFixed(2)},${height} Z`);
+        const baseY = y(baseline).toFixed(2);
+        base.setAttribute("y1", baseY);
+        base.setAttribute("y2", baseY);
+
+        const up = values[values.length - 1] >= baseline;
+        group.classList.toggle("text-emerald-600", up);
+        group.classList.toggle("dark:text-emerald-400", up);
+        group.classList.toggle("text-red-600", !up);
+        group.classList.toggle("dark:text-red-400", !up);
+      };
+
+      hover(values.length, () => ({ values, yOf }));
+
+      const render = (tick: Tick) => {
+        const last = tick.lp ? Number.parseFloat(tick.lp) : null;
+        if (last === null || !Number.isFinite(last)) return;
+        // Replace the forming candle rather than appending, so a quiet minute
+        // does not stretch the series sideways one tick at a time.
+        draw([...closes.slice(0, -1), last]);
+      };
+
+      register("stock-chart", [token]);
+      subscribe(token, render);
+    }
+
+    /**
+     * Crosshair and tooltip.
+     *
+     * `read` is a callback rather than a snapshot because a tick can rescale
+     * the chart under the cursor, and the marker must land on the line as it is
+     * drawn now, not as it was when the pointer arrived.
+     */
+    function hover(count: number, read: () => { values: number[]; yOf: (v: number) => number }) {
+      const surface = chart!.querySelector<HTMLElement>("[data-chart-surface]");
+      const layer = chart!.querySelector<HTMLElement>("[data-hover]");
+      const rule = chart!.querySelector<HTMLElement>("[data-hover-line]");
+      const dot = chart!.querySelector<HTMLElement>("[data-hover-dot]");
+      const card = chart!.querySelector<HTMLElement>("[data-hover-card]");
+      const priceEl = chart!.querySelector<HTMLElement>("[data-hover-price]");
+      const timeEl = chart!.querySelector<HTMLElement>("[data-hover-time]");
+
+      if (!surface || !layer || !rule || !dot || !card || !priceEl || !timeEl) return;
+      if (bound) return;
+      bound = true;
+
+      const intraday = chart!.dataset.range === "1D";
+      const money = (value: number) =>
+        "₹" + value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      const label = (epoch: number) => {
+        const date = new Date(epoch * 1000);
+        return intraday
+          ? date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })
+          : date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+      };
+
+      const move = (event: PointerEvent) => {
+        const box = surface.getBoundingClientRect();
+        if (box.width === 0) return;
+
+        const cursor = { x: event.clientX - box.left, y: event.clientY - box.top };
+
+        // Pointer position in the viewBox's own coordinates. The mapping is a
+        // plain ratio because preserveAspectRatio is none - the chart is
+        // stretched to the box, never letterboxed.
+        const cursorX = ((event.clientX - box.left) / box.width) * width;
+
+        let index = 0;
+        let best = Infinity;
+        for (let i = 0; i < count; i++) {
+          const distance = Math.abs(xs[i] - cursorX);
+          if (distance < best) {
+            best = distance;
+            index = i;
+          }
+        }
+
+        const { values, yOf } = read();
+        const value = values[index];
+        if (value === undefined) return;
+
+        const xPercent = (xs[index] / width) * 100;
+        const yPercent = (yOf(value) / height) * 100;
+        const up = value >= baseline;
+
+        rule.style.left = xPercent + "%";
+        dot.style.left = xPercent + "%";
+        dot.style.top = yPercent + "%";
+        dot.classList.toggle("bg-emerald-600", up);
+        dot.classList.toggle("bg-red-600", !up);
+
+        priceEl.textContent = money(value);
+        timeEl.textContent = label(times[index] ?? 0);
+
+        /*
+         * The card rides just above and to the right of the cursor, the way a
+         * native tooltip does, so it never sits on the part of the line being
+         * pointed at. Near an edge it flips to whichever side has room rather
+         * than being clipped.
+         */
+        // Wider to the side than above: the crosshair runs vertically through
+        // the cursor, so a small horizontal gap still leaves the card sitting
+        // on it.
+        const GAP_X = 36;
+        const GAP_Y = 26;
+        const cardWidth = card.offsetWidth;
+        const cardHeight = card.offsetHeight;
+
+        const roomRight = cursor.x + GAP_X + cardWidth <= box.width - 4;
+        const left = roomRight ? cursor.x + GAP_X : cursor.x - GAP_X - cardWidth;
+
+        const roomAbove = cursor.y - GAP_Y - cardHeight >= 4;
+        const top = roomAbove ? cursor.y - GAP_Y - cardHeight : cursor.y + GAP_Y;
+
+        card.style.left = Math.min(Math.max(left, 4), box.width - cardWidth - 4) + "px";
+        card.style.top = Math.min(Math.max(top, 4), box.height - cardHeight - 4) + "px";
+
+        layer.classList.remove("hidden");
+      };
+
+      const leave = () => layer.classList.add("hidden");
+
+      surface.addEventListener("pointermove", move);
+      surface.addEventListener("pointerleave", leave);
+      surface.addEventListener("pointercancel", leave);
+    }
+  }
+</script>

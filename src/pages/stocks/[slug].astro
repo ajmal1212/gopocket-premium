@@ -1,0 +1,221 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Button from "@/components/Button.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import PriceHeader from "@/components/stocks/PriceHeader.astro";
+import StatsGrid from "@/components/stocks/StatsGrid.astro";
+import { stockBySlug } from "@/data/stocks";
+import { findContractBySlug } from "@/lib/contracts";
+import { fetchQuote } from "@/lib/feed/quote";
+import { fetchCandles, latestSession, rangeById, sessionWindow } from "@/lib/feed/candles";
+import PriceChart from "@/components/stocks/PriceChart.astro";
+import TrendingUp from "@lucide/astro/icons/trending-up";
+
+const { slug } = Astro.params;
+
+// Slugs come from Contract Master's `formatted_ins_name`, so every instrument
+// the search can find has a page - not just the handful with written copy.
+const contract = slug ? await findContractBySlug(slug) : null;
+
+if (!contract) {
+  return Astro.redirect("/404", 404);
+}
+
+// Curated copy where it exists; otherwise the page stands on the live data.
+const editorial = stockBySlug(slug!);
+const displayName = editorial?.name ?? contract.name;
+const sector = editorial?.sector ?? contract.symbol;
+const token = contract.key;
+
+// Rendered server-side so the price is in the HTML the crawler and the browser
+// first see. The socket below takes over from there.
+const range = rangeById(Astro.url.searchParams.get("range") || "1D");
+
+// Both fetches hit the same hub; running them together keeps the page's
+// time-to-first-byte at the slower of the two rather than their sum.
+const [quote, allCandles] = await Promise.all([fetchQuote(token), fetchCandles(token, range, contract.tradingSymbol)]);
+
+// A 1D chart means one session; the wider ranges are shown as fetched.
+const candles = range.id === "1D" ? latestSession(allCandles) : allCandles;
+const previousClose = quote?.c ? Number.parseFloat(quote.c) : null;
+
+// Only the intraday view is plotted against clock time; the longer ranges span
+// many sessions, where evenly spaced points read better than real gaps.
+const session = range.id === "1D" ? sessionWindow(candles) : null;
+
+const priceText = quote?.lp ? `₹${Number.parseFloat(quote.lp).toFixed(2)}` : null;
+const title = `${displayName} (${contract.symbol}) Share Price Today | GoPocket`;
+const description = priceText
+  ? `${displayName} share price is ${priceText} on the ${contract.exchange}. Live ${contract.symbol} price, day high and low, volume and previous close.`
+  : `Live ${displayName} (${contract.symbol}) share price on the ${contract.exchange}, with day high and low, volume and previous close.`;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Corporation",
+  name: displayName,
+  tickerSymbol: `${contract.exchange}:${contract.symbol}`,
+  ...(editorial ? { description: editorial.description } : {}),
+  url: new URL(`/stocks/${contract.slug}`, Astro.url.origin).href,
+};
+---
+
+<Layout title={title} description={description} canonical={`/stocks/${contract.slug}`}>
+  <Header currentPath="/stocks" />
+
+  <main class="mx-auto max-w-7xl px-4 py-10 md:px-8 lg:py-14">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10">
+      <div class="flex min-w-0 flex-col gap-8">
+        <PriceHeader
+          name={displayName}
+          symbol={contract.symbol}
+          exchange={contract.exchange}
+          sector={sector}
+          token={token}
+          quote={quote}
+        />
+
+        <PriceChart
+          candles={candles}
+          previousClose={previousClose}
+          token={token}
+          activeRange={range.id}
+          slug={contract.slug}
+          dailyAvailable={contract.exchange !== "INDICES"}
+          session={session}
+          lastPrice={quote?.lp ? Number.parseFloat(quote.lp) : null}
+        />
+
+        <StatsGrid quote={quote} />
+
+        {
+          editorial && (
+            <section class="flex flex-col gap-3">
+              <h2 class="text-h5 text-dark font-semibold">About {displayName}</h2>
+              <p class="text-text-default text-sm leading-relaxed">{editorial.description}</p>
+            </section>
+          )
+        }
+
+        <p class="text-text-default/60 text-xs leading-relaxed">
+          Prices are sourced from the exchanges and shown for information only. They may be delayed and should not be
+          relied on for trading decisions. Investments in securities are subject to market risk; read all related
+          documents carefully before investing.
+        </p>
+      </div>
+
+      {
+        /*
+        The conversion card rides alongside the chart on desktop and follows the
+        reader down the page, which is the whole reason a stock page earns its
+        place on a marketing site. On a phone it drops below the fold rather
+        than pushing the price and chart off the first screen.
+      */
+      }
+      <aside class="lg:sticky lg:top-28 lg:self-start">
+        <div
+          class="border-border-light flex flex-col items-center gap-4 rounded-2xl border bg-white p-6 text-center dark:bg-transparent"
+        >
+          <div
+            class="bg-theme-light flex h-14 w-14 items-center justify-center rounded-full dark:bg-white/5"
+            aria-hidden="true"
+          >
+            <TrendingUp class="text-primary h-7 w-7" stroke-width={1.6} />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            {
+              /*
+              The visible line is a <p>, not the <h2>. global.css styles bare
+              h2 unlayered, so it outranks any text-* utility in @layer
+              utilities and the card heading rendered at full section size,
+              wrapping across three lines. The heading stays for the document
+              outline, visually hidden.
+            */
+            }
+            <h2 class="sr-only">Invest in {contract.symbol}</h2>
+            <p class="text-dark pb-4 text-3xl font-bold">
+              Want to invest in<br />{contract.symbol}?
+            </p>
+            <p class="text-text-default text-sm leading-relaxed">
+              Open a free demat account in minutes and start investing in {displayName}.
+            </p>
+          </div>
+
+          <Button label="Open free account" href="/open-account-call-back" class="w-full" />
+
+          <p class="text-text-default/60 text-xs">Flat ₹20 per order. No hidden charges.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <Footer />
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+</Layout>
+
+<script>
+  import { register, subscribe } from "@/lib/feed/client";
+  import type { Tick } from "@/lib/feed/types";
+
+  const header = document.querySelector<HTMLElement>("[data-price-header]");
+  const token = header?.dataset.token;
+
+  if (header && token) {
+    const root = header.closest("main") ?? document.body;
+    const fields = new Map<string, HTMLElement>();
+    for (const el of root.querySelectorAll<HTMLElement>("[data-field]")) {
+      fields.set(el.dataset.field!, el);
+    }
+
+    const money = (value: number) =>
+      `₹${value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const signed = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
+    const num = (value: string | undefined) => {
+      if (!value) return null;
+      const parsed = Number.parseFloat(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const setText = (field: string, text: string) => {
+      const el = fields.get(field);
+      if (el && el.textContent !== text) el.textContent = text;
+    };
+
+    const render = (tick: Tick) => {
+      const last = num(tick.lp);
+      const percent = num(tick.pc);
+      const previousClose = num(tick.c);
+
+      if (last !== null) setText("lp", money(last));
+
+      const changeEl = fields.get("change");
+      if (changeEl && last !== null && percent !== null && previousClose !== null) {
+        const change = last - previousClose;
+        changeEl.textContent = `${signed(change)} (${signed(percent)}%)`;
+        const up = percent >= 0;
+        changeEl.classList.toggle("text-emerald-600", up);
+        changeEl.classList.toggle("dark:text-emerald-400", up);
+        changeEl.classList.toggle("text-red-600", !up);
+        changeEl.classList.toggle("dark:text-red-400", !up);
+        changeEl.hidden = false;
+      }
+
+      for (const field of ["o", "h", "l", "c", "ap"] as const) {
+        const value = num(tick[field]);
+        if (value !== null) setText(field, money(value));
+      }
+      const volume = num(tick.v);
+      if (volume !== null) setText("v", volume.toLocaleString("en-IN"));
+
+      // The feed only prints while the market is open, so the first tick after
+      // load is what proves the page is live rather than showing yesterday.
+      root.querySelector<HTMLElement>("[data-live]")?.removeAttribute("hidden");
+      root.querySelector<HTMLElement>("[data-stale]")?.setAttribute("hidden", "");
+    };
+
+    register("stock-page", [token]);
+    subscribe(token, render);
+  }
+</script>

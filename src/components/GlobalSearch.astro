@@ -68,6 +68,8 @@ import { TRENDING } from "@/data/trending";
                 data-category="stocks"
                 data-token={scrip.key}
                 data-slug={scrip.slug}
+                data-symbol={scrip.symbol}
+                data-exchange={scrip.exchange}
               >
                 <a href={`/stocks/${scrip.slug}`} class="w-full justify-between gap-3">
                   <span class="min-w-0">
@@ -577,8 +579,10 @@ import { TRENDING } from "@/data/trending";
         const raw = localStorage.getItem(RECENT_KEY);
         const parsed = raw ? (JSON.parse(raw) as Scrip[]) : [];
         // Anything stored by an older version of this popup lacked a feed token
-        // and a slug, so it can neither be priced nor linked.
-        return parsed.filter((scrip) => scrip && scrip.key && scrip.slug).slice(0, RECENT_LIMIT);
+        // and a slug, so it can neither be priced nor linked. Entries without a
+        // symbol came from trending rows that were missing data-symbol - they
+        // would render as a blank title, so they are dropped too.
+        return parsed.filter((scrip) => scrip && scrip.key && scrip.slug && scrip.symbol).slice(0, RECENT_LIMIT);
       } catch {
         return [];
       }

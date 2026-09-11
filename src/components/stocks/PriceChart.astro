@@ -7,6 +7,8 @@ interface Props {
   /** Previous close, drawn as the reference line and used to colour the series. */
   previousClose: number | null;
   token: string;
+  /** Contract Master's exchange - decides the session hours the live chart grows within. */
+  exchange: string;
   activeRange: string;
   slug: string;
   /** Daily history is equity-only upstream, so an index offers no long ranges. */
@@ -21,6 +23,7 @@ const {
   candles,
   previousClose,
   token,
+  exchange,
   activeRange,
   slug,
   dailyAvailable = true,
@@ -101,6 +104,7 @@ const intraday = activeRange === "1D";
   class="flex flex-col gap-4"
   data-price-chart
   data-token={token}
+  data-exchange={exchange}
   data-slug={slug}
   data-range={activeRange}
   data-baseline={previousClose ?? undefined}
@@ -250,6 +254,8 @@ const intraday = activeRange === "1D";
     const height = Number(chart.dataset.height);
     const pad = Number(chart.dataset.pad);
     const intraday = chart.dataset.range === "1D";
+    // MCX trades into the night; everything else keeps equity hours.
+    const sessionOf = (epoch: number) => sessionAt(epoch, chart.dataset.exchange);
 
     const num = (value: string | undefined) => {
       if (!value) return null;
@@ -328,7 +334,7 @@ const intraday = activeRange === "1D";
       // `ft` is the exchange's feed time in epoch seconds. The local clock is
       // only the fallback, since a visitor's clock can be minutes out.
       const time = num(tick.ft) ?? Math.floor(Date.now() / 1000);
-      const day = sessionAt(time);
+      const day = sessionOf(time);
       const trading = time >= day.start && time <= day.end;
 
       if (trading && (!session || day.start > session.start)) {
@@ -410,8 +416,8 @@ const intraday = activeRange === "1D";
       // Nothing to fill unless the tab was away for over a minute that could
       // have traded: an evening off-screen misses no candles.
       const now = Date.now() / 1000;
-      const day = sessionAt(now);
-      const quiet = sessionAt(since).start === day.start && (since >= day.end || now <= day.start);
+      const day = sessionOf(now);
+      const quiet = sessionOf(since).start === day.start && (since >= day.end || now <= day.start);
       if (now - since < 60 || quiet) return;
 
       let fetched: { t?: unknown; c?: unknown };
@@ -426,7 +432,7 @@ const intraday = activeRange === "1D";
       if (!Array.isArray(t) || !Array.isArray(c) || t.length < 2 || t.length !== c.length) return;
 
       const lastCandle = t[t.length - 1] as number;
-      const candleSession = sessionAt(lastCandle);
+      const candleSession = sessionOf(lastCandle);
       // The live ticks have already started a later session than the hub has
       // candles for - the first minutes after the open - so the line stays.
       if (session && candleSession.start < session.start) return;

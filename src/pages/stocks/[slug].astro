@@ -56,7 +56,7 @@ const previousClose = quote?.c ? Number.parseFloat(quote.c) : null;
 
 // Only the intraday view is plotted against clock time; the longer ranges span
 // many sessions, where evenly spaced points read better than real gaps.
-const session = range.id === "1D" ? sessionWindow(candles) : null;
+const session = range.id === "1D" ? sessionWindow(candles, contract.exchange) : null;
 
 const priceText = quote?.lp ? `₹${Number.parseFloat(quote.lp).toFixed(2)}` : null;
 const title = `${displayName} (${contract.symbol}) Share Price Today | GoPocket`;
@@ -93,6 +93,7 @@ const jsonLd = {
           candles={candles}
           previousClose={previousClose}
           token={token}
+          exchange={contract.exchange}
           activeRange={range.id}
           slug={contract.slug}
           dailyAvailable={contract.exchange !== "INDICES"}

@@ -104,7 +104,31 @@ async function query(params: URLSearchParams): Promise<Contract[]> {
 const escapeLike = (value: string) => value.replace(/[\%_]/g, "\$&");
 
 /**
- * Search instruments by symbol prefix.
+ * The search popup's tabs, each a set of Contract Master `exchange` values.
+ * The endpoint takes the id, never a list of exchanges, so a request can only
+ * ask for one of these.
+ */
+export const SEARCH_SEGMENTS = [
+  {
+    id: "all",
+    label: "All",
+    exchanges: ["INDICES", "NSE", "BSE", "NFO", "BFO", "MCX"],
+    hint: "stocks, F&O, commodities",
+  },
+  { id: "stocks", label: "Stocks", exchanges: ["NSE", "BSE"], hint: "NSE and BSE stocks, e.g. SBIN" },
+  { id: "nfo", label: "NFO", exchanges: ["NFO"], hint: "NSE futures & options, e.g. NIFTY" },
+  { id: "bfo", label: "BFO", exchanges: ["BFO"], hint: "BSE futures & options, e.g. SENSEX" },
+  { id: "mcx", label: "MCX", exchanges: ["MCX"], hint: "commodities, e.g. GOLD, CRUDEOIL" },
+  { id: "indices", label: "Indices", exchanges: ["INDICES"], hint: "indices, e.g. NIFTY BANK" },
+] as const;
+
+export type SearchSegment = (typeof SEARCH_SEGMENTS)[number];
+
+/** Rows ranked for a search, however few are returned. */
+const SEARCH_WINDOW = 30;
+
+/**
+ * Search instruments by symbol prefix, within one of the popup's segments.
  *
  * Prefix rather than contains, and this is not a detail: `symbol like "%sbin%"`
  * OR'd across three columns takes 11 seconds against the full contract master,
@@ -112,29 +136,37 @@ const escapeLike = (value: string) => value.replace(/[\%_]/g, "\$&");
  * the same query in under half a second, which is the difference between a
  * search box that works while you type and one that times out.
  *
- * Restricted to indices and the cash segments by default for the same reason it
- * reads better: "sbin" should find SBIN-EQ, not the first thirty strikes of its
- * options chain. Pass `derivatives` to include NFO and BFO.
+ * Contract Master's `order` puts indices and the cash market ahead of
+ * derivatives, so under "All" typing "sbin" finds SBIN-EQ before the first
+ * strike of its options chain. Within a derivatives exchange every row shares
+ * one `order`, so they're sorted the way a trader scans a chain: futures before
+ * options, nearest expiry first, strikes in order.
  *
  * The cost is that only the trading symbol is matched - typing a company name
  * finds nothing. Contract Master has no company names to match anyway; that
  * belongs to whatever eventually owns the editorial data.
  */
-export async function searchContracts(term: string, limit = 30, derivatives = false): Promise<Contract[]> {
-  const exchanges = derivatives ? ["INDICES", "NSE", "BSE", "NFO", "BFO"] : ["INDICES", "NSE", "BSE"];
-
+export async function searchContracts(
+  term: string,
+  limit = 5,
+  segment: SearchSegment = SEARCH_SEGMENTS[0],
+): Promise<Contract[]> {
   const results = await query(
     new URLSearchParams({
       fields: FIELDS,
       filters: JSON.stringify([
         ["symbol", "like", `${escapeLike(term)}%`],
-        ["exchange", "in", exchanges],
+        ["exchange", "in", segment.exchanges],
       ]),
-      limit_page_length: String(limit),
-      order_by: "order asc",
+      // A wider window than is returned, so the sort below can bring the
+      // exact symbol forward: "gold" wants GOLD's futures, and the database
+      // alone would list GOLDGUINEA's because it expires first.
+      limit_page_length: String(Math.max(limit, SEARCH_WINDOW)),
+      order_by: "order asc, instrument_type asc, expiry_date asc, strike_price asc",
     }),
   );
-  return results.sort(byOrderThenSymbol);
+  // Stable, so contracts of one symbol keep the expiry order above.
+  return results.sort(byOrderThenSymbol).slice(0, limit);
 }
 
 /**

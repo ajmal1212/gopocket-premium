@@ -1,5 +1,6 @@
 ---
 import { TRENDING } from "@/data/trending";
+import { SEARCH_SEGMENTS } from "@/lib/contracts";
 ---
 
 <div id="global-search-modal" class="global-search-modal" aria-hidden="true">
@@ -21,8 +22,9 @@ import { TRENDING } from "@/data/trending";
       <input
         type="text"
         id="global-search-input"
-        placeholder="Search stocks, F&O, mutual funds..."
+        placeholder={`Search ${SEARCH_SEGMENTS[0].hint}`}
         autocomplete="off"
+        aria-label="Search instruments"
       />
       <button type="button" class="global-search-close" data-search-close aria-label="Close search"
         ><svg
@@ -39,13 +41,28 @@ import { TRENDING } from "@/data/trending";
         ></button
       >
     </div>
-    <div class="global-search-tabs" role="tablist">
-      <button type="button" class="global-search-tab is-active" data-category="all">All</button>
-      <button type="button" class="global-search-tab" data-category="stocks">Stocks</button>
-      <button type="button" class="global-search-tab" data-category="fno">F&amp;O</button>
-      <button type="button" class="global-search-tab" data-category="mf">Mutual Funds</button>
-      <button type="button" class="global-search-tab" data-category="etf">ETF</button>
-      <button type="button" class="global-search-tab" data-category="faq">FAQs</button>
+    {
+      /*
+      Each tab is a set of Contract Master exchanges (see SEARCH_SEGMENTS). The
+      search sends the tab's id and the server applies the exchange filter; the
+      list here only narrows the recent and trending rows already on screen.
+    */
+    }
+    <div class="global-search-tabs" role="group" aria-label="Search in">
+      {
+        SEARCH_SEGMENTS.map((segment, index) => (
+          <button
+            type="button"
+            class:list={["global-search-tab", { "is-active": index === 0 }]}
+            aria-pressed={index === 0 ? "true" : "false"}
+            data-segment={segment.id}
+            data-exchanges={segment.exchanges.join(",")}
+            data-hint={segment.hint}
+          >
+            {segment.label}
+          </button>
+        ))
+      }
     </div>
     <div class="global-search-results">
       <div id="global-search-recent-section" class="global-search-section" hidden>
@@ -53,22 +70,20 @@ import { TRENDING } from "@/data/trending";
         <ul id="global-search-recent-list"></ul>
       </div>
       <div id="gs-market-section" class="global-search-section" hidden>
-        <p class="global-search-label" id="gs-market-label">Instruments</p>
+        <p class="global-search-label">Top matches</p>
         <ul id="gs-market-list"></ul>
       </div>
-      <div class="global-search-section">
+      <div id="global-search-trending-section" class="global-search-section">
         <p class="global-search-label">Trending Searches</p>
         <ul id="global-search-list">
           {
             TRENDING.map((scrip) => (
               <li
                 class="global-search-item"
-                data-key={scrip.symbol}
-                data-name={scrip.name}
-                data-category="stocks"
                 data-token={scrip.key}
                 data-slug={scrip.slug}
                 data-symbol={scrip.symbol}
+                data-name={scrip.name}
                 data-exchange={scrip.exchange}
               >
                 <a href={`/stocks/${scrip.slug}`} class="w-full justify-between gap-3">
@@ -91,458 +106,44 @@ import { TRENDING } from "@/data/trending";
               </li>
             ))
           }
-          <li
-            class="global-search-item"
-            data-key="NIFTY50"
-            data-name="Nifty 50 Index Futures & Options"
-            data-category="fno"
-          >
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
-                ></polyline></svg
-              ><span class="item-name">Nifty 50 Index Futures & Options</span></a
-            >
-          </li>
-          <li
-            class="global-search-item"
-            data-key="BANKNIFTY"
-            data-name="Bank Nifty Futures & Options"
-            data-category="fno"
-          >
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
-                ></polyline></svg
-              ><span class="item-name">Bank Nifty Futures & Options</span></a
-            >
-          </li>
-          <li
-            class="global-search-item"
-            data-key="FINNIFTY"
-            data-name="Nifty Financial Services F&O"
-            data-category="fno"
-          >
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
-                ></polyline></svg
-              ><span class="item-name">Nifty Financial Services F&O</span></a
-            >
-          </li>
-          <li
-            class="global-search-item"
-            data-key="RELIANCEFUT"
-            data-name="Reliance Industries Futures"
-            data-category="fno"
-          >
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
-                ></polyline></svg
-              ><span class="item-name">Reliance Industries Futures</span></a
-            >
-          </li>
-          <li
-            class="global-search-item"
-            data-key="AXISBLUECHIP"
-            data-name="Axis Bluechip Fund - Large Cap"
-            data-category="mf"
-          >
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
-                ></polyline></svg
-              ><span class="item-name">Axis Bluechip Fund - Large Cap</span></a
-            >
-          </li>
-          <li
-            class="global-search-item"
-            data-key="PARAGFLEXICAP"
-            data-name="Parag Parikh Flexi Cap Fund"
-            data-category="mf"
-          >
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
-                ></polyline></svg
-              ><span class="item-name">Parag Parikh Flexi Cap Fund</span></a
-            >
-          </li>
-          <li class="global-search-item" data-key="SBISMALLCAP" data-name="SBI Small Cap Fund" data-category="mf">
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
-                ></polyline></svg
-              ><span class="item-name">SBI Small Cap Fund</span></a
-            >
-          </li>
-          <li
-            class="global-search-item"
-            data-key="HDFCINDEXNIFTY"
-            data-name="HDFC Index Fund - Nifty 50 Plan"
-            data-category="mf"
-          >
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
-                ></polyline></svg
-              ><span class="item-name">HDFC Index Fund - Nifty 50 Plan</span></a
-            >
-          </li>
-          <li
-            class="global-search-item"
-            data-key="NIFTYBEES"
-            data-name="Nippon India ETF Nifty 50 BeES"
-            data-category="etf"
-          >
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
-                ></polyline></svg
-              ><span class="item-name">Nippon India ETF Nifty 50 BeES</span></a
-            >
-          </li>
-          <li class="global-search-item" data-key="GOLDBEES" data-name="Nippon India ETF Gold BeES" data-category="etf">
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
-                ></polyline></svg
-              ><span class="item-name">Nippon India ETF Gold BeES</span></a
-            >
-          </li>
-          <li class="global-search-item" data-key="BANKBEES" data-name="Nippon India ETF Bank BeES" data-category="etf">
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
-                ></polyline></svg
-              ><span class="item-name">Nippon India ETF Bank BeES</span></a
-            >
-          </li>
-          <li
-            class="global-search-item"
-            data-key="JUNIORBEES"
-            data-name="Nippon India ETF Nifty Next 50"
-            data-category="etf"
-          >
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"
-                ></polyline></svg
-              ><span class="item-name">Nippon India ETF Nifty Next 50</span></a
-            >
-          </li>
-          <li
-            class="global-search-item"
-            data-key="FAQ1"
-            data-name="How do I open a free demat account?"
-            data-category="faq"
-          >
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path
-                  d="M12 17h.01"></path></svg
-              ><span class="item-name">How do I open a free demat account?</span></a
-            >
-          </li>
-          <li
-            class="global-search-item"
-            data-key="FAQ2"
-            data-name="What are GoPocket's brokerage charges?"
-            data-category="faq"
-          >
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path
-                  d="M12 17h.01"></path></svg
-              ><span class="item-name">What are GoPocket's brokerage charges?</span></a
-            >
-          </li>
-          <li
-            class="global-search-item"
-            data-key="FAQ3"
-            data-name="How do I add funds to my trading account?"
-            data-category="faq"
-          >
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path
-                  d="M12 17h.01"></path></svg
-              ><span class="item-name">How do I add funds to my trading account?</span></a
-            >
-          </li>
-          <li
-            class="global-search-item"
-            data-key="FAQ4"
-            data-name="What documents are required for KYC?"
-            data-category="faq"
-          >
-            <a href="#"
-              ><svg
-                class="item-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="item-icon"
-                ><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path
-                  d="M12 17h.01"></path></svg
-              ><span class="item-name">What documents are required for KYC?</span></a
-            >
-          </li>
         </ul>
       </div>
       <p id="global-search-empty" class="global-search-empty" hidden>No results found</p>
     </div>
   </div>
 </div>
-<script type="module" is:inline>
-  (function () {
-    const m = document.getElementById("global-search-modal");
-    if (!m) return;
-    const i = document.getElementById("global-search-input"),
-      list = document.getElementById("global-search-list"),
-      empty = document.getElementById("global-search-empty"),
-      tabs = [...m.querySelectorAll(".global-search-tab")],
-      items = [...list.querySelectorAll(".global-search-item")];
-    let activeCategory = "all";
-    function applyFilters() {
-      const q = i.value.trim().toLowerCase();
-      let visible = 0;
-      items.forEach((li) => {
-        const key = (li.dataset.key || "").toLowerCase(),
-          name = (li.dataset.name || "").toLowerCase(),
-          cat = li.dataset.category;
-        const catOk = activeCategory === "all" || cat === activeCategory;
-        const qOk = !q || key.includes(q) || name.includes(q);
-        const ok = catOk && qOk;
-        li.hidden = !ok;
-        if (ok) visible++;
-      });
-      empty.hidden = visible !== 0;
-    }
-
-    function open() {
-      m.classList.add("is-open");
-      m.setAttribute("aria-hidden", "false");
-      i.value = "";
-      activeCategory = "all";
-      tabs.forEach((t) => t.classList.toggle("is-active", t.dataset.category === "all"));
-      applyFilters();
-      setTimeout(() => i.focus(), 50);
-    }
-    function close() {
-      m.classList.remove("is-open");
-      m.setAttribute("aria-hidden", "true");
-    }
-
-    document.querySelectorAll(".search-toggle-btn").forEach((b) => b.addEventListener("click", open));
-    m.querySelectorAll("[data-search-close]").forEach((el) => el.addEventListener("click", close));
-    document.addEventListener("keydown", (ev) => {
-      if (ev.key === "Escape" && m.classList.contains("is-open")) close();
-    });
-    i.addEventListener("input", applyFilters);
-    tabs.forEach((t) =>
-      t.addEventListener("click", () => {
-        activeCategory = t.dataset.category;
-        tabs.forEach((x) => x.classList.toggle("is-active", x === t));
-        applyFilters();
-      }),
-    );
-  })();
-</script>
 
 <script>
   import { register, unregister, subscribe } from "@/lib/feed/client";
   import type { Tick } from "@/lib/feed/types";
 
   /**
-   * Live prices and instrument search inside the header popup.
+   * The header search popup: tabs, instrument search and live prices.
    *
    * Typing queries Contract Master through /api/contract-search - server-side,
-   * because the Frappe token must not reach a browser. Every row on screen,
-   * whether it came from a search, the trending list or the visitor's history,
-   * subscribes to the feed, so a name always arrives with a price beside it.
+   * because the Frappe token must not reach a browser - within the active tab,
+   * which the server turns into a filter on the `exchange` field. With nothing
+   * typed the popup shows the visitor's recent picks and the trending list,
+   * narrowed to the tab.
    *
-   * Rows are ordinary links to /stocks/<slug>; clicking one records it as recent
-   * and navigates. The feed client is a module singleton, so all of this shares
-   * one socket with anything else on the page that wants prices.
+   * Every row on screen subscribes to the feed, so a name always arrives with a
+   * price beside it. Rows are ordinary links to /stocks/<slug>; clicking one
+   * records it as recent and navigates. The feed client is a module singleton,
+   * so all of this shares one socket with anything else on the page.
    */
 
   const DEBOUNCE_MS = 300;
   const MIN_QUERY = 2;
   const RECENT_KEY = "gopocket_recent_searches";
   const RECENT_LIMIT = 3;
+  /**
+   * Rows under Recent, typed results and trending alike. Every row on screen
+   * is a live feed subscription, so the popup shows the best few rather than a
+   * page of them: at most eight tokens, with the recent three.
+   */
+  const LIST_LIMIT = 5;
+  /** A row from these is a contract - "NIFTY 29th SEP FUT" - so that is its title, not the bare symbol. */
+  const DERIVATIVES = new Set(["NFO", "BFO", "MCX"]);
 
   interface Scrip {
     key: string;
@@ -562,17 +163,34 @@ import { TRENDING } from "@/data/trending";
   const input = document.getElementById("global-search-input") as HTMLInputElement | null;
   const marketSection = document.getElementById("gs-market-section");
   const marketList = document.getElementById("gs-market-list");
-  const marketLabel = document.getElementById("gs-market-label");
   const recentSection = document.getElementById("global-search-recent-section");
   const recentList = document.getElementById("global-search-recent-list");
+  const trendingSection = document.getElementById("global-search-trending-section");
   const trendingList = document.getElementById("global-search-list");
+  const empty = document.getElementById("global-search-empty");
+  const tabs = [...(modal?.querySelectorAll<HTMLButtonElement>("[data-segment]") ?? [])];
 
-  if (modal && input && marketSection && marketList && marketLabel && recentSection && recentList) {
+  if (
+    modal &&
+    input &&
+    marketSection &&
+    marketList &&
+    recentSection &&
+    recentList &&
+    trendingSection &&
+    trendingList &&
+    empty &&
+    tabs.length > 0
+  ) {
+    let active = tabs[0];
     let results: Scrip[] = [];
     let debounce: ReturnType<typeof setTimeout> | null = null;
     let inFlight: AbortController | null = null;
     /** token -> teardown, so a re-render never leaks a listener. */
     const bound = new Map<string, () => void>();
+
+    /** Whether the active tab covers this exchange. */
+    const inTab = (exchange: string) => (active.dataset.exchanges ?? "").split(",").includes(exchange);
 
     function loadRecent(): Scrip[] {
       try {
@@ -606,7 +224,15 @@ import { TRENDING } from "@/data/trending";
     const money = (value: number) =>
       "₹" + value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+    /** "NIFTY 29th SEP 25000 CE" -> "Call option". */
+    const contractKind = (name: string) =>
+      / FUT$/i.test(name) ? "Futures" : / CE$/i.test(name) ? "Call option" : / PE$/i.test(name) ? "Put option" : "";
+
     function row(scrip: Scrip): HTMLLIElement {
+      const contract = DERIVATIVES.has(scrip.exchange);
+      const title = contract ? scrip.name : scrip.symbol;
+      const subtitle = contract ? [scrip.symbol, contractKind(scrip.name)].filter(Boolean).join(" · ") : scrip.name;
+
       const li = document.createElement("li");
       li.className = "global-search-item";
       li.dataset.token = scrip.key;
@@ -618,12 +244,12 @@ import { TRENDING } from "@/data/trending";
         '<a href="/stocks/' + encodeURIComponent(scrip.slug) + '" class="w-full justify-between gap-3">',
         '<span class="min-w-0">',
         '<span class="text-dark block truncate text-sm font-semibold">',
-        escapeHtml(scrip.symbol),
+        escapeHtml(title),
         '<span class="border-border-light text-text-default/70 ml-1.5 rounded border px-1 py-0.5 text-[10px] font-semibold uppercase">',
         escapeHtml(scrip.exchange),
         "</span></span>",
         '<span class="text-text-default/70 block truncate text-[11px]">',
-        escapeHtml(scrip.name),
+        escapeHtml(subtitle),
         "</span></span>",
         '<span class="shrink-0 text-right">',
         '<span class="text-dark block text-sm font-semibold tabular-nums" data-gs-price>—</span>',
@@ -652,21 +278,23 @@ import { TRENDING } from "@/data/trending";
       }
     }
 
-    /** Every row on screen, whichever list it belongs to. */
-    const visibleRows = (): HTMLElement[] => [
-      ...(recentList.children as HTMLCollectionOf<HTMLElement>),
-      ...(marketList.children as HTMLCollectionOf<HTMLElement>),
-      ...(trendingList
-        ? (trendingList.querySelectorAll<HTMLElement>("li[data-token]") as unknown as HTMLElement[])
-        : []),
-    ];
+    /** The rows actually on screen; one in a hidden section, or filtered out by the tab, needs no price. */
+    const shownRows = (): HTMLElement[] =>
+      [recentSection, marketSection, trendingSection]
+        .filter((section) => !section.hidden)
+        .flatMap((section) => [...section.querySelectorAll<HTMLElement>("li[data-token]")])
+        .filter((li) => !li.hidden);
 
-    function bindPrices() {
+    function unbindPrices() {
       for (const teardown of bound.values()) teardown();
       bound.clear();
+    }
+
+    function bindPrices() {
+      unbindPrices();
 
       const tokens: string[] = [];
-      for (const li of visibleRows()) {
+      for (const li of shownRows()) {
         const token = li.dataset.token;
         if (!token) continue;
         tokens.push(token);
@@ -676,49 +304,134 @@ import { TRENDING } from "@/data/trending";
         );
       }
 
+      // Registering the new set releases whatever the last one had that this
+      // doesn't - the NFO rows, say, after switching back to Stocks.
       register("gs-popup", [...new Set(tokens)]);
     }
 
-    function renderRecent() {
-      const recent = loadRecent();
-      recentSection.hidden = recent.length === 0;
+    // Arrow functions from here: a hoisted function declaration doesn't keep
+    // the null checks above, an arrow created after them does.
+
+    /** Recent picks in the active tab, which head the popup whether or not anything is typed. */
+    const showRecent = () => {
+      const recent = loadRecent().filter((scrip) => inTab(scrip.exchange));
       recentList.replaceChildren(...recent.map(row));
-    }
+      recentSection.hidden = recent.length === 0;
+      return recent.length;
+    };
 
-    function renderResults() {
+    /**
+     * Nothing typed: recent picks, then the first few trending rows in the
+     * tab. The derivatives tabs have no trending rows, so they say what to
+     * type instead.
+     */
+    const showIdle = () => {
+      marketSection.hidden = true;
+      const recent = showRecent();
+
+      let trending = 0;
+      for (const li of trendingList.querySelectorAll<HTMLElement>("li[data-token]")) {
+        li.hidden = !inTab(li.dataset.exchange || "") || trending >= LIST_LIMIT;
+        if (!li.hidden) trending++;
+      }
+      trendingSection.hidden = trending === 0;
+
+      empty.textContent = "Type a symbol to search " + active.dataset.hint + ".";
+      empty.hidden = recent + trending > 0;
+    };
+
+    /** Something typed: recent picks, then the best few matches in place of the trending list. */
+    const showResults = () => {
+      showRecent();
+      trendingSection.hidden = true;
+
+      marketList.replaceChildren(...results.slice(0, LIST_LIMIT).map(row));
       marketSection.hidden = results.length === 0;
-      marketLabel.textContent = "Instruments · " + results.length;
-      marketList.replaceChildren(...results.map(row));
-    }
 
-    async function search(term: string) {
+      empty.textContent = "No results found";
+      empty.hidden = results.length > 0;
+    };
+
+    const search = async () => {
+      if (debounce) clearTimeout(debounce);
+      debounce = null;
       inFlight?.abort();
+      inFlight = null;
 
+      const term = input.value.trim();
       if (term.length < MIN_QUERY) {
         results = [];
-        renderResults();
+        showIdle();
         bindPrices();
         return;
       }
 
-      inFlight = new AbortController();
+      const controller = new AbortController();
+      inFlight = controller;
       try {
-        const response = await fetch("/api/contract-search?q=" + encodeURIComponent(term), {
-          signal: inFlight.signal,
-        });
+        const response = await fetch(
+          "/api/contract-search?q=" + encodeURIComponent(term) + "&segment=" + (active.dataset.segment ?? "all"),
+          { signal: controller.signal },
+        );
         const body = (await response.json()) as { results?: Scrip[] };
         results = body.results ?? [];
-        renderResults();
+        showResults();
         bindPrices();
       } catch {
-        // An aborted request is the common case: the user kept typing.
+        // An aborted request is the common case: the user kept typing, or
+        // switched tabs.
       }
+    };
+
+    const selectTab = (tab: HTMLButtonElement) => {
+      active = tab;
+      for (const other of tabs) {
+        other.classList.toggle("is-active", other === tab);
+        other.setAttribute("aria-pressed", String(other === tab));
+      }
+      input.placeholder = "Search " + tab.dataset.hint;
+    };
+
+    const open = () => {
+      modal.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+      input.value = "";
+      selectTab(tabs[0]);
+      void search();
+      setTimeout(() => input.focus(), 50);
+    };
+
+    const close = () => {
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+      if (debounce) clearTimeout(debounce);
+      inFlight?.abort();
+      // Nothing is on screen, so nothing needs a price. The hub drops a token
+      // upstream once nobody anywhere is watching it.
+      unregister("gs-popup");
+      unbindPrices();
+    };
+
+    for (const tab of tabs) {
+      tab.addEventListener("click", () => {
+        if (tab === active) return;
+        selectTab(tab);
+        // On a phone the tab row scrolls sideways; keep the chosen one in view.
+        tab.scrollIntoView({ block: "nearest", inline: "nearest" });
+        void search();
+        input.focus();
+      });
     }
 
     input.addEventListener("input", () => {
       if (debounce) clearTimeout(debounce);
-      const term = input.value.trim();
-      debounce = setTimeout(() => search(term), DEBOUNCE_MS);
+      debounce = setTimeout(search, DEBOUNCE_MS);
+    });
+
+    document.querySelectorAll(".search-toggle-btn").forEach((button) => button.addEventListener("click", open));
+    modal.querySelectorAll("[data-search-close]").forEach((el) => el.addEventListener("click", close));
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && modal.classList.contains("is-open")) close();
     });
 
     // Recording happens on the way out, without preventDefault, so the browser
@@ -734,20 +447,5 @@ import { TRENDING } from "@/data/trending";
         exchange: li.dataset.exchange || "",
       });
     });
-
-    new MutationObserver(() => {
-      if (modal.getAttribute("aria-hidden") === "true") {
-        // Nothing is on screen, so nothing needs a price. The hub drops a token
-        // upstream once nobody anywhere is watching it.
-        unregister("gs-popup");
-        for (const teardown of bound.values()) teardown();
-        bound.clear();
-      } else {
-        renderRecent();
-        bindPrices();
-      }
-    }).observe(modal, { attributes: true, attributeFilter: ["aria-hidden"] });
-
-    renderRecent();
   }
 </script>

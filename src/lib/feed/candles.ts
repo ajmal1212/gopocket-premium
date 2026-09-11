@@ -50,9 +50,9 @@ export const RANGES: Range[] = [
  * broker draws it. Plotting by index instead stretches half a session across
  * the full width, which reads as a complete day and misstates the shape.
  */
-export function sessionWindow(candles: Candle[]): Session | null {
+export function sessionWindow(candles: Candle[], exchange?: string): Session | null {
   if (candles.length === 0) return null;
-  return sessionAt(candles[candles.length - 1].t);
+  return sessionAt(candles[candles.length - 1].t, exchange);
 }
 
 /** Daily history is keyed by trading symbol and covers equities only. */

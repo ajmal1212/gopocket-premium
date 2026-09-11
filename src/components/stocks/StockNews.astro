@@ -1,0 +1,100 @@
+---
+import ArrowUpRight from "@lucide/astro/icons/arrow-up-right";
+import { companyName, newsFor } from "@/lib/news";
+
+interface Props {
+  symbol: string;
+  /** The company's name where the site has curated one; NSE's is used otherwise. */
+  name?: string;
+}
+
+const { symbol, name } = Astro.props;
+
+/**
+ * Recent headlines about the stock, from Indian financial publishers.
+ *
+ * Rendered as a server island (`server:defer` on the page): the feeds are
+ * fetched in a request of their own after the page has arrived, so a slow
+ * publisher can never hold up the price and the chart. The island's response
+ * is cacheable for a few minutes - the headlines behind it only refresh every
+ * ten.
+ */
+Astro.response.headers.set("Cache-Control", "public, max-age=300");
+
+// Null for an index, or anything else that isn't a listed company.
+const company = name ?? companyName(symbol);
+const label = company ?? symbol;
+const { items, related } = await newsFor(symbol, name);
+
+const relative = new Intl.RelativeTimeFormat("en-IN", { numeric: "auto" });
+const ago = (published: number) => {
+  const minutes = Math.round((published - Date.now()) / 60000);
+  if (minutes > -60) return relative.format(Math.min(minutes, -1), "minute");
+  const hours = Math.round(minutes / 60);
+  if (hours > -24) return relative.format(hours, "hour");
+  return relative.format(Math.round(hours / 24), "day");
+};
+---
+
+<section class="flex flex-col gap-4">
+  {/* text-h6! - see MarketDepth.astro on the global h2 rule. */}
+  <h2 class="text-h6! font-semibold">{related ? `${label} in the news` : "Latest market news"}</h2>
+
+  {
+    /*
+      Said only for a company. On an index page the market's headlines are
+      the news, not a stand-in for it.
+    */
+  }
+  {
+    !related && company && items.length > 0 && (
+      <p class="text-text-default/70 -mt-2 text-sm">No recent headlines mention {label}.</p>
+    )
+  }
+
+  {
+    items.length === 0 ? (
+      <p class="border-border-light text-text-default/70 rounded-2xl border p-6 text-sm">
+        News is unavailable right now. Please check back shortly.
+      </p>
+    ) : (
+      <ul class="border-border-light divide-border-light divide-y overflow-hidden rounded-2xl border bg-white dark:bg-transparent">
+        {items.map((item) => (
+          <li>
+            <a
+              href={item.link}
+              target="_blank"
+              rel="noopener nofollow"
+              class="group hover:bg-theme-light flex items-start gap-4 px-4 py-4 transition-colors md:px-6"
+            >
+              <span class="flex min-w-0 flex-1 flex-col gap-1.5">
+                <span class="text-text-default/70 text-xs">
+                  <span class="font-semibold">{item.source}</span>
+                  <span aria-hidden="true"> · </span>
+                  <time datetime={new Date(item.published).toISOString()}>{ago(item.published)}</time>
+                </span>
+                <span class="text-dark group-hover:text-primary line-clamp-2 text-sm leading-snug font-semibold md:text-base">
+                  {item.title}
+                </span>
+                {item.summary && (
+                  <span class="text-text-default/75 line-clamp-2 text-sm leading-relaxed">{item.summary}</span>
+                )}
+              </span>
+              <ArrowUpRight
+                class="text-text-default/50 group-hover:text-primary mt-0.5 h-4 w-4 shrink-0"
+                stroke-width={1.8}
+                aria-hidden="true"
+              />
+              <span class="sr-only">(opens in a new tab)</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  <p class="text-text-default/60 text-xs leading-relaxed">
+    Headlines from The Economic Times, Mint, BusinessLine, CNBC-TV18 and NDTV Profit, linked to the publisher. GoPocket
+    does not write or endorse third-party news.
+  </p>
+</section>

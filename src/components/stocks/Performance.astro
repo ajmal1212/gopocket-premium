@@ -82,7 +82,9 @@ const stats = [
         {/*
           The marker's wrapper spans the full track and is moved with a
           transform, whose percentage is of its own width - the track's. That
-          keeps every tick's move on the compositor, with no layout. Moved
+          keeps every tick's move free of layout. It snaps rather than glides:
+          the price moves several times a second, and a transition would keep
+          it animating the whole time the section is on screen. Moved
           that way its box runs past the track's right edge, which would scroll
           the whole page sideways, so the row clips it - widened by half a
           marker each side, so a price at the very low or high still shows a
@@ -91,7 +93,7 @@ const stats = [
         <div class="-mx-1.5 overflow-hidden px-1.5" aria-hidden="true">
           <div class="relative h-2.5">
             <span
-              class="absolute inset-0 transition-transform duration-300 motion-reduce:transition-none"
+              class="absolute inset-0"
               style={`transform: translateX(${(range.at ?? 0).toFixed(2)}%)`}
               hidden={range.at === null}
               data-perf-marker

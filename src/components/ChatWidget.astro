@@ -1,11 +1,36 @@
 ---
 /* src/components/ChatWidget.astro
    n8n chat bubble, bottom-right. The library is Vue-based and weighs a few
-   hundred kB, so it is dynamically imported after the page settles rather than
-   shipped on the critical path. */
+   hundred kB, so the page ships a look-alike button instead and loads the real
+   widget only for a visitor who reaches for it - see the script below. */
 ---
 
-<div id="n8n-chat"></div>
+<div id="n8n-chat">
+  {
+    /*
+    The facade. It sits inside #n8n-chat so it inherits the same --chat--*
+    variables as the real launcher - size, colour, position, and the smaller
+    phone sizes from the media query below - and so the widget's own mount,
+    which replaces this element's contents, swaps it out in the same frame.
+    The glyph is n8n's own launcher icon (mdi "chat") rather than a Lucide one
+    on purpose: anything else would visibly change the moment the real button
+    takes its place.
+  */
+  }
+  <button
+    type="button"
+    class="fixed right-(--chat--window--right) bottom-(--chat--window--bottom) z-(--chat--window--z-index) inline-flex size-(--chat--toggle--size) cursor-pointer items-center justify-center rounded-(--chat--toggle--border-radius) bg-(--chat--toggle--background) text-(color:--chat--toggle--color) shadow-[0_10px_26px_-8px_rgba(107,26,255,0.6)] transition-[transform,background-color] duration-200 hover:scale-105 hover:bg-(--chat--toggle--hover--background) focus-visible:scale-105 focus-visible:bg-(--chat--toggle--hover--background) active:scale-95 aria-busy:cursor-progress aria-busy:opacity-80 motion-reduce:transition-none"
+    aria-label="Chat with GoPocket support"
+    data-chat-facade
+  >
+    <svg viewBox="0 0 24 24" class="size-8 max-sm:size-[22px]" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M12 3c5.5 0 10 3.58 10 8s-4.5 8-10 8c-1.24 0-2.43-.18-3.53-.5C5.55 21 2 21 2 21c2.33-2.33 2.7-3.9 2.75-4.5C3.05 15.07 2 13.13 2 11c0-4.42 4.5-8 10-8"
+      ></path>
+    </svg>
+  </button>
+</div>
 
 <style is:global>
   /* n8n renders its own DOM inside #n8n-chat at runtime, so the theme variables
@@ -105,7 +130,13 @@
     --chat--button--background--secondary: #f1f2f6;
     --chat--button--background--secondary--hover: #e6e8ee;
 
-    /* Launcher */
+    /* Launcher. The width and height are re-declared here, not left to the
+       library: its stylesheet sets them on :root as var(--chat--toggle--size),
+       and a custom property is resolved where it is declared - so they froze
+       at the library's 64px before ever inheriting down, and the size below
+       (and the 44px phone size) never reached the button. */
+    --chat--toggle--width: var(--chat--toggle--size);
+    --chat--toggle--height: var(--chat--toggle--size);
     --chat--toggle--size: 58px;
     --chat--toggle--border-radius: 9999px;
     --chat--toggle--background: #6b1aff;
@@ -243,14 +274,35 @@
 <script>
   const WEBHOOK_URL = "https://n8n.gopocket.in/webhook/ea143194-39cd-4653-a83b-a1b36e81e7fb/chat";
 
-  let started = false;
+  /* The n8n bundle is ~500 KB over the wire, comfortably the largest single
+     asset on the site, and evaluating it blocks the main thread for 100-400ms
+     in one piece - it cannot be split. Every schedule for loading it anyway
+     ended up freezing the page somewhere: on idle it competed with the LCP
+     font, on the first scroll it froze the scroll, and after the visitor had
+     been still for a moment it landed exactly where people pause to read (next
+     to a stock page's market depth) and froze their next scroll instead.
+
+     So it is not loaded for visitors who never open it - which is nearly all
+     of them. The button above stands in for the launcher. Resting a pointer on
+     it, or focusing it, fetches and evaluates the bundle: the visitor is aiming
+     at a button then, not scrolling, and by the click it is usually ready. The
+     click mounts the widget over the facade and opens it. */
+  const facade = document.querySelector<HTMLButtonElement>("[data-chat-facade]");
+
+  let chatModule: Promise<typeof import("@n8n/chat")> | null = null;
+
+  const warm = () => {
+    if (!chatModule) {
+      chatModule = import("@n8n/chat/style.css").then(() => import("@n8n/chat"));
+      // A failed fetch - offline, or a deploy mid-visit renaming the chunk -
+      // is forgotten, so the next hover or click tries again.
+      chatModule.catch(() => (chatModule = null));
+    }
+    return chatModule;
+  };
 
   async function startChat() {
-    if (started) return;
-    started = true;
-
-    await import("@n8n/chat/style.css");
-    const { createChat } = await import("@n8n/chat");
+    const { createChat } = await warm();
 
     createChat({
       webhookUrl: WEBHOOK_URL,
@@ -272,41 +324,32 @@
     });
   }
 
-  /* The n8n bundle is ~500 KB over the wire, comfortably the largest single
-     asset on the site. requestIdleCallback reached idle a second or two after
-     load, which put all of it on the wire while the hero was still waiting on
-     figtree.woff2 — the font the LCP heading swaps to — and its evaluation was
-     most of the page's blocking time.
+  if (facade) {
+    facade.addEventListener("pointerenter", warm, { once: true });
+    facade.addEventListener("focus", warm, { once: true });
 
-     So it is gated on intent instead. Any scroll, tap, key or pointer movement
-     pulls it in, which in practice means a real visitor still gets the bubble
-     within a moment of touching the page. The timer below is only a backstop
-     for someone who loads the page and does nothing at all.
+    let opening = false;
 
-     Intent starts the clock rather than the load, though. Loading on the
-     first wheel event put a 100-200ms evaluation right at the start of the
-     visitor's first scroll - and SmoothScroll animates the page from that same
-     main thread, so the page froze mid-gesture. Every trigger restarts a short
-     wait, and the bundle loads once the visitor has been still for a moment. */
-  const TRIGGERS = ["pointerdown", "pointermove", "keydown", "touchstart", "scroll", "wheel"] as const;
-  const QUIET_MS = 1200;
-
-  let quiet: ReturnType<typeof setTimeout> | undefined;
-
-  const load = () => {
-    for (const event of TRIGGERS) window.removeEventListener(event, schedule);
-    if ("requestIdleCallback" in window) requestIdleCallback(() => void startChat(), { timeout: 2000 });
-    else void startChat();
-  };
-
-  const schedule = () => {
-    clearTimeout(quiet);
-    quiet = setTimeout(load, QUIET_MS);
-  };
-
-  for (const event of TRIGGERS) window.addEventListener(event, schedule, { passive: true });
-
-  // Backstop only, for a visitor who never touches the page at all. Long
-  // enough that it never lands inside the window the page is measured over.
-  setTimeout(schedule, 15000);
+    facade.addEventListener("click", async () => {
+      // A double click while the bundle loads must not mount two widgets.
+      if (opening) return;
+      opening = true;
+      // A tap on a phone has no hover to warm it, so it can take a moment;
+      // say so rather than look broken.
+      facade.setAttribute("aria-busy", "true");
+      try {
+        await startChat();
+      } catch {
+        // Offline, or the bundle failed to load: leave the facade usable so a
+        // second tap retries.
+        facade.removeAttribute("aria-busy");
+        opening = false;
+        return;
+      }
+      // createChat mounts synchronously over the facade, taking this listener
+      // with it. The visitor asked for the chat, not for a launcher, so open
+      // the window for them.
+      document.querySelector<HTMLElement>("#n8n-chat .chat-window-toggle")?.click();
+    });
+  }
 </script>

@@ -18,6 +18,12 @@ const { token, quote } = Astro.props;
  * by the script below within a moment of the socket connecting. Every row is
  * in the HTML from the start, dashes included, so the fill-in never shifts the
  * layout.
+ *
+ * Nothing here animates, deliberately. The book updates several times a
+ * second, so a 300ms transition on the bars never finished before the next
+ * one started: the panel was animating continuously, re-rendering on every
+ * frame while the visitor scrolled past it. Values snap, as they do in every
+ * broker's depth table, and an update costs one paint instead of a stream.
  */
 const LEVELS: DepthLevel[] = [1, 2, 3, 4, 5];
 
@@ -91,7 +97,7 @@ const sellShare = buyShare === null ? null : 100 - buyShare;
       aria-hidden="true"
     >
       <span
-        class="group-data-[empty]:bg-border-light h-full rounded-full bg-emerald-500 transition-[width] duration-300 motion-reduce:transition-none"
+        class="group-data-[empty]:bg-border-light h-full rounded-full bg-emerald-500"
         style={`width: ${buyShare ?? 50}%`}
         data-depth-split-buy></span>
       <span class="group-data-[empty]:bg-border-light h-full flex-1 rounded-full bg-red-500"></span>
@@ -125,14 +131,11 @@ const sellShare = buyShare === null ? null : 100 - buyShare;
                     <td class:list={["relative py-1.5 text-right", book.qtyClass]}>
                       {/*
                       Scaled with a transform rather than a width, so a tick
-                      that reshuffles the book repaints five bars on the
-                      compositor instead of relaying out the table.
+                      that reshuffles the book repaints five bars without
+                      relaying out the table.
                     */}
                       <span
-                        class:list={[
-                          "absolute inset-y-0.5 right-0 w-full origin-right transition-transform duration-300 motion-reduce:transition-none",
-                          book.barClass,
-                        ]}
+                        class:list={["absolute inset-y-0.5 right-0 w-full origin-right", book.barClass]}
                         style={`transform: scaleX(${level.fill.toFixed(3)})`}
                         aria-hidden="true"
                         data-depth-bar

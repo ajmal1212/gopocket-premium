@@ -28,6 +28,17 @@ export interface NewsItem {
   published: number;
 }
 
+/**
+ * A headline as held in the pool. The description stays raw until something
+ * needs it - see `summaryOf` - because cleaning every item's text at parse
+ * time was the largest single cost of a refresh, for summaries of which a
+ * page shows six.
+ */
+interface Pooled extends Omit<NewsItem, "summary"> {
+  description: string;
+  summary?: string;
+}
+
 interface Feed {
   source: string;
   section: Section;
@@ -62,14 +73,14 @@ const TTL_MS = 10 * 60 * 1000;
 const TIMEOUT_MS = 4000;
 /**
  * Items read per feed, newest first. CNBC's feeds carry 200 items reaching back
- * a week; the first 60 cover the last day or two, which is all a stock page
- * shows, and parsing a third of the text keeps the refresh well inside a
- * Worker's CPU budget.
+ * a week; 120 reaches into yesterday's stories on the busiest feeds, which is
+ * what a smaller company's news usually is by the time someone looks, while
+ * keeping a refresh inside a Worker's CPU budget.
  */
-const PER_FEED = 60;
+const PER_FEED = 120;
 
-let pool: { at: number; items: NewsItem[] } | null = null;
-let refreshing: Promise<NewsItem[]> | null = null;
+let pool: { at: number; items: Pooled[] } | null = null;
+let refreshing: Promise<Pooled[]> | null = null;
 
 /**
  * Every recent headline across the feeds, newest first, de-duplicated.
@@ -79,7 +90,7 @@ let refreshing: Promise<NewsItem[]> | null = null;
  * fails or times out is skipped - a missing publisher costs some headlines,
  * never the page.
  */
-export async function recentNews(): Promise<NewsItem[]> {
+async function recentNews(): Promise<Pooled[]> {
   if (pool && Date.now() - pool.at < TTL_MS) return pool.items;
 
   refreshing ??= Promise.allSettled(FEEDS.map(fetchFeed))
@@ -97,7 +108,7 @@ export async function recentNews(): Promise<NewsItem[]> {
   return refreshing;
 }
 
-async function fetchFeed(feed: Feed): Promise<NewsItem[]> {
+async function fetchFeed(feed: Feed): Promise<Pooled[]> {
   const response = await fetch(feed.url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (compatible; GoPocketNews/1.0; +https://gopocket.in)",
@@ -133,13 +144,25 @@ const summarise = (description: string, title: string): string => {
   return `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[\s,;:.–-]+$/, "")}…`;
 };
 
+/** An item's summary, cleaned the first time it is asked for and kept on the item for the life of the pool. */
+const summaryOf = (item: Pooled): string => (item.summary ??= summarise(text(item.description), item.title));
+
+const toNews = (item: Pooled): NewsItem => ({
+  title: item.title,
+  link: item.link,
+  source: item.source,
+  section: item.section,
+  summary: summaryOf(item),
+  published: item.published,
+});
+
 /**
  * RSS 2.0, read with a handful of regexes rather than an XML parser: Workers
  * have no DOMParser, the fields needed are five flat tags, and a parser
  * dependency would be bytes in every server response for that.
  */
-function parseFeed(xml: string, { source, section }: Feed): NewsItem[] {
-  const items: NewsItem[] = [];
+function parseFeed(xml: string, { source, section }: Feed): Pooled[] {
+  const items: Pooled[] = [];
   let read = 0;
   for (const match of xml.matchAll(ITEM)) {
     if (++read > PER_FEED) break;
@@ -151,8 +174,8 @@ function parseFeed(xml: string, { source, section }: Feed): NewsItem[] {
     // Mint publishes an auto-generated "X Share Price Live Updates" stub per
     // stock; it carries no story and would crowd out the ones that do.
     if (/share price live updates/i.test(title)) continue;
-    const summary = summarise(text(body.match(DESCRIPTION)?.[1]), title);
-    items.push({ title, link, source, section, summary, published });
+    const description = body.match(DESCRIPTION)?.[1] ?? "";
+    items.push({ title, link, source, section, description, published });
   }
   return items;
 }
@@ -186,7 +209,7 @@ function decodeEntities(value: string): string {
 }
 
 /** The Economic Times files most stock stories in both of its feeds. */
-function dedupe(items: NewsItem[]): NewsItem[] {
+function dedupe(items: Pooled[]): Pooled[] {
   const seen = new Set<string>();
   return items.filter((item) => {
     const key = item.title.toLowerCase().replace(/[^a-z0-9]+/g, "");
@@ -310,8 +333,14 @@ function buildMatcher(symbol: string, displayName?: string): (title: string) => 
   if (patterns.length === 0) return () => false;
 
   const lower = new Set(names.map((name) => name.toLowerCase()));
+  // A plain substring check first: it rules out all but a handful of the
+  // ~2,600 names before any of them meets a regex.
   const bigger = [...new Set(allNames())]
-    .filter((name) => !lower.has(name.toLowerCase()) && patterns.some((pattern) => test(pattern, name)))
+    .filter((name) => {
+      const folded = name.toLowerCase();
+      if (lower.has(folded) || ![...lower].some((own) => folded.includes(own))) return false;
+      return patterns.some((pattern) => test(pattern, name));
+    })
     .map(phrase);
 
   return (title: string) => {
@@ -333,14 +362,31 @@ export interface StockNews {
 }
 
 /**
- * The newest headlines about a stock, or - when none of the feeds' recent
- * items name it, which is common for a small company - the newest market
- * headlines, flagged as such so the page can say so.
+ * The newest stories about a stock, or - when none of the feeds' recent items
+ * name it - the newest market headlines, flagged as such so the page can say
+ * so.
+ *
+ * Stories that name the company in their headline come first. When those don't
+ * fill the list, stories that name it in the summary follow - a smaller
+ * company is more often one of five stocks in a "breakout picks" piece than
+ * the subject of a headline. Only the summary as shown counts, so the reason
+ * each story is listed is on screen, not buried in text the reader never sees.
  */
 export async function newsFor(symbol: string, displayName: string | undefined, limit = 6): Promise<StockNews> {
   const items = await recentNews();
   const about = matcherFor(symbol, displayName);
-  const related = items.filter((item) => about(item.title)).slice(0, limit);
-  if (related.length > 0) return { items: related, related: true };
-  return { items: items.filter((item) => item.section === "markets").slice(0, limit), related: false };
+
+  const related = items.filter((item) => about(item.title));
+  if (related.length < limit) {
+    // Newest first, and stopping once the list is full, so a busy pool is
+    // only read as far as it has to be.
+    for (const item of items) {
+      if (related.length >= limit) break;
+      if (!about(item.title) && about(summaryOf(item))) related.push(item);
+    }
+  }
+
+  if (related.length > 0) return { items: related.slice(0, limit).map(toNews), related: true };
+  const markets = items.filter((item) => item.section === "markets").slice(0, limit);
+  return { items: markets.map(toNews), related: false };
 }

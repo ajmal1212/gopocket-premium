@@ -1,0 +1,211 @@
+---
+import ChevronDown from "@lucide/astro/icons/chevron-down";
+import Shareholding from "@/components/stocks/Shareholding.astro";
+import { fetchShareholdingBreakdown, type HolderGroup, type Shareholding as Summary } from "@/lib/shareholding";
+
+interface Props {
+  symbol: string;
+  /** The headline split, already on the page - shown instead if the full filing can't be read. */
+  summary: Summary;
+}
+
+const { symbol, summary } = Astro.props;
+
+/**
+ * The full shareholding pattern from the company's latest filing: who holds
+ * it by group, what each group is made of, and the named major holders.
+ *
+ * A server island (`server:defer`): reading the filing takes Frappe up to a
+ * second, which the page shouldn't wait on, so the headline split renders
+ * with the page and this replaces it when ready. The filing changes once a
+ * quarter, so the island's response is cacheable for an hour - but not the
+ * fallback, which is often only Frappe being slow and worth asking again.
+ */
+const data = await fetchShareholdingBreakdown(symbol);
+Astro.response.headers.set("Cache-Control", `public, max-age=${data ? 3600 : 60}`);
+
+/*
+ * One colour per group, for the donut, the bars and the breakdown's dots. The
+ * institutions and retail follow the reference design; promoters take the
+ * brand violet. The donut uses `stroke-*` rather than `text-*` with
+ * currentColor: dark-theme.css repoints text-primary to a lighter text shade,
+ * which left the promoter slice paler than its own bar.
+ */
+const COLORS: Record<HolderGroup["key"], { stroke: string; bg: string }> = {
+  promoters: { stroke: "stroke-primary", bg: "bg-primary" },
+  fii: { stroke: "stroke-[#3ea3dc]", bg: "bg-[#3ea3dc]" },
+  dii: { stroke: "stroke-[#9bb35f]", bg: "bg-[#9bb35f]" },
+  public: { stroke: "stroke-[#f7932f]", bg: "bg-[#f7932f]" },
+  government: { stroke: "stroke-[#14b8a6]", bg: "bg-[#14b8a6]" },
+  trusts: { stroke: "stroke-slate-400", bg: "bg-slate-400" },
+};
+
+const percent = (value: number) => `${value.toFixed(2)}%`;
+
+/** 45,32,753 -> "45.33 L": the donut's centre has room for a short figure only. */
+const compact = (count: number) =>
+  count >= 1e7
+    ? `${(count / 1e7).toFixed(2)} Cr`
+    : count >= 1e5
+      ? `${(count / 1e5).toFixed(2)} L`
+      : count.toLocaleString("en-IN");
+
+/*
+ * The donut: one circle per group on a circumference of 100 (r = 15.915), so
+ * a group's percentage is its dash length. Each starts where the last ended,
+ * with a hairline gap between them; a group too small to survive the gap still
+ * appears in the legend beside it.
+ */
+const GAP = 0.6;
+let start = 0;
+const segments = (data?.groups ?? [])
+  .filter((group) => group.percent > 0)
+  .map((group) => {
+    const segment = { key: group.key, offset: start, length: Math.max(group.percent - GAP, 0) };
+    start += group.percent;
+    return segment;
+  });
+
+const expandable = (data?.groups ?? []).filter((group) => group.parts.length > 1);
+---
+
+{
+  data ? (
+    <section class="flex flex-col gap-4">
+      <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        {/* text-h6! - see MarketDepth.astro on the global h2 rule. */}
+        <h2 class="text-h6! font-semibold">Shareholding pattern</h2>
+        <p class="text-text-default/60 text-xs">Quarter ended {data.asOf}</p>
+      </div>
+
+      <div class="border-border-light rounded-2xl border bg-white p-4 md:p-6 dark:bg-transparent">
+        <div class="grid items-center gap-6 md:grid-cols-[10rem_minmax(0,1fr)] md:gap-8">
+          <figure class="relative mx-auto h-40 w-40">
+            <svg
+              viewBox="0 0 42 42"
+              class="h-full w-full -rotate-90"
+              role="img"
+              aria-label={`Shareholding: ${data.groups.map((group) => `${group.label} ${percent(group.percent)}`).join(", ")}`}
+            >
+              <circle cx="21" cy="21" r="15.915" fill="none" stroke-width="5" class="stroke-theme-light" />
+              {segments.map((segment) => (
+                <circle
+                  cx="21"
+                  cy="21"
+                  r="15.915"
+                  fill="none"
+                  stroke-width="5"
+                  stroke-dasharray={`${segment.length.toFixed(3)} ${(100 - segment.length).toFixed(3)}`}
+                  stroke-dashoffset={(-segment.offset).toFixed(3)}
+                  class={COLORS[segment.key].stroke}
+                />
+              ))}
+            </svg>
+            {data.shareholders !== null && (
+              <figcaption class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span class="text-dark text-lg leading-tight font-semibold tabular-nums">
+                  {compact(data.shareholders)}
+                </span>
+                <span class="text-text-default/60 text-[11px]">shareholders</span>
+              </figcaption>
+            )}
+          </figure>
+
+          <dl class="flex flex-col gap-4">
+            {data.groups.map((group) => (
+              <div class="grid grid-cols-[8.5rem_minmax(0,1fr)] items-center gap-x-4 md:grid-cols-[11rem_minmax(0,1fr)]">
+                <dt class="text-text-default text-sm leading-snug">{group.label}</dt>
+                <dd class="flex items-center gap-4">
+                  <span class="bg-theme-light h-2 flex-1 overflow-hidden rounded-full" aria-hidden="true">
+                    <span
+                      class:list={["block h-full rounded-full", COLORS[group.key].bg]}
+                      style={`width: ${group.percent}%`}
+                    />
+                  </span>
+                  <span class="text-dark w-16 text-right text-sm font-medium tabular-nums">
+                    {percent(group.percent)}
+                  </span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        {expandable.length > 0 && (
+          <div class="border-border-light mt-6 border-t pt-2">
+            <h3 class="sr-only">Breakdown by category</h3>
+            {expandable.map((group) => (
+              <details class="group border-border-light border-b last:border-b-0">
+                <summary class="flex cursor-pointer list-none items-center gap-3 py-3 [&::-webkit-details-marker]:hidden">
+                  <span class:list={["h-2.5 w-2.5 shrink-0 rounded-full", COLORS[group.key].bg]} aria-hidden="true" />
+                  <span class="text-dark flex-1 text-sm font-medium">{group.label}</span>
+                  <span class="text-dark text-sm font-medium tabular-nums">{percent(group.percent)}</span>
+                  <ChevronDown
+                    class="text-text-default/60 h-4 w-4 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none"
+                    aria-hidden="true"
+                  />
+                </summary>
+                {/*
+                  Each bar is the category's share of its own group, so the
+                  biggest slice of, say, the institutions reads as the longest
+                  bar; the figure beside it stays a share of the company.
+                */}
+                <ul class="flex flex-col gap-3 pb-4 pl-5.5">
+                  {group.parts.map((part) => (
+                    <li class="flex flex-col gap-1.5">
+                      <span class="flex items-baseline justify-between gap-4 text-sm">
+                        <span class="text-text-default">{part.label}</span>
+                        <span class="text-dark tabular-nums">{percent(part.percent)}</span>
+                      </span>
+                      <span class="bg-theme-light h-1 overflow-hidden rounded-full" aria-hidden="true">
+                        <span
+                          class:list={["block h-full rounded-full opacity-70", COLORS[group.key].bg]}
+                          style={`width: ${((part.percent / group.percent) * 100).toFixed(2)}%`}
+                        />
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {data.majorHolders.length > 0 && (
+        <div class="border-border-light rounded-2xl border bg-white p-4 md:p-6 dark:bg-transparent">
+          {/* text-base! - global.css sizes bare h3s outside any layer, like h2s. */}
+          <h3 class="text-base! text-dark font-semibold">Major shareholders</h3>
+          <table class="mt-3 w-full text-sm">
+            <caption class="sr-only">Largest shareholders named in the filing</caption>
+            <thead class="sr-only">
+              <tr>
+                <th scope="col">Shareholder</th>
+                <th scope="col">Share of company</th>
+              </tr>
+            </thead>
+            <tbody class="divide-border-light divide-y">
+              {data.majorHolders.map((holder) => (
+                <tr>
+                  <th scope="row" class="py-3 pr-4 text-left font-normal">
+                    <span class="text-dark block leading-snug">{holder.name}</span>
+                    {holder.kind && <span class="text-text-default/60 text-xs">{holder.kind}</span>}
+                  </th>
+                  <td class="text-dark py-3 text-right align-top font-medium tabular-nums">
+                    {percent(holder.percent)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <p class="text-text-default/60 text-xs">
+        From the company's shareholding pattern filing with NSE. Percentages are of total shares.
+      </p>
+    </section>
+  ) : (
+    <Shareholding data={summary} />
+  )
+}

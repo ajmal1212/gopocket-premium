@@ -7,6 +7,9 @@ import PriceHeader from "@/components/stocks/PriceHeader.astro";
 import MarketDepth from "@/components/stocks/MarketDepth.astro";
 import Performance from "@/components/stocks/Performance.astro";
 import StockNews from "@/components/stocks/StockNews.astro";
+import Shareholding from "@/components/stocks/Shareholding.astro";
+import ShareholdingBreakdown from "@/components/stocks/ShareholdingBreakdown.astro";
+import { fetchShareholding } from "@/lib/shareholding";
 import { stockBySlug } from "@/data/stocks";
 import { findContractBySlug } from "@/lib/contracts";
 import { fetchQuote } from "@/lib/feed/quote";
@@ -34,9 +37,18 @@ const token = contract.key;
 // first see. The socket below takes over from there.
 const range = rangeById(Astro.url.searchParams.get("range") || "1D");
 
-// Both fetches hit the same hub; running them together keeps the page's
-// time-to-first-byte at the slower of the two rather than their sum.
-const [quote, allCandles] = await Promise.all([fetchQuote(token), fetchCandles(token, range, contract.tradingSymbol)]);
+// An index has no order book - nothing is bought or sold on it directly - and
+// no shareholders to report.
+const hasDepth = contract.exchange !== "INDICES";
+
+// Run together, so the page's time-to-first-byte is the slowest of the three
+// rather than their sum. The shareholding lookup is capped well inside the
+// candles' own timeout, so it never becomes the slowest.
+const [quote, allCandles, shareholding] = await Promise.all([
+  fetchQuote(token),
+  fetchCandles(token, range, contract.tradingSymbol),
+  hasDepth ? fetchShareholding(contract.symbol) : null,
+]);
 
 // A 1D chart means one session; the wider ranges are shown as fetched.
 const candles = range.id === "1D" ? latestSession(allCandles) : allCandles;
@@ -45,9 +57,6 @@ const previousClose = quote?.c ? Number.parseFloat(quote.c) : null;
 // Only the intraday view is plotted against clock time; the longer ranges span
 // many sessions, where evenly spaced points read better than real gaps.
 const session = range.id === "1D" ? sessionWindow(candles) : null;
-
-// An index has no order book - nothing is bought or sold on it directly.
-const hasDepth = contract.exchange !== "INDICES";
 
 const priceText = quote?.lp ? `₹${Number.parseFloat(quote.lp).toFixed(2)}` : null;
 const title = `${displayName} (${contract.symbol}) Share Price Today | GoPocket`;
@@ -94,6 +103,22 @@ const jsonLd = {
         {hasDepth && <MarketDepth token={token} quote={quote} />}
 
         <Performance token={token} quote={quote} depth={hasDepth} />
+
+        {
+          /*
+            The headline split renders with the page - it's one fast lookup,
+            and the promoter figure is worth having in the HTML - and stands
+            in for the full breakdown, a server island that reads the filing
+            itself once the page has arrived.
+          */
+        }
+        {
+          shareholding && (
+            <ShareholdingBreakdown server:defer symbol={contract.symbol} summary={shareholding}>
+              <Shareholding slot="fallback" data={shareholding} />
+            </ShareholdingBreakdown>
+          )
+        }
 
         {
           /*

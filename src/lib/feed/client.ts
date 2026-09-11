@@ -18,9 +18,27 @@ import type { Tick, TickListener } from "./types";
 
 const RECONNECT_MS = [1000, 2000, 5000, 10000, 30000];
 
+/**
+ * How long a hidden tab keeps its socket. Its subscriptions go the moment it
+ * is hidden; the socket is kept a while longer so flicking between tabs
+ * doesn't pay for a new handshake each time - but not indefinitely, because
+ * the hub allows only a few connections per IP, and an office behind one
+ * address would run out to tabs nobody is looking at.
+ */
+const HIDDEN_CLOSE_MS = 60_000;
+
 let socket: WebSocket | null = null;
 let attempt = 0;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * True while the tab is hidden - switched away from, minimised, or opened in
+ * the background and not yet looked at. Nothing is subscribed at the hub then,
+ * so nothing is sent either; registrations are only recorded, and are all sent
+ * together when the tab is shown again.
+ */
+let paused = typeof document !== "undefined" && document.hidden;
+let hiddenTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** clientId -> the tokens that client asked for. */
 const registrations = new Map<string, string[]>();
@@ -69,11 +87,19 @@ function depthUnion(): string[] {
 }
 
 function send(message: Record<string, unknown>) {
-  if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
+  if (!paused && socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
+}
+
+/** Everything the page has registered, as one message each for prices and depth. */
+function subscribeAll() {
+  const tokens = union();
+  if (tokens.length > 0) send({ sub: tokens });
+  const depth = depthUnion();
+  if (depth.length > 0) send({ depth });
 }
 
 function connect() {
-  if (socket || typeof window === "undefined") return;
+  if (socket || paused || typeof window === "undefined") return;
 
   socket = new WebSocket(FEED_WS_URL);
 
@@ -81,10 +107,7 @@ function connect() {
     attempt = 0;
     // The hub keeps no memory of a connection that dropped, so the full set is
     // re-sent rather than assumed.
-    const tokens = union();
-    if (tokens.length > 0) send({ sub: tokens });
-    const depth = depthUnion();
-    if (depth.length > 0) send({ depth });
+    subscribeAll();
   });
 
   socket.addEventListener("message", (event) => {
@@ -129,13 +152,79 @@ function connect() {
 }
 
 function scheduleReconnect() {
-  if (reconnectTimer || (registrations.size === 0 && depthRegistrations.size === 0)) return;
+  if (reconnectTimer || paused || (registrations.size === 0 && depthRegistrations.size === 0)) return;
   const delay = RECONNECT_MS[Math.min(attempt, RECONNECT_MS.length - 1)];
   attempt += 1;
   reconnectTimer = setTimeout(() => {
     reconnectTimer = null;
     connect();
   }, delay);
+}
+
+/**
+ * The tab was hidden: drop depth and prices at the hub straight away, and the
+ * socket itself if the tab stays hidden. The last quotes stay on screen and in
+ * the cache, so the page doesn't blank while it waits to be looked at again.
+ */
+function pause() {
+  if (paused) return;
+  const depth = depthUnion();
+  if (depth.length > 0) send({ undepth: depth });
+  const tokens = union();
+  if (tokens.length > 0) send({ unsub: tokens });
+  // Set after sending: `send` stays quiet while paused.
+  paused = true;
+
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+  hiddenTimer = setTimeout(closeSocket, HIDDEN_CLOSE_MS);
+}
+
+/** The tab is back: subscribe everything again. The hub answers with a snapshot, so prices catch up at once. */
+function resume() {
+  if (!paused) return;
+  paused = false;
+  if (hiddenTimer) {
+    clearTimeout(hiddenTimer);
+    hiddenTimer = null;
+  }
+
+  // Back in view is a fresh start, not the next step of an old backoff.
+  attempt = 0;
+  if (socket) {
+    // Already open, subscribe now. Still connecting, the open handler will.
+    // Closing (the page was frozen mid-close), its close handler reconnects.
+    subscribeAll();
+  } else if (registrations.size > 0 || depthRegistrations.size > 0) {
+    connect();
+  }
+}
+
+function closeSocket() {
+  if (hiddenTimer) {
+    clearTimeout(hiddenTimer);
+    hiddenTimer = null;
+  }
+  socket?.close();
+}
+
+if (typeof document !== "undefined") {
+  // Visibility rather than focus: a page left open on a second screen while
+  // the visitor works in another window is still being watched, and should
+  // stay live. Hidden means switched away from, minimised, or being closed.
+  document.addEventListener("visibilitychange", () => (document.hidden ? pause() : resume()));
+  // Closing the tab or leaving the page: let go now rather than after the
+  // grace period. An open socket would also keep the page out of the
+  // back/forward cache, so going back to it could never be instant.
+  window.addEventListener("pagehide", () => {
+    pause();
+    closeSocket();
+  });
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted && !document.hidden) resume();
+  });
 }
 
 /**

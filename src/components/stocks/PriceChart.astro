@@ -363,8 +363,10 @@ const intraday = activeRange === "1D";
     };
 
     // What the line was last drawn from, so a tick that leaves it unchanged
-    // costs no repaint.
+    // costs no repaint. The forming point's time is left out on purpose; it
+    // drifts under two pixels a minute and catches up on the next price change.
     let drawn = "";
+    const drawnFrom = () => `${closes.length}|${closes[closes.length - 1]}|${baseline}|${session?.start}`;
 
     const render = (tick: Tick) => {
       const price = num(tick.lp);
@@ -380,15 +382,84 @@ const intraday = activeRange === "1D";
        * Most ticks don't move the line: the feed prints a new volume or bid
        * several times for every change in last price. Rewriting the path
        * anyway repaints the chart - while the visitor is scrolling past it -
-       * for pixels that come out identical. The forming point's time is left
-       * out on purpose; it drifts under two pixels a minute and catches up on
-       * the next price change.
+       * for pixels that come out identical.
        */
-      const state = `${closes.length}|${closes[closes.length - 1]}|${baseline}|${session?.start}`;
+      const state = drawnFrom();
       if (state === drawn) return;
       drawn = state;
       draw();
     };
+
+    /**
+     * Filling in what a hidden tab missed.
+     *
+     * The feed is let go of while the tab is hidden (see client.ts), so the
+     * line gets no points for that stretch, and the first tick back would join
+     * the last point before it to the first after with one straight segment.
+     * So the session's candles are fetched again and the line rebuilt from
+     * them, keeping any live points newer than the last candle.
+     */
+    // A tab opened in the background has been missing ticks since it loaded.
+    let hiddenAt: number | null = document.hidden ? Date.now() / 1000 : null;
+
+    const catchUp = async () => {
+      if (hiddenAt === null) return;
+      const since = hiddenAt;
+      hiddenAt = null;
+
+      // Nothing to fill unless the tab was away for over a minute that could
+      // have traded: an evening off-screen misses no candles.
+      const now = Date.now() / 1000;
+      const day = sessionAt(now);
+      const quiet = sessionAt(since).start === day.start && (since >= day.end || now <= day.start);
+      if (now - since < 60 || quiet) return;
+
+      let fetched: { t?: unknown; c?: unknown };
+      try {
+        const response = await fetch(`/api/intraday-candles?token=${encodeURIComponent(token)}`);
+        if (!response.ok) return;
+        fetched = await response.json();
+      } catch {
+        return;
+      }
+      const { t, c } = fetched;
+      if (!Array.isArray(t) || !Array.isArray(c) || t.length < 2 || t.length !== c.length) return;
+
+      const lastCandle = t[t.length - 1] as number;
+      const candleSession = sessionAt(lastCandle);
+      // The live ticks have already started a later session than the hub has
+      // candles for - the first minutes after the open - so the line stays.
+      if (session && candleSession.start < session.start) return;
+
+      // Read now, not before the fetch: ticks kept arriving while it ran.
+      const minute = Math.floor(lastCandle / 60);
+      const live = session?.start === candleSession.start ? times.map((time, index) => [time, closes[index]]) : [];
+      const newer = live.filter(([time]) => Math.floor(time / 60) > minute);
+      const latest = live[live.length - 1];
+
+      session = candleSession;
+      times = [...(t as number[]), ...newer.map(([time]) => time)];
+      closes = [...(c as number[]), ...newer.map(([, close]) => close)];
+      // The candle still forming can be half a minute old; a tick in that
+      // same minute is newer.
+      if (newer.length === 0 && latest && Math.floor(latest[0] / 60) === minute) {
+        closes[closes.length - 1] = latest[1];
+      }
+
+      drawn = drawnFrom();
+      draw();
+    };
+
+    if (intraday) {
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) hiddenAt ??= Date.now() / 1000;
+        else void catchUp();
+      });
+      // Back from the back/forward cache, which may not count as becoming visible.
+      window.addEventListener("pageshow", (event) => {
+        if (event.persisted && !document.hidden) void catchUp();
+      });
+    }
 
     /**
      * Crosshair and tooltip.

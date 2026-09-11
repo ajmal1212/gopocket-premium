@@ -46,8 +46,10 @@ const sides = [
     caption: "Best five bids",
     levels: side("b"),
     totalQty: num(quote?.tbq),
-    qtyClass: "text-emerald-600 dark:text-emerald-400",
-    barClass: "bg-emerald-50 dark:bg-emerald-500/10",
+    // Buyers in the brand violet. Both tokens repoint under html.dark, so the
+    // dark theme needs no classes of its own here.
+    qtyClass: "text-primary",
+    barClass: "bg-primary/10",
   },
   {
     prefix: "s",
@@ -78,29 +80,42 @@ const sellShare = buyShare === null ? null : 100 - buyShare;
   <h2 class="text-h6! font-semibold">Market depth</h2>
 
   <div class="border-border-light rounded-2xl border bg-white p-4 md:p-6 dark:bg-transparent">
-    <div class="flex items-end justify-between gap-4">
-      <p class="flex flex-col gap-1">
-        <span class="text-text-default/70 text-sm">Buy orders</span>
-        <span class="text-dark text-base font-semibold tabular-nums" data-depth-share="buy">{percent(buyShare)}</span>
-      </p>
-      <p class="flex flex-col gap-1 text-right">
-        <span class="text-text-default/70 text-sm">Sell orders</span>
-        <span class="text-dark text-base font-semibold tabular-nums" data-depth-share="sell">{percent(sellShare)}</span>
-      </p>
+    {/* The bar below reads each label out with its figure. */}
+    <div class="text-text-default/70 flex justify-between gap-4 text-sm" aria-hidden="true">
+      <span>Buy orders</span>
+      <span>Sell orders</span>
     </div>
 
-    {/* Grey until the book totals arrive, rather than a made-up 50/50 split. */}
+    {
+      /*
+      The split, with each side's share printed inside it. The two halves meet
+      on a slant: the buy side's right edge and the sell side's left edge are
+      cut by the same 12px across the bar's height, and the sell side is pulled
+      8px back under the buy side, which leaves an even 4px gap along the cut.
+      Each half keeps a minimum width so its label stays legible on a lopsided
+      book. Grey, labels hidden, until the book totals arrive - rather than a
+      made-up 50/50 split.
+    */
+    }
     <div
-      class="group mt-3 flex h-1 gap-0.5"
+      class="group mt-2 flex h-6 text-xs font-semibold text-white tabular-nums"
       data-depth-split
       data-empty={buyShare === null ? "" : undefined}
-      aria-hidden="true"
     >
       <span
-        class="group-data-[empty]:bg-border-light h-full rounded-full bg-emerald-500"
+        class="group-data-[empty]:bg-border-light bg-primary flex min-w-16 items-center rounded-l-md pl-2.5 [clip-path:polygon(0_0,100%_0,calc(100%_-_12px)_100%,0_100%)]"
         style={`width: ${buyShare ?? 50}%`}
-        data-depth-split-buy></span>
-      <span class="group-data-[empty]:bg-border-light h-full flex-1 rounded-full bg-red-500"></span>
+        data-depth-split-buy
+      >
+        <span class="sr-only">Buy orders</span>
+        <span class="group-data-[empty]:invisible" data-depth-share="buy">{percent(buyShare)}</span>
+      </span>
+      <span
+        class="group-data-[empty]:bg-border-light -ml-2 flex min-w-16 flex-1 items-center justify-end rounded-r-md bg-red-500 pr-2.5 [clip-path:polygon(12px_0,100%_0,100%_100%,0_100%)]"
+      >
+        <span class="sr-only">Sell orders</span>
+        <span class="group-data-[empty]:invisible" data-depth-share="sell">{percent(sellShare)}</span>
+      </span>
     </div>
 
     <div class="mt-5 grid grid-cols-2">

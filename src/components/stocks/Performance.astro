@@ -27,14 +27,40 @@ const position = (low: number | null, high: number | null, last: number | null):
   return Math.min(100, Math.max(0, ((last - low) / (high - low)) * 100));
 };
 
+/**
+ * A range's low or high, optionally widened by another field. Null while the
+ * range's own value hasn't arrived - a missing 52-week low must not be stood in
+ * for by today's low.
+ */
+const widen = (base: number | null, extra: number | null, pick: (a: number, b: number) => number) =>
+  base === null ? null : extra === null ? base : pick(base, extra);
+
 const last = num(quote?.lp);
 
+/*
+ * The 52-week range is widened by today's range. The feed's 52l/52h are
+ * yesterday's figures and only catch up overnight, so a stock making a new
+ * low today showed a 52-week low above today's low - with the marker pinned
+ * off the end of the bar. Today is part of the last 52 weeks.
+ */
 const ranges = [
-  { id: "day", low: "l", high: "h", lowLabel: "Today's low", highLabel: "Today's high" },
-  ...(depth ? [{ id: "52w", low: "52l", high: "52h", lowLabel: "52 week low", highLabel: "52 week high" }] : []),
+  { id: "day", low: "l", high: "h", floor: "", ceil: "", lowLabel: "Today's low", highLabel: "Today's high" },
+  ...(depth
+    ? [
+        {
+          id: "52w",
+          low: "52l",
+          high: "52h",
+          floor: "l",
+          ceil: "h",
+          lowLabel: "52 week low",
+          highLabel: "52 week high",
+        },
+      ]
+    : []),
 ].map((range) => {
-  const low = num(quote?.[range.low as Field]);
-  const high = num(quote?.[range.high as Field]);
+  const low = widen(num(quote?.[range.low as Field]), num(quote?.[range.floor as Field]), Math.min);
+  const high = widen(num(quote?.[range.high as Field]), num(quote?.[range.ceil as Field]), Math.max);
   return { ...range, lowValue: low, highValue: high, at: position(low, high, last) };
 });
 
@@ -61,23 +87,30 @@ const stats = [
 
   {
     ranges.map((range) => (
-      <div class="flex flex-col gap-2" data-perf-range data-low={range.low} data-high={range.high}>
+      <div
+        class="flex flex-col gap-2"
+        data-perf-range
+        data-low={range.low}
+        data-high={range.high}
+        data-floor={range.floor || undefined}
+        data-ceil={range.ceil || undefined}
+      >
         <div class="flex items-end justify-between gap-4">
           <p class="flex flex-col gap-1">
             <span class="text-text-default/70 text-xs">{range.lowLabel}</span>
-            <span class="text-dark text-sm font-semibold tabular-nums" data-perf={range.low}>
+            <span class="text-dark text-sm font-semibold tabular-nums" data-range-value="low">
               {price(range.lowValue)}
             </span>
           </p>
           <p class="flex flex-col gap-1 text-right">
             <span class="text-text-default/70 text-xs">{range.highLabel}</span>
-            <span class="text-dark text-sm font-semibold tabular-nums" data-perf={range.high}>
+            <span class="text-dark text-sm font-semibold tabular-nums" data-range-value="high">
               {price(range.highValue)}
             </span>
           </p>
         </div>
 
-        <div class="h-1 rounded-full bg-emerald-500" aria-hidden="true" />
+        <div class="bg-primary h-1 rounded-full" aria-hidden="true" />
 
         {/*
           The marker's wrapper spans the full track and is moved with a
@@ -137,23 +170,34 @@ const stats = [
     const ranges = [...root.querySelectorAll<HTMLElement>("[data-perf-range]")].map((el) => ({
       low: el.dataset.low as keyof Tick,
       high: el.dataset.high as keyof Tick,
+      // Today's low and high, for the 52-week range - see the frontmatter.
+      floor: el.dataset.floor as keyof Tick | undefined,
+      ceil: el.dataset.ceil as keyof Tick | undefined,
+      lowEl: el.querySelector<HTMLElement>('[data-range-value="low"]'),
+      highEl: el.querySelector<HTMLElement>('[data-range-value="high"]'),
       marker: el.querySelector<HTMLElement>("[data-perf-marker]"),
     }));
 
+    const setText = (el: HTMLElement | null, text: string) => {
+      if (el && el.textContent !== text) el.textContent = text;
+    };
+    const widen = (base: number | null, extra: number | null, pick: (a: number, b: number) => number) =>
+      base === null ? null : extra === null ? base : pick(base, extra);
+
     const render = (tick: Tick) => {
-      for (const { el, field, format } of values) {
-        const text = format(num(tick[field]));
-        if (el.textContent !== text) el.textContent = text;
-      }
+      for (const { el, field, format } of values) setText(el, format(num(tick[field])));
 
       const last = num(tick.lp);
-      for (const { low, high, marker } of ranges) {
-        const lo = num(tick[low]);
-        const hi = num(tick[high]);
-        if (!marker || lo === null || hi === null || last === null) continue;
+      for (const range of ranges) {
+        const lo = widen(num(tick[range.low]), range.floor ? num(tick[range.floor]) : null, Math.min);
+        const hi = widen(num(tick[range.high]), range.ceil ? num(tick[range.ceil]) : null, Math.max);
+        setText(range.lowEl, price(lo));
+        setText(range.highEl, price(hi));
+
+        if (!range.marker || lo === null || hi === null || last === null) continue;
         const at = hi <= lo ? 50 : Math.min(100, Math.max(0, ((last - lo) / (hi - lo)) * 100));
-        marker.style.transform = `translateX(${at.toFixed(2)}%)`;
-        marker.hidden = false;
+        range.marker.style.transform = `translateX(${at.toFixed(2)}%)`;
+        range.marker.hidden = false;
       }
     };
 

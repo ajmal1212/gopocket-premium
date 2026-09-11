@@ -1,3 +1,4 @@
+import { FEED_HUB_URL } from "./config";
 import { sessionAt, type Session } from "./session";
 
 export interface Candle {
@@ -59,7 +60,6 @@ export const isDaily = (range: Range): boolean => range.interval === "day";
 
 export const rangeById = (id: string): Range => RANGES.find((r) => r.id === id) ?? RANGES[0];
 
-const HUB_URL = import.meta.env.FEED_HUB_URL || "http://172.16.1.3:8090";
 const TIMEOUT_MS = 6000;
 
 /**
@@ -74,7 +74,7 @@ export async function fetchCandles(token: string, range: Range, tradingSymbol = 
   // The daily upstream is keyed by trading symbol rather than token, and
   // answers a numeric token with an empty array rather than an error.
   const symbol = isDaily(range) ? `&symbol=${encodeURIComponent(tradingSymbol)}` : "";
-  const url = `${HUB_URL}/candles?token=${encodeURIComponent(token)}&interval=${range.interval}${symbol}&from=${from}&to=${to}`;
+  const url = `${FEED_HUB_URL}/candles?token=${encodeURIComponent(token)}&interval=${range.interval}${symbol}&from=${from}&to=${to}`;
 
   try {
     const response = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });

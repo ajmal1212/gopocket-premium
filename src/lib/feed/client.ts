@@ -1,3 +1,4 @@
+import { FEED_WS_URL } from "./config";
 import type { Tick, TickListener } from "./types";
 
 /**
@@ -15,7 +16,6 @@ import type { Tick, TickListener } from "./types";
  * vendor SDK.
  */
 
-const WS_URL = import.meta.env.PUBLIC_FEED_WS_URL || "ws://172.16.1.3:8090";
 const RECONNECT_MS = [1000, 2000, 5000, 10000, 30000];
 
 let socket: WebSocket | null = null;
@@ -64,7 +64,7 @@ function send(message: Record<string, unknown>) {
 function connect() {
   if (socket || typeof window === "undefined") return;
 
-  socket = new WebSocket(WS_URL);
+  socket = new WebSocket(FEED_WS_URL);
 
   socket.addEventListener("open", () => {
     attempt = 0;

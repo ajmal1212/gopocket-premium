@@ -1,0 +1,164 @@
+---
+import Triangle from "@lucide/astro/icons/triangle";
+import type { Tick } from "@/lib/feed/types";
+import { num, price, quantity } from "@/lib/feed/format";
+
+interface Props {
+  token: string;
+  quote: Tick | null;
+  /**
+   * The 52-week range and circuit limits only arrive on a depth subscription,
+   * which an index does not have - so an index shows today's range alone.
+   */
+  depth?: boolean;
+}
+
+const { token, quote, depth = true } = Astro.props;
+
+type Field = keyof Tick;
+
+/**
+ * Where the live price sits between a low and a high, as a percentage along
+ * the bar. Null when there is no range to place it on.
+ */
+const position = (low: number | null, high: number | null, last: number | null): number | null => {
+  if (low === null || high === null || last === null) return null;
+  if (high <= low) return 50;
+  return Math.min(100, Math.max(0, ((last - low) / (high - low)) * 100));
+};
+
+const last = num(quote?.lp);
+
+const ranges = [
+  { id: "day", low: "l", high: "h", lowLabel: "Today's low", highLabel: "Today's high" },
+  ...(depth ? [{ id: "52w", low: "52l", high: "52h", lowLabel: "52 week low", highLabel: "52 week high" }] : []),
+].map((range) => {
+  const low = num(quote?.[range.low as Field]);
+  const high = num(quote?.[range.high as Field]);
+  return { ...range, lowValue: low, highValue: high, at: position(low, high, last) };
+});
+
+const stats = [
+  { label: "Open price", field: "o", kind: "price" },
+  { label: "Previous close", field: "c", kind: "price" },
+  { label: "Volume", field: "v", kind: "quantity" },
+  { label: "Avg. price", field: "ap", kind: "price" },
+  ...(depth
+    ? [
+        { label: "Lower circuit", field: "lc", kind: "price" },
+        { label: "Upper circuit", field: "uc", kind: "price" },
+      ]
+    : []),
+].map((stat) => {
+  const value = num(quote?.[stat.field as Field]);
+  return { ...stat, text: stat.kind === "quantity" ? quantity(value) : price(value) };
+});
+---
+
+<section class="flex flex-col gap-5" data-performance data-token={token} data-depth={depth ? "" : undefined}>
+  {/* text-h6! - see MarketDepth.astro on the global h2 rule. */}
+  <h2 class="text-h6! font-semibold">Performance</h2>
+
+  {
+    ranges.map((range) => (
+      <div class="flex flex-col gap-2" data-perf-range data-low={range.low} data-high={range.high}>
+        <div class="flex items-end justify-between gap-4">
+          <p class="flex flex-col gap-1">
+            <span class="text-text-default/70 text-xs">{range.lowLabel}</span>
+            <span class="text-dark text-sm font-semibold tabular-nums" data-perf={range.low}>
+              {price(range.lowValue)}
+            </span>
+          </p>
+          <p class="flex flex-col gap-1 text-right">
+            <span class="text-text-default/70 text-xs">{range.highLabel}</span>
+            <span class="text-dark text-sm font-semibold tabular-nums" data-perf={range.high}>
+              {price(range.highValue)}
+            </span>
+          </p>
+        </div>
+
+        <div class="h-1 rounded-full bg-emerald-500" aria-hidden="true" />
+
+        {/*
+          The marker's wrapper spans the full track and is moved with a
+          transform, whose percentage is of its own width - the track's. That
+          keeps every tick's move on the compositor, with no layout. Moved
+          that way its box runs past the track's right edge, which would scroll
+          the whole page sideways, so the row clips it - widened by half a
+          marker each side, so a price at the very low or high still shows a
+          whole triangle rather than half of one.
+        */}
+        <div class="-mx-1.5 overflow-hidden px-1.5" aria-hidden="true">
+          <div class="relative h-2.5">
+            <span
+              class="absolute inset-0 transition-transform duration-300 motion-reduce:transition-none"
+              style={`transform: translateX(${(range.at ?? 0).toFixed(2)}%)`}
+              hidden={range.at === null}
+              data-perf-marker
+            >
+              <Triangle class="text-text-default/60 absolute top-0 left-0 h-2.5 w-2.5 -translate-x-1/2 fill-current" />
+            </span>
+          </div>
+        </div>
+      </div>
+    ))
+  }
+
+  <dl class="mt-2 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-6">
+    {
+      stats.map((stat) => (
+        <div class="flex flex-col gap-1">
+          <dt class="text-text-default/70 text-xs">{stat.label}</dt>
+          <dd class="text-dark text-sm font-semibold tabular-nums" data-perf={stat.field} data-kind={stat.kind}>
+            {stat.text}
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+</section>
+
+<script>
+  import { registerDepth, register, subscribe } from "@/lib/feed/client";
+  import { num, price, quantity } from "@/lib/feed/format";
+  import type { Tick } from "@/lib/feed/types";
+
+  const root = document.querySelector<HTMLElement>("[data-performance]");
+  const token = root?.dataset.token;
+
+  if (root && token) {
+    const values = [...root.querySelectorAll<HTMLElement>("[data-perf]")].map((el) => ({
+      el,
+      field: el.dataset.perf as keyof Tick,
+      format: el.dataset.kind === "quantity" ? quantity : price,
+    }));
+    const ranges = [...root.querySelectorAll<HTMLElement>("[data-perf-range]")].map((el) => ({
+      low: el.dataset.low as keyof Tick,
+      high: el.dataset.high as keyof Tick,
+      marker: el.querySelector<HTMLElement>("[data-perf-marker]"),
+    }));
+
+    const render = (tick: Tick) => {
+      for (const { el, field, format } of values) {
+        const text = format(num(tick[field]));
+        if (el.textContent !== text) el.textContent = text;
+      }
+
+      const last = num(tick.lp);
+      for (const { low, high, marker } of ranges) {
+        const lo = num(tick[low]);
+        const hi = num(tick[high]);
+        if (!marker || lo === null || hi === null || last === null) continue;
+        const at = hi <= lo ? 50 : Math.min(100, Math.max(0, ((last - lo) / (hi - lo)) * 100));
+        marker.style.transform = `translateX(${at.toFixed(2)}%)`;
+        marker.hidden = false;
+      }
+    };
+
+    // The 52-week range and circuits ride on depth; the market depth panel
+    // asks for it too, and the client sends the hub one request between them.
+    if (root.dataset.depth !== undefined) registerDepth("performance", [token]);
+    else register("performance", [token]);
+    subscribe(token, render);
+  }
+</script>

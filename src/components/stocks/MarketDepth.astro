@@ -1,0 +1,240 @@
+---
+import type { DepthLevel, Tick } from "@/lib/feed/types";
+import { num, percent, price, quantity } from "@/lib/feed/format";
+
+interface Props {
+  token: string;
+  quote: Tick | null;
+}
+
+const { token, quote } = Astro.props;
+
+/**
+ * Five-level market depth: the best five bids and asks, and how the whole book
+ * splits between buyers and sellers.
+ *
+ * Rendered from whatever the hub had cached - usually just the best bid and
+ * ask, since levels 2-5 only flow while someone has depth open - and filled in
+ * by the script below within a moment of the socket connecting. Every row is
+ * in the HTML from the start, dashes included, so the fill-in never shifts the
+ * layout.
+ */
+const LEVELS: DepthLevel[] = [1, 2, 3, 4, 5];
+
+const side = (prefix: "b" | "s") => {
+  const levels = LEVELS.map((level) => ({
+    price: num(quote?.[`${prefix}p${level}`]),
+    qty: num(quote?.[`${prefix}q${level}`]),
+  }));
+  // Bars are scaled to the largest order on the same side, so the biggest
+  // wall in the book is always a full-width bar.
+  const max = Math.max(0, ...levels.map((level) => level.qty ?? 0));
+  return levels.map((level) => ({ ...level, fill: max > 0 && level.qty ? level.qty / max : 0 }));
+};
+
+const sides = [
+  {
+    prefix: "b",
+    label: "Bid price",
+    total: "Bid total",
+    caption: "Best five bids",
+    levels: side("b"),
+    totalQty: num(quote?.tbq),
+    qtyClass: "text-emerald-600 dark:text-emerald-400",
+    barClass: "bg-emerald-50 dark:bg-emerald-500/10",
+  },
+  {
+    prefix: "s",
+    label: "Ask price",
+    total: "Ask total",
+    caption: "Best five asks",
+    levels: side("s"),
+    totalQty: num(quote?.tsq),
+    qtyClass: "text-red-600 dark:text-red-400",
+    barClass: "bg-red-50 dark:bg-red-500/10",
+  },
+] as const;
+
+const totalBid = sides[0].totalQty;
+const totalAsk = sides[1].totalQty;
+const buyShare =
+  totalBid !== null && totalAsk !== null && totalBid + totalAsk > 0 ? (totalBid / (totalBid + totalAsk)) * 100 : null;
+const sellShare = buyShare === null ? null : 100 - buyShare;
+---
+
+<section class="flex flex-col gap-4" data-market-depth data-token={token}>
+  {
+    /*
+      text-h6! rather than text-h6: global.css sizes bare h2s outside any
+      layer, which beats every utility short of an !important one.
+    */
+  }
+  <h2 class="text-h6! font-semibold">Market depth</h2>
+
+  <div class="border-border-light rounded-2xl border bg-white p-4 md:p-6 dark:bg-transparent">
+    <div class="flex items-end justify-between gap-4">
+      <p class="flex flex-col gap-1">
+        <span class="text-text-default/70 text-sm">Buy orders</span>
+        <span class="text-dark text-base font-semibold tabular-nums" data-depth-share="buy">{percent(buyShare)}</span>
+      </p>
+      <p class="flex flex-col gap-1 text-right">
+        <span class="text-text-default/70 text-sm">Sell orders</span>
+        <span class="text-dark text-base font-semibold tabular-nums" data-depth-share="sell">{percent(sellShare)}</span>
+      </p>
+    </div>
+
+    {/* Grey until the book totals arrive, rather than a made-up 50/50 split. */}
+    <div
+      class="group mt-3 flex h-1 gap-0.5"
+      data-depth-split
+      data-empty={buyShare === null ? "" : undefined}
+      aria-hidden="true"
+    >
+      <span
+        class="group-data-[empty]:bg-border-light h-full rounded-full bg-emerald-500 transition-[width] duration-300 motion-reduce:transition-none"
+        style={`width: ${buyShare ?? 50}%`}
+        data-depth-split-buy></span>
+      <span class="group-data-[empty]:bg-border-light h-full flex-1 rounded-full bg-red-500"></span>
+    </div>
+
+    <div class="mt-5 grid grid-cols-2">
+      {
+        sides.map((book, index) => (
+          <div
+            class:list={[index === 0 ? "pr-3 md:pr-4" : "border-border-light border-l pl-3 md:pl-4"]}
+            data-depth-side={book.prefix}
+          >
+            <table class="w-full table-fixed text-sm tabular-nums">
+              <caption class="sr-only">{book.caption}</caption>
+              <thead>
+                <tr class="text-text-default/70 text-xs">
+                  <th scope="col" class="pb-3 text-left font-normal">
+                    {book.label}
+                  </th>
+                  <th scope="col" class="pb-3 text-right font-normal">
+                    Qty
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {book.levels.map((level) => (
+                  <tr data-depth-level>
+                    <td class="text-dark py-1.5" data-depth-price>
+                      {price(level.price)}
+                    </td>
+                    <td class:list={["relative py-1.5 text-right", book.qtyClass]}>
+                      {/*
+                      Scaled with a transform rather than a width, so a tick
+                      that reshuffles the book repaints five bars on the
+                      compositor instead of relaying out the table.
+                    */}
+                      <span
+                        class:list={[
+                          "absolute inset-y-0.5 right-0 w-full origin-right transition-transform duration-300 motion-reduce:transition-none",
+                          book.barClass,
+                        ]}
+                        style={`transform: scaleX(${level.fill.toFixed(3)})`}
+                        aria-hidden="true"
+                        data-depth-bar
+                      />
+                      <span class="relative" data-depth-qty>
+                        {quantity(level.qty)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr class="text-dark font-semibold">
+                  <th scope="row" class="pt-3 text-left">
+                    {book.total}
+                  </th>
+                  <td class="pt-3 text-right" data-depth-total>
+                    {quantity(book.totalQty)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  import { registerDepth, subscribe } from "@/lib/feed/client";
+  import { num, percent, price, quantity } from "@/lib/feed/format";
+  import type { DepthLevel, Tick } from "@/lib/feed/types";
+
+  const root = document.querySelector<HTMLElement>("[data-market-depth]");
+  const token = root?.dataset.token;
+
+  if (root && token) {
+    const LEVELS: DepthLevel[] = [1, 2, 3, 4, 5];
+
+    // Every element a tick can touch, looked up once rather than per tick.
+    const sides = (["b", "s"] as const).map((prefix) => {
+      const table = root.querySelector<HTMLElement>(`[data-depth-side="${prefix}"]`);
+      const rows = [...(table?.querySelectorAll<HTMLElement>("[data-depth-level]") ?? [])].map((row) => ({
+        price: row.querySelector<HTMLElement>("[data-depth-price]"),
+        qty: row.querySelector<HTMLElement>("[data-depth-qty]"),
+        bar: row.querySelector<HTMLElement>("[data-depth-bar]"),
+      }));
+      return { prefix, rows, total: table?.querySelector<HTMLElement>("[data-depth-total]") ?? null };
+    });
+    const buyEl = root.querySelector<HTMLElement>('[data-depth-share="buy"]');
+    const sellEl = root.querySelector<HTMLElement>('[data-depth-share="sell"]');
+    const split = root.querySelector<HTMLElement>("[data-depth-split]");
+    const splitBuy = root.querySelector<HTMLElement>("[data-depth-split-buy]");
+
+    const setText = (el: HTMLElement | null, text: string) => {
+      if (el && el.textContent !== text) el.textContent = text;
+    };
+
+    // The depth fields, in a fixed order, so an unchanged book is detected by
+    // comparing one string - most ticks move the price, not the book.
+    const FIELDS = [
+      "tbq",
+      "tsq",
+      ...LEVELS.flatMap((level) => [`bp${level}`, `bq${level}`, `sp${level}`, `sq${level}`] as const),
+    ] as const;
+    let drawn = "";
+
+    const render = (tick: Tick) => {
+      const state = FIELDS.map((field) => tick[field] ?? "").join("|");
+      if (state === drawn) return;
+      drawn = state;
+
+      for (const { prefix, rows, total } of sides) {
+        const levels = LEVELS.map((level) => ({
+          price: num(tick[`${prefix}p${level}`]),
+          qty: num(tick[`${prefix}q${level}`]),
+        }));
+        const max = Math.max(0, ...levels.map((level) => level.qty ?? 0));
+
+        rows.forEach((row, index) => {
+          const level = levels[index];
+          setText(row.price, price(level.price));
+          setText(row.qty, quantity(level.qty));
+          const fill = max > 0 && level.qty ? level.qty / max : 0;
+          if (row.bar) row.bar.style.transform = `scaleX(${fill.toFixed(3)})`;
+        });
+        setText(total, quantity(num(tick[prefix === "b" ? "tbq" : "tsq"])));
+      }
+
+      const bid = num(tick.tbq);
+      const ask = num(tick.tsq);
+      const buyShare = bid !== null && ask !== null && bid + ask > 0 ? (bid / (bid + ask)) * 100 : null;
+      setText(buyEl, percent(buyShare));
+      setText(sellEl, percent(buyShare === null ? null : 100 - buyShare));
+      if (buyShare !== null) {
+        split?.removeAttribute("data-empty");
+        if (splitBuy) splitBuy.style.width = `${buyShare.toFixed(2)}%`;
+      }
+    };
+
+    registerDepth("market-depth", [token]);
+    subscribe(token, render);
+  }
+</script>

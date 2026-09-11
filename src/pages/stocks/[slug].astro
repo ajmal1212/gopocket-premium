@@ -4,7 +4,8 @@ import Button from "@/components/Button.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import PriceHeader from "@/components/stocks/PriceHeader.astro";
-import StatsGrid from "@/components/stocks/StatsGrid.astro";
+import MarketDepth from "@/components/stocks/MarketDepth.astro";
+import Performance from "@/components/stocks/Performance.astro";
 import { stockBySlug } from "@/data/stocks";
 import { findContractBySlug } from "@/lib/contracts";
 import { fetchQuote } from "@/lib/feed/quote";
@@ -44,11 +45,14 @@ const previousClose = quote?.c ? Number.parseFloat(quote.c) : null;
 // many sessions, where evenly spaced points read better than real gaps.
 const session = range.id === "1D" ? sessionWindow(candles) : null;
 
+// An index has no order book - nothing is bought or sold on it directly.
+const hasDepth = contract.exchange !== "INDICES";
+
 const priceText = quote?.lp ? `₹${Number.parseFloat(quote.lp).toFixed(2)}` : null;
 const title = `${displayName} (${contract.symbol}) Share Price Today | GoPocket`;
 const description = priceText
-  ? `${displayName} share price is ${priceText} on the ${contract.exchange}. Live ${contract.symbol} price, day high and low, volume and previous close.`
-  : `Live ${displayName} (${contract.symbol}) share price on the ${contract.exchange}, with day high and low, volume and previous close.`;
+  ? `${displayName} share price is ${priceText} on the ${contract.exchange}. Live ${contract.symbol} price, market depth, day high and low, 52-week range and volume.`
+  : `Live ${displayName} (${contract.symbol}) share price on the ${contract.exchange}, with market depth, day high and low, 52-week range and volume.`;
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -86,7 +90,9 @@ const jsonLd = {
           lastPrice={quote?.lp ? Number.parseFloat(quote.lp) : null}
         />
 
-        <StatsGrid quote={quote} />
+        {hasDepth && <MarketDepth token={token} quote={quote} />}
+
+        <Performance token={token} quote={quote} depth={hasDepth} />
 
         {
           editorial && (
@@ -206,13 +212,6 @@ const jsonLd = {
         changeEl.classList.toggle("dark:text-red-400", !up);
         changeEl.hidden = false;
       }
-
-      for (const field of ["o", "h", "l", "c", "ap"] as const) {
-        const value = num(tick[field]);
-        if (value !== null) setText(field, money(value));
-      }
-      const volume = num(tick.v);
-      if (volume !== null) setText("v", volume.toLocaleString("en-IN"));
 
       // The feed only prints while the market is open, so the first tick after
       // load is what proves the page is live rather than showing yesterday.

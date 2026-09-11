@@ -24,6 +24,8 @@ let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** clientId -> the tokens that client asked for. */
 const registrations = new Map<string, string[]>();
+/** clientId -> the tokens that client wants five-level depth for. */
+const depthRegistrations = new Map<string, string[]>();
 /** token -> everyone waiting on it. */
 const listeners = new Map<string, Set<TickListener>>();
 /** token -> last known quote, so a late subscriber renders immediately. */
@@ -53,8 +55,17 @@ function scheduleFlush() {
   });
 }
 
+/**
+ * Every token the page wants prices for. Depth tokens count too: depth arrives
+ * as extra fields on the same ticks, so a price subscription must outlive any
+ * `unregister` while an order book still wants it.
+ */
 function union(): string[] {
-  return [...new Set([...registrations.values()].flat())];
+  return [...new Set([...registrations.values(), ...depthRegistrations.values()].flat())];
+}
+
+function depthUnion(): string[] {
+  return [...new Set([...depthRegistrations.values()].flat())];
 }
 
 function send(message: Record<string, unknown>) {
@@ -72,6 +83,8 @@ function connect() {
     // re-sent rather than assumed.
     const tokens = union();
     if (tokens.length > 0) send({ sub: tokens });
+    const depth = depthUnion();
+    if (depth.length > 0) send({ depth });
   });
 
   socket.addEventListener("message", (event) => {
@@ -116,7 +129,7 @@ function connect() {
 }
 
 function scheduleReconnect() {
-  if (reconnectTimer || registrations.size === 0) return;
+  if (reconnectTimer || (registrations.size === 0 && depthRegistrations.size === 0)) return;
   const delay = RECONNECT_MS[Math.min(attempt, RECONNECT_MS.length - 1)];
   attempt += 1;
   reconnectTimer = setTimeout(() => {
@@ -147,6 +160,42 @@ export function unregister(clientId: string) {
 
   const removed = [...before].filter((t) => !after.has(t));
   if (removed.length > 0) send({ unsub: removed });
+}
+
+/**
+ * Ask for five-level market depth on these tokens, on top of their prices.
+ * The levels arrive as extra fields on the ordinary ticks, so read them with
+ * `subscribe()` like any other field. The hub allows a handful per page.
+ */
+export function registerDepth(clientId: string, tokens: string[]) {
+  const depthBefore = new Set(depthUnion());
+  const pricesBefore = new Set(union());
+  depthRegistrations.set(clientId, tokens.filter(isValidToken));
+
+  connect();
+
+  // Prices are asked for explicitly even though the hub treats depth as
+  // implying them: a hub that predates depth ignores the `depth` message, and
+  // the page should still get its prices from it, just without the book.
+  const addedPrices = union().filter((t) => !pricesBefore.has(t));
+  if (addedPrices.length > 0) send({ sub: addedPrices });
+  const addedDepth = depthUnion().filter((t) => !depthBefore.has(t));
+  if (addedDepth.length > 0) send({ depth: addedDepth });
+}
+
+export function unregisterDepth(clientId: string) {
+  const depthBefore = new Set(depthUnion());
+  const pricesBefore = new Set(union());
+  depthRegistrations.delete(clientId);
+  const depthAfter = new Set(depthUnion());
+  const pricesAfter = new Set(union());
+
+  const removedDepth = [...depthBefore].filter((t) => !depthAfter.has(t));
+  if (removedDepth.length > 0) send({ undepth: removedDepth });
+  // The hub counts a depth watcher as a price watcher too, so a token nobody
+  // else on the page wanted has to be let go of explicitly.
+  const removedPrices = [...pricesBefore].filter((t) => !pricesAfter.has(t));
+  if (removedPrices.length > 0) send({ unsub: removedPrices });
 }
 
 /**

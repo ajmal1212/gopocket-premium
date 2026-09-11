@@ -178,10 +178,15 @@ const jsonLd = {
       return Number.isFinite(parsed) ? parsed : null;
     };
 
+    // Only writes on a real change. Ticks arrive several times a second and
+    // most leave most fields as they were; an unconditional write still
+    // invalidates the text and repaints it.
     const setText = (field: string, text: string) => {
       const el = fields.get(field);
       if (el && el.textContent !== text) el.textContent = text;
     };
+
+    let isLive = false;
 
     const render = (tick: Tick) => {
       const last = num(tick.lp);
@@ -193,7 +198,7 @@ const jsonLd = {
       const changeEl = fields.get("change");
       if (changeEl && last !== null && percent !== null && previousClose !== null) {
         const change = last - previousClose;
-        changeEl.textContent = `${signed(change)} (${signed(percent)}%)`;
+        setText("change", `${signed(change)} (${signed(percent)}%)`);
         const up = percent >= 0;
         changeEl.classList.toggle("text-emerald-600", up);
         changeEl.classList.toggle("dark:text-emerald-400", up);
@@ -211,8 +216,13 @@ const jsonLd = {
 
       // The feed only prints while the market is open, so the first tick after
       // load is what proves the page is live rather than showing yesterday.
-      root.querySelector<HTMLElement>("[data-live]")?.removeAttribute("hidden");
-      root.querySelector<HTMLElement>("[data-stale]")?.setAttribute("hidden", "");
+      // Once is enough: re-setting an attribute to the value it already has
+      // still counts as a DOM change.
+      if (!isLive) {
+        isLive = true;
+        root.querySelector<HTMLElement>("[data-live]")?.removeAttribute("hidden");
+        root.querySelector<HTMLElement>("[data-stale]")?.setAttribute("hidden", "");
+      }
     };
 
     register("stock-page", [token]);

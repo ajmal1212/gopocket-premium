@@ -87,6 +87,14 @@ const current = lastPrice ?? last;
 const isUp = current !== null && current >= baseline;
 const baselineY = y(baseline).toFixed(2);
 const hasChart = points.length > 1;
+
+/*
+ * The intraday chart keeps its SVG even with nothing to draw yet. Right at
+ * the open the hub has one pre-open candle for the day, if that, so the server
+ * has no line - but ticks are already flowing, and the script below builds the
+ * line from them and swaps it in for the empty message.
+ */
+const intraday = activeRange === "1D";
 ---
 
 <section
@@ -95,9 +103,9 @@ const hasChart = points.length > 1;
   data-token={token}
   data-slug={slug}
   data-range={activeRange}
-  data-low={low}
-  data-high={high}
-  data-baseline={baseline}
+  data-baseline={previousClose ?? undefined}
+  data-session-start={session?.start}
+  data-session-end={session?.end}
   data-width={WIDTH}
   data-height={HEIGHT}
   data-pad={PAD_Y}
@@ -108,8 +116,8 @@ const hasChart = points.length > 1;
   <h2 class="sr-only">Price chart</h2>
 
   {
-    hasChart ? (
-      <div class="relative w-full touch-pan-y" data-chart-surface>
+    (hasChart || intraday) && (
+      <div class="relative w-full touch-pan-y" data-chart-surface hidden={!hasChart}>
         <svg
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           preserveAspectRatio="none"
@@ -178,12 +186,16 @@ const hasChart = points.length > 1;
           </div>
         </div>
       </div>
-    ) : (
-      <p class="text-text-default/60 flex h-56 items-center justify-center text-sm lg:h-72">
-        No chart data available for this instrument.
-      </p>
     )
   }
+
+  <p
+    class="text-text-default/60 flex h-56 items-center justify-center text-sm lg:h-72"
+    data-chart-empty
+    hidden={hasChart}
+  >
+    No chart data available for this instrument.
+  </p>
 
   <div class="flex flex-wrap gap-2" role="group" aria-label="Chart range">
     {
@@ -207,108 +219,194 @@ const hasChart = points.length > 1;
 
 <script>
   import { register, subscribe } from "@/lib/feed/client";
+  import { sessionAt, type Session } from "@/lib/feed/session";
   import type { Tick } from "@/lib/feed/types";
 
   /**
-   * Extend the server-rendered chart with the live price.
+   * Keep the server-rendered chart moving with the live price.
    *
    * The closing values are carried in a data attribute rather than re-derived
    * from the SVG path, because a tick can move the price outside the plotted
-   * range - and rescaling needs the real numbers, not screen coordinates. On
-   * each tick the last point is replaced (the candle still forming) and the
-   * whole path is recomputed, which is a handful of arithmetic on a few hundred
-   * points and cheaper than it sounds.
+   * range - and rescaling needs the real numbers, not screen coordinates. Each
+   * tick recomputes the whole path, which is a handful of arithmetic on a few
+   * hundred points and cheaper than it sounds.
+   *
+   * The longer ranges only move their last point: a tick is the candle still
+   * forming. The intraday chart also grows, a point a minute on the session's
+   * time axis, so a page open at 9:15 - when the hub has no candles for the day
+   * yet - draws the session as it trades instead of sitting empty.
    */
   const chart = document.querySelector<HTMLElement>("[data-price-chart]");
   const token = chart?.dataset.token;
+  const surface = chart?.querySelector<HTMLElement>("[data-chart-surface]");
+  const line = chart?.querySelector<SVGPathElement>("[data-chart-line]");
+  const area = chart?.querySelector<SVGPathElement>("[data-chart-area]");
+  const base = chart?.querySelector<SVGLineElement>("[data-chart-baseline]");
+  const empty = chart?.querySelector<HTMLElement>("[data-chart-empty]");
+  const group = line?.parentElement;
 
-  if (chart && token && chart.dataset.closes) {
+  if (chart && token && surface && line && area && base && empty && group) {
     const width = Number(chart.dataset.width);
     const height = Number(chart.dataset.height);
     const pad = Number(chart.dataset.pad);
-    const baseline = Number(chart.dataset.baseline);
-    const closes = chart.dataset.closes.split(",").map(Number).filter(Number.isFinite);
-    // The x positions come from the server so the time axis is worked out in
-    // one place; a tick only ever moves the last point up or down.
-    const xs = (chart.dataset.xs || "").split(",").map(Number).filter(Number.isFinite);
-    const times = (chart.dataset.times || "").split(",").map(Number);
-    let bound = false;
+    const intraday = chart.dataset.range === "1D";
 
-    const line = chart.querySelector<SVGPathElement>("[data-chart-line]");
-    const area = chart.querySelector<SVGPathElement>("[data-chart-area]");
-    const base = chart.querySelector<SVGLineElement>("[data-chart-baseline]");
-    const group = line?.parentElement;
+    const num = (value: string | undefined) => {
+      if (!value) return null;
+      const parsed = Number.parseFloat(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+    // An empty attribute must give an empty list: "".split(",") is [""], which
+    // Number() would turn into a phantom point at zero.
+    const list = (value: string | undefined) => (value ? value.split(",").map(Number) : []);
 
-    if (closes.length > 1 && xs.length === closes.length && line && area && base && group) {
-      // The vertical scale changes whenever a tick moves the price outside the
-      // plotted range, and the hover marker has to sit on the line as drawn -
-      // so the values and their scale live in one place both halves read.
-      let values = closes.slice();
-      let low = Math.min(...values, baseline);
-      let high = Math.max(...values, baseline);
+    let closes = list(chart.dataset.closes);
+    let times = list(chart.dataset.times);
+    // The multi-day ranges are spaced evenly by the server and never gain a
+    // point, so their x positions are used as sent.
+    const evenXs = list(chart.dataset.xs);
+    let baseline = num(chart.dataset.baseline);
+    const start = num(chart.dataset.sessionStart);
+    const end = num(chart.dataset.sessionEnd);
+    let session: Session | null = start !== null && end !== null ? { start, end } : null;
 
-      const yOf = (value: number) => {
-        const span = high - low || 1;
-        return pad + (1 - (value - low) / span) * (height - pad * 2);
-      };
+    // The vertical scale changes whenever a tick moves the price outside the
+    // plotted range, and the hover marker has to sit on the line as drawn - so
+    // the scale lives out here, where both halves read it.
+    let low = 0;
+    let high = 0;
 
-      const draw = (next: number[]) => {
-        values = next;
-        low = Math.min(...values, baseline);
-        high = Math.max(...values, baseline);
-        const y = yOf;
+    const xAt = (index: number) => {
+      if (!session) return evenXs[index] ?? 0;
+      const fraction = (times[index] - session.start) / (session.end - session.start);
+      return Math.min(width, Math.max(0, fraction * width));
+    };
 
-        const points = values.map((value, index) => `${xs[index].toFixed(2)},${y(value).toFixed(2)}`);
-        const path = `M${points.join(" L")}`;
+    const yOf = (value: number) => {
+      const span = high - low || 1;
+      return pad + (1 - (value - low) / span) * (height - pad * 2);
+    };
 
-        line.setAttribute("d", path);
-        area.setAttribute("d", `${path} L${xs[xs.length - 1].toFixed(2)},${height} L${xs[0].toFixed(2)},${height} Z`);
-        const baseY = y(baseline).toFixed(2);
-        base.setAttribute("y1", baseY);
-        base.setAttribute("y2", baseY);
+    // Same rule as the server: the previous close, else the first point.
+    const reference = () => baseline ?? closes[0];
 
-        const up = values[values.length - 1] >= baseline;
-        group.classList.toggle("text-emerald-600", up);
-        group.classList.toggle("dark:text-emerald-400", up);
-        group.classList.toggle("text-red-600", !up);
-        group.classList.toggle("dark:text-red-400", !up);
-      };
+    const draw = () => {
+      if (closes.length < 2) return;
 
-      hover(values.length, () => ({ values, yOf }));
+      const ref = reference();
+      low = Math.min(...closes, ref);
+      high = Math.max(...closes, ref);
 
-      const render = (tick: Tick) => {
-        const last = tick.lp ? Number.parseFloat(tick.lp) : null;
-        if (last === null || !Number.isFinite(last)) return;
-        // Replace the forming candle rather than appending, so a quiet minute
-        // does not stretch the series sideways one tick at a time.
-        draw([...closes.slice(0, -1), last]);
-      };
+      const xs = closes.map((_, index) => xAt(index).toFixed(2));
+      const path = `M${closes.map((value, index) => `${xs[index]},${yOf(value).toFixed(2)}`).join(" L")}`;
 
-      register("stock-chart", [token]);
-      subscribe(token, render);
-    }
+      line.setAttribute("d", path);
+      area.setAttribute("d", `${path} L${xs[xs.length - 1]},${height} L${xs[0]},${height} Z`);
+      const baseY = yOf(ref).toFixed(2);
+      base.setAttribute("y1", baseY);
+      base.setAttribute("y2", baseY);
+
+      const up = closes[closes.length - 1] >= ref;
+      group.classList.toggle("text-emerald-600", up);
+      group.classList.toggle("dark:text-emerald-400", up);
+      group.classList.toggle("text-red-600", !up);
+      group.classList.toggle("dark:text-red-400", !up);
+
+      surface.hidden = false;
+      empty.hidden = true;
+    };
+
+    /**
+     * Fold one tick into the intraday series.
+     *
+     * Points sit a minute apart, like the hub's one-minute candles: a tick in
+     * the same minute as the last point moves it, a tick in a new minute adds
+     * one. Appending every tick would stack hundreds of points a minute during
+     * a busy open, for a line that looks the same.
+     */
+    const extend = (price: number, tick: Tick) => {
+      // `ft` is the exchange's feed time in epoch seconds. The local clock is
+      // only the fallback, since a visitor's clock can be minutes out.
+      const time = num(tick.ft) ?? Math.floor(Date.now() / 1000);
+      const day = sessionAt(time);
+      const trading = time >= day.start && time <= day.end;
+
+      if (trading && (!session || day.start > session.start)) {
+        // The first trade of a new session. Whatever the server drew belongs
+        // to an earlier day, so the line starts over - from the 9:15 open, so
+        // the very first tick already makes a segment worth drawing.
+        session = day;
+        closes = [];
+        times = [];
+        const open = num(tick.o);
+        if (open !== null) {
+          closes.push(open);
+          times.push(day.start);
+        }
+        closes.push(price);
+        times.push(time);
+        return;
+      }
+
+      // Pre-open and post-close ticks only correct the last point, and only
+      // on the day the chart is showing.
+      const last = closes.length - 1;
+      if (last < 0 || !session || day.start !== session.start) return;
+
+      if (trading && Math.floor(time / 60) > Math.floor(times[last] / 60)) {
+        closes.push(price);
+        times.push(time);
+      } else {
+        closes[last] = price;
+        if (trading) times[last] = Math.max(times[last], time);
+      }
+    };
+
+    // What the line was last drawn from, so a tick that leaves it unchanged
+    // costs no repaint.
+    let drawn = "";
+
+    const render = (tick: Tick) => {
+      const price = num(tick.lp);
+      if (price === null) return;
+      // The header measures the change from the feed's previous close, so the
+      // reference line follows the same number.
+      baseline = num(tick.c) ?? baseline;
+
+      if (intraday) extend(price, tick);
+      else if (closes.length > 0) closes[closes.length - 1] = price;
+
+      /*
+       * Most ticks don't move the line: the feed prints a new volume or bid
+       * several times for every change in last price. Rewriting the path
+       * anyway repaints the chart - while the visitor is scrolling past it -
+       * for pixels that come out identical. The forming point's time is left
+       * out on purpose; it drifts under two pixels a minute and catches up on
+       * the next price change.
+       */
+      const state = `${closes.length}|${closes[closes.length - 1]}|${baseline}|${session?.start}`;
+      if (state === drawn) return;
+      drawn = state;
+      draw();
+    };
 
     /**
      * Crosshair and tooltip.
      *
-     * `read` is a callback rather than a snapshot because a tick can rescale
-     * the chart under the cursor, and the marker must land on the line as it is
-     * drawn now, not as it was when the pointer arrived.
+     * The series and its scale are read on every move rather than captured,
+     * because a tick can rescale the chart - or add a point - under the cursor,
+     * and the marker must land on the line as it is drawn now.
      */
-    function hover(count: number, read: () => { values: number[]; yOf: (v: number) => number }) {
-      const surface = chart!.querySelector<HTMLElement>("[data-chart-surface]");
-      const layer = chart!.querySelector<HTMLElement>("[data-hover]");
-      const rule = chart!.querySelector<HTMLElement>("[data-hover-line]");
-      const dot = chart!.querySelector<HTMLElement>("[data-hover-dot]");
-      const card = chart!.querySelector<HTMLElement>("[data-hover-card]");
-      const priceEl = chart!.querySelector<HTMLElement>("[data-hover-price]");
-      const timeEl = chart!.querySelector<HTMLElement>("[data-hover-time]");
+    const hover = () => {
+      const layer = chart.querySelector<HTMLElement>("[data-hover]");
+      const rule = chart.querySelector<HTMLElement>("[data-hover-line]");
+      const dot = chart.querySelector<HTMLElement>("[data-hover-dot]");
+      const card = chart.querySelector<HTMLElement>("[data-hover-card]");
+      const priceEl = chart.querySelector<HTMLElement>("[data-hover-price]");
+      const timeEl = chart.querySelector<HTMLElement>("[data-hover-time]");
 
-      if (!surface || !layer || !rule || !dot || !card || !priceEl || !timeEl) return;
-      if (bound) return;
-      bound = true;
+      if (!layer || !rule || !dot || !card || !priceEl || !timeEl) return;
 
-      const intraday = chart!.dataset.range === "1D";
       const money = (value: number) =>
         "₹" + value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -332,21 +430,20 @@ const hasChart = points.length > 1;
 
         let index = 0;
         let best = Infinity;
-        for (let i = 0; i < count; i++) {
-          const distance = Math.abs(xs[i] - cursorX);
+        for (let i = 0; i < closes.length; i++) {
+          const distance = Math.abs(xAt(i) - cursorX);
           if (distance < best) {
             best = distance;
             index = i;
           }
         }
 
-        const { values, yOf } = read();
-        const value = values[index];
+        const value = closes[index];
         if (value === undefined) return;
 
-        const xPercent = (xs[index] / width) * 100;
+        const xPercent = (xAt(index) / width) * 100;
         const yPercent = (yOf(value) / height) * 100;
-        const up = value >= baseline;
+        const up = value >= reference();
 
         rule.style.left = xPercent + "%";
         dot.style.left = xPercent + "%";
@@ -388,6 +485,10 @@ const hasChart = points.length > 1;
       surface.addEventListener("pointermove", move);
       surface.addEventListener("pointerleave", leave);
       surface.addEventListener("pointercancel", leave);
-    }
+    };
+
+    hover();
+    register("stock-chart", [token]);
+    subscribe(token, render);
   }
 </script>

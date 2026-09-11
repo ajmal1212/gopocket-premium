@@ -1,3 +1,5 @@
+import { sessionAt, type Session } from "./session";
+
 export interface Candle {
   /** Epoch seconds at the start of the candle. */
   t: number;
@@ -39,11 +41,6 @@ export const RANGES: Range[] = [
   { id: "5Y", label: "5Y", interval: "day", lookback: 5 * 365 * DAY },
 ];
 
-const IST_OFFSET = 5.5 * 60 * 60;
-/** NSE equity session, in seconds past midnight IST. */
-const SESSION_OPEN = 9 * 3600 + 15 * 60;
-const SESSION_CLOSE = 15 * 3600 + 30 * 60;
-
 /**
  * The open-to-close window of the session the given candles belong to.
  *
@@ -52,12 +49,9 @@ const SESSION_CLOSE = 15 * 3600 + 30 * 60;
  * broker draws it. Plotting by index instead stretches half a session across
  * the full width, which reads as a complete day and misstates the shape.
  */
-export function sessionWindow(candles: Candle[]): { start: number; end: number } | null {
+export function sessionWindow(candles: Candle[]): Session | null {
   if (candles.length === 0) return null;
-
-  const last = candles[candles.length - 1].t;
-  const istMidnight = Math.floor((last + IST_OFFSET) / DAY) * DAY - IST_OFFSET;
-  return { start: istMidnight + SESSION_OPEN, end: istMidnight + SESSION_CLOSE };
+  return sessionAt(candles[candles.length - 1].t);
 }
 
 /** Daily history is keyed by trading symbol and covers equities only. */

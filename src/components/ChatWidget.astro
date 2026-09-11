@@ -281,17 +281,32 @@
      So it is gated on intent instead. Any scroll, tap, key or pointer movement
      pulls it in, which in practice means a real visitor still gets the bubble
      within a moment of touching the page. The timer below is only a backstop
-     for someone who loads the page and does nothing at all. */
-  const TRIGGERS = ["pointerdown", "pointermove", "keydown", "touchstart", "scroll", "wheel"] as const;
+     for someone who loads the page and does nothing at all.
 
-  const open = () => {
-    for (const event of TRIGGERS) window.removeEventListener(event, open);
-    void startChat();
+     Intent starts the clock rather than the load, though. Loading on the
+     first wheel event put a 100-200ms evaluation right at the start of the
+     visitor's first scroll - and SmoothScroll animates the page from that same
+     main thread, so the page froze mid-gesture. Every trigger restarts a short
+     wait, and the bundle loads once the visitor has been still for a moment. */
+  const TRIGGERS = ["pointerdown", "pointermove", "keydown", "touchstart", "scroll", "wheel"] as const;
+  const QUIET_MS = 1200;
+
+  let quiet: ReturnType<typeof setTimeout> | undefined;
+
+  const load = () => {
+    for (const event of TRIGGERS) window.removeEventListener(event, schedule);
+    if ("requestIdleCallback" in window) requestIdleCallback(() => void startChat(), { timeout: 2000 });
+    else void startChat();
   };
 
-  for (const event of TRIGGERS) window.addEventListener(event, open, { passive: true });
+  const schedule = () => {
+    clearTimeout(quiet);
+    quiet = setTimeout(load, QUIET_MS);
+  };
+
+  for (const event of TRIGGERS) window.addEventListener(event, schedule, { passive: true });
 
   // Backstop only, for a visitor who never touches the page at all. Long
   // enough that it never lands inside the window the page is measured over.
-  setTimeout(open, 15000);
+  setTimeout(schedule, 15000);
 </script>

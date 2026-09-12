@@ -1,3 +1,4 @@
+import NSE_COMPANIES from "@/data/nse-companies.json";
 import { getFrappeUrl, getFrappeToken } from "@/lib/frappe";
 
 /**
@@ -5,8 +6,9 @@ import { getFrappeUrl, getFrappeToken } from "@/lib/frappe";
  *
  * Every instrument the feed carries lives in this doctype, keyed by
  * `EXCHANGE|token`. `formatted_ins_name` is the human-readable name - "SBIN-EQ",
- * "Nifty 50", "RELIANCE 29th SEP 700 CE" - and doubles as the URL slug, so a
- * page exists for anything that can be searched.
+ * "Nifty 50", "RELIANCE 29th SEP 700 CE" - and so a page exists for anything
+ * that can be searched. Its URL is that name, slugified - except for a listed
+ * company's shares, which are addressed by the company's name (see below).
  */
 
 const TIMEOUT_MS = 8000;
@@ -22,6 +24,7 @@ export interface Contract {
   name: string;
   /** Exchange-native symbol, e.g. "HDFCBANK-EQ" - what EOD history is keyed by. */
   tradingSymbol: string;
+  /** The page's one canonical address, /stocks/<slug> - see `slugFor`. */
   slug: string;
   /** Contract Master's own ranking: indices 1, NSE 2, BSE 3. */
   order: number;
@@ -45,6 +48,63 @@ export function slugify(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+/**
+ * A listed company's shares are addressed by the company's name -
+ * /stocks/reliance-industries rather than Contract Master's "RELIANCE-EQ" -
+ * and its BSE listing by the same name with "-bse" on the end, so the two
+ * never meet: ITC's BSE row is plain "ITC", which would otherwise slugify to
+ * the NSE page's address. Names come from nse-companies.json, the NSE list
+ * (scripts/update-nse-companies.mjs); anything not on it - indices, ETFs,
+ * derivatives - keeps its contract-name slug.
+ */
+const BSE_SUFFIX = "-bse";
+
+let companyIndex: { slugBySymbol: Map<string, string>; symbolBySlug: Map<string, string> } | null = null;
+
+function companies() {
+  if (companyIndex) return companyIndex;
+
+  const bySlug = new Map<string, string[]>();
+  for (const [symbol, name] of Object.entries(NSE_COMPANIES as Record<string, string>)) {
+    const slug = slugify(name);
+    if (slug) bySlug.set(slug, [...(bySlug.get(slug) ?? []), symbol]);
+  }
+
+  const slugBySymbol = new Map<string, string>();
+  const symbolBySlug = new Map<string, string>();
+  for (const [slug, symbols] of bySlug) {
+    // A few companies list a second class of share under the same name - a
+    // DVR, a partly paid issue. The ordinary shares keep the name; the others
+    // add their symbol.
+    const ranked = [...symbols].sort(
+      (a, b) => Number(a.includes("DVR")) - Number(b.includes("DVR")) || a.length - b.length || a.localeCompare(b),
+    );
+    ranked.forEach((symbol, index) => {
+      const own = index === 0 ? slug : `${slug}-${slugify(symbol)}`;
+      slugBySymbol.set(symbol, own);
+      symbolBySlug.set(own, symbol);
+    });
+  }
+
+  return (companyIndex = { slugBySymbol, symbolBySlug });
+}
+
+function slugFor(exchange: string, symbol: string, name: string): string {
+  const company = companies().slugBySymbol.get(symbol);
+  if (company && exchange === "NSE") return company;
+  if (company && exchange === "BSE") return company + BSE_SUFFIX;
+  return slugify(name);
+}
+
+/** The listing a company-name address stands for, or null for any other address. */
+function companyListing(slug: string): { exchange: "NSE" | "BSE"; symbol: string } | null {
+  const { symbolBySlug } = companies();
+  const nse = symbolBySlug.get(slug);
+  if (nse) return { exchange: "NSE", symbol: nse };
+  const bse = slug.endsWith(BSE_SUFFIX) ? symbolBySlug.get(slug.slice(0, -BSE_SUFFIX.length)) : undefined;
+  return bse ? { exchange: "BSE", symbol: bse } : null;
+}
+
 const toContract = (row: ContractRow): Contract | null => {
   const name = row.formatted_ins_name || row.trading_symbol || row.symbol || "";
   if (!row.token || !row.exchange || !name) return null;
@@ -61,7 +121,7 @@ const toContract = (row: ContractRow): Contract | null => {
     exchange: row.exchange,
     name,
     tradingSymbol: row.trading_symbol || name,
-    slug: slugify(name),
+    slug: slugFor(row.exchange, row.symbol || "", name),
     order: row.order ?? 99,
   };
 };
@@ -181,8 +241,32 @@ export async function searchContracts(
  * The scan is kept as a fallback for names that mix both separators, with the
  * exact match made on the slug itself. Where several exchanges list the same
  * name, the cash market wins.
+ *
+ * A company-name address is looked up by exchange and symbol instead. Any
+ * other address a share can still be reached by - its old "reliance-eq", its
+ * bare BSE symbol - resolves by name as before, and the page redirects to the
+ * contract's canonical `slug`.
  */
 export async function findContractBySlug(slug: string): Promise<Contract | null> {
+  const listing = companyListing(slug);
+  if (listing) {
+    const rows = await query(
+      new URLSearchParams({
+        fields: FIELDS,
+        filters: JSON.stringify([
+          ["exchange", "=", listing.exchange],
+          ["symbol", "=", listing.symbol],
+        ]),
+        limit_page_length: "20",
+      }),
+    );
+    // Should NSE ever carry a symbol in two series, the ordinary shares win.
+    const own = rows
+      .filter((contract) => contract.slug === slug)
+      .sort((a, b) => Number(!a.name.endsWith("-EQ")) - Number(!b.name.endsWith("-EQ")));
+    if (own.length > 0) return own[0];
+  }
+
   const variants = [slug.replace(/-/g, " "), slug];
 
   const direct = await query(
@@ -193,7 +277,9 @@ export async function findContractBySlug(slug: string): Promise<Contract | null>
     }),
   );
 
-  const exactDirect = direct.filter((contract) => contract.slug === slug);
+  // Matched on the name's own slug, not the canonical one: this is how an old
+  // address finds the contract it now redirects to.
+  const exactDirect = direct.filter((contract) => slugify(contract.name) === slug);
   if (exactDirect.length > 0) return exactDirect.sort(byOrderThenSymbol)[0];
 
   const candidates = await query(
@@ -204,7 +290,7 @@ export async function findContractBySlug(slug: string): Promise<Contract | null>
     }),
   );
 
-  const exact = candidates.filter((contract) => contract.slug === slug);
+  const exact = candidates.filter((contract) => slugify(contract.name) === slug);
   if (exact.length === 0) return null;
   return exact.sort(byOrderThenSymbol)[0];
 }

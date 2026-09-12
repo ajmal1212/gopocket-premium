@@ -18,6 +18,11 @@ export default defineConfig({
   output: "server",
   adapter: cloudflare(),
   trailingSlash: "never",
+  // Dev only - the toolbar is never shipped. Its Audit app re-runs on every DOM
+  // change and fetch()es every <img> on the page each time to check its size,
+  // and live prices change the DOM several times a second: the Network panel
+  // filled with the same images, over and over. Set to true to bring it back.
+  devToolbar: { enabled: false },
   integrations: [react()],
   vite: {
     plugins: [

@@ -259,20 +259,28 @@ import { SEARCH_SEGMENTS } from "@/lib/contracts";
       return li;
     }
 
+    // Only writes on a real change. The feed repeats a price far more often than
+    // it moves one, and every write is a DOM mutation - a repaint here, and
+    // anything watching the page (the dev toolbar's audit re-fetches every
+    // image on each one) sees it too.
+    const setText = (el: HTMLElement, text: string) => {
+      if (el.textContent !== text) el.textContent = text;
+    };
+
     function paint(li: HTMLElement, tick: Tick) {
       const last = num(tick.lp);
       const percent = num(tick.pc);
       const previousClose = num(tick.c);
 
       const price = li.querySelector<HTMLElement>("[data-gs-price]");
-      if (price && last !== null) price.textContent = money(last);
+      if (price && last !== null) setText(price, money(last));
 
       const change = li.querySelector<HTMLElement>("[data-gs-change]");
       if (change && last !== null && percent !== null && previousClose !== null) {
         const delta = last - previousClose;
         const up = percent >= 0;
         const sign = up ? "+" : "";
-        change.textContent = sign + delta.toFixed(2) + " (" + sign + percent.toFixed(2) + "%)";
+        setText(change, sign + delta.toFixed(2) + " (" + sign + percent.toFixed(2) + "%)");
         change.classList.toggle("text-emerald-600", up);
         change.classList.toggle("text-red-600", !up);
       }

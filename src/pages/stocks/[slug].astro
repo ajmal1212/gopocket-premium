@@ -10,7 +10,7 @@ import StockNews from "@/components/stocks/StockNews.astro";
 import Shareholding from "@/components/stocks/Shareholding.astro";
 import ShareholdingBreakdown from "@/components/stocks/ShareholdingBreakdown.astro";
 import { fetchShareholding } from "@/lib/shareholding";
-import { stockBySlug } from "@/data/stocks";
+import { stockFor } from "@/data/stocks";
 import { findContractBySlug } from "@/lib/contracts";
 import { fetchQuote } from "@/lib/feed/quote";
 import { fetchCandles, fetchLatestSession, rangeById, sessionWindow } from "@/lib/feed/candles";
@@ -27,8 +27,16 @@ if (!contract) {
   return Astro.redirect("/404", 404);
 }
 
+// One address per instrument. A share's old address ("reliance-eq") or its
+// bare BSE symbol still finds it, and is sent on permanently to the company-
+// name one, keeping any ?range - so links and bookmarks keep working and search
+// engines move their ranking across rather than splitting it.
+if (contract.slug !== slug) {
+  return Astro.redirect(`/stocks/${contract.slug}${Astro.url.search}`, 301);
+}
+
 // Curated copy where it exists; otherwise the page stands on the live data.
-const editorial = stockBySlug(slug!);
+const editorial = stockFor(contract.exchange, contract.symbol);
 const displayName = editorial?.name ?? contract.name;
 const sector = editorial?.sector ?? contract.symbol;
 const token = contract.key;

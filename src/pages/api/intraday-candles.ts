@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { downsample, fetchCandles, latestSession, rangeById } from "@/lib/feed/candles";
+import { downsample, fetchLatestSession } from "@/lib/feed/candles";
 
 /**
  * Today's one-minute series for a stock page's 1D chart, for the browser.
@@ -23,7 +23,7 @@ export const GET: APIRoute = async ({ url }) => {
     });
   }
 
-  const candles = downsample(latestSession(await fetchCandles(token, rangeById("1D"))));
+  const candles = downsample((await fetchLatestSession(token)).candles);
 
   // Only what the chart plots: times and closes, as two flat lists.
   return new Response(JSON.stringify({ t: candles.map((c) => c.t), c: candles.map((c) => c.c) }), {

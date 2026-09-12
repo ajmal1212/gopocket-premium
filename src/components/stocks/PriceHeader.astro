@@ -8,9 +8,11 @@ interface Props {
   sector: string;
   token: string;
   quote: Tick | null;
+  /** Set between sessions: the previous close `quote` was measured from, for the live feed to keep to. */
+  heldClose?: number | null;
 }
 
-const { name, symbol, exchange, sector, token, quote } = Astro.props;
+const { name, symbol, exchange, sector, token, quote, heldClose = null } = Astro.props;
 
 /**
  * `pc` is the percent change and `c` the previous close, so the rupee change is
@@ -33,7 +35,13 @@ const money = (value: number) =>
 const signed = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
 ---
 
-<header class="flex flex-col gap-3" data-price-header data-token={token}>
+<header
+  class="flex flex-col gap-3"
+  data-price-header
+  data-token={token}
+  data-held-close={heldClose ?? undefined}
+  data-held-price={heldClose !== null ? quote?.lp : undefined}
+>
   <p class="text-text-default flex items-center gap-2 text-sm">
     <span class="font-semibold">{symbol}</span>
     <span class="border-border-light rounded border px-1.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase">

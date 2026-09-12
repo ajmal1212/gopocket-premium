@@ -13,7 +13,7 @@ import { fetchShareholding } from "@/lib/shareholding";
 import { stockBySlug } from "@/data/stocks";
 import { findContractBySlug } from "@/lib/contracts";
 import { fetchQuote } from "@/lib/feed/quote";
-import { fetchCandles, latestSession, rangeById, sessionWindow } from "@/lib/feed/candles";
+import { fetchCandles, fetchLatestSession, rangeById, sessionWindow } from "@/lib/feed/candles";
 import PriceChart from "@/components/stocks/PriceChart.astro";
 import TrendingUp from "@lucide/astro/icons/trending-up";
 
@@ -41,17 +41,32 @@ const range = rangeById(Astro.url.searchParams.get("range") || "1D");
 // no shareholders to report.
 const hasDepth = contract.exchange !== "INDICES";
 
-// Run together, so the page's time-to-first-byte is the slowest of the three
-// rather than their sum. The shareholding lookup is capped well inside the
-// candles' own timeout, so it never becomes the slowest.
-const [quote, allCandles, shareholding] = await Promise.all([
+// Run together, so the page's time-to-first-byte is the slowest of them rather
+// than their sum. The shareholding lookup is capped well inside the candles'
+// own timeout, so it never becomes the slowest. A 1D chart is the latest
+// session - today's, or the last one that traded - which every range fetches,
+// since it also carries the previous close to measure the day's change from.
+const [feedQuote, latest, rangeCandles, shareholding] = await Promise.all([
   fetchQuote(token),
-  fetchCandles(token, range, contract.tradingSymbol),
+  fetchLatestSession(token),
+  range.id === "1D" ? null : fetchCandles(token, range, contract.tradingSymbol),
   hasDepth ? fetchShareholding(contract.symbol) : null,
 ]);
+const candles = rangeCandles ?? latest.candles;
 
-// A 1D chart means one session; the wider ranges are shown as fetched.
-const candles = range.id === "1D" ? latestSession(allCandles) : allCandles;
+/*
+ * Between sessions the feed has already rolled its previous close forward to
+ * the last session's own close, so Friday's move would read +0.00 (and green)
+ * all weekend. When nothing has traded today, the change is measured from the
+ * session before instead - as every broker shows it - and the page tells the
+ * feed client to keep doing so until the price moves again (see client.ts).
+ */
+const feedPrice = feedQuote?.lp ? Number.parseFloat(feedQuote.lp) : null;
+const heldClose = feedPrice !== null ? latest.previousClose : null;
+const quote =
+  feedQuote && feedPrice !== null && heldClose !== null
+    ? { ...feedQuote, c: heldClose.toFixed(2), pc: (((feedPrice - heldClose) / heldClose) * 100).toFixed(2) }
+    : feedQuote;
 const previousClose = quote?.c ? Number.parseFloat(quote.c) : null;
 
 // Only the intraday view is plotted against clock time; the longer ranges span
@@ -87,6 +102,7 @@ const jsonLd = {
           sector={sector}
           token={token}
           quote={quote}
+          heldClose={heldClose}
         />
 
         <PriceChart
@@ -213,13 +229,18 @@ const jsonLd = {
 </Layout>
 
 <script>
-  import { register, subscribe } from "@/lib/feed/client";
+  import { holdPreviousClose, register, subscribe } from "@/lib/feed/client";
   import type { Tick } from "@/lib/feed/types";
 
   const header = document.querySelector<HTMLElement>("[data-price-header]");
   const token = header?.dataset.token;
 
   if (header && token) {
+    // Before anything subscribes: the first snapshot must already be measured
+    // from the session before, not from the feed's rolled-forward close.
+    const { heldClose, heldPrice } = header.dataset;
+    if (heldClose && heldPrice) holdPreviousClose(token, Number(heldClose), Number(heldPrice));
+
     const root = header.closest("main") ?? document.body;
     const fields = new Map<string, HTMLElement>();
     for (const el of root.querySelectorAll<HTMLElement>("[data-field]")) {

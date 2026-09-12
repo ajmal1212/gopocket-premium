@@ -45,8 +45,11 @@ function usSummerTime(year: number, month: number, day: number): boolean {
  * the given exchange. Anything but MCX keeps equity hours: NFO and BFO are
  * NSE's and BSE's own derivatives, and an index trades when its market does.
  */
+/** Epoch seconds at the start of the IST calendar day that `epoch` falls on. */
+export const istMidnightOf = (epoch: number): number => Math.floor((epoch + IST_OFFSET) / DAY) * DAY - IST_OFFSET;
+
 export function sessionAt(epoch: number, exchange = "NSE"): Session {
-  const istMidnight = Math.floor((epoch + IST_OFFSET) / DAY) * DAY - IST_OFFSET;
+  const istMidnight = istMidnightOf(epoch);
   if (exchange !== "MCX") return { start: istMidnight + EQUITY.open, end: istMidnight + EQUITY.close };
 
   // The UTC fields of IST midnight shifted by the offset are the IST date.

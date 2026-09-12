@@ -1,5 +1,5 @@
 import { FEED_HUB_URL } from "./config";
-import { sessionAt, type Session } from "./session";
+import { istMidnightOf, sessionAt, type Session } from "./session";
 
 export interface Candle {
   /** Epoch seconds at the start of the candle. */
@@ -63,18 +63,16 @@ export const rangeById = (id: string): Range => RANGES.find((r) => r.id === id) 
 const TIMEOUT_MS = 6000;
 
 /**
- * Candles for one instrument, oldest first.
+ * Candles for one instrument between two epoch seconds, oldest first.
  *
  * Failure is an empty list rather than an exception: a stock page that cannot
  * draw a chart should still render its price and its copy.
  */
-export async function fetchCandles(token: string, range: Range, tradingSymbol = ""): Promise<Candle[]> {
-  const to = Math.floor(Date.now() / 1000);
-  const from = to - range.lookback;
+async function requestCandles(token: string, interval: Interval, from: number, to: number, tradingSymbol = "") {
   // The daily upstream is keyed by trading symbol rather than token, and
   // answers a numeric token with an empty array rather than an error.
-  const symbol = isDaily(range) ? `&symbol=${encodeURIComponent(tradingSymbol)}` : "";
-  const url = `${FEED_HUB_URL}/candles?token=${encodeURIComponent(token)}&interval=${range.interval}${symbol}&from=${from}&to=${to}`;
+  const symbol = interval === "day" ? `&symbol=${encodeURIComponent(tradingSymbol)}` : "";
+  const url = `${FEED_HUB_URL}/candles?token=${encodeURIComponent(token)}&interval=${interval}${symbol}&from=${from}&to=${to}`;
 
   try {
     const response = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
@@ -84,6 +82,58 @@ export async function fetchCandles(token: string, range: Range, tradingSymbol = 
   } catch {
     return [];
   }
+}
+
+/** Candles for one of the chart's ranges, reaching back its `lookback` from now. */
+export async function fetchCandles(token: string, range: Range, tradingSymbol = ""): Promise<Candle[]> {
+  const to = Math.floor(Date.now() / 1000);
+  return requestCandles(token, range.interval, to - range.lookback, to, tradingSymbol);
+}
+
+/**
+ * How far back the 1D chart looks when nothing has traded today: far enough
+ * to cross a weekend with a holiday on either side of it.
+ */
+const QUIET_LOOKBACK = 5 * DAY;
+
+export interface LatestSession {
+  /** The latest session's one-minute candles. */
+  candles: Candle[];
+  /**
+   * The close of the session before them - set only when the latest session
+   * isn't today's, which is exactly when the feed's own previous close can't
+   * be trusted. Once a new day begins (a weekend or holiday included) the
+   * broker rolls its previous close forward to the last session's close, so
+   * Friday's move reads +0.00 all weekend - where every broker shows it
+   * measured from Thursday. See `holdPreviousClose` in client.ts.
+   */
+  previousClose: number | null;
+}
+
+/**
+ * The latest session's one-minute candles, for the 1D chart.
+ *
+ * Asked for from IST midnight first: on a trading day that is the whole
+ * session and nothing more. With nothing since midnight - before the open, at
+ * the weekend, on a holiday - the last few days are fetched instead and cut to
+ * the last session in them. A fixed 24-hour window got neither right: on a
+ * Saturday morning it held Friday from mid-morning on, so the line started
+ * part-way across, and on a Monday morning it reached back only to Sunday and
+ * held nothing at all.
+ *
+ * One-minute candles rather than hourly for the earlier session's close too:
+ * the last minute carries the exchange's official closing price, where the
+ * hourly bar can stop at the last trade before it.
+ */
+export async function fetchLatestSession(token: string): Promise<LatestSession> {
+  const now = Math.floor(Date.now() / 1000);
+  const today = await requestCandles(token, 1, istMidnightOf(now), now);
+  if (today.length > 0) return { candles: today, previousClose: null };
+
+  const recent = await requestCandles(token, 1, now - QUIET_LOOKBACK, now);
+  const candles = latestSession(recent);
+  const before = recent[recent.length - candles.length - 1];
+  return { candles, previousClose: before?.c ?? null };
 }
 
 /**
@@ -108,10 +158,10 @@ export function downsample(candles: Candle[], max = 400): Candle[] {
 /**
  * Trim to the latest trading session.
  *
- * The hub is asked for 24 hours so a Monday morning still has Friday to fall
- * back on, but a "1D" chart should show one session. The cut is made at the
- * largest gap between consecutive candles, which is the overnight close -
- * simpler and more robust than reasoning about holidays and half-days.
+ * When nothing has traded today the hub is asked for several days, but a "1D"
+ * chart should show one session. The cut is made at the last gap of over two
+ * hours between consecutive candles, which is the overnight close - simpler
+ * and more robust than reasoning about holidays and half-days.
  */
 export function latestSession(candles: Candle[]): Candle[] {
   if (candles.length < 3) return candles;

@@ -90,6 +90,34 @@ function send(message: Record<string, unknown>) {
   if (!paused && socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
 }
 
+/**
+ * token -> a previous close to report instead of the feed's, and the price it
+ * holds for. Between sessions the broker rolls its previous close forward to
+ * the last session's own close, so the last session's move would read +0.00;
+ * a page that knows the close before it (see `fetchLatestSession`) holds that
+ * here. The hold lasts while the price is still the last session's close - the
+ * first different print is the next session under way, when the feed's own
+ * previous close is right again - and is dropped for good at that point, so a
+ * price that later returns to that level is never re-measured.
+ */
+const held = new Map<string, { close: number; price: number }>();
+
+export function holdPreviousClose(token: string, close: number, price: number) {
+  if (Number.isFinite(close) && close > 0 && Number.isFinite(price)) held.set(token, { close, price });
+}
+
+/** The tick with its previous close and percent change taken from a hold, while one applies. */
+function measured(tick: Tick): Tick {
+  const hold = held.get(tick.k);
+  if (!hold || tick.lp === undefined) return tick;
+  const last = Number.parseFloat(tick.lp);
+  if (last !== hold.price) {
+    held.delete(tick.k);
+    return tick;
+  }
+  return { ...tick, c: hold.close.toFixed(2), pc: (((last - hold.close) / hold.close) * 100).toFixed(2) };
+}
+
 /** Everything the page has registered, as one message each for prices and depth. */
 function subscribeAll() {
   const tokens = union();
@@ -124,7 +152,8 @@ function connect() {
     }
 
     if (message.type === "snap") {
-      for (const tick of Object.values(message.ticks) as Tick[]) {
+      for (const raw of Object.values(message.ticks) as Tick[]) {
+        const tick = measured(raw);
         cache.set(tick.k, tick);
         pending.set(tick.k, tick);
       }
@@ -133,7 +162,7 @@ function connect() {
     }
 
     if (message.type === "tick") {
-      const tick = message.tick as Tick;
+      const tick = measured(message.tick as Tick);
       cache.set(tick.k, tick);
       pending.set(tick.k, tick);
       scheduleFlush();

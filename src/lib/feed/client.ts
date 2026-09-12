@@ -101,7 +101,12 @@ function subscribeAll() {
 function connect() {
   if (socket || paused || typeof window === "undefined") return;
 
-  socket = new WebSocket(FEED_WS_URL);
+  // A page served over HTTPS can't open a plain `ws://` socket - the browser
+  // blocks it - and the hub's plain-HTTP address only redirects, which a socket
+  // won't follow. So on a secure page a `ws://` build value is upgraded rather
+  // than left to fail silently. An http page (local dev) keeps it as given.
+  const url = location.protocol === "https:" ? FEED_WS_URL.replace(/^ws:\/\//, "wss://") : FEED_WS_URL;
+  socket = new WebSocket(url);
 
   socket.addEventListener("open", () => {
     attempt = 0;

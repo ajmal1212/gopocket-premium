@@ -12,11 +12,12 @@
  */
 
 /** The hub's HTTP API, fetched while rendering. Server-side only. */
-export const FEED_HUB_URL = import.meta.env.FEED_HUB_URL || "https://mktfeed.codenetic.online";
+export const FEED_HUB_URL = import.meta.env.FEED_HUB_URL || "https://mktfeed.gopocket.in";
 
 /**
  * The hub's socket, opened by the visitor's browser. `wss://` rather than
  * `ws://`: the site is served over HTTPS, and a browser refuses an insecure
- * socket from a secure page outright - the price would never go live.
+ * socket from a secure page outright - the price would never go live. (The
+ * client upgrades a `ws://` value on a secure page anyway; see client.ts.)
  */
-export const FEED_WS_URL = import.meta.env.PUBLIC_FEED_WS_URL || "wss://mktfeed.codenetic.online";
+export const FEED_WS_URL = import.meta.env.PUBLIC_FEED_WS_URL || "wss://mktfeed.gopocket.in";

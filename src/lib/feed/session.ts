@@ -48,6 +48,9 @@ function usSummerTime(year: number, month: number, day: number): boolean {
 /** Epoch seconds at the start of the IST calendar day that `epoch` falls on. */
 export const istMidnightOf = (epoch: number): number => Math.floor((epoch + IST_OFFSET) / DAY) * DAY - IST_OFFSET;
 
+/** Day of the week in India for `epoch`: 0 Sunday to 6 Saturday. */
+export const istWeekday = (epoch: number): number => new Date((istMidnightOf(epoch) + IST_OFFSET) * 1000).getUTCDay();
+
 export function sessionAt(epoch: number, exchange = "NSE"): Session {
   const istMidnight = istMidnightOf(epoch);
   if (exchange !== "MCX") return { start: istMidnight + EQUITY.open, end: istMidnight + EQUITY.close };

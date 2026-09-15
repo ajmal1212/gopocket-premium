@@ -1,4 +1,5 @@
 import NSE_COMPANIES from "@/data/nse-companies.json";
+import { edgeGet, edgePut } from "@/lib/edge-cache";
 import { getFrappeUrl, getFrappeToken } from "@/lib/frappe";
 
 /**
@@ -226,7 +227,59 @@ export async function searchContracts(
     }),
   );
   // Stable, so contracts of one symbol keep the expiry order above.
-  return results.sort(byOrderThenSymbol).slice(0, limit);
+  const top = results.sort(byOrderThenSymbol).slice(0, limit);
+  // A result is usually clicked next, and its page starts with this very
+  // lookup - kept now, the page skips Frappe altogether.
+  await Promise.all(top.map((contract) => remember(contract)));
+  return top;
+}
+
+/**
+ * slug -> contract, kept for an hour. Every stock page starts with this lookup
+ * and nothing else can begin until it answers - over half a second from Frappe
+ * - so it is kept twice over: in this isolate, and in the data centre's shared
+ * cache for every other isolate (see edge-cache.ts). The search endpoint keeps
+ * the contracts it returns the same way, so clicking a result skips Frappe.
+ *
+ * Contract Master is regenerated daily, but a listed share's token doesn't
+ * change with it, and a derivative's lasts until expiry. Misses aren't kept: a
+ * new listing should appear as soon as Frappe has it.
+ */
+const CONTRACT_TTL_MS = 60 * 60 * 1000;
+/** Enough for every page anyone actually visits, while a crawler walking the option chains can't grow it without bound. */
+const CONTRACT_CACHE_LIMIT = 2000;
+const contractCache = new Map<string, { at: number; contract: Contract }>();
+
+function keepInIsolate(slug: string, contract: Contract) {
+  contractCache.delete(slug);
+  contractCache.set(slug, { at: Date.now(), contract });
+  // A Map iterates in insertion order, so the first key is the stalest.
+  if (contractCache.size > CONTRACT_CACHE_LIMIT) contractCache.delete(contractCache.keys().next().value!);
+}
+
+/**
+ * Keep a contract under the address it was asked for and its canonical one -
+ * so an old address's redirect lands on a lookup already made - in both caches.
+ */
+async function remember(contract: Contract, ...asked: string[]) {
+  const slugs = [...new Set([...asked, contract.slug])];
+  for (const slug of slugs) keepInIsolate(slug, contract);
+  await Promise.all(slugs.map((slug) => edgePut(`contract:${slug}`, contract, CONTRACT_TTL_MS / 1000)));
+}
+
+export async function findContractBySlug(slug: string): Promise<Contract | null> {
+  const hit = contractCache.get(slug);
+  if (hit && Date.now() - hit.at < CONTRACT_TTL_MS) return hit.contract;
+
+  const shared = await edgeGet<Contract>(`contract:${slug}`);
+  if (shared) {
+    keepInIsolate(slug, shared);
+    return shared;
+  }
+
+  const contract = await lookupContract(slug);
+  if (contract) await remember(contract, slug);
+  return contract;
 }
 
 /**
@@ -247,7 +300,7 @@ export async function searchContracts(
  * bare BSE symbol - resolves by name as before, and the page redirects to the
  * contract's canonical `slug`.
  */
-export async function findContractBySlug(slug: string): Promise<Contract | null> {
+async function lookupContract(slug: string): Promise<Contract | null> {
   const listing = companyListing(slug);
   if (listing) {
     const rows = await query(

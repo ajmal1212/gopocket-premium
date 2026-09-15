@@ -1,5 +1,6 @@
 import { FEED_HUB_URL } from "./config";
-import { istMidnightOf, sessionAt, type Session } from "./session";
+import { edgeGet, edgePut } from "@/lib/edge-cache";
+import { istMidnightOf, istWeekday, sessionAt, type Session } from "./session";
 
 export interface Candle {
   /** Epoch seconds at the start of the candle. */
@@ -127,14 +128,67 @@ export interface LatestSession {
  */
 export async function fetchLatestSession(token: string): Promise<LatestSession> {
   const now = Math.floor(Date.now() / 1000);
-  const today = await requestCandles(token, 1, istMidnightOf(now), now);
-  if (today.length > 0) return { candles: today, previousClose: null };
+  const midnight = istMidnightOf(now);
+
+  // No session on any exchange opens before 9:00 IST, so until then there is
+  // nothing of today's to ask for.
+  const opened = now >= midnight + EARLIEST_OPEN;
+  // At the weekend today almost never trades - a special session (Budget day,
+  // Muhurat) is the exception - so the last closed session is fetched alongside
+  // today's rather than after it, and the page waits on the slower of the two
+  // instead of both. On a weekday it's only needed if today turns out empty.
+  const quietDay = !opened || istWeekday(now) === 0 || istWeekday(now) === 6;
+  const closed = quietDay ? closedSession(token, now) : null;
+
+  if (opened) {
+    const today = await requestCandles(token, 1, midnight, now);
+    if (today.length > 0) return { candles: today, previousClose: null };
+  }
+  return closed ?? closedSession(token, now);
+}
+
+/**
+ * The last session that has closed, and the close of the one before it.
+ *
+ * A closed session can't change, so it is kept a few minutes - in this isolate
+ * and in the data centre's shared cache - rather than fetched, a week of
+ * one-minute candles, on every view. Today is always asked for first (above),
+ * so a session that opens is picked up on the next request.
+ */
+async function closedSession(token: string, now: number): Promise<LatestSession> {
+  const kept = closedSessions.get(token);
+  if (kept && Date.now() - kept.at < CLOSED_SESSION_TTL_MS) return kept.value;
+
+  const shared = await edgeGet<LatestSession>(`session:${token}`);
+  if (shared) {
+    keepClosed(token, shared);
+    return shared;
+  }
 
   const recent = await requestCandles(token, 1, now - QUIET_LOOKBACK, now);
   const candles = latestSession(recent);
   const before = recent[recent.length - candles.length - 1];
-  return { candles, previousClose: before?.c ?? null };
+  const value = { candles, previousClose: before?.c ?? null };
+
+  if (candles.length > 0) {
+    keepClosed(token, value);
+    await edgePut(`session:${token}`, value, CLOSED_SESSION_TTL_MS / 1000);
+  }
+  return value;
 }
+
+function keepClosed(token: string, value: LatestSession) {
+  closedSessions.delete(token);
+  closedSessions.set(token, { at: Date.now(), value });
+  if (closedSessions.size > CLOSED_SESSION_LIMIT) closedSessions.delete(closedSessions.keys().next().value!);
+}
+
+/** Seconds past IST midnight at which the first session of any exchange opens (MCX, and NSE's pre-open). */
+const EARLIEST_OPEN = 9 * 60 * 60;
+const CLOSED_SESSION_TTL_MS = 5 * 60 * 1000;
+const CLOSED_SESSION_LIMIT = 500;
+/** token -> the last closed session, per isolate. */
+const closedSessions = new Map<string, { at: number; value: LatestSession }>();
 
 /**
  * Thin a long series down to something worth drawing.

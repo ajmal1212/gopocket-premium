@@ -75,7 +75,7 @@ const expandable = (data?.groups ?? []).filter((group) => group.parts.length > 1
       <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         {/* text-h6! - see MarketDepth.astro on the global h2 rule. */}
         <h2 class="text-h6! font-semibold">Shareholding pattern</h2>
-        <p class="text-text-default/60 text-xs">Quarter ended {data.asOf}</p>
+        <p class="text-text-default/75 text-xs">Quarter ended {data.asOf}</p>
       </div>
 
       <div class="border-border-light rounded-2xl border bg-white p-4 md:p-6 dark:bg-transparent">
@@ -106,7 +106,7 @@ const expandable = (data?.groups ?? []).filter((group) => group.parts.length > 1
                 <span class="text-dark text-lg leading-tight font-semibold tabular-nums">
                   {compact(data.shareholders)}
                 </span>
-                <span class="text-text-default/60 text-[11px]">shareholders</span>
+                <span class="text-text-default/75 text-[11px]">shareholders</span>
               </figcaption>
             )}
           </figure>
@@ -189,7 +189,7 @@ const expandable = (data?.groups ?? []).filter((group) => group.parts.length > 1
                 <tr>
                   <th scope="row" class="py-3 pr-4 text-left font-normal">
                     <span class="text-dark block leading-snug">{holder.name}</span>
-                    {holder.kind && <span class="text-text-default/60 text-xs">{holder.kind}</span>}
+                    {holder.kind && <span class="text-text-default/75 text-xs">{holder.kind}</span>}
                   </th>
                   <td class="text-dark py-3 text-right align-top font-medium tabular-nums">
                     {percent(holder.percent)}
@@ -201,7 +201,7 @@ const expandable = (data?.groups ?? []).filter((group) => group.parts.length > 1
         </div>
       )}
 
-      <p class="text-text-default/60 text-xs">
+      <p class="text-text-default/75 text-xs">
         From the company's shareholding pattern filing with NSE. Percentages are of total shares.
       </p>
     </section>

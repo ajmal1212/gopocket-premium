@@ -1,3 +1,4 @@
+import { edgeGet, edgePut } from "@/lib/edge-cache";
 import { getFrappeInstance, getFrappeToken, getFrappeUrl } from "@/lib/frappe";
 
 /**
@@ -96,17 +97,46 @@ async function queryRows(symbol: string): Promise<ShareholdingRow[]> {
 }
 
 /**
+ * The split changes once a quarter, and Frappe's answer usually takes a few
+ * hundred milliseconds but now and then runs into the two-second cap - so it is
+ * kept for hours, in this isolate and in the data centre's shared cache. A
+ * company with no filing is asked about again sooner; one Frappe couldn't
+ * answer for isn't kept at all.
+ */
+const SUMMARY_TTL_MS = 6 * 60 * 60 * 1000;
+const SUMMARY_MISS_TTL_MS = 30 * 60 * 1000;
+const summaryCache = new Map<string, { at: number; value: Shareholding | null }>();
+
+/**
  * The newest filing for an NSE symbol, or null when there is none, it can't be
  * reached in time, or its figures don't add up to something drawable. A stock
  * page renders without this section rather than with a broken one.
  */
 export async function fetchShareholding(symbol: string): Promise<Shareholding | null> {
+  const kept = summaryCache.get(symbol);
+  if (kept && Date.now() - kept.at < (kept.value ? SUMMARY_TTL_MS : SUMMARY_MISS_TTL_MS)) return kept.value;
+
+  const shared = await edgeGet<{ value: Shareholding | null }>(`shareholding:${symbol}`);
+  if (shared) {
+    summaryCache.set(symbol, { at: Date.now(), value: shared.value });
+    return shared.value;
+  }
+
+  const value = await readShareholding(symbol);
+  if (value === undefined) return null;
+  summaryCache.set(symbol, { at: Date.now(), value });
+  await edgePut(`shareholding:${symbol}`, { value }, (value ? SUMMARY_TTL_MS : SUMMARY_MISS_TTL_MS) / 1000);
+  return value;
+}
+
+/** The newest filing, null when there is none - or undefined when Frappe couldn't be asked. */
+async function readShareholding(symbol: string): Promise<Shareholding | null | undefined> {
   let rows: ShareholdingRow[];
   try {
     rows = await queryRows(symbol);
   } catch (error) {
     console.error(`Shareholding lookup failed for ${symbol}:`, error);
-    return null;
+    return undefined;
   }
 
   // One row per company in practice; newest first in case a quarter is ever

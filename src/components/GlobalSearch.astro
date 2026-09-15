@@ -113,6 +113,20 @@ import { SEARCH_SEGMENTS } from "@/lib/contracts";
   </div>
 </div>
 
+<!--
+  A stock page is rendered on the server, which takes it a moment. This asks
+  Chrome and Edge to start fetching one as soon as the pointer rests on a link
+  to it (or a finger goes down), so most of that moment has passed by the time
+  the click lands. It covers the search results, which are inserted later -
+  document rules watch the page. Only the HTML is fetched: nothing runs until
+  the visitor actually goes there, and other browsers ignore the hint.
+-->
+<script
+  type="speculationrules"
+  is:inline
+  set:html={JSON.stringify({ prefetch: [{ where: { href_matches: "/stocks/*" }, eagerness: "moderate" }] })}
+/>
+
 <script>
   import { register, unregister, subscribe } from "@/lib/feed/client";
   import type { Tick } from "@/lib/feed/types";

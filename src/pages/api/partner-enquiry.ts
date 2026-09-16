@@ -103,9 +103,9 @@ export const POST: APIRoute = async ({ request }) => {
   const { status, message, lead } = result.data;
 
   // Unlike the retail flow, none of the statuses route anywhere - a partner
-  // applicant who already holds an account is still a valid applicant. Every
-  // recognised status is a successful enquiry.
-  if (status === "lead_created" || status === "kyc" || status === "client") {
+  // applicant who already holds an account, or held a closed one, is still a
+  // valid applicant. Every recognised status is a successful enquiry.
+  if (status === "lead_created" || status === "kyc" || status === "client" || status === "closed") {
     return json(
       {
         ok: true,

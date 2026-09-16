@@ -13,6 +13,7 @@ import { createLead } from "../../lib/frappe";
  *   client       -> already onboarded, go to the trading terminal
  *   kyc          -> mid-signup, go back to the signup flow
  *   lead_created -> new lead, start the signup flow
+ *   closed       -> account was closed, start the signup flow again
  */
 
 const WEB_URL = "https://web.gopocket.in";
@@ -133,6 +134,23 @@ export const POST: APIRoute = async ({ request }) => {
           lead,
           title: "You're all set!",
           message: message || "Taking you to the signup form...",
+          redirect: signupUrl(refer),
+        },
+        200,
+      );
+    /*
+     * The number belonged to an account that has since been closed. Frappe's
+     * own message ("User account is closed") reads as a rejection, so it is
+     * deliberately not passed through - the visitor is opening an account, and
+     * a closed one is no obstacle to that. They go to signup like any new lead.
+     */
+    case "closed":
+      return json(
+        {
+          ok: true,
+          status,
+          title: "Let's get you set up again",
+          message: "Your previous account was closed. Taking you to the signup form...",
           redirect: signupUrl(refer),
         },
         200,

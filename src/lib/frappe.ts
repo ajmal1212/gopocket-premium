@@ -782,9 +782,10 @@ export interface CreateLeadParams {
 }
 
 /**
- * Frappe answers with one of three statuses. `client` means the number already
- * belongs to a back-office user, `kyc` means signup is mid-KYC, and
- * `lead_created` is a fresh CRM Lead. The caller routes on the status.
+ * Frappe answers with one of four statuses. `client` means the number already
+ * belongs to a back-office user, `kyc` means signup is mid-KYC, `closed` means
+ * it belonged to an account that has since been shut, and `lead_created` is a
+ * fresh CRM Lead. The caller routes on the status.
  */
 export interface CreateLeadResponse {
   status?: string;

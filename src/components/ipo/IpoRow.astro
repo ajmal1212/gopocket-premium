@@ -13,8 +13,8 @@
  * with `z-10` plus `pointer-events-auto`.
  */
 import type { FormattedIpo } from "@/lib/ipo";
-import { formatDayMonth } from "@/lib/ipo";
-import { COLUMN_LAYOUT, type IpoTab } from "./ipo-columns";
+import { formatDayMonth, formatInr } from "@/lib/ipo";
+import { COLUMN_LAYOUT, TIER_VISIBILITY, type IpoTab } from "./ipo-columns";
 import ExternalLink from "@lucide/astro/icons/external-link";
 
 interface Props {
@@ -74,7 +74,7 @@ const returnLabel = hasReturn ? `${Math.abs(gain).toFixed(2)}% ${gain < 0 ? "los
     )
   }
 
-  <div class:list={["pointer-events-none relative grid items-center gap-3 px-4 py-3.5 md:gap-4 md:px-5", layout.grid]}>
+  <div class:list={["pointer-events-none relative grid items-center px-4 py-3.5 md:px-5", layout.grid]}>
     <!-- Logo -->
     <div
       class="border-border-light flex h-13 w-13 items-center justify-center overflow-hidden rounded-xl border bg-white"
@@ -111,13 +111,26 @@ const returnLabel = hasReturn ? `${Math.abs(gain).toFixed(2)}% ${gain < 0 ? "los
       <!-- On phones the data columns collapse into this meta line. -->
       <p class="text-text-default/70 mt-0.5 truncate text-xs md:hidden dark:text-slate-400">
         {date || dateFallback}
+        {
+          tab === "closed" && ipo.issuePrice > 0 && ipo.listingPrice > 0 && (
+            <span>
+              {" "}
+              · ₹{formatInr(ipo.issuePrice)} → ₹{formatInr(ipo.listingPrice)}
+            </span>
+          )
+        }
+        {tab === "open" && ipo.priceBand && <span> · {ipo.priceBand}</span>}
         {tab !== "upcoming" && ipo.subscriptionLabel && <span> · {ipo.subscriptionLabel}</span>}
         {tab === "closed" && returnLabel && <span> · {returnLabel}</span>}
       </p>
     </div>
 
-    <!-- Date -->
-    <div class="hidden md:block">
+    <!--
+      Data cells. DOM order must match the xl track order in ipo-columns.ts;
+      the xl-only cells are display:none below that, so they leave grid flow and
+      the rest line up with the shorter template.
+    -->
+    <div class={TIER_VISIBILITY.md}>
       <p class="text-text-default text-sm dark:text-slate-300">{date || dateFallback}</p>
       {
         ipo.isLastDay && (
@@ -128,10 +141,45 @@ const returnLabel = hasReturn ? `${Math.abs(gain).toFixed(2)}% ${gain < 0 ? "los
       }
     </div>
 
+    <!-- Price band and lot size (open only, xl and up) -->
+    {
+      tab === "open" && (
+        <>
+          <div class={TIER_VISIBILITY.xl}>
+            <p class="text-text-default text-sm whitespace-nowrap dark:text-slate-300">{ipo.priceBand || "--"}</p>
+          </div>
+          <div class={TIER_VISIBILITY.xl}>
+            <p class="text-text-default text-sm dark:text-slate-300">
+              {ipo.lotSize > 0 ? formatInr(ipo.lotSize) : "--"}
+            </p>
+          </div>
+        </>
+      )
+    }
+
+    <!-- Issue and listing price (closed only, xl and up). Both are filled in
+         the doctype only once the share has actually listed. -->
+    {
+      tab === "closed" && (
+        <>
+          <div class={TIER_VISIBILITY.xl}>
+            <p class="text-text-default text-sm dark:text-slate-300">
+              {ipo.issuePrice > 0 ? `₹${formatInr(ipo.issuePrice)}` : "--"}
+            </p>
+          </div>
+          <div class={TIER_VISIBILITY.xl}>
+            <p class="text-text-default text-sm dark:text-slate-300">
+              {ipo.listingPrice > 0 ? `₹${formatInr(ipo.listingPrice)}` : "--"}
+            </p>
+          </div>
+        </>
+      )
+    }
+
     <!-- Listing returns (closed only) -->
     {
       tab === "closed" && (
-        <div class="hidden md:block">
+        <div class={TIER_VISIBILITY.md}>
           {returnLabel ? (
             <p
               class:list={[
@@ -151,7 +199,7 @@ const returnLabel = hasReturn ? `${Math.abs(gain).toFixed(2)}% ${gain < 0 ? "los
     <!-- Overall subscription (open and closed) -->
     {
       tab !== "upcoming" && (
-        <div class="hidden md:block">
+        <div class={TIER_VISIBILITY.md}>
           <p class="text-text-default text-sm dark:text-slate-300">{ipo.subscriptionLabel || "--"}</p>
         </div>
       )

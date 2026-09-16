@@ -11,7 +11,7 @@ import type { IpoBoard } from "@/lib/ipo";
 import Button from "@/components/Button.astro";
 import IpoDetailPanel from "./IpoDetailPanel.astro";
 import IpoRow from "./IpoRow.astro";
-import { COLUMN_LAYOUT } from "./ipo-columns";
+import { COLUMN_LAYOUT, TIER_VISIBILITY } from "./ipo-columns";
 import ChevronDown from "@lucide/astro/icons/chevron-down";
 import TrendingUp from "@lucide/astro/icons/trending-up";
 
@@ -45,13 +45,15 @@ const IPO_TYPES = [
 // Column headings and grid tracks come from COLUMN_LAYOUT, shared with IpoRow.
 const tabs = [
   { id: "open" as const, label: "Open", items: board.open },
-  { id: "upcoming" as const, label: "Upcoming", items: board.upcoming },
   { id: "closed" as const, label: "Closed", items: board.closed },
+  { id: "upcoming" as const, label: "Upcoming", items: board.upcoming },
 ];
 
-// Open is the default tab, but if nothing is bidding right now the page opens on
-// the tab that actually has something to show rather than on an empty table.
-const defaultTab = board.open.length > 0 ? "open" : board.upcoming.length > 0 ? "upcoming" : "closed";
+// Open is the default, but if nothing is bidding right now the page falls
+// through to the first tab that actually has something to show rather than
+// opening on an empty table. Derived from `tabs`, so reordering them above
+// reorders the fallback with no second edit.
+const defaultTab = (tabs.find((tab) => tab.items.length > 0) ?? tabs[0]).id;
 ---
 
 <section class="ipo-board" data-ipo-dashboard>
@@ -144,14 +146,14 @@ const defaultTab = board.open.length > 0 ? "open" : board.upcoming.length > 0 ? 
               {/* Column headings mirror IpoRow's md+ grid so they line up. */}
               <div
                 class:list={[
-                  "bg-theme-light border-border-light text-text-default/70 hidden border-b px-5 py-3 text-xs font-semibold tracking-wide uppercase md:grid md:gap-4 dark:bg-white/[0.04] dark:text-slate-400",
+                  "bg-theme-light border-border-light text-text-default/70 hidden border-b px-5 py-3 text-xs font-semibold tracking-wide uppercase md:grid dark:bg-white/[0.04] dark:text-slate-400",
                   COLUMN_LAYOUT[tab.id].grid,
                 ]}
               >
                 <span aria-hidden="true" />
                 <span>Company</span>
-                {COLUMN_LAYOUT[tab.id].headings.map((heading) => (
-                  <span>{heading}</span>
+                {COLUMN_LAYOUT[tab.id].columns.map((column) => (
+                  <span class={TIER_VISIBILITY[column.tier]}>{column.label}</span>
                 ))}
                 {COLUMN_LAYOUT[tab.id].trailingColumn && <span aria-hidden="true" />}
               </div>

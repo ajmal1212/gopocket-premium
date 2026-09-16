@@ -107,7 +107,16 @@ function companyListing(slug: string): { exchange: "NSE" | "BSE"; symbol: string
 }
 
 const toContract = (row: ContractRow): Contract | null => {
-  const name = row.formatted_ins_name || row.trading_symbol || row.symbol || "";
+  /*
+   * Contract Master's `formatted_ins_name` is the trading symbol, not a name:
+   * Abbott India arrives as "ABBOTINDIA-EQ". nse-companies.json already holds
+   * the real name for 2,568 symbols - it is what builds the page's address -
+   * so it is preferred here too. Without this the company's own page was
+   * titled "ABBOTINDIA-EQ (ABBOTINDIA) Share Price Today", and the <h1>,
+   * meta description and search results all read the same way.
+   */
+  const listed = (NSE_COMPANIES as Record<string, string>)[row.symbol || ""];
+  const name = listed || row.formatted_ins_name || row.trading_symbol || row.symbol || "";
   if (!row.token || !row.exchange || !name) return null;
 
   // An index is filed under the exchange "INDICES" but feeds as its source
@@ -232,6 +241,129 @@ export async function searchContracts(
   // lookup - kept now, the page skips Frappe altogether.
   await Promise.all(top.map((contract) => remember(contract)));
   return top;
+}
+
+/* ---------------------------------------------------------------------------
+   Sitemap enumeration
+   ------------------------------------------------------------------------ */
+
+/**
+ * The exchanges whose /stocks pages are advertised in the sitemap.
+ *
+ * Cash market and indices only. NFO, BFO and MCX are deliberately left out:
+ * they are 136,000 of the 159,000 rows in Contract Master, and every one is a
+ * dated contract that stops existing at expiry - a sitemap full of
+ * "NIFTY 25SEP 24000 CE" would be mostly dead links within the week. Same
+ * reasoning as the seminars note in sitemap.xml.ts: those pages stay
+ * reachable, they just are not advertised.
+ */
+export const SITEMAP_EXCHANGES = ["INDICES", "NSE", "BSE"] as const;
+
+/**
+ * NSE series kept in the sitemap, read off the end of `trading_symbol`.
+ *
+ * Contract Master's NSE rows are mostly NOT shares: of 9,748, some 4,300 are
+ * state government securities (-SG), 1,200 are debentures (-N0 through -NZ,
+ * -Y*, -Z*) and another 300 are treasury bills and sovereign gold bonds
+ * (-TB, -GS, -GB, -SF). Those are tradeable instruments with pages, but nobody
+ * searches for "1003SCL31A", and 6,000 such URLs is thin content that drags on
+ * the domain rather than earning anything.
+ *
+ * EQ/BE/BZ are the equity segments, SM/ST the SME board, and IV/RR the InvITs
+ * and REITs (Embassy, Bagmane, IndiGrid) - listed, named, and searched for.
+ */
+const NSE_EQUITY_SERIES = new Set(["EQ", "BE", "BZ", "SM", "ST", "IV", "RR"]);
+
+/**
+ * BSE carries no series suffix at all, so its debt is spotted by the shape of
+ * the symbol: a bond code either starts with the coupon ("001HCCL29",
+ * "0795GOI32") or ends in a maturity ("ABCL26", "ABHF090326"). Roughly 7,000
+ * of BSE's 13,045 rows match.
+ *
+ * A symbol that is listed as equity on NSE is kept regardless - that rescues
+ * the ETFs, whose names legitimately end in digits ("ICICIB22", "HDFCNIF100").
+ */
+const looksLikeDebtCode = (symbol: string) => /^\d/.test(symbol) || /\d{2,}$/.test(symbol);
+
+/** The series at the end of "HDFCBANK-EQ"; "" when the symbol carries none. */
+function seriesOf(tradingSymbol: string): string {
+  return tradingSymbol.match(/-([A-Z0-9]+)$/)?.[1] ?? "";
+}
+
+/** Frappe caps a single response; the list is walked in pages this size. */
+const SITEMAP_FETCH_PAGE = 5000;
+
+/**
+ * URLs per sitemap file. The protocol allows 50,000, but smaller files keep
+ * each SSR response quick and let a crawler pick changes up incrementally.
+ */
+export const SITEMAP_CHUNK_SIZE = 5000;
+
+const SITEMAP_TTL_MS = 60 * 60 * 1000;
+let sitemapCache: { at: number; slugs: string[] } | null = null;
+
+/**
+ * Every distinct /stocks/<slug> address worth advertising, sorted.
+ *
+ * Walks all 22,885 cash-market rows and keeps the ~9,600 that are actually
+ * equity (see the series notes above), which dedupe to roughly 7,500 addresses.
+ * This is the one query on the site that reads the whole contract master, so
+ * the result is held per isolate for an hour and the responses built from it
+ * are cached for the same - a crawler working through the chunks pays for the
+ * walk once rather than once per file.
+ */
+export async function listSitemapSlugs(): Promise<string[]> {
+  if (sitemapCache && Date.now() - sitemapCache.at < SITEMAP_TTL_MS) return sitemapCache.slugs;
+
+  /** Walks one exchange's rows, a page at a time. Offsets must be sequential. */
+  async function walk(exchange: string): Promise<Contract[]> {
+    const rows: Contract[] = [];
+
+    for (let start = 0; ; start += SITEMAP_FETCH_PAGE) {
+      const page = await query(
+        new URLSearchParams({
+          fields: FIELDS,
+          filters: JSON.stringify([["exchange", "=", exchange]]),
+          limit_page_length: String(SITEMAP_FETCH_PAGE),
+          limit_start: String(start),
+          order_by: "symbol asc",
+        }),
+      );
+
+      rows.push(...page);
+
+      // A short page is the last one. A failed query returns [] and also ends
+      // the walk, which yields a partial sitemap rather than none at all.
+      if (page.length < SITEMAP_FETCH_PAGE) break;
+    }
+
+    return rows;
+  }
+
+  // The three exchanges run together: pages within one must be sequential
+  // because the offset depends on the last response, but the exchanges do not
+  // depend on each other. Six round trips become three, which matters here -
+  // this is the slowest request on the site.
+  const [indices, nse, bse] = await Promise.all(SITEMAP_EXCHANGES.map(walk));
+
+  // Shares, SME, InvITs and REITs. Everything else on the NSE list is debt.
+  const nseEquity = nse.filter((contract) => NSE_EQUITY_SERIES.has(seriesOf(contract.tradingSymbol)));
+  const nseEquitySymbols = new Set(nseEquity.map((contract) => contract.symbol));
+
+  const bseEquity = bse.filter(
+    (contract) => nseEquitySymbols.has(contract.symbol) || !looksLikeDebtCode(contract.symbol),
+  );
+
+  const slugs = new Set<string>();
+  for (const rows of [indices, nseEquity, bseEquity]) {
+    // Two rows can resolve to one address - a company's NSE row and a second
+    // share class that slugifies the same way - and one address is one page.
+    for (const contract of rows) if (contract.slug) slugs.add(contract.slug);
+  }
+
+  const sorted = [...slugs].sort();
+  sitemapCache = { at: Date.now(), slugs: sorted };
+  return sorted;
 }
 
 /**

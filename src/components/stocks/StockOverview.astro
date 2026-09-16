@@ -1,0 +1,56 @@
+---
+/**
+ * The written half of a stock page: a few paragraphs about the company, a key
+ * facts table and the questions the data can answer.
+ *
+ * Everything here is built by buildStockOverview from data the page already
+ * fetched, so this component adds no request and no latency. It renders nothing
+ * when the overview reports it had too little to work with.
+ *
+ * The Q&A that buildStockOverview also produces is NOT rendered here - the page
+ * passes it to the shared FAQSection, which is a full-width band and would look
+ * wrong squeezed into this column.
+ *
+ * Headings use the .h5 / .h6 helper classes rather than text-* utilities:
+ * global.css styles bare h2-h6 unlayered, which outranks any utility in
+ * @layer utilities and would render these at full section size.
+ */
+import type { StockOverview } from "@/lib/stock-overview";
+
+interface Props {
+  overview: StockOverview;
+  displayName: string;
+}
+
+const { overview, displayName } = Astro.props;
+---
+
+{
+  overview.worthShowing && (
+    <section class="flex flex-col gap-8" aria-labelledby="stock-about">
+      <div class="flex flex-col gap-4">
+        <h2 id="stock-about" class="h5 text-dark font-semibold">
+          About {displayName}
+        </h2>
+
+        {overview.paragraphs.map((paragraph) => (
+          <p class="text-text-default text-base leading-relaxed">{paragraph}</p>
+        ))}
+      </div>
+
+      {overview.facts.length > 0 && (
+        <div>
+          <h3 class="h6 text-dark font-semibold">Key facts</h3>
+          <dl class="border-border-light mt-3 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border bg-[var(--color-border-light)] sm:grid-cols-2 lg:grid-cols-3">
+            {overview.facts.map((fact) => (
+              <div class="flex items-baseline justify-between gap-4 bg-white px-4 py-3 dark:bg-[#161821]">
+                <dt class="text-text-default text-sm">{fact.label}</dt>
+                <dd class="text-dark text-sm font-semibold">{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+    </section>
+  )
+}

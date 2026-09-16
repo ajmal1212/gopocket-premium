@@ -3,6 +3,7 @@ import Layout from "@/layouts/Layout.astro";
 import Button from "@/components/Button.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
+import FAQSection from "@/components/FAQSection.astro";
 import PriceHeader from "@/components/stocks/PriceHeader.astro";
 import MarketDepth from "@/components/stocks/MarketDepth.astro";
 import Performance from "@/components/stocks/Performance.astro";
@@ -10,11 +11,13 @@ import StockNews from "@/components/stocks/StockNews.astro";
 import Shareholding from "@/components/stocks/Shareholding.astro";
 import ShareholdingBreakdown from "@/components/stocks/ShareholdingBreakdown.astro";
 import { fetchShareholding } from "@/lib/shareholding";
+import { buildStockOverview } from "@/lib/stock-overview";
 import { stockFor } from "@/data/stocks";
 import { findContractBySlug } from "@/lib/contracts";
 import { fetchQuote } from "@/lib/feed/quote";
 import { fetchCandles, fetchLatestSession, rangeById, sessionWindow } from "@/lib/feed/candles";
 import PriceChart from "@/components/stocks/PriceChart.astro";
+import StockOverview from "@/components/stocks/StockOverview.astro";
 import TrendingUp from "@lucide/astro/icons/trending-up";
 
 const { slug } = Astro.params;
@@ -87,6 +90,22 @@ const description = priceText
   ? `${displayName} share price is ${priceText} on the ${contract.exchange}. Live ${contract.symbol} price, market depth, day high and low, 52-week range and volume.`
   : `Live ${displayName} (${contract.symbol}) share price on the ${contract.exchange}, with market depth, day high and low, 52-week range and volume.`;
 
+/*
+ * The page's written content, built from the data already fetched above - no
+ * extra request, no added latency. Until this existed the only prose on a stock
+ * page was the curated description, which covers three companies; every other
+ * page was widgets, which is what kept them out of the index.
+ */
+const overview = buildStockOverview({
+  contract,
+  displayName,
+  quote,
+  shareholding,
+  sector: editorial?.sector,
+  editorialDescription: editorial?.description,
+  previousClose,
+});
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Corporation",
@@ -95,6 +114,21 @@ const jsonLd = {
   ...(editorial ? { description: editorial.description } : {}),
   url: new URL(`/stocks/${contract.slug}`, Astro.url.origin).href,
 };
+
+// Only emitted when the answers are on the page - structured data has to match
+// what the reader sees, and an empty mainEntity is invalid anyway.
+const faqSchema =
+  overview.worthShowing && overview.faqs.length > 0
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: overview.faqs.map((faq) => ({
+          "@type": "Question",
+          name: faq.question,
+          acceptedAnswer: { "@type": "Answer", text: faq.answer },
+        })),
+      }
+    : null;
 ---
 
 <Layout title={title} description={description} canonical={`/stocks/${contract.slug}`}>
@@ -169,14 +203,12 @@ const jsonLd = {
           </section>
         </StockNews>
 
-        {
-          editorial && (
-            <section class="flex flex-col gap-3">
-              <h2 class="text-h5 text-dark font-semibold">About {displayName}</h2>
-              <p class="text-text-default text-sm leading-relaxed">{editorial.description}</p>
-            </section>
-          )
-        }
+        <!--
+          The page's written content. Curated copy leads where it exists (three
+          companies, in src/data/stocks.ts) and the generated overview carries
+          every other page; see buildStockOverview.
+        -->
+        <StockOverview overview={overview} displayName={displayName} />
 
         <p class="text-text-default/75 text-xs leading-relaxed">
           Prices are sourced from the exchanges and shown for information only. They may be delayed and should not be
@@ -231,9 +263,30 @@ const jsonLd = {
     </div>
   </main>
 
+  {
+    /*
+      The generated Q&A, in the site's shared FAQ section. Placed outside <main>
+      so its background band runs the full width of the page, as it does
+      everywhere else - inside the max-w-7xl column it would read as a floating
+      slab. The answers sit in the DOM even while collapsed, so a crawler reads
+      them without running the accordion script.
+    */
+  }
+  {
+    overview.faqs.length > 0 && (
+      <FAQSection
+        eyebrow={`${contract.symbol} FAQs`}
+        title={`${displayName} FAQs`}
+        description={`Common questions about the ${displayName} share price, ownership and how to buy it.`}
+        faqs={overview.faqs}
+      />
+    )
+  }
+
   <Footer />
 
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
 </Layout>
 
 <script>

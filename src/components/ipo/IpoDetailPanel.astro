@@ -1,0 +1,228 @@
+---
+/**
+ * The expanded detail for one IPO, shown in place directly beneath its row.
+ *
+ * Every IPO renders one of these up front, hidden, and the dashboard script only
+ * toggles which is visible. That keeps the whole board in the server-rendered
+ * HTML - no fetch on click, no client-side templating, and the content is there
+ * for crawlers - at the cost of some repeated markup, which gzips away.
+ *
+ * The three statuses carry different fields (see src/lib/ipo.ts), so the card
+ * shows a different set of stats for each rather than a grid full of dashes.
+ * The row immediately above already carries the logo and company name, and the
+ * button that opens this panel is labelled with it, so the panel deliberately
+ * uses NO headings. It used to carry an sr-only <h3> per IPO, which put 150+
+ * near-identical h3s ahead of the page's first <h2> and wrecked the outline.
+ */
+import type { FormattedIpo } from "@/lib/ipo";
+import { formatInr } from "@/lib/ipo";
+import CalendarDays from "@lucide/astro/icons/calendar-days";
+import ExternalLink from "@lucide/astro/icons/external-link";
+import FileText from "@lucide/astro/icons/file-text";
+import TrendingDown from "@lucide/astro/icons/trending-down";
+import TrendingUp from "@lucide/astro/icons/trending-up";
+
+interface Props {
+  ipo: FormattedIpo;
+  applyHref: string;
+}
+
+const { ipo, applyHref } = Astro.props;
+
+/** Headline figures, chosen per status so no tile is ever a placeholder. */
+const stats: { label: string; value: string; tone?: "up" | "down" }[] = [];
+
+if (ipo.status === "Closed") {
+  if (ipo.issuePrice > 0) stats.push({ label: "Issue price", value: `₹${formatInr(ipo.issuePrice)}` });
+  if (ipo.listingPrice > 0) stats.push({ label: "Listing price", value: `₹${formatInr(ipo.listingPrice)}` });
+  if (ipo.listingPrice > 0 && ipo.issuePrice > 0) {
+    stats.push({
+      label: "Listing gain",
+      value: `${ipo.listingReturn > 0 ? "+" : ""}${ipo.listingReturn.toFixed(2)}%`,
+      tone: ipo.listingReturn >= 0 ? "up" : "down",
+    });
+  }
+  if (ipo.subscriptionLabel) stats.push({ label: "Subscribed", value: ipo.subscriptionLabel });
+} else {
+  if (ipo.priceBand) stats.push({ label: "Price band", value: ipo.priceBand });
+  if (ipo.lotSize > 0) stats.push({ label: "Lot size", value: `${formatInr(ipo.lotSize)} shares` });
+  if (ipo.minInvestment > 0) stats.push({ label: "Min. investment", value: `₹${formatInr(ipo.minInvestment)}` });
+  if (ipo.subscriptionLabel) stats.push({ label: "Subscribed", value: ipo.subscriptionLabel });
+}
+
+/** Only the dates this record actually has; upcoming issues often have none. */
+const timeline = [
+  { label: "Opens", value: ipo.openLabel },
+  { label: "Closes", value: ipo.closeLabel },
+  { label: "Allotment", value: ipo.allotmentLabel },
+  { label: "Listing", value: ipo.listingLabel },
+].filter((entry) => entry.value);
+
+// One label for every live issue - see the note on `is_pre_apply` in IpoRow.
+const applyLabel = "Apply for this IPO";
+---
+
+<div class="flex flex-col gap-5">
+  {
+    (ipo.symbol || ipo.isin) && (
+      <div class="text-text-default/70 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] tracking-wide dark:text-slate-400">
+        {ipo.symbol && <span>Symbol {ipo.symbol}</span>}
+        {ipo.isin && <span>ISIN {ipo.isin}</span>}
+      </div>
+    )
+  }
+
+  {
+    stats.length > 0 && (
+      <dl class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {stats.map((stat) => (
+          <div class="border-border-light rounded-2xl border bg-white p-3.5 dark:bg-white/5">
+            <dt class="text-text-default/70 text-[11px] font-medium dark:text-slate-400">{stat.label}</dt>
+            <dd
+              class:list={[
+                "mt-1 text-sm font-semibold",
+                stat.tone === "up" && "text-emerald-600 dark:text-emerald-400",
+                stat.tone === "down" && "text-red-600 dark:text-red-400",
+                !stat.tone && "text-dark dark:text-slate-100",
+              ]}
+            >
+              {stat.tone === "up" && <TrendingUp class="mr-1 inline h-3.5 w-3.5" stroke-width={2} aria-hidden="true" />}
+              {stat.tone === "down" && (
+                <TrendingDown class="mr-1 inline h-3.5 w-3.5" stroke-width={2} aria-hidden="true" />
+              )}
+              {stat.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    )
+  }
+
+  <div class="grid gap-5 md:grid-cols-2">
+    {
+      timeline.length > 0 && (
+        <div>
+          <p class="text-text-default/70 flex items-center gap-1.5 text-[11px] font-semibold tracking-wide uppercase dark:text-slate-400">
+            <CalendarDays class="h-3.5 w-3.5" stroke-width={1.8} aria-hidden="true" />
+            Key dates
+          </p>
+          <dl class="border-border-light mt-2.5 divide-y divide-[var(--color-border-light)] rounded-2xl border bg-white dark:bg-white/5">
+            {timeline.map((entry) => (
+              <div class="flex items-center justify-between px-3.5 py-2.5">
+                <dt class="text-text-default text-xs dark:text-slate-400">{entry.label}</dt>
+                <dd class="text-dark text-xs font-semibold dark:text-slate-200">{entry.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )
+    }
+
+    {
+      ipo.categories.length > 0 && (
+        <div>
+          <p class="text-text-default/70 text-[11px] font-semibold tracking-wide uppercase dark:text-slate-400">
+            Investor categories
+          </p>
+          <ul class="mt-2.5 space-y-2.5">
+            {ipo.categories.map((category) => (
+              <li class="border-border-light rounded-2xl border bg-white p-3.5 dark:bg-white/5">
+                <p class="text-dark text-xs font-semibold dark:text-slate-200">{category.label}</p>
+                {category.subText && (
+                  <p class="text-text-default/70 mt-0.5 text-[11px] dark:text-slate-400">{category.subText}</p>
+                )}
+                <div class="text-text-default mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] dark:text-slate-400">
+                  {category.lotSize > 0 && (
+                    <span>
+                      Lot{" "}
+                      <strong class="text-dark font-semibold dark:text-slate-200">{formatInr(category.lotSize)}</strong>
+                    </span>
+                  )}
+                  {category.minBidQuantity > 0 && (
+                    <span>
+                      Min qty{" "}
+                      <strong class="text-dark font-semibold dark:text-slate-200">
+                        {formatInr(category.minBidQuantity)}
+                      </strong>
+                    </span>
+                  )}
+                  {category.minInvestment > 0 && (
+                    <span>
+                      From{" "}
+                      <strong class="text-dark font-semibold dark:text-slate-200">
+                        ₹{formatInr(category.minInvestment)}
+                      </strong>
+                    </span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  </div>
+
+  <!-- Actions. The apply CTA is a call-back request, not an order form: this is
+       the marketing site, and applications are placed inside the trading app. -->
+  <div class="flex flex-wrap gap-2.5">
+    {
+      ipo.status !== "Closed" && (
+        <a
+          href={applyHref}
+          class="ipo-panel-cta bg-primary inline-flex items-center justify-center rounded-full px-5 py-2.5 text-xs font-semibold transition-opacity hover:opacity-90"
+        >
+          {applyLabel}
+        </a>
+      )
+    }
+
+    {
+      ipo.documentUrl && (
+        <a
+          href={ipo.documentUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="ipo-panel-link border-border-light inline-flex items-center justify-center gap-2 rounded-full border bg-white px-5 py-2.5 text-xs font-semibold transition-colors hover:border-black/20 dark:bg-white/5"
+        >
+          <FileText class="h-4 w-4" stroke-width={1.8} aria-hidden="true" />
+          Offer document
+        </a>
+      )
+    }
+
+    {
+      ipo.rtaLink && (
+        <a
+          href={ipo.rtaLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="ipo-panel-link border-border-light inline-flex items-center justify-center gap-2 rounded-full border bg-white px-5 py-2.5 text-xs font-semibold transition-colors hover:border-black/20 dark:bg-white/5"
+        >
+          <ExternalLink class="h-4 w-4" stroke-width={1.8} aria-hidden="true" />
+          Check allotment status
+        </a>
+      )
+    }
+  </div>
+</div>
+
+<style>
+  /*
+   * global.css sets a bare, UNLAYERED `a { color: #3b3b3b }`. Unlayered CSS
+   * outranks every @layer, so `text-white` on the purple CTA lost to it and the
+   * button rendered dark grey on purple. Astro's scoped styles are unlayered
+   * too, so they win. See the matching note in IpoRow.astro.
+   */
+  .ipo-panel-cta {
+    color: #fff;
+  }
+
+  .ipo-panel-link {
+    color: var(--color-dark);
+  }
+
+  :global(html.dark) .ipo-panel-link {
+    color: #e2e8f0;
+  }
+</style>

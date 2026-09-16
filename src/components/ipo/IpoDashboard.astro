@@ -1,0 +1,632 @@
+---
+/**
+ * The IPO board: a tabbed list of issues on the left, a detail card on the right.
+ *
+ * Deliberately zero-framework. All three tabs, every row and every detail card
+ * are server-rendered into the HTML, and a ~1KB inline script does nothing but
+ * toggle visibility. That keeps the whole board crawlable and costs no hydration
+ * on a page whose entire job is to render data that is already on the server.
+ */
+import type { IpoBoard } from "@/lib/ipo";
+import Button from "@/components/Button.astro";
+import IpoDetailPanel from "./IpoDetailPanel.astro";
+import IpoRow from "./IpoRow.astro";
+import { COLUMN_LAYOUT } from "./ipo-columns";
+import ChevronDown from "@lucide/astro/icons/chevron-down";
+import TrendingUp from "@lucide/astro/icons/trending-up";
+
+interface Props {
+  board: IpoBoard;
+  applyHref?: string;
+  /**
+   * Rendered as the page's <h1>. Pass `headingLevel="h2"` if a hero above ever
+   * takes the <h1> back, so the page never ends up with two of them.
+   */
+  heading?: string;
+  headingLevel?: "h1" | "h2";
+}
+
+const {
+  board,
+  applyHref = "/open-account-call-back?src=Website&tag=IPO",
+  heading = "IPO Dashboard",
+  headingLevel = "h1",
+} = Astro.props;
+
+const Heading = headingLevel;
+
+/** Board filter. The first entry is the default and shows every issue. */
+const IPO_TYPES = [
+  { value: "all", label: "All IPOs" },
+  { value: "main", label: "Mainboard" },
+  { value: "sme", label: "SME" },
+];
+
+// Column headings and grid tracks come from COLUMN_LAYOUT, shared with IpoRow.
+const tabs = [
+  { id: "open" as const, label: "Open", items: board.open },
+  { id: "upcoming" as const, label: "Upcoming", items: board.upcoming },
+  { id: "closed" as const, label: "Closed", items: board.closed },
+];
+
+// Open is the default tab, but if nothing is bidding right now the page opens on
+// the tab that actually has something to show rather than on an empty table.
+const defaultTab = board.open.length > 0 ? "open" : board.upcoming.length > 0 ? "upcoming" : "closed";
+---
+
+<section class="ipo-board" data-ipo-dashboard>
+  <!-- Same wrapper and column split as the stock page, so the two data pages
+       line up at every breakpoint and the CTA card is identically sized. -->
+  <div class="mx-auto max-w-7xl px-4 py-10 md:px-8 lg:py-14">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10">
+      <!-- ── Left: tabs + list ─────────────────────────────────────────── -->
+      <div class="min-w-0">
+        <Heading class="text-dark text-h4 lg:text-h3 mb-6 font-semibold tracking-tight dark:text-slate-100">
+          {heading}
+        </Heading>
+
+        <div class="mb-5 flex flex-wrap items-center justify-between gap-4">
+          <div role="tablist" aria-label="IPO status" class="flex flex-wrap gap-2">
+            {
+              tabs.map((tab) => (
+                <button
+                  type="button"
+                  role="tab"
+                  id={`ipo-tab-${tab.id}`}
+                  data-ipo-tab={tab.id}
+                  aria-controls={`ipo-panel-${tab.id}`}
+                  aria-selected={tab.id === defaultTab ? "true" : "false"}
+                  class:list={["ipo-tab", tab.id === defaultTab && "is-active"]}
+                >
+                  {tab.label}
+                  <span class="ipo-tab-count">{tab.items.length}</span>
+                </button>
+              ))
+            }
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span id="ipo-filter-label" class="text-text-default/70 text-xs font-medium dark:text-slate-400">
+              IPO type
+            </span>
+
+            <!-- Built to match the header's Pages dropdown. The header's own
+                 chrome is scoped to `.navbar .nav-dropdown`, so it cannot be
+                 reused directly; the rules below rebuild it from the same
+                 surface tokens, which carry light and dark values and so need
+                 no dark: override. -->
+            <div class="ipo-filter" data-ipo-filter>
+              <button
+                type="button"
+                class="ipo-filter-toggle"
+                data-ipo-filter-toggle
+                aria-haspopup="menu"
+                aria-expanded="false"
+                aria-labelledby="ipo-filter-label ipo-filter-value"
+              >
+                <span id="ipo-filter-value" data-ipo-filter-value>{IPO_TYPES[0].label}</span>
+                <ChevronDown stroke-width={2} aria-hidden="true" />
+              </button>
+
+              <ul class="ipo-filter-menu" role="menu" aria-labelledby="ipo-filter-label">
+                {
+                  IPO_TYPES.map((option, index) => (
+                    // role="none" so the <li> does not sit between role="menu"
+                    // and its items, which would break the ownership relationship.
+                    <li role="none">
+                      <button
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={index === 0 ? "true" : "false"}
+                        class="ipo-filter-option"
+                        data-ipo-filter-option={option.value}
+                      >
+                        {option.label}
+                      </button>
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {
+          tabs.map((tab) => (
+            <div
+              role="tabpanel"
+              id={`ipo-panel-${tab.id}`}
+              data-ipo-panel={tab.id}
+              aria-labelledby={`ipo-tab-${tab.id}`}
+              hidden={tab.id !== defaultTab}
+              class="border-border-light overflow-hidden rounded-3xl border bg-white dark:bg-white/[0.03]"
+            >
+              {/* Column headings mirror IpoRow's md+ grid so they line up. */}
+              <div
+                class:list={[
+                  "bg-theme-light border-border-light text-text-default/70 hidden border-b px-5 py-3 text-xs font-semibold tracking-wide uppercase md:grid md:gap-4 dark:bg-white/[0.04] dark:text-slate-400",
+                  COLUMN_LAYOUT[tab.id].grid,
+                ]}
+              >
+                <span aria-hidden="true" />
+                <span>Company</span>
+                {COLUMN_LAYOUT[tab.id].headings.map((heading) => (
+                  <span>{heading}</span>
+                ))}
+                {COLUMN_LAYOUT[tab.id].trailingColumn && <span aria-hidden="true" />}
+              </div>
+
+              {tab.items.length === 0 ? (
+                <p class="text-text-default/70 px-5 py-12 text-center text-sm dark:text-slate-400">
+                  No {tab.label.toLowerCase()} IPOs right now. Check back soon.
+                </p>
+              ) : (
+                <>
+                  <ul class="list-none">
+                    {tab.items.map((ipo) => (
+                      <>
+                        <IpoRow ipo={ipo} tab={tab.id} applyHref={applyHref} />
+                        {/* Details expand in place, under their own row - the
+                            right-hand column belongs to the CTA. Rows with
+                            nothing to show get no panel and stay inert. */}
+                        {ipo.hasDetail && (
+                          <li
+                            data-ipo-detail={ipo.id}
+                            id={`ipo-detail-${ipo.id}`}
+                            hidden
+                            class="bg-theme-light/60 border-border-light border-b px-4 py-5 md:px-5 dark:bg-white/[0.04]"
+                          >
+                            <IpoDetailPanel ipo={ipo} applyHref={applyHref} />
+                          </li>
+                        )}
+                      </>
+                    ))}
+                  </ul>
+                  {/* Shown by the script when the type filter hides every row. */}
+                  <p
+                    data-ipo-empty
+                    hidden
+                    class="text-text-default/70 px-5 py-12 text-center text-sm dark:text-slate-400"
+                  >
+                    No IPOs match this filter.
+                  </p>
+                </>
+              )}
+            </div>
+          ))
+        }
+
+        <p class="text-text-default/60 mt-4 text-[11px] dark:text-slate-500">
+          IPO data is sourced from the exchanges and refreshed through the day. Subscription figures are indicative and
+          may lag the exchange feed. This page is for information only and is not investment advice.
+        </p>
+      </div>
+
+      <!--
+        The conversion card, identical in shape and size to the one on the stock
+        page: it rides alongside the board on desktop and follows the reader down
+        the page, and drops below the list on a phone rather than pushing the
+        open issues off the first screen.
+      -->
+      <aside class="lg:sticky lg:top-28 lg:self-start">
+        <div
+          class="border-border-light flex flex-col items-center gap-4 rounded-2xl border bg-white p-6 text-center dark:bg-transparent"
+        >
+          <div
+            class="bg-theme-light flex h-14 w-14 items-center justify-center rounded-full dark:bg-white/5"
+            aria-hidden="true"
+          >
+            <TrendingUp class="text-primary h-7 w-7" stroke-width={1.6} />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            {
+              /*
+              As on the stock page: the visible line is a <p>, because global.css
+              styles bare h2 unlayered and it would outrank any text-* utility
+              and render at full section size. The <h2> stays for the document
+              outline, visually hidden.
+            */
+            }
+            <h2 class="sr-only">Apply for IPOs with GoPocket</h2>
+            <p class="text-dark pb-4 text-3xl font-bold">
+              Want to apply<br />for IPOs?
+            </p>
+            <p class="text-text-default text-sm leading-relaxed">
+              Open a free demat account in minutes and apply to every mainboard and SME IPO.
+            </p>
+          </div>
+
+          <Button label="Open free account" href={applyHref} class="w-full" />
+
+          <p class="text-text-default/75 text-xs">Zero application fee. Flat ₹20 per order.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<style>
+  /*
+   * The script toggles the `hidden` attribute, but several of these elements
+   * also carry a Tailwind display utility (`grid`, `flex`), which would win on
+   * specificity and leave them visible. This makes `hidden` authoritative.
+   */
+  .ipo-board [hidden] {
+    display: none !important;
+  }
+
+  /* Pill tabs. Written here rather than inline because the selected state is
+     driven by a class the script toggles, not by a variant. */
+  .ipo-board .ipo-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--color-border-light);
+    border-radius: 9999px;
+    background: #fff;
+    padding: 0.45rem 0.95rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text-default);
+    cursor: pointer;
+    transition:
+      border-color 0.2s ease,
+      color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .ipo-board .ipo-tab:hover {
+    border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+  }
+
+  .ipo-board .ipo-tab.is-active {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: color-mix(in srgb, var(--color-primary) 8%, #fff);
+  }
+
+  .ipo-board .ipo-tab-count {
+    border-radius: 9999px;
+    background: var(--color-theme-light);
+    padding: 0 0.4rem;
+    font-size: 0.6875rem;
+    line-height: 1.25rem;
+  }
+
+  .ipo-board .ipo-tab.is-active .ipo-tab-count {
+    background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  }
+
+  /* ── IPO type filter ──────────────────────────────────────────────────
+     Same dropdown as the header's Pages menu: pill toggle with a chevron that
+     flips open, and a rounded panel of pill items that fades in while its top
+     margin tightens. The header's rules are scoped to `.navbar .nav-dropdown`,
+     so they are rebuilt here from the shared surface tokens - those carry both
+     light and dark values, so one set of rules covers both themes. */
+  .ipo-board .ipo-filter {
+    position: relative;
+    /*
+     * Above the table. Each row's CTA is `relative z-10` and the table is a
+     * LATER sibling than this control, so at equal z-index the Apply pills won
+     * on document order and painted straight through the open menu. Lifting the
+     * whole control into its own stacking context settles it once, rather than
+     * chasing z-index on the menu alone.
+     */
+    z-index: 30;
+  }
+
+  .ipo-board .ipo-filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--color-border-light);
+    border-radius: 9999px;
+    background: var(--surface-1);
+    padding: 0.45rem 0.95rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    color: var(--color-text-default);
+    cursor: pointer;
+    transition:
+      border-color 0.2s ease,
+      color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .ipo-board .ipo-filter-toggle:hover {
+    border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+  }
+
+  .ipo-board .ipo-filter-toggle:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* Open, or narrowing the list - either way the control is doing something
+     and says so, rather than looking identical to its resting state. */
+  .ipo-board .ipo-filter.is-open .ipo-filter-toggle,
+  .ipo-board .ipo-filter.is-filtering .ipo-filter-toggle {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  /* Matched as `svg` rather than by class: the chevron is an Astro component,
+     and a scoped class selector is not guaranteed to reach inside one. There is
+     exactly one svg in the toggle. */
+  .ipo-board .ipo-filter-toggle :global(svg) {
+    width: 1rem;
+    height: 1rem;
+    transition: transform 0.3s ease;
+  }
+
+  .ipo-board .ipo-filter.is-open .ipo-filter-toggle :global(svg) {
+    transform: rotate(180deg);
+  }
+
+  .ipo-board .ipo-filter-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    /* Inside .ipo-filter's own stacking context, so any positive value works. */
+    z-index: 1;
+    /* Closed sits lower and slides up as it fades in, as the header's does. */
+    margin-top: 1rem;
+    min-width: 9rem;
+    list-style: none;
+    padding: 0.25rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl);
+    /*
+     * The Learn/Pages mega-menu glass, verbatim: 55% white rather than the 70%
+     * of `--glass`, because under a heavy blur 70% reads as milk and hides the
+     * page instead of frosting it (the reasoning is written out above the
+     * `.hs-dropdown-menu.mega-menu` rule in global.css).
+     *
+     * Applied directly rather than on a ::before: the header needs the pseudo-
+     * element because its menus nest and each level re-frosts, but this one is
+     * flat. Nothing between here and the page root sets transform, filter or
+     * opacity, so no ancestor becomes a backdrop root and the blur samples the
+     * page behind it. The menu's own fade is safe - an element's opacity
+     * composites its filtered backdrop, it does not cancel it.
+     */
+    background-color: rgba(255, 255, 255, 0.55);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    box-shadow: 0 24px 48px -20px var(--shadow-strong);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.2s ease,
+      margin-top 0.2s ease;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .ipo-board .ipo-filter-menu {
+      background-color: color-mix(in oklab, #ffffff 55%, transparent);
+    }
+  }
+
+  /* Dark mode drops to saturate(140%), as the mega-menus do - 180% over a dark
+     ground pushes whatever is behind the panel into neon. */
+  :global(html.dark) .ipo-board .ipo-filter-menu {
+    background-color: var(--glass);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    backdrop-filter: blur(24px) saturate(140%);
+  }
+
+  /* Without blur support the translucent fill would just look washed out. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .ipo-board .ipo-filter-menu {
+      background-color: rgba(255, 255, 255, 0.97);
+    }
+
+    :global(html.dark) .ipo-board .ipo-filter-menu {
+      background-color: var(--surface-1);
+    }
+  }
+
+  .ipo-board .ipo-filter.is-open .ipo-filter-menu {
+    margin-top: 0.5rem;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .ipo-board .ipo-filter-option {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-radius: 9999px;
+    background: transparent;
+    padding: 0.5rem 1rem;
+    text-align: left;
+    font-size: 0.875rem;
+    color: var(--fg);
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  @media (hover: hover) {
+    .ipo-board .ipo-filter-option:hover {
+      background: var(--surface-3);
+      color: var(--color-primary);
+    }
+  }
+
+  .ipo-board .ipo-filter-option:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+  }
+
+  .ipo-board .ipo-filter-option[aria-checked="true"] {
+    background: var(--surface-3);
+    color: var(--color-primary);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ipo-board .ipo-filter-menu,
+    .ipo-board .ipo-filter-option,
+    .ipo-board .ipo-filter-toggle,
+    .ipo-board .ipo-filter-toggle :global(svg) {
+      transition: none;
+    }
+  }
+
+  /* The selected row, marked by the script. */
+  .ipo-board [data-ipo-row].is-selected {
+    background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+  }
+
+  :global(html.dark) .ipo-board .ipo-tab {
+    background: rgb(255 255 255 / 0.05);
+    color: #cbd5e1;
+  }
+
+  :global(html.dark) .ipo-board .ipo-tab.is-active {
+    background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+    color: #ddd6fe;
+  }
+
+  :global(html.dark) .ipo-board .ipo-tab-count {
+    background: rgb(255 255 255 / 0.08);
+  }
+</style>
+
+<script>
+  /*
+   * Visibility toggling only - no data fetching, no templating. Every row and
+   * card the script can reveal is already in the document.
+   */
+  const root = document.querySelector<HTMLElement>("[data-ipo-dashboard]");
+
+  if (root) {
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-ipo-tab]"));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>("[data-ipo-panel]"));
+    const details = Array.from(root.querySelectorAll<HTMLElement>("[data-ipo-detail]"));
+    const rows = Array.from(root.querySelectorAll<HTMLElement>("[data-ipo-row]"));
+    const filterRoot = root.querySelector<HTMLElement>("[data-ipo-filter]");
+    const filterToggle = root.querySelector<HTMLButtonElement>("[data-ipo-filter-toggle]");
+    const filterValueLabel = root.querySelector<HTMLElement>("[data-ipo-filter-value]");
+    const filterOptions = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-ipo-filter-option]"));
+
+    /** "all" | "main" | "sme". Held here rather than read off the DOM. */
+    let filterValue = "all";
+
+    function setFilterOpen(open: boolean) {
+      filterRoot?.classList.toggle("is-open", open);
+      filterToggle?.setAttribute("aria-expanded", String(open));
+    }
+
+    /** Opens one row's details and closes every other; null closes them all. */
+    function showDetail(id: string | null) {
+      details.forEach((card) => {
+        card.hidden = card.dataset.ipoDetail !== id;
+      });
+      rows.forEach((row) => {
+        const button = row.querySelector<HTMLButtonElement>("[data-ipo-select]");
+        const open = id !== null && button?.dataset.ipoSelect === id;
+        row.classList.toggle("is-selected", open);
+        button?.setAttribute("aria-expanded", String(open));
+      });
+    }
+
+    function applyFilter() {
+      const value = filterValue;
+
+      // Tints the toggle while a filter is narrowing the list.
+      filterRoot?.classList.toggle("is-filtering", value !== "all");
+
+      panels.forEach((panel) => {
+        let visible = 0;
+        panel.querySelectorAll<HTMLElement>("[data-ipo-row]").forEach((row) => {
+          const isSme = row.dataset.sme === "1";
+          const show = value === "all" || (value === "sme" ? isSme : !isSme);
+          row.hidden = !show;
+          if (show) visible += 1;
+        });
+
+        const empty = panel.querySelector<HTMLElement>("[data-ipo-empty]");
+        if (empty) empty.hidden = visible > 0;
+      });
+
+      // A filtered-out row must not leave its details expanded behind it.
+      const openCard = details.find((card) => !card.hidden);
+      if (openCard) {
+        const button = root!.querySelector<HTMLElement>(
+          `[data-ipo-select="${CSS.escape(openCard.dataset.ipoDetail!)}"]`,
+        );
+        if (button?.closest<HTMLElement>("[data-ipo-row]")?.hidden) showDetail(null);
+      }
+    }
+
+    function selectTab(id: string) {
+      tabs.forEach((tab) => {
+        const active = tab.dataset.ipoTab === id;
+        tab.setAttribute("aria-selected", String(active));
+        tab.classList.toggle("is-active", active);
+      });
+      panels.forEach((panel) => {
+        panel.hidden = panel.dataset.ipoPanel !== id;
+      });
+      showDetail(null);
+    }
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => selectTab(tab.dataset.ipoTab!));
+
+      // role="tablist" implies arrow-key navigation between the tabs; without it
+      // the ARIA role would promise a keyboard behaviour the page does not have.
+      tab.addEventListener("keydown", (event) => {
+        const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+        if (step === 0) return;
+        event.preventDefault();
+        const next = tabs[(index + step + tabs.length) % tabs.length];
+        next.focus();
+        selectTab(next.dataset.ipoTab!);
+      });
+    });
+
+    root.addEventListener("click", (event) => {
+      const button = (event.target as HTMLElement | null)?.closest<HTMLElement>("[data-ipo-select]");
+      if (!button) return;
+
+      // Clicking the open row again collapses it, so a row is its own toggle.
+      const id = button.dataset.ipoSelect!;
+      const alreadyOpen = button.getAttribute("aria-expanded") === "true";
+      showDetail(alreadyOpen ? null : id);
+    });
+
+    filterToggle?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      setFilterOpen(filterToggle.getAttribute("aria-expanded") !== "true");
+    });
+
+    filterOptions.forEach((option) => {
+      option.addEventListener("click", () => {
+        filterValue = option.dataset.ipoFilterOption ?? "all";
+        filterOptions.forEach((entry) => entry.setAttribute("aria-checked", String(entry === option)));
+        if (filterValueLabel) filterValueLabel.textContent = (option.textContent ?? "").trim();
+        setFilterOpen(false);
+        filterToggle?.focus();
+        applyFilter();
+      });
+    });
+
+    // Dismissed the same two ways the header menus are: a click elsewhere, or
+    // Escape. Bound on the document because both can happen outside the board.
+    document.addEventListener("click", (event) => {
+      if (filterRoot && !filterRoot.contains(event.target as Node)) setFilterOpen(false);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || !filterRoot?.classList.contains("is-open")) return;
+      setFilterOpen(false);
+      filterToggle?.focus();
+    });
+
+    applyFilter();
+  }
+</script>

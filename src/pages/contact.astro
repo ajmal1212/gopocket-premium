@@ -10,7 +10,7 @@ const departments = [
   { name: "Orders / Dealing", phone: "0422 3525 925", email: "dealing@gopocket.in" },
   { name: "RMS", phone: "0422 3525 900", email: "rms@gopocket.in" },
   { name: "Back Office Support", phone: "0422 3525 900", email: "support@gopocket.in" },
-  { name: "Account Opening", phone: "", email: "hello@gopocket.in" },
+  { name: "For Escalation", href: "https://cdn.gopocket.in/downloads/Escalation_Matrix.pdf", alt: "Escalation Matrix" },
   { name: "Compliance / Securities Complaints", phone: "", email: "compliance@gopocket.in" },
   { name: "DP Relations", phone: "", email: "dp@gopocket.in" },
 ];
@@ -259,11 +259,33 @@ const telHref = (phone: string) => `tel:+91${phone.replace(/\D/g, "").replace(/^
                       </a>
                     </p>
                   )}
-                  <p>
-                    <a href={`mailto:${dept.email}`} class="text-primary hover:underline">
-                      {dept.email}
-                    </a>
-                  </p>
+                  {dept.email && (
+                    <p>
+                      <a href={`mailto:${dept.email}`} class="text-primary hover:underline">
+                        {dept.email}
+                      </a>
+                    </p>
+                  )}
+                  {dept.href && (
+                    <p>
+                      <a
+                        href={dept.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-primary hover:underline font-medium inline-flex items-center gap-1"
+                      >
+                        {dept.alt || dept.name}
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          />
+                        </svg>
+                      </a>
+                    </p>
+                  )}
                 </div>
               </div>
             ))

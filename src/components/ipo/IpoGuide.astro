@@ -1,0 +1,308 @@
+---
+/**
+ * Long-form IPO explainer, sitting between the board and the FAQ.
+ *
+ * This is the page's ranking content: the board itself is a table of names and
+ * numbers, which gives a crawler almost nothing to index. The copy below covers
+ * the questions people actually search - what an IPO is, who can apply, what
+ * happens after - with the terms they search them in.
+ *
+ * The <h1> belongs to the board above, so this section opens at <h2> and every
+ * topic is an <h3>. Content lives in frontmatter rather than mid-markup, per the
+ * convention in CLAUDE.md.
+ */
+import Building2 from "@lucide/astro/icons/building-2";
+import CircleCheckBig from "@lucide/astro/icons/circle-check-big";
+import TrendingUp from "@lucide/astro/icons/trending-up";
+import Users from "@lucide/astro/icons/users";
+
+interface Topic {
+  id: string;
+  icon: typeof Building2;
+  heading: string;
+  /** Rendered as <p> in order. */
+  paragraphs: string[];
+  bullets?: { term: string; detail: string }[];
+}
+
+const topics: Topic[] = [
+  {
+    id: "what-is-an-ipo",
+    icon: Building2,
+    heading: "What is an IPO?",
+    paragraphs: [
+      "IPO stands for Initial Public Offering — the first time a private company sells its shares to the public and lists them on a stock exchange like the NSE or BSE. Before the IPO, the company is owned by its promoters, employees and a handful of private investors. After it lists, anyone with a demat account can buy and sell its shares.",
+      "Almost every Indian IPO is a book-built issue. The company and its merchant bankers publish a price band — say ₹79 to ₹84 a share — and you place a bid anywhere inside it, in multiples of a fixed lot size. Once bidding closes, the final issue price is discovered from where the demand actually landed. Most retail investors simply bid at the cut-off price, which means accepting whatever price is finally set.",
+    ],
+    bullets: [
+      {
+        term: "Price band",
+        detail:
+          "The floor and ceiling you can bid between. The final issue price is fixed within it after bidding closes.",
+      },
+      {
+        term: "Lot size",
+        detail:
+          "The smallest number of shares you can apply for. You bid in whole lots — one lot, two lots — never in odd quantities.",
+      },
+      {
+        term: "Cut-off price",
+        detail:
+          "A retail-only option to accept the final discovered price, so your bid stays valid however the book fills.",
+      },
+      {
+        term: "DRHP and RHP",
+        detail:
+          "The draft and final offer documents filed with SEBI. The RHP carries the price band, risk factors and audited financials.",
+      },
+    ],
+  },
+  {
+    id: "why-companies-go-public",
+    icon: Users,
+    heading: "Why do companies go public?",
+    paragraphs: [
+      "An IPO is how a company raises money without borrowing it. Capital raised through a fresh issue goes onto the balance sheet and never has to be repaid, which is why growing businesses use it to fund new plants, repay expensive debt or expand into new markets. The RHP's 'objects of the issue' section states exactly where the money is going — worth reading, because it tells you whether you are funding growth or someone's exit.",
+      "Not every rupee reaches the company. In an offer for sale, existing shareholders sell part of their stake and the proceeds go to them, not the business. Most Indian IPOs are a mix of both. Listing also gives early backers a way to exit, creates a traded share price the company can use to pay for acquisitions or reward employees, and brings the disclosure obligations that come with being a public company.",
+    ],
+  },
+  {
+    id: "why-invest-in-an-ipo",
+    icon: TrendingUp,
+    heading: "Why should you invest in an IPO?",
+    paragraphs: [
+      "An IPO is the earliest point at which a public investor can own a business — before it has a trading history, and at a price set by the book rather than by the market. For a company you have researched and want to hold for years, that access is the real argument. Listing gains, when they come, are a bonus rather than the reason.",
+      "They are also not guaranteed. Plenty of issues list below their offer price, and an oversubscribed book is a measure of demand on one day, not of the business underneath it. Treat an IPO the way you would any other equity purchase: decide what the company is worth to you, apply if the price is sensible, and size the position so a weak listing does not hurt.",
+    ],
+    bullets: [
+      {
+        term: "Early access",
+        detail: "Buy at the issue price alongside institutions, rather than after the market has repriced the stock.",
+      },
+      {
+        term: "Transparent pricing",
+        detail: "The price band, financials and risk factors are all published in the RHP before you commit a rupee.",
+      },
+      {
+        term: "Your money stays with you",
+        detail:
+          "Funds are only blocked in your bank account, not debited, and earn interest until shares are allotted.",
+      },
+      {
+        term: "Real risk",
+        detail:
+          "Listing gains are not assured, allotment is not guaranteed, and a newly listed share can be volatile for months.",
+      },
+    ],
+  },
+  {
+    id: "who-can-apply-for-an-ipo",
+    icon: CircleCheckBig,
+    heading: "Who can apply for an IPO?",
+    paragraphs: [
+      "Any resident Indian aged 18 or over with a PAN, a demat account and a bank account linked to UPI or ASBA can apply for an IPO. NRIs can apply too, through an NRE or NRO account on a non-repatriable or repatriable basis depending on the issue. Minors can be allotted shares through a guardian-operated demat account, using the minor's own PAN.",
+      "Applications are grouped into categories, and each has its own share of the issue and its own odds. Only one application is allowed per PAN — multiple applications from the same PAN are rejected outright, so a family applying together must use a separate PAN and demat account for each person.",
+    ],
+    bullets: [
+      {
+        term: "Retail individual investor",
+        detail:
+          "Applications up to ₹2,00,000. Oversubscribed retail portions are allotted by computerised lottery, so one lot is the efficient bid.",
+      },
+      {
+        term: "Non-institutional investor (HNI)",
+        detail:
+          "Above ₹2,00,000, split into small and big NII buckets. Allotment here is proportionate, not a lottery.",
+      },
+      {
+        term: "Qualified institutional buyer",
+        detail: "Mutual funds, insurers, banks and foreign portfolio investors bidding for the institutional portion.",
+      },
+      {
+        term: "What you need",
+        detail: "PAN, an active demat and trading account, and a UPI ID or bank account that supports ASBA.",
+      },
+    ],
+  },
+];
+
+/** Numbered checklist. Kept separate - it reads as a list, not an essay. */
+const factors = [
+  {
+    title: "Read the RHP, not the headlines",
+    body: "The red herring prospectus carries audited financials, the objects of the issue and a risk factors section the company is legally obliged to be candid in. It is the only document written under that obligation.",
+  },
+  {
+    title: "Check revenue and profit trend",
+    body: "Three years of growing revenue with thinning margins tells a very different story from steady, profitable growth. Look at cash flow from operations too — profit that never turns into cash is a warning.",
+  },
+  {
+    title: "Compare the valuation to listed peers",
+    body: "Work out the P/E at the upper price band and hold it against companies already trading in the same business. An issue priced well above its peers needs a reason, and the RHP should give you one.",
+  },
+  {
+    title: "See how much is fresh issue vs offer for sale",
+    body: "Fresh issue money funds the business. Offer-for-sale money pays exiting shareholders. A large OFS is not automatically bad, but you should know which one you are funding.",
+  },
+  {
+    title: "Look at promoter holding and any pledge",
+    body: "Promoters keeping a meaningful stake after listing signals confidence. Pledged promoter shares are a stress signal worth understanding before you apply.",
+  },
+  {
+    title: "Watch the subscription figures",
+    body: "The board above shows how many times each issue has been bid for. Strong institutional demand is informative, but remember it measures appetite on the day, not the quality of the business.",
+  },
+  {
+    title: "Know the difference between mainboard and SME",
+    body: "SME IPOs list on NSE Emerge or BSE SME, carry much larger lot sizes, trade far less frequently and are typically a higher-risk proposition than mainboard issues.",
+  },
+  {
+    title: "Treat grey market premium with caution",
+    body: "GMP is an unofficial, unregulated price quoted outside the exchanges. It is not a forecast, it carries no protection, and it should never be the reason you apply.",
+  },
+];
+
+/** Post-application timeline. Ordered, so it renders as an <ol>. */
+const afterApplying = [
+  {
+    step: "Funds are blocked, not debited",
+    body: "Approve the UPI mandate your bank sends, or submit an ASBA form, and the application amount is ring-fenced in your account. It stays yours, and keeps earning interest, until allotment is finalised.",
+  },
+  {
+    step: "Bidding closes and the book is built",
+    body: "Once the issue shuts, the registrar collates every valid bid and the final issue price is fixed within the price band. You can modify or withdraw a retail bid any time before the exchange cut-off.",
+  },
+  {
+    step: "Basis of allotment is finalised",
+    body: "If the retail portion is oversubscribed, allotment runs as a computerised lottery in which every applicant is considered for a single lot. Applying for more lots does not improve your chance of getting one.",
+  },
+  {
+    step: "Shares are credited, or your money is released",
+    body: "Allotted shares land in your demat account. Where you were not allotted, or were allotted partially, the blocked amount is unblocked and available again — usually within a day of allotment.",
+  },
+  {
+    step: "The share lists and starts trading",
+    body: "Indian IPOs now list within three working days of the issue closing (T+3). From the opening bell it trades like any other share, and you can hold it or sell it as you choose.",
+  },
+];
+---
+
+<section class="ipo-guide" aria-labelledby="ipo-guide-heading">
+  <div class="mx-auto max-w-7xl px-4 pb-14 md:px-8 lg:pb-20">
+    <div class="max-w-3xl">
+      <h2 id="ipo-guide-heading" class="h3 text-dark font-semibold tracking-tight dark:text-slate-100">
+        IPO guide: what an IPO is and how to apply for one
+      </h2>
+      <p class="text-text-default mt-5 text-lg leading-relaxed opacity-90">
+        Whether you are tracking an open IPO, waiting on an upcoming issue or checking an allotment status, it helps to
+        know what you are actually buying. This guide covers how an initial public offering works in India, who can
+        apply, what to check before you do, and what happens between your application and listing day.
+      </p>
+    </div>
+
+    <!-- Four core explainers -->
+    <div class="mt-10 grid gap-6 lg:mt-14 lg:grid-cols-2 lg:gap-8">
+      {
+        topics.map((topic) => (
+          <article id={topic.id} class="bg-theme-light rounded-4xl p-7 md:p-9 lg:p-10">
+            <div class="flex items-center gap-3.5">
+              <span class="text-primary flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-white/10">
+                <topic.icon class="h-5 w-5" stroke-width={1.8} aria-hidden="true" />
+              </span>
+              <h3 class="h5 text-dark font-semibold dark:text-slate-100">{topic.heading}</h3>
+            </div>
+
+            {topic.paragraphs.map((paragraph) => (
+              <p class="text-text-default mt-5 text-base leading-relaxed opacity-90">{paragraph}</p>
+            ))}
+
+            {topic.bullets && (
+              <dl class="border-border-light mt-7 divide-y divide-[var(--color-border-light)] overflow-hidden rounded-3xl border bg-white dark:bg-white/[0.04]">
+                {topic.bullets.map((bullet) => (
+                  <div class="px-5 py-4">
+                    <dt class="text-dark text-base font-semibold dark:text-slate-100">{bullet.term}</dt>
+                    <dd class="text-text-default mt-1 text-base leading-relaxed opacity-90">{bullet.detail}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+          </article>
+        ))
+      }
+    </div>
+
+    <!-- Pre-application checklist -->
+    <div class="mt-14 lg:mt-20">
+      <div class="max-w-3xl">
+        <h3 id="ipo-factors-to-consider" class="h4 text-dark font-semibold tracking-tight dark:text-slate-100">
+          Factors to consider before you apply for an IPO
+        </h3>
+        <p class="text-text-default mt-4 text-lg leading-relaxed opacity-90">
+          An IPO is a share purchase, not a lottery ticket. These are the checks worth running before you place a bid.
+        </p>
+      </div>
+
+      <ol class="mt-8 grid gap-6 md:grid-cols-2 lg:gap-8">
+        {
+          factors.map((factor, index) => (
+            <li class="bg-theme-light rounded-4xl p-7 md:p-8">
+              <span class="bg-primary/10 text-primary flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold dark:bg-white/10 dark:text-violet-300">
+                {index + 1}
+              </span>
+              <h4 class="h6 text-dark mt-4 font-semibold dark:text-slate-100">{factor.title}</h4>
+              <p class="text-text-default mt-2.5 text-base leading-relaxed opacity-90">{factor.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <!-- Post-application timeline -->
+    <div class="mt-14 lg:mt-20">
+      <div class="max-w-3xl">
+        <h3 id="after-you-apply" class="h4 text-dark font-semibold tracking-tight dark:text-slate-100">
+          What happens after you apply for an IPO?
+        </h3>
+        <p class="text-text-default mt-4 text-lg leading-relaxed opacity-90">
+          From the moment your bid is submitted to the day the share starts trading, here is the sequence — and where
+          your money sits at each stage.
+        </p>
+      </div>
+
+      <ol class="mt-8 max-w-4xl space-y-5">
+        {
+          afterApplying.map((stage, index) => (
+            <li class="bg-theme-light flex gap-5 rounded-4xl p-7 md:gap-7 md:p-8">
+              <span
+                class="bg-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-semibold text-white"
+                aria-hidden="true"
+              >
+                {index + 1}
+              </span>
+              <div class="min-w-0">
+                <h4 class="h6 text-dark font-semibold dark:text-slate-100">{stage.step}</h4>
+                <p class="text-text-default mt-2 text-base leading-relaxed opacity-90">{stage.body}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  /*
+   * global.css styles bare h2-h6 UNLAYERED, so a text-* utility on a heading is
+   * silently dropped and it renders at full section size - which is why the
+   * paragraphs beside them looked tiny. The .h3-.h6 helper classes above are
+   * the codebase's answer: also unlayered, but class specificity, so they win.
+   *
+   * The numerals below are the one thing those helpers do not cover: the white
+   * "1" on the purple step marker is inside a heading-free <span>, and the bare
+   * `a { color }` rule does not reach it, so no override is needed there.
+   */
+  .ipo-guide ol {
+    list-style: none;
+  }
+</style>

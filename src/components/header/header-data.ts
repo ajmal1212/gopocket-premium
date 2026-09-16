@@ -160,6 +160,7 @@ export const signInRekycServices: MegaMenuEntry[] = [
 
 export const headerLinks = {
   products: { href: "/products", label: "Products" },
+  ipo: { href: "/ipo", label: "IPO" },
   partner: { href: "/partner-with-us", label: "Partner With Us" },
   blog: { href: "/blog", label: "Blogs" },
   openAccount: { href: "/open-account-call-back?src=Website&tag=Menu", label: "Open Account" },

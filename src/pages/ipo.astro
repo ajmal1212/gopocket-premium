@@ -1,0 +1,120 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import FAQSection from "@/components/FAQSection.astro";
+import FinalCTA from "@/components/FinalCTA.astro";
+import IpoDashboard from "@/components/ipo/IpoDashboard.astro";
+import IpoGuide from "@/components/ipo/IpoGuide.astro";
+import IpoHero from "@/components/ipo/IpoHero.astro";
+import { getIpoBoard } from "@/lib/ipo";
+
+// Live from the `IPO` doctype on every request - this route is SSR like the
+// rest of the site, so an issue opening or a subscription figure moving is
+// reflected on the next page view without a rebuild.
+const board = await getIpoBoard();
+
+const faqs = [
+  {
+    id: "ipo-faq-1",
+    category: "Basics",
+    question: "What is an IPO?",
+    answer:
+      "An Initial Public Offering is the first time a company sells its shares to the public. You bid for shares within a price band during the issue window; if shares are allotted to you, they are credited to your demat account before the company lists on NSE or BSE.",
+  },
+  {
+    id: "ipo-faq-2",
+    category: "Applying",
+    question: "How do I apply for an IPO with GoPocket?",
+    answer:
+      "Open a GoPocket demat and trading account, then apply from the GoPocket app or web terminal. Pick the issue, choose your lot quantity and bid price, and approve the UPI mandate sent to your UPI app. The application amount stays blocked in your bank account until allotment.",
+  },
+  {
+    id: "ipo-faq-3",
+    category: "Applying",
+    question: "What is pre-apply, and how is it different from applying?",
+    answer:
+      "Pre-apply lets you place your bid before an issue formally opens. Your order is queued and submitted to the exchange the moment bidding starts, so you do not have to be at your phone when the window opens. Where an issue supports it, the option appears when you apply in the GoPocket app or web terminal.",
+  },
+  {
+    id: "ipo-faq-4",
+    category: "Charges",
+    question: "Does GoPocket charge anything to apply for an IPO?",
+    answer:
+      "No. Applying for an IPO through GoPocket is free, with no application or allotment charges. Standard brokerage and statutory charges apply only when you later sell the allotted shares.",
+  },
+  {
+    id: "ipo-faq-5",
+    category: "Basics",
+    question: "What is the difference between a mainboard and an SME IPO?",
+    answer:
+      "Mainboard IPOs are larger companies listing on the primary NSE and BSE platforms, with a minimum application of roughly ₹14,000–₹15,000. SME IPOs are smaller companies listing on the NSE Emerge or BSE SME platforms; lot sizes are much bigger, so the minimum application typically starts around ₹1,00,000–₹2,00,000. Use the IPO type filter above to see one or the other.",
+  },
+  {
+    id: "ipo-faq-6",
+    category: "Allotment",
+    question: "What does the subscription figure mean?",
+    answer:
+      "It shows how many times the shares on offer have been bid for. A figure of 8.30x means bids were received for 8.3 times the shares available. When an issue is oversubscribed, allotment in the retail category is decided by a computerised lottery, so a larger application does not improve your odds of getting one lot.",
+  },
+  {
+    id: "ipo-faq-7",
+    category: "Allotment",
+    question: "How do I check my IPO allotment status?",
+    answer:
+      "Once allotment is finalised, use the 'Check allotment status' link on any closed IPO above. It takes you to the registrar's site — KFintech, Bigshare or Link Intime — where you can look up your status with your PAN or application number. Allotted shares are credited to your demat account a day or two before listing.",
+  },
+  {
+    id: "ipo-faq-8",
+    category: "Basics",
+    question: "Can I change or cancel my IPO application?",
+    answer:
+      "Yes. You can modify or withdraw a retail application any time before the issue closes, subject to the exchange cut-off time shown against each investor category. Once the window shuts, applications are final and the blocked amount is released only if shares are not allotted to you.",
+  },
+];
+
+// FAQPage markup so these answers can surface directly in search results.
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: { "@type": "Answer", text: faq.answer },
+  })),
+};
+---
+
+<Layout
+  title="IPO Dashboard — Open, Upcoming & Listed IPOs | GoPocket"
+  description="Track every open, upcoming and recently listed mainboard and SME IPO. See price bands, lot sizes, subscription figures and allotment links. Apply free with GoPocket."
+  keywords="IPO, upcoming IPO, open IPO, SME IPO, IPO allotment status, IPO subscription, apply for IPO online, GoPocket IPO"
+  canonical="/ipo"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />
+
+  <Header currentPath="/ipo" />
+
+  <main>
+    <!-- <IpoHero openCount={board.open.length} upcomingCount={board.upcoming.length} /> -->
+
+    <IpoDashboard board={board} />
+
+    <!-- The board is a table of names and figures, which gives a crawler very
+         little to index. This is the page's ranking content. -->
+    <IpoGuide />
+
+    <div class="has-section-spacing-lg">
+      <FAQSection
+        eyebrow="IPO questions"
+        title="IPO, explained"
+        description="How applying, allotment and listing work — and what the numbers on this page mean."
+        faqs={faqs}
+      />
+
+      <FinalCTA />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

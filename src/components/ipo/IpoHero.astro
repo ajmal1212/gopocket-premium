@@ -1,0 +1,87 @@
+---
+/**
+ * Compact hero for the IPO board.
+ *
+ * Deliberately short. The dashboard below is what people came for, so the hero
+ * earns its place with the live counts and then gets out of the way rather than
+ * pushing the table under the fold.
+ */
+import Button from "@/components/Button.astro";
+
+interface Props {
+  openCount: number;
+  upcomingCount: number;
+  applyHref?: string;
+}
+
+const { openCount, upcomingCount, applyHref = "/open-account-call-back?src=Website&tag=IPO" } = Astro.props;
+
+const stats = [
+  { value: String(openCount), label: openCount === 1 ? "IPO open now" : "IPOs open now" },
+  { value: String(upcomingCount), label: "In the pipeline" },
+  { value: "₹0", label: "IPO application fee" },
+];
+---
+
+<section class="pt-10 pb-2 md:pt-14 lg:pt-20">
+  <!-- Same wrapper as the board below and as the stock page, so the headline
+       starts on the same left edge as the table. -->
+  <div class="mx-auto max-w-7xl px-4 md:px-8">
+    <div class="max-w-3xl">
+      <span
+        class="border-border-light text-text-default inline-flex items-center gap-2 rounded-full border bg-white px-3.5 py-1.5 text-xs font-medium dark:bg-white/5 dark:text-slate-300"
+      >
+        <span class="relative flex h-2 w-2" aria-hidden="true">
+          <span class="ipo-pulse absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+        </span>
+        Live IPO tracker
+      </span>
+
+      <h1 class="text-dark text-h3 lg:text-h2 mt-5 font-semibold tracking-tight dark:text-slate-100">
+        Every mainboard and SME IPO, in one place.
+      </h1>
+
+      <p class="text-text-default mt-4 text-base opacity-80 md:text-lg">
+        Track which issues are open, what is coming next and how recent listings performed — price bands, lot sizes,
+        subscription figures and allotment links, updated through the day.
+      </p>
+
+      <div class="mt-7 flex flex-wrap items-center gap-4">
+        <Button label="Open a free demat account" href={applyHref} />
+      </div>
+
+      <dl class="mt-10 grid grid-cols-3 gap-4 sm:max-w-lg">
+        {
+          stats.map((stat) => (
+            <div class="border-border-light rounded-2xl border bg-white px-4 py-3.5 dark:bg-white/5">
+              <dt class="text-text-default/70 text-[11px] font-medium dark:text-slate-400">{stat.label}</dt>
+              <dd class="text-dark mt-0.5 text-xl font-semibold dark:text-slate-100">{stat.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Tailwind's animate-ping, written out so it can be muted below. */
+  .ipo-pulse {
+    animation: ipo-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes ipo-ping {
+    75%,
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ipo-pulse {
+      animation: none;
+    }
+  }
+</style>

@@ -1,0 +1,208 @@
+---
+/**
+ * One row of the IPO board.
+ *
+ * Each tab has its own column set (see ipo-columns.ts) because the doctype holds
+ * genuinely different fields per status: an upcoming issue has no subscription
+ * figure, and a closed one has no action to offer. One table shape for all three
+ * would mean columns of dashes.
+ *
+ * Layout note: the row-select control and the trailing link are siblings, never
+ * nested - an <a> inside a <button> is invalid HTML. The select button is
+ * stretched over the row with `absolute inset-0` and the link is lifted above it
+ * with `z-10` plus `pointer-events-auto`.
+ */
+import type { FormattedIpo } from "@/lib/ipo";
+import { formatDayMonth } from "@/lib/ipo";
+import { COLUMN_LAYOUT, type IpoTab } from "./ipo-columns";
+import ExternalLink from "@lucide/astro/icons/external-link";
+
+interface Props {
+  ipo: FormattedIpo;
+  tab: IpoTab;
+  applyHref: string;
+}
+
+const { ipo, tab, applyHref } = Astro.props;
+const layout = COLUMN_LAYOUT[tab];
+
+const initials = ipo.name
+  .split(/\s+/)
+  .slice(0, 2)
+  .map((word) => word[0])
+  .join("")
+  .toUpperCase();
+
+// The date that matters for this status.
+const date = tab === "closed" ? formatDayMonth(ipo.listingDate) : tab === "upcoming" ? ipo.openLabel : ipo.closeLabel;
+const dateFallback = tab === "upcoming" ? "To be announced" : "--";
+
+/*
+ * Listing return, worded as the trading app words it: "33.06% gains" or
+ * "20.00% loss", the sign carried by the word rather than a minus. Most recently
+ * closed issues have a listing date but no listing price yet - bidding is over,
+ * the shares have not started trading - and those report a dash.
+ */
+const hasReturn = ipo.listingPrice > 0 && ipo.issuePrice > 0;
+const gain = ipo.listingReturn;
+const returnLabel = hasReturn ? `${Math.abs(gain).toFixed(2)}% ${gain < 0 ? "loss" : "gains"}` : "";
+---
+
+<li
+  data-ipo-row
+  data-sme={ipo.isSme ? "1" : "0"}
+  class:list={[
+    "border-border-light relative border-b transition-colors last:border-b-0",
+    // No hover highlight on an inert row - it would promise a click that does nothing.
+    ipo.hasDetail && "hover:bg-black/[0.02] dark:hover:bg-white/[0.04]",
+  ]}
+>
+  <!-- Stretched hit area for selecting the row. Labelled, because it has no
+       text of its own; the visible content sits in the grid beneath it. Omitted
+       entirely when there is nothing to expand into, so the row does not offer
+       a click that opens an empty panel. -->
+  {
+    ipo.hasDetail && (
+      <button
+        type="button"
+        data-ipo-select={ipo.id}
+        class="absolute inset-0 z-0 h-full w-full cursor-pointer"
+        aria-expanded="false"
+        aria-controls={`ipo-detail-${ipo.id}`}
+        aria-label={`View details for ${ipo.name}`}
+      />
+    )
+  }
+
+  <div class:list={["pointer-events-none relative grid items-center gap-3 px-4 py-3.5 md:gap-4 md:px-5", layout.grid]}>
+    <!-- Logo -->
+    <div
+      class="border-border-light flex h-13 w-13 items-center justify-center overflow-hidden rounded-xl border bg-white"
+    >
+      {
+        ipo.logo ? (
+          <img
+            src={ipo.logo}
+            alt=""
+            aria-hidden="true"
+            width="52"
+            height="52"
+            loading="lazy"
+            decoding="async"
+            class="h-full w-full object-contain p-1"
+          />
+        ) : (
+          <span class="text-text-default text-xs font-semibold dark:text-slate-300">{initials}</span>
+        )
+      }
+    </div>
+
+    <!-- Company -->
+    <div class="min-w-0">
+      {
+        ipo.isSme && (
+          <span class="text-text-default/60 block text-[11px] font-semibold tracking-wide uppercase dark:text-slate-400">
+            SME
+          </span>
+        )
+      }
+      <p class="text-dark truncate text-base font-semibold dark:text-slate-100">{ipo.name}</p>
+
+      <!-- On phones the data columns collapse into this meta line. -->
+      <p class="text-text-default/70 mt-0.5 truncate text-xs md:hidden dark:text-slate-400">
+        {date || dateFallback}
+        {tab !== "upcoming" && ipo.subscriptionLabel && <span> · {ipo.subscriptionLabel}</span>}
+        {tab === "closed" && returnLabel && <span> · {returnLabel}</span>}
+      </p>
+    </div>
+
+    <!-- Date -->
+    <div class="hidden md:block">
+      <p class="text-text-default text-sm dark:text-slate-300">{date || dateFallback}</p>
+      {
+        ipo.isLastDay && (
+          <span class="mt-1 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-semibold text-amber-800 dark:bg-amber-400/15 dark:text-amber-300">
+            Last day
+          </span>
+        )
+      }
+    </div>
+
+    <!-- Listing returns (closed only) -->
+    {
+      tab === "closed" && (
+        <div class="hidden md:block">
+          {returnLabel ? (
+            <p
+              class:list={[
+                "text-sm font-semibold",
+                gain < 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400",
+              ]}
+            >
+              {returnLabel}
+            </p>
+          ) : (
+            <p class="text-text-default/50 text-sm dark:text-slate-500">--</p>
+          )}
+        </div>
+      )
+    }
+
+    <!-- Overall subscription (open and closed) -->
+    {
+      tab !== "upcoming" && (
+        <div class="hidden md:block">
+          <p class="text-text-default text-sm dark:text-slate-300">{ipo.subscriptionLabel || "--"}</p>
+        </div>
+      )
+    }
+
+    <!-- Trailing action. `pointer-events-auto` restores clicks that the wrapper
+         disabled so the stretched select button stays reachable elsewhere. -->
+    {
+      tab === "open" && (
+        <a
+          href={applyHref}
+          class="ipo-row-link pointer-events-auto relative z-10 block w-full rounded-full bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] px-2 py-2 text-center text-sm font-semibold whitespace-nowrap transition-colors hover:bg-[color-mix(in_srgb,var(--color-primary)_18%,transparent)]"
+        >
+          Apply
+        </a>
+      )
+    }
+
+    {
+      tab === "upcoming" &&
+        (ipo.documentUrl ? (
+          <a
+            href={ipo.documentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="ipo-row-link pointer-events-auto relative z-10 inline-flex items-center justify-end gap-1.5 text-sm font-semibold whitespace-nowrap transition-opacity hover:opacity-75"
+          >
+            <ExternalLink class="h-4 w-4" stroke-width={2} aria-hidden="true" />
+            IPO Doc
+          </a>
+        ) : (
+          <span aria-hidden="true" />
+        ))
+    }
+  </div>
+</li>
+
+<style>
+  /*
+   * global.css sets a bare, UNLAYERED `a { color: #3b3b3b }` near the top of the
+   * file. Unlayered CSS outranks every @layer regardless of specificity, so a
+   * `text-primary` utility sitting in @layer utilities loses to it and these
+   * links render grey. Astro's scoped styles are unlayered too and carry the
+   * component's data-astro-cid attribute, so they win here. Same trap that the
+   * `.nav-link-active` rule in global.css documents.
+   */
+  .ipo-row-link {
+    color: var(--color-primary);
+  }
+
+  :global(html.dark) .ipo-row-link {
+    color: #ddd6fe;
+  }
+</style>

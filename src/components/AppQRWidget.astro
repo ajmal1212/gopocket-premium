@@ -58,6 +58,16 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 14px;
+    /* The hidden card still takes up layout space, so without this the wrapper
+       is an invisible ~190x340px box over the bottom-left of the page that
+       swallows taps on whatever sits beneath it (on phones, the footer's
+       Important Information links). Only the button and the open card take
+       pointer events. */
+    pointer-events: none;
+  }
+  .gp-qr-fab,
+  .gp-qr-widget[data-open="true"] .gp-qr-card {
+    pointer-events: auto;
   }
 
   /* --- Launcher button ---------------------------------------------------- */

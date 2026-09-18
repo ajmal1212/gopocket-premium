@@ -1,0 +1,39 @@
+---
+/**
+ * The blog cards' "Read more" pill. It is not Button.astro on purpose: the site
+ * button is uppercase with a text-flip animation and a glow, while the blog
+ * layout calls for a quiet sentence-case link with a trailing arrow, repeated
+ * once per card.
+ *
+ * Every card carries one, so the visible text alone would give screen readers a
+ * list of identical "Read more" links; `title` is appended as sr-only text.
+ */
+import ArrowRight from "@lucide/astro/icons/arrow-right";
+
+interface Props {
+  href: string;
+  title: string;
+  variant?: "solid" | "outline";
+  class?: string;
+}
+
+const { href, title, variant = "outline", class: className = "" } = Astro.props;
+---
+
+<a
+  href={href}
+  class:list={[
+    "group/more inline-flex items-center gap-1.5 rounded-lg font-semibold transition-colors duration-200",
+    variant === "solid"
+      ? "bg-black px-7 py-3.5 text-base text-white! hover:bg-black/85 dark:bg-slate-100 dark:text-slate-900! dark:hover:bg-slate-300"
+      : "text-dark hover:border-dark border border-border-light bg-white px-4 py-2 text-sm",
+    className,
+  ]}
+>
+  Read more<span class="sr-only">: {title}</span>
+  <ArrowRight
+    class="h-4 w-4 transition-transform duration-200 group-hover/more:translate-x-0.5 motion-reduce:transition-none"
+    stroke-width={2}
+    aria-hidden="true"
+  />
+</a>

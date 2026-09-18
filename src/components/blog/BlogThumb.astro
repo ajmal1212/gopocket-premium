@@ -1,0 +1,40 @@
+---
+/**
+ * A post's thumbnail with its category chip pinned top-left, linked to the post.
+ *
+ * The card's title and "Read more" already link to the same URL, so this link
+ * is taken out of the tab order and the accessibility tree rather than giving
+ * keyboard and screen-reader users a third identical stop per card.
+ */
+interface Props {
+  href: string;
+  src: string;
+  category: string;
+  width: number;
+  height: number;
+  /** The featured post's image is the LCP element, so it must not be lazy. */
+  eager?: boolean;
+  class?: string;
+}
+
+const { href, src, category, width, height, eager = false, class: className = "" } = Astro.props;
+---
+
+<div class:list={["group bg-theme-light relative overflow-hidden border border-border-light", className]}>
+  <img
+    src={src}
+    alt=""
+    width={width}
+    height={height}
+    loading={eager ? "eager" : "lazy"}
+    decoding="async"
+    fetchpriority={eager ? "high" : undefined}
+    class="h-full w-full object-cover transition duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+  />
+  <span
+    class="text-dark absolute top-3 left-3 z-10 rounded-md bg-white px-2.5 py-1 text-xs font-medium shadow-xs md:top-4 md:left-4 md:text-sm"
+  >
+    {category}
+  </span>
+  <a href={href} class="absolute inset-0 z-20" tabindex="-1" aria-hidden="true"></a>
+</div>

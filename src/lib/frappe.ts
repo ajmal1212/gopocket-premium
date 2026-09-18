@@ -504,7 +504,22 @@ export interface FormattedBlog {
   /** ISO-8601 timestamps for schema.org / OpenGraph article metadata. */
   publishedISO: string;
   modifiedISO: string;
+  /** Estimated minutes to read, from the body's word count; 0 when the body wasn't fetched. */
+  readingMinutes: number;
   postBody?: string;
+}
+
+// Average adult silent-reading speed; the usual basis for "N min read".
+const WORDS_PER_MINUTE = 200;
+
+function estimateReadingMinutes(rawBody?: string): number {
+  if (!rawBody) return 0;
+  const words = rawBody
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&[a-z#0-9]+;/gi, " ")
+    .split(/\s+/)
+    .filter(Boolean).length;
+  return Math.max(1, Math.round(words / WORDS_PER_MINUTE));
 }
 
 export function formatPostBody(rawBody?: string): string {
@@ -611,19 +626,35 @@ export function formatBlog(doc: BlogDoc): FormattedBlog {
     modified: doc.modified || "",
     publishedISO: toIsoDate(doc.creation),
     modifiedISO: toIsoDate(doc.modified || doc.creation),
+    readingMinutes: estimateReadingMinutes(doc.post_body),
     postBody: formatPostBody(doc.post_body),
   };
 }
 
 /**
- * Fetches blog collection list with limit_page_length = 20 (without post_body)
+ * The /blog listing shows "N min read", which needs the body's word count. When
+ * `withReadingTime` is set the body is fetched for that count only and dropped
+ * here, so list items stay light and formatPostBody isn't run on content that
+ * never renders. It is opt-in because the sitemap pulls hundreds of posts and
+ * has no use for the bodies.
  */
-export async function getBlogPosts(limit = 20): Promise<FormattedBlog[]> {
+function formatBlogListItem(doc: BlogDoc): FormattedBlog {
+  return {
+    ...formatBlog({ ...doc, post_body: undefined }),
+    readingMinutes: estimateReadingMinutes(doc.post_body),
+  };
+}
+
+/**
+ * Fetches the blog collection, newest first, without post bodies.
+ */
+export async function getBlogPosts(limit = 20, withReadingTime = false): Promise<FormattedBlog[]> {
   const fields = [
     "name",
     "meta_tittle",
     "meta_description",
     "slug",
+    ...(withReadingTime ? ["post_body"] : []),
     "main_image",
     "thumbnail_image",
     "category1",
@@ -644,7 +675,7 @@ export async function getBlogPosts(limit = 20): Promise<FormattedBlog[]> {
     });
 
     if (docs && docs.length > 0) {
-      return docs.map(formatBlog);
+      return docs.map(formatBlogListItem);
     }
   } catch (error) {
     console.warn("Frappe SDK getBlogPosts failed, trying native fetch...", error);
@@ -666,7 +697,7 @@ export async function getBlogPosts(limit = 20): Promise<FormattedBlog[]> {
     if (res.ok) {
       const json = await res.json();
       if (json.data && json.data.length > 0) {
-        return json.data.map(formatBlog);
+        return json.data.map(formatBlogListItem);
       }
     }
   } catch (error) {

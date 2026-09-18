@@ -1,0 +1,705 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import FAQSection2 from "../components/FAQSection2.astro";
+import CalculatorSidebar from "../components/calculators/CalculatorSidebar.astro";
+import {
+  commodityFutures,
+  commodityLotSizes,
+  commodityOptions,
+  equityDelivery,
+  equityIntraday,
+  fnoFutures,
+  fnoOptions,
+  type ChargeBreakdown,
+} from "@/lib/brokerage";
+
+/*
+ * Brokerage calculator, moved over from the previous gopocket.in page with
+ * the same segments, result rows, formulas (see src/lib/brokerage.ts) and SEO
+ * copy - minus the Currency tab.
+ *
+ * Every segment/mode result block is rendered on the server from the default
+ * inputs, so the page shows real figures before any script runs; the script
+ * recomputes with the same functions as the visitor types.
+ */
+
+type Mode = { id: string; label: string };
+
+interface Segment {
+  id: "equity" | "fno" | "commodity";
+  label: string;
+  /** The NSE / BSE choice the old page offered on equity and F&O. */
+  exchanges: boolean;
+  qtyLabel: string;
+  /** STT on equity and F&O, CTT on commodity. */
+  taxLabel: string;
+  modes: Mode[];
+  defaults: { commodity?: string; buy: number; sell: number; qty: number };
+}
+
+const segments: Segment[] = [
+  {
+    id: "equity",
+    label: "Equity",
+    exchanges: true,
+    qtyLabel: "Qty.",
+    taxLabel: "STT",
+    modes: [
+      { id: "delivery", label: "Delivery" },
+      { id: "intraday", label: "Intraday" },
+    ],
+    defaults: { buy: 1000, sell: 1100, qty: 400 },
+  },
+  {
+    id: "fno",
+    label: "F & O",
+    exchanges: true,
+    qtyLabel: "Qty.",
+    taxLabel: "STT",
+    modes: [
+      { id: "futures", label: "Futures" },
+      { id: "options", label: "Option" },
+    ],
+    defaults: { buy: 200, sell: 210, qty: 75 },
+  },
+  {
+    id: "commodity",
+    label: "Commodity",
+    exchanges: false,
+    qtyLabel: "Number of Lots",
+    taxLabel: "CTT",
+    modes: [
+      { id: "futures", label: "Futures" },
+      { id: "options", label: "Option" },
+    ],
+    defaults: { commodity: "CRUDEOIL", buy: 6000, sell: 6100, qty: 1 },
+  },
+];
+
+function compute(segment: Segment["id"], mode: string, values: Segment["defaults"]): ChargeBreakdown {
+  const { buy, sell, qty, commodity = "" } = values;
+  // NSE is the exchange pre-selected in the form.
+  if (segment === "equity")
+    return mode === "intraday" ? equityIntraday(buy, sell, qty, "NSE") : equityDelivery(buy, sell, qty, "NSE");
+  if (segment === "fno")
+    return mode === "options" ? fnoOptions(buy, sell, qty, "NSE") : fnoFutures(buy, sell, qty, "NSE");
+  return mode === "options" ? commodityOptions(commodity, buy, sell, qty) : commodityFutures(commodity, buy, sell, qty);
+}
+
+// Result rows in display order. A row shows only when the breakdown has that
+// field, so DP charges appear for equity delivery alone and NSE IPFT is absent
+// on commodity - exactly as on the old page.
+const rows: { key: keyof ChargeBreakdown; label: string; strong?: boolean }[] = [
+  { key: "turnover", label: "Turnover" },
+  { key: "brokerage", label: "Brokerage" },
+  { key: "exchangeCharges", label: "Exchange Transaction Charges" },
+  { key: "gst", label: "GST" },
+  { key: "transactionTax", label: "" },
+  { key: "sebiCharges", label: "SEBI Charges" },
+  { key: "stampDuty", label: "Stamp Duty" },
+  { key: "dpCharges", label: "DP charges (Only for sell)" },
+  { key: "nseIpft", label: "NSE IPFT" },
+  { key: "totalCharges", label: "Total Charges", strong: true },
+  { key: "breakEven", label: "Points to Break Even", strong: true },
+];
+
+const rupees = (value: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+
+const commodities = Object.keys(commodityLotSizes);
+
+const faqItems = [
+  {
+    question: "What is a brokerage calculator?",
+    answer:
+      "A brokerage calculator is an online tool designed to assist traders and clients in precisely understanding the charges they may incur during the execution of a trade.",
+  },
+  {
+    question: "What is intraday brokerage?",
+    answer:
+      "Intraday trading involves the purchase and sale of an asset within a single day, with the associated brokerage referred to as intraday brokerage.",
+  },
+  {
+    question: "How to calculate delivery charges?",
+    answer:
+      "For equity delivery orders, where stocks are bought and sold after a period of days, weeks, or months, a brokerage fee of ₹10 per order or 0.03% (whichever is lower) will be applied. This pricing structure is applicable to all customers who joined on or after September 21, 2021. Detailed brokerage charges for equity, commodity, currency futures, and options can be found in our Chargeslist.",
+  },
+  {
+    question: "What is CTT?",
+    answer:
+      "Commodities Transaction Tax, also known as CTT, is similar to STT. This tax is applicable on all trades appearing in the commodity segment, except on agricultural commodities.",
+  },
+  {
+    question: "What are STT charges?",
+    answer:
+      "Securities Transaction Tax (STT) is imposed on all equity segment trades, with a rate of 0.1% on the total trade value for both buy and sell transactions in equity delivery trades. In equity intraday trades, STT is applied solely to sell trades at a rate of 0.025% on the total trade value.",
+  },
+];
+
+const faqCategories = [{ id: "brokerage-faqs", label: "FAQs for Brokerage", items: faqItems }];
+
+const structuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "GoPocket Brokerage Calculator",
+    url: "https://gopocket.in/brokerage-calculator",
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Any",
+    description:
+      "Calculate your exact brokerage, STT, and taxes before placing a trade across equity delivery, intraday, F&O and commodity.",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+    provider: { "@type": "Organization", name: "GoPocket", url: "https://gopocket.in" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  },
+];
+
+const factors = [
+  {
+    title: "Buy / sale price",
+    description:
+      "The brokerage commission is directly proportional to the buy or sale price of a single unit of security, making it a key determinant in the calculation.",
+  },
+  {
+    title: "Volume of transaction",
+    description:
+      "The calculation of brokerage, whether done manually or using a brokerage calculator, is significantly influenced by the volume of transactions. As the transaction volume increases, the brokerage amount tends to rise; however, certain brokers may lower the percentage commission for investors engaging in large-scale trades",
+  },
+  {
+    title: "Segment of trade",
+    description:
+      "This crucial factor is integral to brokerage calculations, considering the various market segments available for trading, including the spot/cash market and the derivatives market. The applicable brokerage for a trade is contingent upon the specific segment in which you intend to place an order.",
+  },
+];
+
+const benefits = [
+  "Brokerage calculators provide transparency by breaking down the various components of transaction cost.",
+  "It allows users to estimate the total cost of a trade, including brokerage fees, taxes and other charges.",
+  "Investors can quickly compare the costs of different trade scenarios by inputting various parameters, such as trade size, price, and frequency.",
+  "Calculators allow users to assess the impact of transaction costs on the overall profitability of a trade.",
+  "Brokerage calculators serve as educational tools, helping investors understand the various charges associated with trading.",
+  "As online tools, brokerage calculators are accessible anytime and anywhere with an internet connection.",
+];
+
+const activeTabClass =
+  "px-5 py-2 text-sm sm:text-base font-bold rounded-full border border-primary bg-primary/10 text-primary transition-all";
+const idleTabClass =
+  "px-5 py-2 text-sm sm:text-base font-bold rounded-full border border-transparent text-text-default opacity-70 hover:opacity-100 transition-all";
+const activeModeClass =
+  "flex-1 px-4 py-2 text-sm font-bold rounded-lg bg-white dark:bg-[#1c202e] text-primary shadow-sm transition-all";
+const idleModeClass =
+  "flex-1 px-4 py-2 text-sm font-semibold rounded-lg text-text-default opacity-70 hover:opacity-100 transition-all";
+const fieldBoxClass =
+  "flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-2 focus-within:border-primary";
+const fieldInputClass =
+  "w-full min-w-0 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none";
+---
+
+<Layout
+  title="Free Brokerage Calculator | Calculate Trading Charges | GoPocket"
+  description="Calculate your exact brokerage, STT, and taxes before placing a trade. GoPocket's free brokerage calculator covers equity, F&O and commodity."
+  keywords="brokerage calculator, brokerage calculator india, intraday brokerage calculator, delivery brokerage calculator, f&o brokerage calculator, option brokerage calculator, commodity brokerage calculator, stt calculator, trading charges calculator, gopocket brokerage"
+  canonical="/brokerage-calculator"
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+
+  <Header currentPath="/brokerage-calculator" />
+
+  <main class="pt-8 md:pt-14 pb-16">
+    <div class="container max-w-[1400px] px-4 sm:px-6 space-y-12">
+      <div class="mb-8 space-y-2">
+        <h1 class="h3 font-bold text-dark tracking-tight">Brokerage Calculator</h1>
+        <p class="text-base sm:text-lg text-text-default opacity-80 max-w-3xl">
+          Calculate your Net P&amp;L after deducting all the charges like Tax, Brokerage, etc.
+        </p>
+      </div>
+
+      <!-- Main Grid Container (8 Cols Left + 4 Cols Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- LEFT COLUMN: Calculator Card (8 Cols) -->
+        <div class="lg:col-span-8 space-y-8">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-8"
+            data-brokerage-calculator
+            data-active-tab={activeTabClass}
+            data-idle-tab={idleTabClass}
+            data-active-mode={activeModeClass}
+            data-idle-mode={idleModeClass}
+          >
+            <!-- Segment tabs -->
+            <div class="flex flex-wrap items-center gap-3" role="tablist" aria-label="Market segment">
+              {
+                segments.map((segment, index) => (
+                  <button
+                    type="button"
+                    role="tab"
+                    id={`tab-${segment.id}`}
+                    aria-controls={`panel-${segment.id}`}
+                    aria-selected={index === 0 ? "true" : "false"}
+                    data-segment-tab={segment.id}
+                    class={index === 0 ? activeTabClass : idleTabClass}
+                  >
+                    {segment.label}
+                  </button>
+                ))
+              }
+            </div>
+
+            {
+              segments.map((segment, index) => (
+                <div
+                  id={`panel-${segment.id}`}
+                  role="tabpanel"
+                  aria-labelledby={`tab-${segment.id}`}
+                  data-segment-panel={segment.id}
+                  class={index === 0 ? "space-y-8" : "hidden space-y-8"}
+                >
+                  <div class="space-y-5">
+                    <h2 class="h4 text-base sm:text-lg font-bold text-dark">
+                      Enter these details to calculate brokerage
+                    </h2>
+
+                    {segment.exchanges && (
+                      <div
+                        class="flex items-center gap-6 text-sm sm:text-base font-semibold text-dark"
+                        role="radiogroup"
+                        aria-label="Exchange"
+                      >
+                        {["NSE", "BSE"].map((exchange, i) => (
+                          <label class="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              data-field="exchange"
+                              name={`${segment.id}-exchange`}
+                              value={exchange}
+                              checked={i === 0}
+                              class="h-4 w-4 accent-[#6b1aff]"
+                            />
+                            {exchange}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+
+                    <div
+                      class={`grid grid-cols-1 gap-4 ${segment.defaults.commodity ? "sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4" : "sm:grid-cols-3"}`}
+                    >
+                      {segment.defaults.commodity && (
+                        <div class="space-y-2">
+                          <label for={`${segment.id}-commodity`} class="text-sm sm:text-base font-semibold text-dark">
+                            Commodity
+                          </label>
+                          <select
+                            id={`${segment.id}-commodity`}
+                            data-field="commodity"
+                            class="h-[46px] w-full rounded-xl border border-primary/20 bg-primary/5 px-4 font-extrabold text-primary text-base sm:text-lg focus:outline-none focus:border-primary dark:bg-primary/10"
+                          >
+                            {commodities.map((name) => (
+                              <option value={name} selected={name === segment.defaults.commodity}>
+                                {name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      <div class="space-y-2">
+                        <label for={`${segment.id}-buy`} class="text-sm sm:text-base font-semibold text-dark">
+                          Buy Price
+                        </label>
+                        <div class={fieldBoxClass}>
+                          <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                          <input
+                            type="number"
+                            id={`${segment.id}-buy`}
+                            data-field="buy"
+                            value={segment.defaults.buy}
+                            min="0"
+                            step="any"
+                            inputmode="decimal"
+                            class={fieldInputClass}
+                          />
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <label for={`${segment.id}-sell`} class="text-sm sm:text-base font-semibold text-dark">
+                          Sell Price
+                        </label>
+                        <div class={fieldBoxClass}>
+                          <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                          <input
+                            type="number"
+                            id={`${segment.id}-sell`}
+                            data-field="sell"
+                            value={segment.defaults.sell}
+                            min="0"
+                            step="any"
+                            inputmode="decimal"
+                            class={fieldInputClass}
+                          />
+                        </div>
+                      </div>
+                      <div class="space-y-2">
+                        <label for={`${segment.id}-qty`} class="text-sm sm:text-base font-semibold text-dark">
+                          {segment.qtyLabel}
+                        </label>
+                        <div class={fieldBoxClass}>
+                          <span class="text-sm font-bold text-primary mr-1">No.</span>
+                          <input
+                            type="number"
+                            id={`${segment.id}-qty`}
+                            data-field="qty"
+                            value={segment.defaults.qty}
+                            min="0"
+                            step="1"
+                            inputmode="numeric"
+                            class={fieldInputClass}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mode tabs */}
+                  <div
+                    class="flex gap-1 rounded-xl bg-gray-100 dark:bg-[#181b25] p-1"
+                    role="group"
+                    aria-label={`${segment.label} trade type`}
+                  >
+                    {segment.modes.map((mode, modeIndex) => (
+                      <button
+                        type="button"
+                        data-mode-tab={mode.id}
+                        aria-pressed={modeIndex === 0 ? "true" : "false"}
+                        class={modeIndex === 0 ? activeModeClass : idleModeClass}
+                      >
+                        {mode.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {segment.modes.map((mode, modeIndex) => {
+                    const result = compute(segment.id, mode.id, segment.defaults);
+                    return (
+                      <div
+                        data-results={mode.id}
+                        class={modeIndex === 0 ? "space-y-5" : "hidden space-y-5"}
+                        aria-live="polite"
+                      >
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div class="rounded-2xl border border-primary/20 bg-primary/5 dark:bg-primary/10 p-5">
+                            <span class="block text-xs sm:text-sm font-semibold text-text-default opacity-70">
+                              GoPocket Charges
+                            </span>
+                            <span class="block text-sm font-semibold text-dark">Brokerage</span>
+                            <span
+                              data-value="brokerage"
+                              class="mt-1 block text-2xl sm:text-3xl font-black text-primary"
+                            >
+                              {rupees(result.brokerage)}
+                            </span>
+                          </div>
+                          <div class="rounded-2xl border border-gray-200 dark:border-[#262938] p-5">
+                            <span class="block text-xs sm:text-sm font-semibold text-text-default opacity-70">
+                              Net P/L
+                            </span>
+                            <span class="block text-sm font-semibold text-dark">After all charges</span>
+                            <span
+                              data-value="netProfit"
+                              data-signed
+                              class={`mt-1 block text-2xl sm:text-3xl font-black ${result.netProfit < 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`}
+                            >
+                              {rupees(result.netProfit)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <dl class="divide-y divide-gray-100 dark:divide-[#262938] rounded-2xl border border-gray-200 dark:border-[#262938] text-sm sm:text-base">
+                          {rows
+                            .filter((row) => result[row.key] !== undefined)
+                            .map((row) => (
+                              <div class="flex items-center justify-between gap-4 px-5 py-3">
+                                <dt
+                                  class={
+                                    row.strong ? "font-bold text-dark" : "font-semibold text-text-default opacity-80"
+                                  }
+                                >
+                                  {row.key === "transactionTax" ? segment.taxLabel : row.label}
+                                </dt>
+                                <dd
+                                  data-value={row.key}
+                                  class={row.strong ? "font-black text-dark" : "font-bold text-dark"}
+                                >
+                                  {rupees(result[row.key] as number)}
+                                </dd>
+                              </div>
+                            ))}
+                        </dl>
+
+                        {segment.id === "equity" && mode.id === "delivery" && (
+                          <p class="text-xs sm:text-sm text-text-default opacity-60">* DP Charges applicable</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))
+            }
+          </div>
+        </div>
+
+        <CalculatorSidebar current="brokerage" tag="Brokerage Calculator" />
+      </div>
+
+      <!-- RICH SEO CONTENT SECTION -->
+      <section class="mt-16 space-y-12 border-t border-gray-200 dark:border-[#262938] pt-12">
+        <div class="max-w-4xl space-y-4">
+          <h2 class="h3 font-bold text-dark tracking-tight">What is Brokerage Calculator?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            An online brokerage calculator, offered by brokers and investment platforms, serves as a valuable tool for
+            traders by enabling them to pre-calculate various costs associated with a trade.
+          </p>
+        </div>
+
+        <div class="max-w-4xl space-y-4">
+          <h2 class="h3 font-bold text-dark tracking-tight">How does a brokerage calculator work?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            Brokerage charges represent the fees collected by brokers from traders to facilitate trades. Investors are
+            typically required to pay brokerage fees both when buying and selling securities.
+          </p>
+        </div>
+
+        <!-- Formula & example -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">Formula use for GoPocket brokerage calculator</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            Despite potential variations, the formula for calculating brokerage in the share market generally involves
+            applying a predetermined percentage to the total trade value.
+          </p>
+
+          <div
+            class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 text-center font-mono text-base sm:text-xl font-black text-primary overflow-x-auto"
+          >
+            Brokerage = Number of shares sell / buy * Price of the one unit stock * Percentage of Brokerage
+          </div>
+
+          <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-6 space-y-3">
+            <h3 class="h4 text-base sm:text-lg font-bold text-primary">Example:</h3>
+            <p class="text-base sm:text-lg text-text-default font-medium leading-relaxed">
+              Amit decides to purchase 100 shares of Yes bank at Rs.20 each, and within 10 days, he sells those off at
+              Rs.30. He does so via a Broker Z who charges 0.5% as brokerage fees. In this example, Amit's total trade
+              value stands to be: Rs. [(100 x 20) + (100 x 30)] Or, Rs. (2000 + 3000) = Rs.5000
+            </p>
+            <p class="text-base sm:text-lg text-text-default font-medium leading-relaxed">
+              Since Broker Z charges 0.5% as brokerage, the total fee he pays to the broker is: Rs. (5000 x 0.5%) =
+              Rs.25
+            </p>
+            <p class="text-base sm:text-lg text-text-default font-medium leading-relaxed">
+              Therefore, Amit would pay Rs.25 as a brokerage for carrying out transactions worth Rs.5000. However, if he
+              carried out a transaction on which brokerage by standard means is too low, then a broker would charge the
+              minimum amount applicable, which is usually Rs.20 – Rs.30. However, individuals can streamline the tedious
+              process of computing brokerage by utilizing a stock brokerage calculator.
+            </p>
+          </div>
+        </div>
+
+        <!-- Factors -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">
+            What are the Factors on which Brokerage Calculation Depends?
+          </h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            The factors on which brokerage calculations depend are –
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-sm sm:text-base">
+            {
+              factors.map((factor) => (
+                <div class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-5 space-y-2">
+                  <h3 class="h4 text-base sm:text-lg font-bold text-primary">{factor.title}</h3>
+                  <p class="opacity-80">{factor.description}</p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+
+        <!-- Benefits -->
+        <div class="max-w-4xl space-y-4">
+          <h2 class="h3 font-bold text-dark tracking-tight">
+            What are the Benefits of using GoPocket Brokerage Calculator?
+          </h2>
+          <ul class="space-y-3">
+            {
+              benefits.map((benefit) => (
+                <li class="flex gap-3 text-lg sm:text-xl text-text-default leading-relaxed">
+                  <span class="text-primary font-bold" aria-hidden="true">
+                    ✓
+                  </span>
+                  <span class="opacity-85">{benefit}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </section>
+
+      <FAQSection2 title="for Brokerage" titleBold="FAQs" categories={faqCategories} />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<script>
+  import {
+    commodityFutures,
+    commodityOptionContracts,
+    commodityOptions,
+    equityDelivery,
+    equityIntraday,
+    fnoFutures,
+    fnoOptions,
+    type ChargeBreakdown,
+    type Exchange,
+  } from "@/lib/brokerage";
+
+  const calculators: Record<string, Record<string, (values: Values) => ChargeBreakdown>> = {
+    equity: {
+      delivery: (v) => equityDelivery(v.buy, v.sell, v.qty, v.exchange),
+      intraday: (v) => equityIntraday(v.buy, v.sell, v.qty, v.exchange),
+    },
+    fno: {
+      futures: (v) => fnoFutures(v.buy, v.sell, v.qty, v.exchange),
+      options: (v) => fnoOptions(v.buy, v.sell, v.qty, v.exchange),
+    },
+    commodity: {
+      futures: (v) => commodityFutures(v.commodity, v.buy, v.sell, v.qty),
+      options: (v) => commodityOptions(v.commodity, v.buy, v.sell, v.qty),
+    },
+  };
+
+  interface Values {
+    exchange: Exchange;
+    commodity: string;
+    buy: number;
+    sell: number;
+    qty: number;
+  }
+
+  const rupees = new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const root = document.querySelector<HTMLElement>("[data-brokerage-calculator]");
+
+  function readValues(panel: HTMLElement): Values {
+    const field = (name: string) => panel.querySelector<HTMLInputElement | HTMLSelectElement>(`[data-field="${name}"]`);
+    // Same parsing as the old page: parseFloat for prices, parseInt for quantity.
+    const exchange = panel.querySelector<HTMLInputElement>('[data-field="exchange"]:checked')?.value;
+    return {
+      exchange: exchange === "BSE" ? "BSE" : "NSE",
+      commodity: field("commodity")?.value || "",
+      buy: parseFloat(field("buy")?.value || "") || 0,
+      sell: parseFloat(field("sell")?.value || "") || 0,
+      qty: parseInt(field("qty")?.value || "", 10) || 0,
+    };
+  }
+
+  function recalculate(panel: HTMLElement) {
+    const segment = panel.dataset.segmentPanel || "";
+    const values = readValues(panel);
+    panel.querySelectorAll<HTMLElement>("[data-results]").forEach((block) => {
+      const compute = calculators[segment]?.[block.dataset.results || ""];
+      if (!compute) return;
+      const result = compute(values);
+      block.querySelectorAll<HTMLElement>("[data-value]").forEach((el) => {
+        const value = result[el.dataset.value as keyof ChargeBreakdown] ?? 0;
+        el.textContent = rupees.format(value);
+        if (el.hasAttribute("data-signed")) {
+          el.classList.toggle("text-red-600", value < 0);
+          el.classList.toggle("dark:text-red-400", value < 0);
+          el.classList.toggle("text-emerald-600", value >= 0);
+          el.classList.toggle("dark:text-emerald-400", value >= 0);
+        }
+      });
+    });
+  }
+
+  // Commodity options exist only on a handful of MCX contracts, so the Option
+  // tab narrows the list to those - as the old page did - and moves the
+  // selection onto one if needed.
+  function restrictCommodities(panel: HTMLElement, optionsOnly: boolean) {
+    const select = panel.querySelector<HTMLSelectElement>('[data-field="commodity"]');
+    if (!select) return;
+    Array.from(select.options).forEach((option) => {
+      const allowed = !optionsOnly || commodityOptionContracts.includes(option.value);
+      option.disabled = !allowed;
+      option.hidden = !allowed;
+    });
+    if (optionsOnly && !commodityOptionContracts.includes(select.value)) {
+      select.value = commodityOptionContracts.includes("CRUDEOIL") ? "CRUDEOIL" : commodityOptionContracts[0];
+    }
+  }
+
+  if (root) {
+    const { activeTab = "", idleTab = "", activeMode = "", idleMode = "" } = root.dataset;
+    const tabs = root.querySelectorAll<HTMLButtonElement>("[data-segment-tab]");
+    const panels = root.querySelectorAll<HTMLElement>("[data-segment-panel]");
+
+    tabs.forEach((tab) =>
+      tab.addEventListener("click", () => {
+        tabs.forEach((other) => {
+          const isActive = other === tab;
+          other.className = isActive ? activeTab : idleTab;
+          other.setAttribute("aria-selected", String(isActive));
+        });
+        panels.forEach((panel) =>
+          panel.classList.toggle("hidden", panel.dataset.segmentPanel !== tab.dataset.segmentTab),
+        );
+      }),
+    );
+
+    panels.forEach((panel) => {
+      panel.querySelectorAll("[data-field]").forEach((field) => {
+        field.addEventListener("input", () => recalculate(panel));
+        field.addEventListener("change", () => recalculate(panel));
+      });
+
+      const modeTabs = panel.querySelectorAll<HTMLButtonElement>("[data-mode-tab]");
+      modeTabs.forEach((modeTab) =>
+        modeTab.addEventListener("click", () => {
+          const mode = modeTab.dataset.modeTab;
+          modeTabs.forEach((other) => {
+            const isActive = other === modeTab;
+            other.className = isActive ? activeMode : idleMode;
+            other.setAttribute("aria-pressed", String(isActive));
+          });
+          panel
+            .querySelectorAll<HTMLElement>("[data-results]")
+            .forEach((block) => block.classList.toggle("hidden", block.dataset.results !== mode));
+          restrictCommodities(panel, panel.dataset.segmentPanel === "commodity" && mode === "options");
+          recalculate(panel);
+        }),
+      );
+    });
+  }
+</script>

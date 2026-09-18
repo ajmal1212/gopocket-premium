@@ -30,6 +30,5 @@ export const calculators: CalculatorLink[] = [
   { id: "car-loan", label: "Car Loan EMI Calculator", href: "/car-loan-emi-calculator", ownPage: true },
   { id: "ppf", label: "PPF Calculator", href: "/ppf-calculator", ownPage: true },
   { id: "epf", label: "EPF Calculator", href: "/epf-calculator", ownPage: true },
-  // The brokerage calculator lives on the pricing page.
-  { id: "brokerage", label: "Brokerage Calculator", href: "/pricing", ownPage: true },
+  { id: "brokerage", label: "Brokerage Calculator", href: "/brokerage-calculator", ownPage: true },
 ];

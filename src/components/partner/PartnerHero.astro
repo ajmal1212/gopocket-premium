@@ -45,7 +45,12 @@ const {
 } = Astro.props as Props;
 
 // Split for the per-word reveal, same as the Hero 1 headline and paragraph.
-const titleWords: string[] = title.trim().split(/\s+/);
+// A "\n" in the title forces a line break there; the newline is kept as its
+// own token so the markup below can render it as a <br />.
+const titleWords: string[] = title
+  .trim()
+  .split(/[^\S\n]+|(?=\n)|(?<=\n)/)
+  .filter(Boolean);
 const descriptionWords: string[] = description.trim().split(/\s+/);
 ---
 
@@ -165,14 +170,18 @@ const descriptionWords: string[] = description.trim().split(/\s+/);
             >
               {/* prettier-ignore */}
               {
-                titleWords.map((word, i) => (
-                  <>
-                    <span class="word" style={`--word-index:${i}`}>
-                      {word}
-                    </span>
-                    {i < titleWords.length - 1 ? " " : ""}
-                  </>
-                ))
+                titleWords.map((word, i) =>
+                  word === "\n" ? (
+                    <br />
+                  ) : (
+                    <>
+                      <span class="word" style={`--word-index:${i}`}>
+                        {word}
+                      </span>
+                      {i < titleWords.length - 1 && titleWords[i + 1] !== "\n" ? " " : ""}
+                    </>
+                  ),
+                )
               }
             </div>
           </h1>

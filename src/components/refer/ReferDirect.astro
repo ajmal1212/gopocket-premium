@@ -1,0 +1,131 @@
+---
+import LeadCapture from "../LeadCapture.astro";
+
+/**
+ * ReferDirect - "give us your friend's details and we will add them under you".
+ *
+ * A LeadCapture form, so it gets the mobile-number clean-up, the busy state and
+ * the toast for free. It posts to /api/refer-direct rather than the retail lead
+ * endpoint: the number belongs to the friend, and the referrer must not be
+ * redirected into signup afterwards.
+ */
+
+const srcParam = Astro.url.searchParams.get("src") || "Website";
+const tagParam = Astro.url.searchParams.get("tag") || "ReferEarn";
+---
+
+<section id="refer-direct" class="scroll-mt-28 px-4 md:px-10 xl:px-20">
+  <div class="mx-auto flex w-full max-w-160 flex-col items-center gap-8 md:gap-10">
+    <div class="flex flex-col items-center gap-3 text-center">
+      <h2 class="text-dark text-[28px] leading-[1.15] font-[550] tracking-[-0.01em] md:text-4xl">Refer Directly</h2>
+      <p class="text-text-default max-w-120 text-base text-balance md:text-lg">
+        Rather not share a link? Leave your friend's details - we will follow up and add them under you.
+      </p>
+    </div>
+
+    <div
+      class="border-border-light flex w-full flex-col gap-5 rounded-[20px] border bg-white p-5 md:rounded-3xl md:p-8"
+    >
+      <form data-lead-form data-lead-endpoint="/api/refer-direct" class="space-y-5" novalidate>
+        <input type="hidden" name="src" value={srcParam} />
+        <input type="hidden" name="tag" value={tagParam} />
+
+        <div class="space-y-2">
+          <label for="refer-direct-code" class="text-dark block text-sm font-semibold">Your Client / AP Code</label>
+          <input
+            id="refer-direct-code"
+            type="text"
+            name="code"
+            maxlength="20"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            placeholder="Enter your code"
+            class="refer-field w-full rounded-2xl px-4 py-3.5 text-base font-medium uppercase placeholder:normal-case"
+            required
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label for="refer-direct-name" class="text-dark block text-sm font-semibold">Friend's Name</label>
+          <input
+            id="refer-direct-name"
+            type="text"
+            name="name"
+            maxlength="80"
+            placeholder="Your friend's full name"
+            class="refer-field w-full rounded-2xl px-4 py-3.5 text-base font-medium"
+            required
+          />
+        </div>
+
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div class="space-y-2">
+            <label for="refer-direct-mobile" class="text-dark block text-sm font-semibold">Friend's Mobile</label>
+            <input
+              id="refer-direct-mobile"
+              data-lead-mobile
+              type="tel"
+              name="mobile"
+              inputmode="numeric"
+              maxlength="10"
+              pattern="[0-9]{10}"
+              placeholder="10-digit mobile number"
+              class="refer-field w-full rounded-2xl px-4 py-3.5 text-base font-medium"
+              required
+            />
+          </div>
+
+          <div class="space-y-2">
+            <label for="refer-direct-city" class="text-dark block text-sm font-semibold">Friend's City</label>
+            <input
+              id="refer-direct-city"
+              type="text"
+              name="city"
+              maxlength="60"
+              placeholder="City"
+              class="refer-field w-full rounded-2xl px-4 py-3.5 text-base font-medium"
+              required
+            />
+          </div>
+        </div>
+
+        <button
+          data-lead-submit
+          type="submit"
+          class="flex w-full cursor-pointer items-center justify-center rounded-2xl bg-[#7c3aed] py-4 text-lg font-bold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#6d28d9] active:scale-[0.98] disabled:transform-none disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          <span data-lead-label>Submit Referral</span>
+        </button>
+      </form>
+
+      <p class="text-text-default text-sm">
+        Please make sure your friend is happy to be contacted by GoPocket before you share their details.
+      </p>
+    </div>
+  </div>
+</section>
+
+<LeadCapture />
+
+<style>
+  /* Matches the inputs in ReferLink and the partner form. */
+  .refer-field {
+    color: var(--fg-strong, #322b2b);
+    background: var(--surface-1, #fff);
+    border: 1px solid var(--line, #eceef1);
+    transition:
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .refer-field::placeholder {
+    color: var(--fg-subtle, #9ca3af);
+  }
+
+  .refer-field:focus {
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 4px rgb(124 58 237 / 0.1);
+  }
+</style>

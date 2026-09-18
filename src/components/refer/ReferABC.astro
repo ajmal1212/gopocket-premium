@@ -1,0 +1,79 @@
+---
+/**
+ * "Refer and earn like ABC" - the three-beat mnemonic from the old page, on the
+ * tinted band PartnerBenefits uses so the page alternates surfaces the same way.
+ * The letter is the card's visual anchor, so it stands in for an icon.
+ */
+
+interface Beat {
+  letter: string;
+  title: string;
+  description: string;
+}
+
+const beats: Beat[] = [
+  {
+    letter: "A",
+    title: "Refer A Friend",
+    description: "Share your personal referral link with a friend or family member who wants to invest.",
+  },
+  {
+    letter: "B",
+    title: "Let Them Begin To Trade",
+    description: "Your friend opens a GoPocket account and starts trading under your referral.",
+  },
+  {
+    letter: "C",
+    title: "Carry Your Benefits",
+    description: "Earn 50% of the brokerage on every trade they make, credited to you every month.",
+  },
+];
+---
+
+<section>
+  <div class="bg-theme-light py-20 md:py-32">
+    <div class="container space-y-10 md:space-y-16">
+      <div class="mx-auto max-w-2xl space-y-4 text-center">
+        <h2 class="has-italic-text capitalize">
+          <div
+            class="animated-text is-ready"
+            data-duration="0.6"
+            data-delay="0.2"
+            data-stagger="0.09"
+            style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+          >
+            <span class="word" style="--word-index:0">Refer</span>
+            <span class="word" style="--word-index:1">And</span>
+            <span class="word" style="--word-index:2">Earn</span>
+            <span class="word" style="--word-index:3">Like</span>
+            <span class="word" style="--word-index:4"><strong>ABC</strong></span>
+          </div>
+        </h2>
+        <p class="opacity-80">Be your own boss. Three simple steps to a second income.</p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
+        {
+          beats.map((beat, index) => (
+            <div
+              data-aos="fade-up-sm"
+              data-aos-delay={200 + index * 100}
+              class="flex flex-col gap-5 rounded-4xl bg-white p-8 aos-init"
+            >
+              <span
+                class="text-primary bg-theme-light inline-flex h-14 w-14 items-center justify-center rounded-2xl text-3xl font-bold"
+                aria-hidden="true"
+              >
+                {beat.letter}
+              </span>
+              <div class="space-y-3">
+                <h3 class="text-h5-sm md:text-h5 text-dark">{beat.title}</h3>
+                <p class="text-text-default">{beat.description}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>

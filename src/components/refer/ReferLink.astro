@@ -1,0 +1,331 @@
+---
+import BadgePercent from "@lucide/astro/icons/badge-percent";
+import CalendarDays from "@lucide/astro/icons/calendar-days";
+import Gift from "@lucide/astro/icons/gift";
+import Copy from "@lucide/astro/icons/copy";
+import type { AstroComponent } from "@lucide/astro";
+
+/**
+ * ReferLink - "enter your code, get your link, share it".
+ *
+ * Opens like PartnerEnquiry (heading, three trust metrics) so the two sibling
+ * pages read as a set, then pairs the How It Works steps with the form card
+ * they describe - steps left, form right. The code is exchanged for a link via
+ * /api/refer-link; the result fills a read-only field with a copy button and
+ * lights up the share buttons. Nothing here needs a framework - a few lines of
+ * DOM script do it.
+ *
+ * Feedback goes through the site toast (Toast.astro, via @/lib/toast).
+ */
+
+interface Metric {
+  value: string;
+  label: string;
+  icon: AstroComponent;
+}
+
+const metrics: Metric[] = [
+  { value: "50%", label: "Of Referral Brokerage", icon: BadgePercent },
+  { value: "10th", label: "Credited Every Month", icon: CalendarDays },
+  { value: "Free", label: "Access To Paid Products", icon: Gift },
+];
+
+interface Step {
+  number: string;
+  title: string;
+  description: string;
+}
+
+const steps: Step[] = [
+  {
+    number: "01",
+    title: "Enter Your Client / AP Code",
+    description: "Type your GoPocket client code or AP code into the link generator.",
+  },
+  {
+    number: "02",
+    title: "Generate Your Referral Link",
+    description: "We create a personal link that tags every signup to you.",
+  },
+  {
+    number: "03",
+    title: "Share It And Start Earning",
+    description: "Send it to friends and family on WhatsApp, Facebook or X, and earn on every trade they make.",
+  },
+];
+
+const brandIcons = {
+  whatsapp:
+    "M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.5h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35M12.05 21.5h-.01a9.4 9.4 0 0 1-4.8-1.32l-.34-.2-3.57.94.95-3.48-.22-.36a9.4 9.4 0 0 1-1.44-5.02c0-5.2 4.23-9.43 9.44-9.43 2.52 0 4.89.98 6.67 2.77a9.37 9.37 0 0 1 2.76 6.67c0 5.2-4.24 9.43-9.44 9.43m8.03-17.46A11.28 11.28 0 0 0 12.05.72C5.8.72.7 5.8.7 12.06c0 2 .52 3.95 1.52 5.67L.6 23.62l6.03-1.58a11.33 11.33 0 0 0 5.42 1.38h.01c6.25 0 11.34-5.08 11.34-11.34 0-3.03-1.18-5.88-3.32-8.02",
+  facebook:
+    "M24 12.07C24 5.44 18.63.07 12 .07S0 5.44 0 12.07c0 5.99 4.39 10.95 10.13 11.85v-8.38H7.08v-3.47h3.05V9.43c0-3.01 1.79-4.67 4.53-4.67 1.31 0 2.69.23 2.69.23v2.95h-1.51c-1.49 0-1.96.93-1.96 1.88v2.25h3.33l-.53 3.47h-2.8v8.38C19.61 23.02 24 18.06 24 12.07",
+  x: "M18.24 2.25h3.31l-7.23 8.26 8.5 11.24H16.17l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25H8.08l4.71 6.23zm-1.16 17.52h1.83L7.08 4.13H5.12z",
+};
+
+const shareTargets = [
+  { id: "whatsapp", label: "WhatsApp", path: brandIcons.whatsapp },
+  { id: "facebook", label: "Facebook", path: brandIcons.facebook },
+  { id: "x", label: "X", path: brandIcons.x },
+];
+---
+
+<section id="refer-link" class="scroll-mt-28 px-4 pt-0 pb-16 md:px-10 md:pb-24 xl:px-20 xl:pb-30">
+  <div class="mx-auto flex w-full max-w-6xl flex-col items-center gap-8 md:gap-10">
+    <div class="flex flex-col items-center gap-3 text-center">
+      <h2 class="text-dark text-[28px] leading-[1.15] font-[550] tracking-[-0.01em] md:text-4xl">
+        Generate Your Referral Link
+      </h2>
+      <p class="text-text-default max-w-120 text-base text-balance md:text-lg">
+        Enter your client or AP code, get your personal link, and share it with friends and family.
+      </p>
+    </div>
+
+    <div class="grid w-full max-w-160 grid-cols-1 gap-3 md:grid-cols-3">
+      {
+        metrics.map((metric) => (
+          <div class="border-border-light flex items-center gap-2.5 rounded-xl border bg-white p-3">
+            <span
+              class="bg-theme-light text-primary flex h-10 w-10 flex-none items-center justify-center rounded-lg"
+              aria-hidden="true"
+            >
+              <metric.icon class="h-5.5 w-5.5" stroke-width={1.8} />
+            </span>
+            <span class="flex min-w-0 flex-col">
+              <span class="text-dark text-sm font-semibold">{metric.value}</span>
+              <span class="text-text-default text-[13px] leading-[18px] font-medium">{metric.label}</span>
+            </span>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="grid w-full grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
+      <!-- How it works: steps on the left, the generator they describe on the right.
+         Below lg the steps stack above the form. -->
+      <div class="space-y-8">
+        <div class="space-y-3 text-center lg:text-left">
+          <h3 class="h4 text-dark">How It Works</h3>
+          <p class="text-text-default">Three steps from your code to your first referral payout.</p>
+        </div>
+        <ol>
+          {
+            steps.map((step, index) => (
+              <li
+                data-aos="fade-up-sm"
+                data-aos-delay={150 + index * 100}
+                class="refer-step relative flex gap-5 pb-8 last:pb-0 aos-init"
+              >
+                <div class="relative flex flex-col items-center">
+                  <span class="text-primary border-border-light bg-theme-light relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border text-base font-semibold">
+                    {step.number}
+                  </span>
+                  {/* Drawn per item and hidden on the last, so it stops at the final marker. */}
+                  <span class="refer-step-rail bg-border-light absolute top-12 bottom-0 w-px" aria-hidden="true" />
+                </div>
+                <div class="space-y-1.5 pt-2.5">
+                  <h4 class="h6 text-dark font-semibold">{step.title}</h4>
+                  <p class="text-text-default">{step.description}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+
+      <div
+        class="border-border-light flex w-full flex-col gap-6 rounded-[20px] border bg-white p-5 md:rounded-3xl md:p-8"
+      >
+        <form data-refer-link-form class="space-y-5" novalidate>
+          <div class="space-y-2">
+            <label for="refer-code" class="text-dark block text-sm font-semibold">Client / AP Code</label>
+            <input
+              id="refer-code"
+              type="text"
+              name="code"
+              maxlength="20"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              placeholder="Enter your client code"
+              class="refer-field w-full rounded-2xl px-4 py-3.5 text-base font-medium uppercase placeholder:normal-case"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            data-refer-generate
+            class="flex w-full cursor-pointer items-center justify-center rounded-2xl bg-[#7c3aed] py-4 text-lg font-bold text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#6d28d9] active:scale-[0.98] disabled:transform-none disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            Generate Link
+          </button>
+        </form>
+
+        <div class="space-y-2">
+          <label for="refer-output" class="text-dark block text-sm font-semibold">Your Referral Link</label>
+          <div class="relative flex items-center">
+            <input
+              id="refer-output"
+              type="text"
+              readonly
+              placeholder="Your link will appear here"
+              class="refer-field w-full rounded-2xl py-3.5 pr-28 pl-4 text-base font-medium"
+              data-refer-output
+            />
+            <button
+              type="button"
+              data-refer-copy
+              disabled
+              class="text-primary bg-theme-light absolute right-2 inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Copy class="h-4 w-4" stroke-width={2} aria-hidden="true" />
+              <span data-refer-copy-label>Copy</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <span class="text-dark text-sm font-semibold">Share it on</span>
+          <div class="flex gap-3">
+            {
+              shareTargets.map((target) => (
+                <a
+                  href="#refer-link"
+                  data-refer-share={target.id}
+                  aria-disabled="true"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Share your referral link on ${target.label}`}
+                  class="refer-share border-border-light text-dark hover:text-primary flex h-11 w-11 items-center justify-center rounded-full border bg-white transition-colors"
+                >
+                  <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d={target.path} />
+                  </svg>
+                </a>
+              ))
+            }
+          </div>
+        </div>
+
+        <p class="text-text-default text-sm">
+          By sharing your link you agree to the
+          <a href="/refer-and-earn-t-c" class="text-primary font-semibold underline underline-offset-2"
+            >Refer &amp; Earn Terms &amp; Conditions</a
+          >.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Same control styling as the partner form, so the two pages' inputs match. */
+  .refer-field {
+    color: var(--fg-strong, #322b2b);
+    background: var(--surface-1, #fff);
+    border: 1px solid var(--line, #eceef1);
+    transition:
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .refer-field::placeholder {
+    color: var(--fg-subtle, #9ca3af);
+  }
+
+  .refer-field:focus {
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 4px rgb(124 58 237 / 0.1);
+  }
+
+  .refer-step:last-child .refer-step-rail {
+    display: none;
+  }
+
+  /* Share links are inert until a link exists; aria-disabled is the switch. */
+  .refer-share[aria-disabled="true"] {
+    pointer-events: none;
+    opacity: 0.45;
+  }
+</style>
+
+<script>
+  import { toast } from "@/lib/toast";
+
+  const form = document.querySelector<HTMLFormElement>("[data-refer-link-form]");
+  const codeInput = document.querySelector<HTMLInputElement>("#refer-code");
+  const generateButton = document.querySelector<HTMLButtonElement>("[data-refer-generate]");
+  const output = document.querySelector<HTMLInputElement>("[data-refer-output]");
+  const copyButton = document.querySelector<HTMLButtonElement>("[data-refer-copy]");
+  const copyLabel = document.querySelector<HTMLElement>("[data-refer-copy-label]");
+  const shareLinks = document.querySelectorAll<HTMLAnchorElement>("[data-refer-share]");
+
+  const shareUrl = (target: string, link: string): string => {
+    const text = `Open your GoPocket trading account with my referral link: ${link}`;
+    if (target === "whatsapp") return `https://wa.me/?text=${encodeURIComponent(text)}`;
+    if (target === "facebook") return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`;
+    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  };
+
+  const setLink = (link: string) => {
+    if (!output || !copyButton) return;
+    output.value = link;
+    copyButton.disabled = !link;
+    if (copyLabel) copyLabel.textContent = "Copy";
+    shareLinks.forEach((anchor) => {
+      anchor.href = link ? shareUrl(anchor.dataset.referShare || "", link) : "#refer-link";
+      anchor.setAttribute("aria-disabled", String(!link));
+    });
+  };
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!codeInput || !generateButton) return;
+
+    const code = codeInput.value.trim();
+    if (!code) {
+      codeInput.setCustomValidity("Please enter your client or AP code.");
+      codeInput.reportValidity();
+      codeInput.setCustomValidity("");
+      return;
+    }
+
+    generateButton.disabled = true;
+    generateButton.textContent = "Generating...";
+    setLink("");
+
+    try {
+      const res = await fetch("/api/refer-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const result = await res.json();
+      if (result.ok && result.link) {
+        setLink(result.link);
+        toast({ title: result.title, message: result.message, variant: "success" });
+      } else {
+        toast({ title: result.title || "Something went wrong", message: result.message, variant: "error" });
+      }
+    } catch {
+      toast({ title: "Network error", message: "Please check your connection and try again.", variant: "error" });
+    }
+
+    generateButton.disabled = false;
+    generateButton.textContent = "Generate Link";
+  });
+
+  copyButton?.addEventListener("click", async () => {
+    if (!output?.value) return;
+    try {
+      await navigator.clipboard.writeText(output.value);
+    } catch {
+      // Clipboard API is blocked in some in-app browsers; select the text so
+      // the visitor can copy it by hand.
+      output.select();
+      return;
+    }
+    if (copyLabel) copyLabel.textContent = "Copied!";
+  });
+</script>

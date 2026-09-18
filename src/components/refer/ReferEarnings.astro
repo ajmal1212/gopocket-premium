@@ -1,0 +1,75 @@
+---
+import Wallet from "@lucide/astro/icons/wallet";
+import GraduationCap from "@lucide/astro/icons/graduation-cap";
+import type { AstroComponent } from "@lucide/astro";
+
+/**
+ * "How to use my earnings" - the two options from the old page, on the tinted
+ * band so it separates from the Refer Directly form above it.
+ */
+
+interface Option {
+  title: string;
+  description: string;
+  icon: AstroComponent;
+}
+
+const options: Option[] = [
+  {
+    title: "Credited On The 10th",
+    description: "Your referral brokerage is credited to your trading account on the 10th of every month.",
+    icon: Wallet,
+  },
+  {
+    title: "Adjust Or Upgrade",
+    description:
+      "Adjust your accumulated brokerage against your own brokerage charges, or get free access to our paid products like seminars and charts.",
+    icon: GraduationCap,
+  },
+];
+---
+
+<section>
+  <div class="bg-theme-light py-20 md:py-32">
+    <div class="container space-y-10 md:space-y-16">
+      <div class="mx-auto max-w-2xl space-y-4 text-center">
+        <h2 class="has-italic-text capitalize">
+          <div
+            class="animated-text is-ready"
+            data-duration="0.6"
+            data-delay="0.2"
+            data-stagger="0.09"
+            style="--animated-text-duration:0.6s;--animated-text-delay:0.2s;--animated-text-stagger:0.09s;"
+          >
+            <span class="word" style="--word-index:0">How</span>
+            <span class="word" style="--word-index:1">To</span>
+            <span class="word" style="--word-index:2">Use</span>
+            <span class="word" style="--word-index:3">My</span>
+            <span class="word" style="--word-index:4"><strong>Earnings</strong></span>
+          </div>
+        </h2>
+        <p class="opacity-80">Your referral income, your choice.</p>
+      </div>
+
+      <div class="mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
+        {
+          options.map((option, index) => (
+            <div
+              data-aos="fade-up-sm"
+              data-aos-delay={200 + index * 100}
+              class="flex flex-col gap-5 rounded-4xl bg-white p-8 aos-init"
+            >
+              <span class="text-primary bg-theme-light inline-flex h-12 w-12 items-center justify-center rounded-2xl">
+                <option.icon class="h-5.5 w-5.5" stroke-width={2} aria-hidden="true" />
+              </span>
+              <div class="space-y-3">
+                <h3 class="text-h5-sm md:text-h5 text-dark">{option.title}</h3>
+                <p class="text-text-default">{option.description}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>

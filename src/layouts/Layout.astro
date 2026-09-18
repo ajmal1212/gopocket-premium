@@ -12,6 +12,7 @@ import GlobalScripts from "../components/GlobalScripts.astro";
 import AccessibilityWidget from "../components/AccessibilityWidget.astro";
 import AppQRWidget from "../components/AppQRWidget.astro";
 import ChatWidget from "../components/ChatWidget.astro";
+import Toast from "../components/Toast.astro";
 
 interface Props {
   title?: string;
@@ -246,5 +247,6 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
     <AccessibilityWidget />
     <AppQRWidget />
     <ChatWidget />
+    <Toast />
   </body>
 </html>

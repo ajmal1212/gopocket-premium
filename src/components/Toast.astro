@@ -1,0 +1,401 @@
+---
+/**
+ * The site's toast.
+ *
+ * Two ways to use it, both through this one component:
+ *
+ * 1. From a script. Layout.astro mounts a bare <Toast /> on every page; that
+ *    instance renders the icon templates and the script that owns the stack.
+ *    Any bundled script then raises a toast with:
+ *
+ *      import { toast } from "@/lib/toast";
+ *      toast({ title: "Saved", message: "...", variant: "success" });
+ *
+ * 2. From the server. Pass a `title` and the toast shows once the page loads,
+ *    the way <Button label="..." /> renders a button:
+ *
+ *      <Toast title="Registration closed" message="..." variant="warning" />
+ *
+ *    A titled instance renders only its own message, never a second copy of
+ *    the templates, so it can sit anywhere on a page.
+ *
+ * The icons are Lucide components rendered here into <template>s, one per
+ * variant, and cloned by the script - so the icon set stays Lucide even though
+ * toasts are built at runtime. Every colour runs through the semantic tokens in
+ * dark-theme.css, so dark mode needs no second set of rules; the only
+ * per-variant input is --gp-toast-accent.
+ */
+import CircleCheckBig from "@lucide/astro/icons/circle-check-big";
+import CircleAlert from "@lucide/astro/icons/circle-alert";
+import Info from "@lucide/astro/icons/info";
+import TriangleAlert from "@lucide/astro/icons/triangle-alert";
+import X from "@lucide/astro/icons/x";
+import type { ToastVariant } from "@/lib/toast";
+
+interface Props {
+  /** Renders a toast shown on page load. Omit to mount the host (Layout does). */
+  title?: string;
+  message?: string;
+  variant?: ToastVariant;
+  /** Milliseconds on screen. */
+  duration?: number;
+}
+
+const { title, message = "", variant = "info", duration = 6000 } = Astro.props;
+
+const icons = [
+  { variant: "success", Icon: CircleCheckBig },
+  { variant: "error", Icon: CircleAlert },
+  { variant: "info", Icon: Info },
+  { variant: "warning", Icon: TriangleAlert },
+] as const;
+---
+
+{
+  /* The wrapper keeps the <template>s out of the top level, where the Astro
+    parser Prettier uses trips over them. */
+}
+<div hidden>
+  {
+    title ? (
+      <template data-gp-toast-initial data-variant={variant} data-duration={duration}>
+        <span data-title>{title}</span>
+        <span data-message>{message}</span>
+      </template>
+    ) : (
+      <>
+        {icons.map(({ variant: name, Icon }) => (
+          <template data-gp-toast-icon={name}>
+            <Icon width={19} height={19} stroke-width={2.5} aria-hidden="true" />
+          </template>
+        ))}
+        <template data-gp-toast-close-icon>
+          <X width={15} height={15} stroke-width={2.5} aria-hidden="true" />
+        </template>
+      </>
+    )
+  }
+</div>
+
+<style is:global>
+  /* Toasts are built by script, so they never receive Astro's scoped class
+     attribute - these rules have to be global, hence the gp- prefix. */
+  .gp-toast-stack {
+    position: fixed;
+    /* Set by script to clear the sticky header; this is the fallback. */
+    top: 6.5rem;
+    right: 1.25rem;
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: min(23rem, calc(100vw - 2rem));
+    /* Only the cards take pointer events, so the stack never blocks the page. */
+    pointer-events: none;
+  }
+
+  .gp-toast {
+    --gp-toast-accent: var(--accent, #6b1aff);
+    --gp-toast-tint: color-mix(in oklab, var(--gp-toast-accent) 12%, var(--surface-1, #fff));
+
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.125rem;
+    overflow: hidden;
+    border-radius: 1.125rem;
+    background: var(--surface-1, #fff);
+    border: 1px solid var(--line, #eceef1);
+    box-shadow:
+      0 18px 40px -14px var(--shadow-soft, rgb(0 0 0 / 0.15)),
+      0 2px 6px -2px rgb(0 0 0 / 0.06);
+    pointer-events: auto;
+    animation: gp-toast-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .gp-toast[data-variant="success"] {
+    --gp-toast-accent: #16a34a;
+  }
+
+  .gp-toast[data-variant="error"] {
+    --gp-toast-accent: #dc2626;
+  }
+
+  .gp-toast[data-variant="warning"] {
+    --gp-toast-accent: #d97706;
+  }
+
+  /* The 600-weight steps are tuned for white; on the near-black surface they
+     drop under 4.5:1, so the dark theme takes the 400 steps. Info keeps the
+     brand accent, which dark-theme.css already lightens. */
+  html.dark .gp-toast[data-variant="success"] {
+    --gp-toast-accent: #4ade80;
+  }
+
+  html.dark .gp-toast[data-variant="error"] {
+    --gp-toast-accent: #f87171;
+  }
+
+  html.dark .gp-toast[data-variant="warning"] {
+    --gp-toast-accent: #fbbf24;
+  }
+
+  .gp-toast.is-leaving {
+    animation: gp-toast-out 0.22s ease forwards;
+  }
+
+  .gp-toast-icon {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 2.125rem;
+    height: 2.125rem;
+    border-radius: 0.75rem;
+    color: var(--gp-toast-accent);
+    background: var(--gp-toast-tint);
+  }
+
+  .gp-toast-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+    padding-top: 0.1rem;
+  }
+
+  .gp-toast-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    color: var(--fg-strong, #322b2b);
+  }
+
+  .gp-toast-text {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--fg-muted, #6b7280);
+  }
+
+  .gp-toast-close {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: -0.125rem -0.25rem auto auto;
+    border-radius: 0.5rem;
+    color: var(--fg-subtle, #9ca3af);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .gp-toast-close:hover {
+    color: var(--fg-strong, #322b2b);
+    background: var(--surface-3, #f3f3f6);
+  }
+
+  .gp-toast-close:focus-visible {
+    outline: 2px solid var(--gp-toast-accent);
+    outline-offset: 1px;
+  }
+
+  /* The progress bar is the dismiss timer made visible: the script removes the
+     toast when this animation ends, so pausing it on hover pauses the
+     countdown too, and the two can never disagree. */
+  .gp-toast-progress {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 2px;
+    transform-origin: left center;
+    background: var(--gp-toast-accent);
+    opacity: 0.55;
+    animation: gp-toast-timer var(--gp-toast-duration, 6s) linear forwards;
+  }
+
+  .gp-toast:hover .gp-toast-progress,
+  .gp-toast:focus-within .gp-toast-progress {
+    animation-play-state: paused;
+  }
+
+  @keyframes gp-toast-in {
+    from {
+      opacity: 0;
+      transform: translateX(1.5rem) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes gp-toast-out {
+    to {
+      opacity: 0;
+      transform: translateX(1rem) scale(0.98);
+    }
+  }
+
+  @keyframes gp-toast-timer {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .gp-toast-stack {
+      right: 0.75rem;
+      left: 0.75rem;
+      width: auto;
+    }
+  }
+
+  /* The entrance and exit are decorative and go; the progress bar is the only
+     signal of how long the toast has left, so it keeps running. */
+  @media (prefers-reduced-motion: reduce) {
+    .gp-toast,
+    .gp-toast.is-leaving {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { TOAST_CLEAR_EVENT, TOAST_EVENT, type ToastOptions, type ToastVariant } from "@/lib/toast";
+
+  const VARIANTS: ToastVariant[] = ["success", "error", "info", "warning"];
+  let stack: HTMLDivElement | null = null;
+  let positionQueued = false;
+
+  // The header is sticky and slides in and out on scroll, so the stack is
+  // parked just below wherever it currently sits rather than at a fixed offset.
+  function positionStack() {
+    const header = document.querySelector(".header");
+    if (!stack || !header) return;
+    const bottom = header.getBoundingClientRect().bottom;
+    const top = bottom > 0 ? bottom + 12 : 20;
+    stack.style.top = Math.min(Math.max(top, 16), 180) + "px";
+  }
+
+  function queuePositionStack() {
+    if (positionQueued || !stack?.childElementCount) return;
+    positionQueued = true;
+    requestAnimationFrame(() => {
+      positionQueued = false;
+      positionStack();
+    });
+  }
+
+  // Created on first use, so a page that never toasts carries no extra node.
+  function getStack(): HTMLDivElement {
+    if (stack) return stack;
+    stack = document.createElement("div");
+    stack.className = "gp-toast-stack";
+    stack.setAttribute("role", "status");
+    stack.setAttribute("aria-live", "polite");
+    document.body.appendChild(stack);
+    window.addEventListener("scroll", queuePositionStack, { passive: true });
+    window.addEventListener("resize", queuePositionStack);
+    return stack;
+  }
+
+  function cloneTemplate(selector: string): Node | null {
+    const template = document.querySelector<HTMLTemplateElement>(selector);
+    return template ? template.content.cloneNode(true) : null;
+  }
+
+  function dismiss(el: HTMLElement) {
+    if (el.dataset.leaving) return;
+    el.dataset.leaving = "true";
+    el.classList.add("is-leaving");
+    setTimeout(() => el.remove(), 220);
+  }
+
+  function show({ title, message = "", variant = "info", duration = 6000 }: ToastOptions) {
+    if (!title) return;
+    const safeVariant = VARIANTS.includes(variant) ? variant : "info";
+
+    const el = document.createElement("div");
+    el.className = "gp-toast";
+    el.dataset.variant = safeVariant;
+    el.style.setProperty("--gp-toast-duration", `${Math.max(1000, duration)}ms`);
+
+    const icon = document.createElement("span");
+    icon.className = "gp-toast-icon";
+    const iconNode = cloneTemplate(`template[data-gp-toast-icon="${safeVariant}"]`);
+    if (iconNode) icon.appendChild(iconNode);
+
+    // Text goes in via textContent, never innerHTML - titles and messages are
+    // often server replies.
+    const body = document.createElement("div");
+    body.className = "gp-toast-body";
+    const titleEl = document.createElement("span");
+    titleEl.className = "gp-toast-title";
+    titleEl.textContent = title;
+    body.appendChild(titleEl);
+    if (message) {
+      const textEl = document.createElement("span");
+      textEl.className = "gp-toast-text";
+      textEl.textContent = message;
+      body.appendChild(textEl);
+    }
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "gp-toast-close";
+    close.setAttribute("aria-label", "Dismiss");
+    const closeIcon = cloneTemplate("template[data-gp-toast-close-icon]");
+    if (closeIcon) close.appendChild(closeIcon);
+    close.addEventListener("click", () => dismiss(el));
+
+    // The progress bar IS the countdown: when it finishes draining, the toast
+    // goes. Hover pauses it in CSS, which pauses the dismissal with it.
+    const progress = document.createElement("span");
+    progress.className = "gp-toast-progress";
+    progress.addEventListener("animationend", () => dismiss(el));
+
+    el.append(icon, body, close, progress);
+    getStack().appendChild(el);
+    positionStack();
+  }
+
+  function clearAll() {
+    while (stack?.firstChild) stack.firstChild.remove();
+  }
+
+  document.addEventListener(TOAST_EVENT, (event) => show((event as CustomEvent<ToastOptions>).detail));
+  document.addEventListener(TOAST_CLEAR_EVENT, clearAll);
+
+  // A page restored from the back/forward cache comes back with its timers
+  // frozen mid-countdown; drop those stale toasts rather than resume them.
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) clearAll();
+  });
+
+  function showInitial() {
+    document.querySelectorAll<HTMLTemplateElement>("template[data-gp-toast-initial]").forEach((template) => {
+      show({
+        title: template.content.querySelector("[data-title]")?.textContent?.trim() || "",
+        message: template.content.querySelector("[data-message]")?.textContent?.trim() || "",
+        variant: template.dataset.variant as ToastVariant,
+        duration: Number(template.dataset.duration) || 6000,
+      });
+      template.remove();
+    });
+  }
+
+  // Bundled scripts are deferred modules, so the DOM may already be parsed.
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", showInitial);
+  } else {
+    showInitial();
+  }
+</script>

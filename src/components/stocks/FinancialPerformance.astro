@@ -1,0 +1,534 @@
+---
+import Check from "@lucide/astro/icons/check";
+import { fetchFinancials, type FinancialPeriod, type Growth } from "@/lib/financials";
+
+interface Props {
+  symbol: string;
+}
+
+const { symbol } = Astro.props;
+
+/**
+ * Revenue and profit by quarter and by year, as a bar chart with the figures
+ * for one period above it, and the growth rates underneath.
+ *
+ * A server island (`server:defer`): the page doesn't wait on Frappe for this.
+ * The figures change once a quarter, so the island's response is cacheable for
+ * an hour - but not a miss, which is often only Frappe being slow. Companies
+ * with no record, and indices, render nothing.
+ *
+ * Both views are rendered here, and the script below only switches between
+ * them - there is nothing to fetch on a click.
+ */
+const data = await fetchFinancials(symbol);
+Astro.response.headers.set("Cache-Control", `public, max-age=${data ? 3600 : 60}`);
+
+type SeriesKey = "revenue" | "profit";
+const SERIES: { key: SeriesKey; label: string }[] = [
+  { key: "revenue", label: "Revenue" },
+  { key: "profit", label: "Profit" },
+];
+
+/** ₹1,441 - figures are already in crore, and the "Cr" is set beside it in lighter type. */
+const crore = (value: number | null) =>
+  value === null ? "—" : `${value < 0 ? "-" : ""}₹${Math.round(Math.abs(value)).toLocaleString("en-IN")}`;
+
+/** Change on the period before, or nothing when there isn't one to compare with. */
+function change(current: number | null, previous: number | null | undefined) {
+  if (current === null || previous === null || previous === undefined || previous === 0) return { text: "", dir: "" };
+  const percent = ((current - previous) / Math.abs(previous)) * 100;
+  const text = `${percent > 0 ? "+" : ""}${percent.toFixed(2)}%`;
+  return { text, dir: percent > 0 ? "up" : percent < 0 ? "down" : "flat" };
+}
+
+/** "Jun '26" stays as it is; a year "2026" reads as the financial year it closes, "FY26". */
+const periodLabel = (label: string) => (/^\d{4}$/.test(label) ? `FY${label.slice(-2)}` : label);
+
+/** 1350 -> "1.35k". The axis only has room for a short figure. */
+const tick = (value: number) =>
+  Math.abs(value) >= 1000 ? `${Number((value / 1000).toFixed(2))}k` : String(Number(value.toFixed(2)));
+
+/*
+ * A y-axis with round steps and some headroom above the tallest bar: the step
+ * is the smallest "nice" number that fits the data in four of them with 15% to
+ * spare - IRCTC's ₹1,526 Cr quarter gives steps of 450 up to 1.8k. A loss
+ * extends the axis below zero by whole steps.
+ */
+const NICE = [1, 1.2, 1.5, 2, 2.5, 3, 4, 4.5, 5, 6, 7.5, 8, 9, 10];
+function axis(periods: FinancialPeriod[]) {
+  const values = periods.flatMap((period) => [period.revenue, period.profit]).filter((v): v is number => v !== null);
+  const high = Math.max(0, ...values);
+  const low = Math.min(0, ...values);
+  const raw = ((high - low) * 1.15) / 4 || 1;
+  const magnitude = 10 ** Math.floor(Math.log10(raw));
+  const step = (NICE.find((nice) => nice * magnitude >= raw) ?? 10) * magnitude;
+  const below = Math.ceil(-low / step);
+  const above = Math.max(Math.ceil(high / step), below === 0 ? 4 : 1);
+  const bottom = -below * step;
+  const range = (below + above) * step;
+  return {
+    ticks: Array.from({ length: below + above + 1 }, (_, i) => bottom + i * step).reverse(),
+    /** Where a value sits on the axis, as a percentage up from the bottom. */
+    at: (value: number) => ((value - bottom) / range) * 100,
+  };
+}
+
+const views = [
+  { id: "quarterly", label: "Quarterly", periods: data?.quarterly ?? [] },
+  { id: "yearly", label: "Yearly", periods: data?.yearly ?? [] },
+]
+  .filter((view) => view.periods.length > 0)
+  .map((view) => {
+    const scale = axis(view.periods);
+    const groups = view.periods.map((period, i) => {
+      const previous = view.periods[i - 1];
+      const label = periodLabel(period.label);
+      const bars = SERIES.map(({ key, label: name }) => {
+        const value = period[key];
+        const { text, dir } = change(value, previous?.[key]);
+        return {
+          key,
+          name,
+          value: crore(value),
+          change: text,
+          dir,
+          // A missing figure draws no bar but keeps its slot, so the pair
+          // stays aligned with every other period.
+          bottom: value === null ? 0 : scale.at(Math.min(value, 0)),
+          height: value === null ? 0 : scale.at(Math.max(value, 0)) - scale.at(Math.min(value, 0)),
+        };
+      });
+      return {
+        label,
+        bars,
+        description: `${label}: ${bars.map((bar) => `${bar.name} ${bar.value} crore`).join(", ")}`,
+      };
+    });
+    return { ...view, ticks: scale.ticks.map((value) => ({ value, at: scale.at(value) })), groups };
+  });
+
+const initial = views[0]?.id;
+
+const growthText = (value: number) => {
+  const percent = Math.round(value * 100);
+  return `${percent > 0 ? "+" : ""}${percent}%`;
+};
+const growthDir = (value: number) => {
+  const percent = Math.round(value * 100);
+  return percent > 0 ? "up" : percent < 0 ? "down" : "flat";
+};
+const tables: { title: string; rows: Growth[] }[] = [
+  { title: "Revenue growth", rows: data?.revenueGrowth ?? [] },
+  { title: "Profit growth", rows: data?.profitGrowth ?? [] },
+].filter((table) => table.rows.length > 0);
+---
+
+{
+  data && views.length > 0 && (
+    <section class="fin flex flex-col gap-5" data-fin>
+      {/* text-h6! - see MarketDepth.astro on the global h2 rule. */}
+      <h2 class="text-h6! font-semibold">Financial performance</h2>
+
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex gap-2" role="group" aria-label="Reporting period">
+          {views.map((view) => (
+            <button
+              type="button"
+              class="border-border-light text-dark hover:bg-theme-light aria-pressed:border-dark/70 aria-pressed:bg-theme-light rounded-full border bg-white px-4 py-2 text-sm leading-5 font-medium transition-colors motion-reduce:transition-none dark:bg-transparent"
+              data-fin-tab={view.id}
+              aria-pressed={view.id === initial ? "true" : "false"}
+            >
+              {view.label}
+            </button>
+          ))}
+        </div>
+        <p class="text-text-default/70 text-xs">{data.basis} figures, ₹ in crore</p>
+      </div>
+
+      {views.map((view) => {
+        const active = view.groups[view.groups.length - 1];
+        return (
+          <div
+            class="border-border-light rounded-2xl border bg-white px-4 pt-4 pb-3 md:px-5 dark:bg-transparent"
+            data-fin-panel={view.id}
+            hidden={view.id !== initial}
+          >
+            <p class="text-dark/80 text-[11px] font-semibold tracking-wide uppercase" data-fin-label>
+              {active.label}
+            </p>
+
+            <div class="mt-4 flex flex-wrap gap-x-16 gap-y-3">
+              {active.bars.map((bar) => (
+                <div class="flex flex-col gap-1.5">
+                  <button type="button" class="fin-legend" data-fin-series={bar.key} aria-pressed="true">
+                    <span class="fin-check" aria-hidden="true">
+                      <Check class="h-2.5 w-2.5" stroke-width={3.5} />
+                    </span>
+                    {bar.name}
+                  </button>
+                  <p class="text-dark flex items-baseline text-[15px] leading-5 font-semibold tabular-nums">
+                    <span data-fin-value={bar.key}>{bar.value}</span>
+                    <span class="text-text-default/80">Cr</span>
+                    <span class="fin-change ml-1 text-[13px] font-medium" data-fin-change={bar.key} data-dir={bar.dir}>
+                      {bar.change}
+                    </span>
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div class="mt-6 grid grid-cols-[minmax(0,1fr)_2.75rem] gap-x-2 md:grid-cols-[minmax(0,1fr)_3.75rem] md:gap-x-4">
+              <div class="relative">
+                <div class="pointer-events-none absolute inset-x-0 top-0 h-[200px]" aria-hidden="true">
+                  {view.ticks.map((line) => (
+                    <span
+                      class:list={["fin-grid", { "fin-grid--zero": line.value === 0 }]}
+                      style={`bottom: ${line.at}%`}
+                    />
+                  ))}
+                </div>
+
+                <div class="relative flex" role="group" aria-label={`${view.label} revenue and profit`}>
+                  {view.groups.map((group, i) => (
+                    <button
+                      type="button"
+                      class="fin-period"
+                      data-fin-period
+                      data-label={group.label}
+                      data-active={i === view.groups.length - 1 ? "" : undefined}
+                      aria-pressed={i === view.groups.length - 1 ? "true" : "false"}
+                      aria-label={group.description}
+                      {...Object.fromEntries(
+                        group.bars.flatMap((bar) => [
+                          [`data-${bar.key}`, bar.value],
+                          [`data-${bar.key}-change`, bar.change],
+                          [`data-${bar.key}-dir`, bar.dir],
+                        ]),
+                      )}
+                    >
+                      <span class="flex h-[200px] justify-center gap-1 md:gap-1.5" aria-hidden="true">
+                        {group.bars.map((bar) => (
+                          <span class:list={["fin-slot", `fin-slot--${bar.key}`]}>
+                            <span
+                              class:list={["fin-bar", `fin-bar--${bar.key}`]}
+                              style={`bottom: ${bar.bottom}%; height: ${bar.height}%`}
+                            />
+                          </span>
+                        ))}
+                      </span>
+                      <span class="fin-x">{group.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div class="relative h-[200px]" aria-hidden="true">
+                {view.ticks.map((line) => (
+                  <span
+                    class="text-text-default/60 absolute right-0 translate-y-1/2 text-xs leading-none tabular-nums"
+                    style={`bottom: ${line.at}%`}
+                  >
+                    {tick(line.value)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {tables.length > 0 && (
+        <div class="grid gap-y-6 pt-2 md:grid-cols-2">
+          {tables.map((table, i) => (
+            <div class:list={[i === 0 ? "md:pr-8" : "fin-divider md:pl-8"]}>
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="text-text-default/60 text-[11px] font-semibold tracking-[0.14em] uppercase">
+                    <th scope="col" class="pb-2 text-left font-semibold">
+                      {table.title}
+                    </th>
+                    <th scope="col" class="pb-2 text-right font-semibold">
+                      Value
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {table.rows.map((row) => (
+                    <tr>
+                      <th scope="row" class="text-dark/80 py-2.5 text-left font-normal">
+                        {row.label}
+                      </th>
+                      <td class="fin-change py-2.5 text-right font-medium tabular-nums" data-dir={growthDir(row.value)}>
+                        {growthText(row.value)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <p class="text-text-default/75 text-xs">
+        From the company's reported results. Change is against the period before.
+      </p>
+    </section>
+  )
+}
+
+<script>
+  /*
+   * Delegated from the document: this section is a server island, so its
+   * markup arrives after this script has run and can't be bound directly.
+   */
+  type Series = "revenue" | "profit";
+
+  function selectPeriod(button: HTMLElement) {
+    const panel = button.closest<HTMLElement>("[data-fin-panel]");
+    if (!panel || button.hasAttribute("data-active")) return;
+
+    for (const period of panel.querySelectorAll<HTMLElement>("[data-fin-period]")) {
+      const active = period === button;
+      period.toggleAttribute("data-active", active);
+      period.setAttribute("aria-pressed", String(active));
+    }
+
+    const label = panel.querySelector<HTMLElement>("[data-fin-label]");
+    if (label) label.textContent = button.dataset.label ?? "";
+    for (const key of ["revenue", "profit"] as Series[]) {
+      const value = panel.querySelector<HTMLElement>(`[data-fin-value="${key}"]`);
+      const change = panel.querySelector<HTMLElement>(`[data-fin-change="${key}"]`);
+      if (value) value.textContent = button.dataset[key] ?? "";
+      if (change) {
+        change.textContent = button.dataset[`${key}Change`] ?? "";
+        change.dataset.dir = button.dataset[`${key}Dir`] ?? "";
+      }
+    }
+  }
+
+  function showView(tab: HTMLElement) {
+    const section = tab.closest<HTMLElement>("[data-fin]");
+    if (!section) return;
+    for (const other of section.querySelectorAll<HTMLElement>("[data-fin-tab]")) {
+      other.setAttribute("aria-pressed", String(other === tab));
+    }
+    for (const panel of section.querySelectorAll<HTMLElement>("[data-fin-panel]")) {
+      panel.hidden = panel.dataset.finPanel !== tab.dataset.finTab;
+    }
+  }
+
+  function toggleSeries(button: HTMLElement) {
+    const section = button.closest<HTMLElement>("[data-fin]");
+    const key = button.dataset.finSeries as Series;
+    if (!section) return;
+    const hidden = (series: Series) => section.hasAttribute(`data-hide-${series}`);
+    // At least one series stays on, or the chart would be an empty grid.
+    if (!hidden(key) && hidden(key === "revenue" ? "profit" : "revenue")) return;
+
+    section.toggleAttribute(`data-hide-${key}`);
+    // Each view has its own legend; both follow the same choice.
+    for (const legend of section.querySelectorAll<HTMLElement>(`[data-fin-series="${key}"]`)) {
+      legend.setAttribute("aria-pressed", String(!hidden(key)));
+    }
+  }
+
+  document.addEventListener("click", (event) => {
+    const target = event.target as Element | null;
+    const period = target?.closest<HTMLElement>("[data-fin-period]");
+    if (period) return selectPeriod(period);
+    const tab = target?.closest<HTMLElement>("[data-fin-tab]");
+    if (tab) return showView(tab);
+    const series = target?.closest<HTMLElement>("[data-fin-series]");
+    if (series) toggleSeries(series);
+  });
+
+  // With a mouse, pointing at a period is enough to read it.
+  document.addEventListener("pointerover", (event) => {
+    if (event.pointerType !== "mouse") return;
+    const period = (event.target as Element | null)?.closest<HTMLElement>("[data-fin-period]");
+    if (period) selectPeriod(period);
+  });
+</script>
+
+<style>
+  /*
+   * The chart's colours live here rather than in utilities because every bar,
+   * checkbox and figure switches between several of them on the same few
+   * states - selected period, hidden series, direction of change - and dark
+   * mode repoints the lot. Profit and gains take the brand violet.
+   */
+  .fin {
+    --fin-revenue: #c7ccd5;
+    --fin-revenue-active: #7f8c9d;
+    --fin-profit: #c4a3ff;
+    --fin-profit-active: #6b1aff;
+    --fin-up: #6b1aff;
+    --fin-down: #e5533a;
+    --fin-grid: #e6e8ec;
+    --fin-baseline: #8591a3;
+    --fin-muted: #7c8392;
+  }
+
+  :global(html.dark) .fin {
+    --fin-revenue: #3a4050;
+    --fin-revenue-active: #8f99aa;
+    --fin-profit: #4a3380;
+    --fin-profit-active: #9b6bff;
+    --fin-up: #a987ff;
+    --fin-down: #ff7a61;
+    --fin-grid: rgb(255 255 255 / 0.08);
+    --fin-baseline: #5d6677;
+    --fin-muted: #9aa1ae;
+  }
+
+  .fin-grid {
+    position: absolute;
+    right: 0;
+    left: 0;
+    border-top: 1px dashed var(--fin-grid);
+    transform: translateY(50%);
+  }
+
+  .fin-grid--zero {
+    border-top-color: var(--fin-baseline);
+  }
+
+  .fin-period {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    cursor: pointer;
+    border-radius: 0.5rem;
+  }
+
+  .fin-period:focus-visible {
+    outline: 2px solid var(--fin-profit-active);
+    outline-offset: 2px;
+  }
+
+  .fin-slot {
+    position: relative;
+    width: 1.25rem;
+    height: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .fin-slot {
+      width: 1.75rem;
+    }
+  }
+
+  .fin[data-hide-revenue] .fin-slot--revenue,
+  .fin[data-hide-profit] .fin-slot--profit {
+    display: none;
+  }
+
+  .fin-bar {
+    position: absolute;
+    right: 0;
+    left: 0;
+    border-radius: 2px 2px 0 0;
+    transition: background-color 150ms ease;
+  }
+
+  .fin-bar--revenue {
+    background: var(--fin-revenue);
+  }
+
+  .fin-bar--profit {
+    background: var(--fin-profit);
+  }
+
+  .fin-period[data-active] .fin-bar--revenue {
+    background: var(--fin-revenue-active);
+  }
+
+  .fin-period[data-active] .fin-bar--profit {
+    background: var(--fin-profit-active);
+  }
+
+  .fin-x {
+    display: block;
+    padding-top: 0.625rem;
+    padding-bottom: 0.25rem;
+    color: var(--fin-muted);
+    font-size: 12px;
+    line-height: 1rem;
+    white-space: nowrap;
+  }
+
+  .fin-period[data-active] .fin-x {
+    color: var(--color-dark);
+    font-weight: 600;
+  }
+
+  .fin-legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--fin-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    line-height: 1rem;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .fin-check {
+    display: inline-flex;
+    width: 0.8125rem;
+    height: 0.8125rem;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--fin-revenue-active);
+    border-radius: 3px;
+    background: var(--fin-revenue-active);
+    color: #fff;
+  }
+
+  .fin-legend[data-fin-series="profit"] .fin-check {
+    border-color: var(--fin-profit-active);
+    background: var(--fin-profit-active);
+  }
+
+  .fin-legend[aria-pressed="false"] .fin-check {
+    background: transparent;
+    color: transparent;
+  }
+
+  .fin-change {
+    color: var(--color-dark);
+  }
+
+  .fin-change[data-dir="flat"] {
+    color: var(--fin-muted);
+  }
+
+  .fin-change[data-dir="up"] {
+    color: var(--fin-up);
+  }
+
+  .fin-change[data-dir="down"] {
+    color: var(--fin-down);
+  }
+
+  .fin-divider {
+    border-color: var(--color-border-light);
+    border-style: dashed;
+  }
+
+  @media (min-width: 768px) {
+    .fin-divider {
+      border-left-width: 1px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fin-bar {
+      transition: none;
+    }
+  }
+</style>

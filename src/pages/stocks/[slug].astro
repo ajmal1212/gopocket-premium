@@ -8,6 +8,7 @@ import PriceHeader from "@/components/stocks/PriceHeader.astro";
 import MarketDepth from "@/components/stocks/MarketDepth.astro";
 import Performance from "@/components/stocks/Performance.astro";
 import StockNews from "@/components/stocks/StockNews.astro";
+import FinancialPerformance from "@/components/stocks/FinancialPerformance.astro";
 import Shareholding from "@/components/stocks/Shareholding.astro";
 import ShareholdingBreakdown from "@/components/stocks/ShareholdingBreakdown.astro";
 import { fetchShareholding } from "@/lib/shareholding";
@@ -176,6 +177,18 @@ const faqSchema =
             <ShareholdingBreakdown server:defer symbol={contract.symbol} summary={shareholding}>
               <Shareholding slot="fallback" data={shareholding} />
             </ShareholdingBreakdown>
+          )
+        }
+
+        {
+          hasDepth && (
+            <FinancialPerformance server:defer symbol={contract.symbol}>
+              <div slot="fallback" class="flex flex-col gap-5" aria-busy="true">
+                <span class="bg-theme-light h-6 w-52 rounded motion-safe:animate-pulse" />
+                <span class="bg-theme-light h-9 w-44 rounded-full motion-safe:animate-pulse" />
+                <div class="border-border-light h-[340px] rounded-2xl border" aria-hidden="true" />
+              </div>
+            </FinancialPerformance>
           )
         }
 

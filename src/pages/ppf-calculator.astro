@@ -1,0 +1,669 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import FAQSection2 from "../components/FAQSection2.astro";
+import CalculatorSidebar from "../components/calculators/CalculatorSidebar.astro";
+
+/*
+ * PPF calculator. Same layout as the SIP, SWP and EMI calculator pages: boxed
+ * calculator with sliders and a doughnut chart, the shared sidebar, then the
+ * explainer, schedule table, formula, comparison table and FAQs.
+ *
+ * Deposits are modelled at the start of each financial year and interest is
+ * compounded yearly. That matches a deposit made by 5 April, which is when a
+ * PPF deposit earns interest for the whole year (interest is worked out on
+ * the lowest balance between the 5th and the end of each month).
+ *
+ * The rate is an input because the government resets it every quarter; 7.1%
+ * is only the starting value.
+ */
+
+const inputs = {
+  deposit: { min: 500, max: 150000, step: 500, value: 100000 },
+  rate: { min: 1, max: 15, step: 0.1, value: 7.1 },
+  // The account runs 15 years and can then be extended in blocks of 5.
+  tenure: { min: 15, max: 50, step: 5, value: 15 },
+};
+
+const faqItems = [
+  {
+    question: "What is the Public Provident Fund (PPF)?",
+    answer:
+      "PPF is a long-term savings scheme backed by the Government of India. You deposit between ₹500 and ₹1,50,000 each financial year for 15 years, and earn a government-set interest rate that compounds every year.",
+  },
+  {
+    question: "How does the GoPocket PPF Calculator work?",
+    answer:
+      "Enter your yearly deposit, the interest rate and the number of years. The calculator compounds your balance year by year and shows the total you invested, the interest earned and your maturity value.",
+  },
+  {
+    question: "Is PPF interest tax-free?",
+    answer:
+      "Yes. PPF has EEE status: deposits qualify for a deduction under Section 80C (up to ₹1.5 lakh a year, under the old tax regime), and both the interest earned and the maturity amount are tax-free.",
+  },
+  {
+    question: "Can I withdraw from my PPF account before 15 years?",
+    answer:
+      "Partial withdrawals are allowed from the 7th financial year, subject to limits, and you can take a loan against the balance between the 3rd and 6th years. Premature closure is permitted only in specific cases such as serious illness or higher education.",
+  },
+  {
+    question: "What happens after my PPF account matures?",
+    answer:
+      "You can withdraw the full balance, or extend the account in blocks of 5 years - with or without fresh deposits. The balance keeps earning interest during an extension, which is why this calculator lets you go beyond 15 years.",
+  },
+];
+
+const faqCategories = [{ id: "ppf-faqs", label: "PPF FAQs", items: faqItems }];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+};
+
+const savingsOptions = [
+  {
+    name: "PPF",
+    lockIn: "15 years (partial withdrawal from year 7)",
+    returns: "Set by the government, reviewed quarterly",
+    risk: "Very low - government-backed",
+    tax: "Tax-free (EEE)",
+  },
+  {
+    name: "ELSS Mutual Funds",
+    lockIn: "3 years",
+    returns: "Market-linked",
+    risk: "High - equity exposure",
+    tax: "Gains above the yearly exemption are taxed",
+  },
+  {
+    name: "National Savings Certificate (NSC)",
+    lockIn: "5 years",
+    returns: "Fixed at purchase, set by the government",
+    risk: "Very low - government-backed",
+    tax: "Interest is taxable",
+  },
+  {
+    name: "Tax-Saver Fixed Deposit",
+    lockIn: "5 years",
+    returns: "Fixed by the bank",
+    risk: "Low",
+    tax: "Interest is taxable",
+  },
+  {
+    name: "Sukanya Samriddhi Yojana",
+    lockIn: "Until the girl turns 21",
+    returns: "Set by the government, reviewed quarterly",
+    risk: "Very low - government-backed",
+    tax: "Tax-free (EEE)",
+  },
+];
+---
+
+<Layout
+  title="PPF Calculator Online | Calculate Public Provident Fund Returns | GoPocket"
+  description="Calculate your PPF maturity amount with GoPocket's free PPF Calculator. See total investment, interest earned and year-by-year growth of your Public Provident Fund account."
+  canonical="/ppf-calculator"
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <Header currentPath="/ppf-calculator" />
+
+  <main class="pt-8 md:pt-14 pb-16">
+    <div class="container max-w-[1400px] px-4 sm:px-6 space-y-12">
+      <div class="mb-8">
+        <h1 class="h3 font-bold text-dark tracking-tight">PPF Calculator</h1>
+      </div>
+
+      <!-- Main Grid Container (8 Cols Left + 4 Cols Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- LEFT COLUMN: Calculator Card (8 Cols) -->
+        <div class="lg:col-span-8 space-y-8">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-8"
+          >
+            <!-- TOP GRID: Sliders (7 Cols) & Chart (5 Cols) -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
+              <div class="md:col-span-7 space-y-8">
+                <!-- 1. Yearly investment -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="deposit-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Yearly investment
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                      <input
+                        type="number"
+                        id="deposit-input"
+                        value={inputs.deposit.value}
+                        min={inputs.deposit.min}
+                        max={inputs.deposit.max}
+                        step={inputs.deposit.step}
+                        class="w-28 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="deposit-slider"
+                    aria-label="Yearly investment"
+                    min={inputs.deposit.min}
+                    max={inputs.deposit.max}
+                    step={inputs.deposit.step}
+                    value={inputs.deposit.value}
+                    class="ppf-minimal-slider"
+                  />
+                </div>
+
+                <!-- 2. Interest rate -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="interest-rate-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Rate of interest (p.a)
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <input
+                        type="number"
+                        id="interest-rate-input"
+                        value={inputs.rate.value}
+                        min={inputs.rate.min}
+                        max={inputs.rate.max}
+                        step={inputs.rate.step}
+                        class="w-20 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                      <span class="text-sm sm:text-base font-bold text-primary ml-1">%</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="interest-rate-slider"
+                    aria-label="Rate of interest per annum"
+                    min={inputs.rate.min}
+                    max={inputs.rate.max}
+                    step={inputs.rate.step}
+                    value={inputs.rate.value}
+                    class="ppf-minimal-slider"
+                  />
+                </div>
+
+                <!-- 3. Time period -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="time-period-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Time period
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <input
+                        type="number"
+                        id="time-period-input"
+                        value={inputs.tenure.value}
+                        min={inputs.tenure.min}
+                        max={inputs.tenure.max}
+                        step={inputs.tenure.step}
+                        class="w-20 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                      <span class="text-sm sm:text-base font-bold text-primary ml-1">Yr</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="time-period-slider"
+                    aria-label="Time period in years"
+                    min={inputs.tenure.min}
+                    max={inputs.tenure.max}
+                    step={inputs.tenure.step}
+                    value={inputs.tenure.value}
+                    class="ppf-minimal-slider"
+                  />
+                  <p class="text-xs sm:text-sm text-text-default opacity-70">
+                    15-year lock-in, extendable in blocks of 5 years.
+                  </p>
+                </div>
+              </div>
+
+              <!-- CHART & LEGEND (5 Cols) -->
+              <div class="md:col-span-5 flex flex-col items-center justify-center space-y-4">
+                <div class="flex items-center justify-center gap-6 text-xs sm:text-sm text-text-default font-semibold">
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary/20 inline-block"></span>
+                    <span class="opacity-80">Total investment</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary inline-block"></span>
+                    <span class="opacity-80">Total interest</span>
+                  </div>
+                </div>
+
+                <div class="relative w-52 h-52 sm:w-64 sm:h-64 flex items-center justify-center">
+                  <canvas
+                    id="ppf-chart"
+                    width="240"
+                    height="240"
+                    aria-label="Total investment versus total interest"
+                    role="img"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTTOM ROW: Summary Stats (7 Cols, aligned under the sliders) -->
+            <div
+              class="pt-8 border-t border-gray-100 dark:border-[#262938] grid grid-cols-1 md:grid-cols-12 gap-6 items-end"
+            >
+              <div class="md:col-span-7 space-y-3.5 text-sm sm:text-base">
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Total investment</span>
+                  <span id="output-invested" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >₹15,00,000</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Total interest</span>
+                  <span id="output-interest" class="font-extrabold text-primary text-base sm:text-lg text-right"
+                    >₹12,12,139</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4 pt-1">
+                  <span class="text-text-default opacity-70 font-semibold">Maturity value</span>
+                  <span id="output-maturity" class="font-black text-dark text-lg sm:text-xl text-right">₹27,12,139</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <CalculatorSidebar current="ppf" tag="PPF Calculator" />
+      </div>
+
+      <!-- RICH SEO CONTENT SECTION -->
+      <section class="mt-16 space-y-12 border-t border-gray-200 dark:border-[#262938] pt-12">
+        <div class="space-y-6">
+          <div class="max-w-4xl space-y-4">
+            <h2 class="h3 font-bold text-dark tracking-tight">What is a PPF Calculator?</h2>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              A <strong>PPF Calculator</strong> is a free online tool that estimates how much your Public Provident Fund account
+              will be worth at maturity. It adds up your yearly deposits, compounds the interest every year, and shows how
+              much of the final amount is your own money and how much is tax-free interest.
+            </p>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              Enter how much you plan to deposit each financial year, the current PPF interest rate and how long you
+              will keep the account. The calculator projects your balance year by year, including any 5-year extensions
+              after the first 15 years.
+            </p>
+          </div>
+
+          <!-- Year-by-year growth schedule -->
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5"
+          >
+            <div class="flex items-center justify-between gap-4">
+              <h3 class="h4 text-lg sm:text-xl font-bold text-dark">Year-by-Year PPF Growth</h3>
+              <span class="text-sm text-text-default opacity-70 font-semibold">Compounding Schedule</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-[#262938]">
+              <table class="w-full text-left text-base sm:text-lg">
+                <thead
+                  class="bg-gray-50 dark:bg-[#1c202e] font-bold text-text-default border-b border-gray-100 dark:border-[#262938]"
+                >
+                  <tr>
+                    <th class="px-5 py-4">Year</th>
+                    <th class="px-5 py-4">Amount Deposited</th>
+                    <th class="px-5 py-4">Interest Earned</th>
+                    <th class="px-5 py-4 text-right">Year-End Balance</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="ppf-schedule-body"
+                  class="divide-y divide-gray-100 dark:divide-[#262938] text-dark font-medium"
+                >
+                  {/* Filled by the script below. */}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- How it works & example -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">How Does a PPF Calculator Work?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            Each year, your new deposit is added to the balance and the whole balance earns interest at the PPF rate.
+            That interest is added to the account at the end of the financial year, so next year it earns interest too.
+            Over 15 years this compounding does most of the work - which is why depositing early in the year, by 5
+            April, earns you the most.
+          </p>
+
+          <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-6 space-y-4">
+            <h3 class="h4 text-base sm:text-lg font-bold text-primary">Practical Example:</h3>
+            <p class="text-base sm:text-lg text-text-default font-medium leading-relaxed">
+              Suppose you deposit the maximum <strong>₹1,50,000 every year</strong> for <strong>15 years</strong> at an interest
+              rate of <strong>7.1% p.a.</strong>:
+            </p>
+            <ul class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm sm:text-base pt-2">
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm"
+                  >Total Investment:</span
+                >
+                <span class="font-extrabold text-dark text-lg sm:text-xl">₹22,50,000</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm"
+                  >Tax-Free Interest Earned:</span
+                >
+                <span class="font-extrabold text-primary text-lg sm:text-xl">₹18,18,209</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Maturity Value:</span>
+                <span class="font-black text-dark text-xl sm:text-2xl">₹40,68,209</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Formula -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">What is the PPF Calculator Formula?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            With a fixed deposit made at the start of every year and yearly compounding, the maturity value is:
+          </p>
+
+          <div
+            class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 text-center font-mono text-lg sm:text-2xl font-black text-primary overflow-x-auto"
+          >
+            Maturity (F) = P × [ ( (1 + i)^n - 1 ) / i ] × (1 + i)
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 text-sm sm:text-base">
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">F (Maturity Value)</strong>
+              <span class="opacity-80">The balance in your PPF account at the end of the period.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">P (Yearly Deposit)</strong>
+              <span class="opacity-80">The amount you deposit each financial year (₹500 to ₹1,50,000).</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">i (Interest Rate)</strong>
+              <span class="opacity-80">Annual PPF interest rate / 100.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">n (Number of Years)</strong>
+              <span class="opacity-80">How many years you deposit and hold the account (15 or more).</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tax-saving options comparison -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">PPF compared with other tax-saving options:</h2>
+
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5 w-48">Scheme</th>
+                  <th class="px-6 py-4.5 min-w-[200px]">Lock-in</th>
+                  <th class="px-6 py-4.5 text-center min-w-[200px]">Returns</th>
+                  <th class="px-6 py-4.5 min-w-[180px]">Risk</th>
+                  <th class="px-6 py-4.5 min-w-[200px]">Tax on Returns</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  savingsOptions.map((option, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4.5 font-bold text-dark">{option.name}</td>
+                      <td class="px-6 py-4.5 opacity-85">{option.lockIn}</td>
+                      <td class="px-6 py-4.5 text-center font-bold text-primary">{option.returns}</td>
+                      <td class="px-6 py-4.5 opacity-85">{option.risk}</td>
+                      <td class="px-6 py-4.5 opacity-85">{option.tax}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="text-sm text-text-default opacity-70">
+            All the schemes above qualify for a Section 80C deduction under the old tax regime. Rates and tax rules
+            change; check the current position before investing.
+          </p>
+        </div>
+      </section>
+
+      <FAQSection2 title="asked questions" titleBold="Frequently" categories={faqCategories} />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .ppf-minimal-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    outline: none;
+    cursor: pointer;
+  }
+  .ppf-minimal-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2.5px solid #6b1aff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .ppf-minimal-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ppf-minimal-slider::-webkit-slider-thumb {
+      transition: none;
+    }
+  }
+</style>
+
+<!-- Chart.js, loaded the same way as on the other calculator pages. -->
+<script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  let chartInstance: any = null;
+
+  const fields = [
+    ["deposit-input", "deposit-slider"],
+    ["interest-rate-input", "interest-rate-slider"],
+    ["time-period-input", "time-period-slider"],
+  ] as const;
+
+  const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  function formatCurrency(val: number): string {
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val);
+  }
+
+  function updateSliderTrack(slider: HTMLInputElement | null) {
+    if (!slider) return;
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 100;
+    const val = parseFloat(slider.value) || 0;
+    const pct = Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
+    const isDark = document.documentElement.classList.contains("dark");
+    const trackBg = isDark ? "#262938" : "#e2e8f0";
+    slider.style.background = `linear-gradient(to right, #6b1aff 0%, #6b1aff ${pct}%, ${trackBg} ${pct}%, ${trackBg} 100%)`;
+  }
+
+  // Reads an input clamped to its own min/max, so a half-typed value never
+  // produces a nonsense projection.
+  function readValue(inputId: string): number {
+    const input = byId<HTMLInputElement>(inputId);
+    if (!input) return 0;
+    const min = parseFloat(input.min) || 0;
+    const max = parseFloat(input.max) || Infinity;
+    return Math.min(max, Math.max(min, parseFloat(input.value) || min));
+  }
+
+  interface YearRow {
+    deposited: number;
+    interest: number;
+    balance: number;
+  }
+
+  // Deposit at the start of each year, interest credited at the end of it.
+  function project(deposit: number, ratePa: number, years: number): YearRow[] {
+    const i = ratePa / 100;
+    let balance = 0;
+    const rows: YearRow[] = [];
+    for (let yr = 1; yr <= years; yr++) {
+      balance += deposit;
+      const interest = balance * i;
+      balance += interest;
+      rows.push({ deposited: deposit, interest, balance });
+    }
+    return rows;
+  }
+
+  function calculatePPF() {
+    const deposit = readValue(fields[0][0]);
+    const ratePa = readValue(fields[1][0]);
+    const years = Math.round(readValue(fields[2][0]));
+
+    const rows = project(deposit, ratePa, years);
+    const invested = deposit * years;
+    const maturity = rows.length ? rows[rows.length - 1].balance : 0;
+    const interest = Math.max(0, maturity - invested);
+
+    const set = (id: string, value: number) => {
+      const el = byId(id);
+      if (el) el.innerText = formatCurrency(Math.round(value));
+    };
+    set("output-invested", invested);
+    set("output-interest", interest);
+    set("output-maturity", maturity);
+
+    fields.forEach(([, sliderId]) => updateSliderTrack(byId<HTMLInputElement>(sliderId)));
+    updateChart(invested, interest);
+    updateSchedule(rows);
+  }
+
+  function updateChart(invested: number, interest: number) {
+    const canvas = byId<HTMLCanvasElement>("ppf-chart");
+    if (!canvas) return;
+
+    if (chartInstance) {
+      chartInstance.data.datasets[0].data = [invested, interest];
+      chartInstance.update();
+      return;
+    }
+
+    const ChartClass = (window as any).Chart;
+    if (!ChartClass) return;
+    chartInstance = new ChartClass(canvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Total investment", "Total interest"],
+        datasets: [
+          {
+            data: [invested, interest],
+            backgroundColor: ["rgba(107, 26, 255, 0.2)", "#6b1aff"],
+            borderWidth: 0,
+            hoverOffset: 5,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "78%",
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context: any) => ` ${context.label || ""}: ${formatCurrency(context.parsed || 0)}`,
+            },
+          },
+        },
+        animation: { duration: 400, easing: "easeOutQuart" },
+      },
+    });
+  }
+
+  function updateSchedule(rows: YearRow[]) {
+    const tbody = byId("ppf-schedule-body");
+    if (!tbody) return;
+
+    tbody.innerHTML = rows
+      .map(
+        (row, index) => `
+        <tr class="hover:bg-gray-50 dark:hover:bg-[#181b25] transition">
+          <td class="px-5 py-3.5 font-semibold">${index + 1} ${index === 0 ? "Year" : "Years"}</td>
+          <td class="px-5 py-3.5">${formatCurrency(Math.round(row.deposited))}</td>
+          <td class="px-5 py-3.5 text-primary font-semibold">${formatCurrency(Math.round(row.interest))}</td>
+          <td class="px-5 py-3.5 text-right font-bold text-dark">${formatCurrency(Math.round(row.balance))}</td>
+        </tr>
+      `,
+      )
+      .join("");
+  }
+
+  function setupEventListeners() {
+    // Each number box and its slider mirror one another.
+    fields.forEach(([inputId, sliderId]) => {
+      const input = byId<HTMLInputElement>(inputId);
+      const slider = byId<HTMLInputElement>(sliderId);
+      input?.addEventListener("input", () => {
+        if (slider) slider.value = input.value;
+        calculatePPF();
+      });
+      slider?.addEventListener("input", () => {
+        if (input) input.value = slider.value;
+        calculatePPF();
+      });
+    });
+  }
+
+  function initCalculator() {
+    setupEventListeners();
+    calculatePPF();
+  }
+
+  if (document.readyState !== "loading") {
+    initCalculator();
+  } else {
+    document.addEventListener("DOMContentLoaded", initCalculator);
+  }
+</script>

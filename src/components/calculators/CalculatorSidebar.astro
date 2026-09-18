@@ -1,0 +1,109 @@
+---
+/**
+ * The right-hand column shared by the calculator pages: the open-account card
+ * and the Popular Calculators list. The current calculator is lifted to the
+ * top of the list and marked, the rest follow in a fixed order.
+ */
+import { calculators, type CalculatorId } from "./calculators-data";
+
+interface Props {
+  /** Which calculator page this is. */
+  current: CalculatorId;
+  /** `tag` sent with the open-account link, for lead attribution. */
+  tag: string;
+}
+
+const { current, tag } = Astro.props;
+
+const ordered = [
+  ...calculators.filter((calc) => calc.id === current),
+  ...calculators.filter((calc) => calc.id !== current),
+];
+
+const openAccountHref = `/open-account-call-back?src=Website&tag=${encodeURIComponent(tag)}`;
+---
+
+<aside class="lg:col-span-4 space-y-6 w-full">
+  <div
+    class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 text-center space-y-5"
+  >
+    <div
+      class="w-16 h-16 mx-auto rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-8 w-8"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        ></path>
+      </svg>
+    </div>
+
+    <div class="space-y-1.5">
+      <h2 class="h3 text-lg font-bold text-dark">Open Account in 5 min</h2>
+      <p class="text-sm text-text-default opacity-75">Start trading & investing today</p>
+    </div>
+
+    <a
+      class="btn btn-primary text-flip-hover-anim btn-md w-full justify-center cursor-pointer shadow-sm"
+      href={openAccountHref}
+    >
+      <span class="text-flip-inner" data-content="OPEN ACCOUNT">OPEN ACCOUNT</span>
+      <span class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]">
+        <svg
+          class="gradient-shape"
+          width="150"
+          height="28"
+          viewBox="0 0 147 11"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
+            stroke="currentColor"
+            stroke-width="8"></path>
+        </svg>
+      </span>
+    </a>
+  </div>
+
+  <div class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl overflow-hidden">
+    <div class="p-4 sm:p-5 border-b border-gray-100 dark:border-[#262938] bg-gray-50/50 dark:bg-[#181b25]">
+      <h2 class="h4 text-xs font-bold uppercase tracking-wider text-text-default opacity-80">Popular Calculators</h2>
+    </div>
+
+    <div class="divide-y divide-gray-100 dark:divide-[#262938] text-sm">
+      {
+        ordered.map((calc) =>
+          calc.id === current ? (
+            <a
+              href={calc.href}
+              aria-current="page"
+              class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] font-bold text-primary transition"
+            >
+              <span>{calc.label}</span>
+              <span class="text-primary font-bold" aria-hidden="true">
+                →
+              </span>
+            </a>
+          ) : (
+            <a
+              href={calc.href}
+              class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition"
+            >
+              <span>{calc.label}</span>
+            </a>
+          ),
+        )
+      }
+    </div>
+  </div>
+</aside>

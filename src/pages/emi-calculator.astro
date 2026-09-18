@@ -1,0 +1,781 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import FAQSection2 from "../components/FAQSection2.astro";
+import CalculatorSidebar from "../components/calculators/CalculatorSidebar.astro";
+
+/*
+ * EMI calculator. Same layout as /sip-calculator, section for section: boxed
+ * calculator with sliders and a doughnut chart, the open-account and
+ * popular-calculators sidebar, then the explainer, schedule table, formula,
+ * comparison table and FAQs.
+ *
+ * Headings sit one level higher than the SIP page's (h1 for the title, h2 for
+ * sections) and borrow the matching size class (.h3, .h4), so the two pages
+ * look identical while this one keeps a single h1 and an ordered outline.
+ */
+
+// Loan presets behind the tabs. Each tab resets the three sliders to a
+// sensible range and starting point for that kind of loan.
+const loanTypes = [
+  {
+    id: "home",
+    label: "Home Loan",
+    amount: { min: 100000, max: 50000000, step: 100000, value: 5000000 },
+    rate: { min: 5, max: 20, step: 0.1, value: 8.5 },
+    tenure: { min: 1, max: 30, step: 1, value: 20 },
+  },
+  {
+    id: "personal",
+    label: "Personal Loan",
+    amount: { min: 10000, max: 4000000, step: 10000, value: 500000 },
+    rate: { min: 8, max: 30, step: 0.1, value: 12 },
+    tenure: { min: 1, max: 7, step: 1, value: 5 },
+  },
+  {
+    id: "car",
+    label: "Car Loan",
+    amount: { min: 50000, max: 10000000, step: 50000, value: 800000 },
+    rate: { min: 6, max: 20, step: 0.1, value: 9 },
+    tenure: { min: 1, max: 8, step: 1, value: 5 },
+  },
+];
+
+const defaultLoan = loanTypes[0];
+
+const faqItems = [
+  {
+    question: "What is an EMI?",
+    answer:
+      "An Equated Monthly Instalment (EMI) is the fixed amount you pay your lender every month until a loan is fully repaid. Each EMI covers part of the principal and the interest due for that month.",
+  },
+  {
+    question: "How does the GoPocket EMI Calculator work?",
+    answer:
+      "Enter the loan amount, the annual interest rate and the tenure. The calculator applies the standard formula EMI = P × r × (1 + r)^n / ((1 + r)^n − 1) to show your monthly EMI, the total interest payable and the total amount you will repay.",
+  },
+  {
+    question: "Why does most of my early EMI go towards interest?",
+    answer:
+      "Interest is charged on the outstanding balance, which is highest at the start of the loan. As you repay principal the balance falls, so each later EMI carries less interest and more principal. The year-by-year schedule on this page shows the shift.",
+  },
+  {
+    question: "How can I reduce my EMI?",
+    answer:
+      "A longer tenure lowers the monthly EMI but raises the total interest you pay. A larger down payment, a lower interest rate, or part-prepayments that cut the outstanding principal reduce both.",
+  },
+  {
+    question: "Is the EMI shown here exactly what my lender will charge?",
+    answer:
+      "It is an estimate for a fixed-rate loan. Your lender's EMI can differ because of processing fees, floating-rate changes, insurance bundled into the loan, or a different compounding convention.",
+  },
+];
+
+const faqCategories = [{ id: "emi-faqs", label: "EMI FAQs", items: faqItems }];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+};
+
+// Indicative ranges only - rates move with the RBI repo rate and the lender.
+const loanComparison = [
+  {
+    name: "Home Loan",
+    purpose: "Buying, building or renovating a house",
+    tenure: "Up to 30 years",
+    rate: "8-10%",
+    note: "Longest tenure; tax benefits on principal and interest",
+  },
+  {
+    name: "Car Loan",
+    purpose: "Buying a new or used car",
+    tenure: "1-8 years",
+    rate: "8.5-12%",
+    note: "Secured against the car; used-car loans cost more",
+  },
+  {
+    name: "Personal Loan",
+    purpose: "Any personal need - travel, medical, wedding",
+    tenure: "1-7 years",
+    rate: "10.5-24%",
+    note: "Unsecured, so the rate depends heavily on credit score",
+  },
+  {
+    name: "Education Loan",
+    purpose: "Tuition and study costs in India or abroad",
+    tenure: "Up to 15 years",
+    rate: "8.5-14%",
+    note: "Repayment usually starts after a moratorium period",
+  },
+  {
+    name: "Two-Wheeler Loan",
+    purpose: "Buying a bike or scooter",
+    tenure: "1-5 years",
+    rate: "9-20%",
+    note: "Small ticket, quick approval, higher rates",
+  },
+  {
+    name: "Gold Loan",
+    purpose: "Short-term funds against gold jewellery",
+    tenure: "Up to 3 years",
+    rate: "8.5-18%",
+    note: "Fast disbursal; gold can be auctioned on default",
+  },
+  {
+    name: "Loan Against Property",
+    purpose: "Large funds against a residential or commercial property",
+    tenure: "Up to 20 years",
+    rate: "9-14%",
+    note: "Lower rate than unsecured loans; property is collateral",
+  },
+];
+
+const activeTabClass =
+  "calc-mode-tab active px-5 py-2 text-sm sm:text-base font-bold rounded-full border border-primary bg-primary/10 text-primary transition-all";
+const idleTabClass =
+  "calc-mode-tab px-5 py-2 text-sm sm:text-base font-bold rounded-full border border-transparent text-text-default opacity-70 hover:opacity-100 transition-all";
+---
+
+<Layout
+  title="EMI Calculator Online | Calculate Home, Car & Personal Loan EMI | GoPocket"
+  description="Calculate your loan EMI instantly with GoPocket's free EMI Calculator. See your monthly EMI, total interest and year-by-year repayment schedule for home, car and personal loans."
+  canonical="/emi-calculator"
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <Header currentPath="/emi-calculator" />
+
+  <main class="pt-8 md:pt-14 pb-16">
+    <div class="container max-w-[1400px] px-4 sm:px-6 space-y-12">
+      <div class="mb-8">
+        <h1 class="h3 font-bold text-dark tracking-tight">EMI Calculator</h1>
+      </div>
+
+      <!-- Main Grid Container (8 Cols Left + 4 Cols Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- LEFT COLUMN: Calculator Card (8 Cols) -->
+        <div class="lg:col-span-8 space-y-8">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-8"
+          >
+            <!-- Loan type tabs -->
+            <div
+              class="flex flex-wrap items-center gap-3"
+              data-active-class={activeTabClass}
+              data-idle-class={idleTabClass}
+            >
+              {
+                loanTypes.map((loan) => (
+                  <button
+                    type="button"
+                    data-loan-tab={loan.id}
+                    data-loan={JSON.stringify(loan)}
+                    aria-pressed={loan.id === defaultLoan.id ? "true" : "false"}
+                    class={loan.id === defaultLoan.id ? activeTabClass : idleTabClass}
+                  >
+                    {loan.label}
+                  </button>
+                ))
+              }
+            </div>
+
+            <!-- TOP GRID: Sliders (7 Cols) & Chart (5 Cols) -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
+              <div class="md:col-span-7 space-y-8">
+                <!-- 1. Loan amount -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="loan-amount-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Loan amount
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                      <input
+                        type="number"
+                        id="loan-amount-input"
+                        value={defaultLoan.amount.value}
+                        min={defaultLoan.amount.min}
+                        max={defaultLoan.amount.max}
+                        step={defaultLoan.amount.step}
+                        class="w-28 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="loan-amount-slider"
+                    aria-label="Loan amount"
+                    min={defaultLoan.amount.min}
+                    max={defaultLoan.amount.max}
+                    step={defaultLoan.amount.step}
+                    value={defaultLoan.amount.value}
+                    class="emi-minimal-slider"
+                  />
+                </div>
+
+                <!-- 2. Interest rate -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="interest-rate-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Interest rate (p.a)
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <input
+                        type="number"
+                        id="interest-rate-input"
+                        value={defaultLoan.rate.value}
+                        min={defaultLoan.rate.min}
+                        max={defaultLoan.rate.max}
+                        step={defaultLoan.rate.step}
+                        class="w-20 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                      <span class="text-sm sm:text-base font-bold text-primary ml-1">%</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="interest-rate-slider"
+                    aria-label="Interest rate per annum"
+                    min={defaultLoan.rate.min}
+                    max={defaultLoan.rate.max}
+                    step={defaultLoan.rate.step}
+                    value={defaultLoan.rate.value}
+                    class="emi-minimal-slider"
+                  />
+                </div>
+
+                <!-- 3. Loan tenure -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="loan-tenure-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Loan tenure
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <input
+                        type="number"
+                        id="loan-tenure-input"
+                        value={defaultLoan.tenure.value}
+                        min={defaultLoan.tenure.min}
+                        max={defaultLoan.tenure.max}
+                        step={defaultLoan.tenure.step}
+                        class="w-20 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                      <span class="text-sm sm:text-base font-bold text-primary ml-1">Yr</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="loan-tenure-slider"
+                    aria-label="Loan tenure in years"
+                    min={defaultLoan.tenure.min}
+                    max={defaultLoan.tenure.max}
+                    step={defaultLoan.tenure.step}
+                    value={defaultLoan.tenure.value}
+                    class="emi-minimal-slider"
+                  />
+                </div>
+              </div>
+
+              <!-- CHART & LEGEND (5 Cols) -->
+              <div class="md:col-span-5 flex flex-col items-center justify-center space-y-4">
+                <div class="flex items-center justify-center gap-6 text-xs sm:text-sm text-text-default font-semibold">
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary/20 inline-block"></span>
+                    <span class="opacity-80">Principal amount</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary inline-block"></span>
+                    <span class="opacity-80">Total interest</span>
+                  </div>
+                </div>
+
+                <div class="relative w-52 h-52 sm:w-64 sm:h-64 flex items-center justify-center">
+                  <canvas
+                    id="emi-chart"
+                    width="240"
+                    height="240"
+                    aria-label="Principal versus total interest"
+                    role="img"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTTOM ROW: Summary Stats (7 Cols, aligned under the sliders) -->
+            <div
+              class="pt-8 border-t border-gray-100 dark:border-[#262938] grid grid-cols-1 md:grid-cols-12 gap-6 items-end"
+            >
+              <div class="md:col-span-7 space-y-3.5 text-sm sm:text-base">
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Monthly EMI</span>
+                  <span id="output-monthly-emi" class="font-extrabold text-primary text-base sm:text-lg text-right"
+                    >₹43,391</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Principal amount</span>
+                  <span id="output-principal" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >₹50,00,000</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Total interest</span>
+                  <span id="output-total-interest" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >₹54,13,879</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4 pt-1">
+                  <span class="text-text-default opacity-70 font-semibold">Total amount</span>
+                  <span id="output-total-amount" class="font-black text-dark text-lg sm:text-xl text-right"
+                    >₹1,04,13,879</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <CalculatorSidebar current="emi" tag="EMI Calculator" />
+      </div>
+
+      <!-- RICH SEO CONTENT SECTION -->
+      <section class="mt-16 space-y-12 border-t border-gray-200 dark:border-[#262938] pt-12">
+        <div class="space-y-6">
+          <div class="max-w-4xl space-y-4">
+            <h2 class="h3 font-bold text-dark tracking-tight">What is an EMI Calculator?</h2>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              An <strong>EMI Calculator</strong> is a free online tool that works out the Equated Monthly Instalment you will
+              pay on a loan. Knowing your EMI before you borrow tells you whether the repayment fits your monthly budget,
+              and how much the loan will really cost once interest is added.
+            </p>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              Enter the loan amount, the annual interest rate and the tenure in years. The calculator instantly shows
+              your monthly EMI, the total interest payable and the total amount you will repay - and how that splits
+              across every year of the loan.
+            </p>
+          </div>
+
+          <!-- Year-by-year repayment schedule -->
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5"
+          >
+            <div class="flex items-center justify-between gap-4">
+              <h3 class="h4 text-lg sm:text-xl font-bold text-dark">Year-by-Year Repayment Schedule</h3>
+              <span class="text-sm text-text-default opacity-70 font-semibold">Amortisation</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-[#262938]">
+              <table class="w-full text-left text-base sm:text-lg">
+                <thead
+                  class="bg-gray-50 dark:bg-[#1c202e] font-bold text-text-default border-b border-gray-100 dark:border-[#262938]"
+                >
+                  <tr>
+                    <th class="px-5 py-4">Year</th>
+                    <th class="px-5 py-4">Principal Paid</th>
+                    <th class="px-5 py-4">Interest Paid</th>
+                    <th class="px-5 py-4 text-right">Outstanding Balance</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="emi-schedule-body"
+                  class="divide-y divide-gray-100 dark:divide-[#262938] text-dark font-medium"
+                >
+                  {/* Filled by the script below. */}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- How it works & example -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">How Does an EMI Calculator Work?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            Every EMI is the same amount, but what it pays for changes over time. Interest is charged on the outstanding
+            balance, so early EMIs are mostly interest; as the balance falls, more of each EMI goes towards the
+            principal. The calculator uses the standard reducing-balance formula to find the one fixed payment that
+            clears the loan exactly on time.
+          </p>
+
+          <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-6 space-y-4">
+            <h3 class="h4 text-base sm:text-lg font-bold text-primary">Practical Example:</h3>
+            <p class="text-base sm:text-lg text-text-default font-medium leading-relaxed">
+              Suppose you take a loan of <strong>₹10,00,000</strong> for <strong>5 years</strong> at an interest rate of
+              <strong>10% p.a.</strong>:
+            </p>
+            <ul class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm sm:text-base pt-2">
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Monthly EMI:</span>
+                <span class="font-extrabold text-primary text-lg sm:text-xl">₹21,247</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm"
+                  >Total Interest Payable:</span
+                >
+                <span class="font-extrabold text-dark text-lg sm:text-xl">₹2,74,823</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm"
+                  >Total Amount Repaid:</span
+                >
+                <span class="font-black text-dark text-xl sm:text-2xl">₹12,74,823</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Formula -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">What is the EMI Calculator Formula?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            The formula used to calculate a fixed monthly EMI on a reducing-balance loan is:
+          </p>
+
+          <div
+            class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 text-center font-mono text-lg sm:text-2xl font-black text-primary overflow-x-auto"
+          >
+            EMI (E) = P × r × (1 + r)^n / [ (1 + r)^n - 1 ]
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 text-sm sm:text-base">
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">E (EMI)</strong>
+              <span class="opacity-80">The fixed amount you pay the lender every month.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">P (Principal)</strong>
+              <span class="opacity-80">The loan amount you borrow.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">r (Monthly Rate)</strong>
+              <span class="opacity-80">Monthly interest rate (Annual interest rate / 12 / 100).</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">n (Number of EMIs)</strong>
+              <span class="opacity-80">Total monthly instalments (Tenure in years × 12).</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Types of loans comparison -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">Different types of loans and their details:</h2>
+
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5 w-48">Loan Type</th>
+                  <th class="px-6 py-4.5 min-w-[220px]">Purpose</th>
+                  <th class="px-6 py-4.5 min-w-[150px]">Typical Tenure</th>
+                  <th class="px-6 py-4.5 text-center min-w-[150px]">Indicative Interest Rate (p.a.)</th>
+                  <th class="px-6 py-4.5 min-w-[240px]">Key Consideration</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  loanComparison.map((loan, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4.5 font-bold text-dark">{loan.name}</td>
+                      <td class="px-6 py-4.5 opacity-85">{loan.purpose}</td>
+                      <td class="px-6 py-4.5 opacity-85">{loan.tenure}</td>
+                      <td class="px-6 py-4.5 text-center font-bold text-primary">{loan.rate}</td>
+                      <td class="px-6 py-4.5 opacity-85">{loan.note}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="text-sm text-text-default opacity-70">
+            Rates are indicative and vary by lender, credit profile and the prevailing RBI repo rate.
+          </p>
+        </div>
+      </section>
+
+      <FAQSection2 title="asked questions" titleBold="Frequently" categories={faqCategories} />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .emi-minimal-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    outline: none;
+    cursor: pointer;
+  }
+  .emi-minimal-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2.5px solid #6b1aff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .emi-minimal-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .emi-minimal-slider::-webkit-slider-thumb {
+      transition: none;
+    }
+  }
+</style>
+
+<!-- Chart.js, loaded the same way as on /sip-calculator. -->
+<script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  interface Range {
+    min: number;
+    max: number;
+    step: number;
+    value: number;
+  }
+
+  interface LoanType {
+    id: string;
+    amount: Range;
+    rate: Range;
+    tenure: Range;
+  }
+
+  let chartInstance: any = null;
+
+  const fields = {
+    amount: ["loan-amount-input", "loan-amount-slider"],
+    rate: ["interest-rate-input", "interest-rate-slider"],
+    tenure: ["loan-tenure-input", "loan-tenure-slider"],
+  } as const;
+
+  const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  function formatCurrency(val: number): string {
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val);
+  }
+
+  function updateSliderTrack(slider: HTMLInputElement | null) {
+    if (!slider) return;
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 100;
+    const val = parseFloat(slider.value) || 0;
+    const pct = Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
+    const isDark = document.documentElement.classList.contains("dark");
+    const trackBg = isDark ? "#262938" : "#e2e8f0";
+    slider.style.background = `linear-gradient(to right, #6b1aff 0%, #6b1aff ${pct}%, ${trackBg} ${pct}%, ${trackBg} 100%)`;
+  }
+
+  // Reads an input, clamped to its own min/max so a half-typed value never
+  // produces a negative or runaway EMI.
+  function readValue(inputId: string): number {
+    const input = byId<HTMLInputElement>(inputId);
+    if (!input) return 0;
+    const min = parseFloat(input.min) || 0;
+    const max = parseFloat(input.max) || Infinity;
+    return Math.min(max, Math.max(min, parseFloat(input.value) || min));
+  }
+
+  function monthlyEmi(principal: number, ratePa: number, months: number): number {
+    const r = ratePa / 12 / 100;
+    if (r === 0) return principal / months;
+    const growth = Math.pow(1 + r, months);
+    return (principal * r * growth) / (growth - 1);
+  }
+
+  function calculateEMI() {
+    const principal = readValue(fields.amount[0]);
+    const ratePa = readValue(fields.rate[0]);
+    const years = Math.round(readValue(fields.tenure[0]));
+    const months = years * 12;
+
+    const emi = monthlyEmi(principal, ratePa, months);
+    const totalAmount = emi * months;
+    const totalInterest = Math.max(0, totalAmount - principal);
+
+    const set = (id: string, value: number) => {
+      const el = byId(id);
+      if (el) el.innerText = formatCurrency(Math.round(value));
+    };
+    set("output-monthly-emi", emi);
+    set("output-principal", principal);
+    set("output-total-interest", totalInterest);
+    set("output-total-amount", totalAmount);
+
+    Object.values(fields).forEach(([, sliderId]) => updateSliderTrack(byId<HTMLInputElement>(sliderId)));
+    updateChart(principal, totalInterest);
+    updateSchedule(principal, ratePa, years, emi);
+  }
+
+  function updateChart(principal: number, interest: number) {
+    const canvas = byId<HTMLCanvasElement>("emi-chart");
+    if (!canvas) return;
+
+    if (chartInstance) {
+      chartInstance.data.datasets[0].data = [principal, interest];
+      chartInstance.update();
+      return;
+    }
+
+    const ChartClass = (window as any).Chart;
+    if (!ChartClass) return;
+    chartInstance = new ChartClass(canvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Principal amount", "Total interest"],
+        datasets: [
+          {
+            data: [principal, interest],
+            backgroundColor: ["rgba(107, 26, 255, 0.2)", "#6b1aff"],
+            borderWidth: 0,
+            hoverOffset: 5,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "78%",
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context: any) => ` ${context.label || ""}: ${formatCurrency(context.parsed || 0)}`,
+            },
+          },
+        },
+        animation: { duration: 400, easing: "easeOutQuart" },
+      },
+    });
+  }
+
+  // Walks the loan month by month and rolls the split up per year.
+  function updateSchedule(principal: number, ratePa: number, years: number, emi: number) {
+    const tbody = byId("emi-schedule-body");
+    if (!tbody) return;
+
+    const r = ratePa / 12 / 100;
+    let balance = principal;
+    let rowsHtml = "";
+
+    for (let yr = 1; yr <= years; yr++) {
+      let principalPaid = 0;
+      let interestPaid = 0;
+      for (let m = 0; m < 12; m++) {
+        const interest = balance * r;
+        const towardsPrincipal = Math.min(balance, emi - interest);
+        interestPaid += interest;
+        principalPaid += towardsPrincipal;
+        balance -= towardsPrincipal;
+      }
+      // Floating-point drift leaves a few paise on the last row; show zero.
+      const shownBalance = yr === years ? 0 : Math.max(0, balance);
+
+      rowsHtml += `
+        <tr class="hover:bg-gray-50 dark:hover:bg-[#181b25] transition">
+          <td class="px-5 py-3.5 font-semibold">${yr} ${yr === 1 ? "Year" : "Years"}</td>
+          <td class="px-5 py-3.5">${formatCurrency(Math.round(principalPaid))}</td>
+          <td class="px-5 py-3.5 text-primary font-semibold">${formatCurrency(Math.round(interestPaid))}</td>
+          <td class="px-5 py-3.5 text-right font-bold text-dark">${formatCurrency(Math.round(shownBalance))}</td>
+        </tr>
+      `;
+    }
+
+    tbody.innerHTML = rowsHtml;
+  }
+
+  function applyRange(inputId: string, sliderId: string, range: Range) {
+    [byId<HTMLInputElement>(inputId), byId<HTMLInputElement>(sliderId)].forEach((el) => {
+      if (!el) return;
+      el.min = String(range.min);
+      el.max = String(range.max);
+      el.step = String(range.step);
+      el.value = String(range.value);
+    });
+  }
+
+  function setupEventListeners() {
+    // Each number box and its slider mirror one another.
+    Object.values(fields).forEach(([inputId, sliderId]) => {
+      const input = byId<HTMLInputElement>(inputId);
+      const slider = byId<HTMLInputElement>(sliderId);
+      input?.addEventListener("input", () => {
+        if (slider) slider.value = input.value;
+        calculateEMI();
+      });
+      slider?.addEventListener("input", () => {
+        if (input) input.value = slider.value;
+        calculateEMI();
+      });
+    });
+
+    // Loan-type tabs swap in that loan's ranges and starting values.
+    const tabs = document.querySelectorAll<HTMLButtonElement>("[data-loan-tab]");
+    const tabList = tabs[0]?.parentElement;
+    const activeClass = tabList?.dataset.activeClass || "";
+    const idleClass = tabList?.dataset.idleClass || "";
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const loan = JSON.parse(tab.dataset.loan || "{}") as LoanType;
+        tabs.forEach((other) => {
+          const isActive = other === tab;
+          other.className = isActive ? activeClass : idleClass;
+          other.setAttribute("aria-pressed", String(isActive));
+        });
+        applyRange(fields.amount[0], fields.amount[1], loan.amount);
+        applyRange(fields.rate[0], fields.rate[1], loan.rate);
+        applyRange(fields.tenure[0], fields.tenure[1], loan.tenure);
+        calculateEMI();
+      });
+    });
+  }
+
+  function initCalculator() {
+    setupEventListeners();
+    calculateEMI();
+  }
+
+  if (document.readyState !== "loading") {
+    initCalculator();
+  } else {
+    document.addEventListener("DOMContentLoaded", initCalculator);
+  }
+</script>

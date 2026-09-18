@@ -1,0 +1,734 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import FAQSection2 from "../components/FAQSection2.astro";
+import CalculatorSidebar from "../components/calculators/CalculatorSidebar.astro";
+
+/*
+ * SWP calculator. Same layout as /sip-calculator and /emi-calculator: boxed
+ * calculator with sliders and a doughnut chart, the shared sidebar, then the
+ * explainer, schedule table, formula, comparison table and FAQs.
+ *
+ * Withdrawals are modelled at the end of each month, after that month's
+ * return is credited - the same convention as the closed-form formula shown on
+ * the page, so the two always agree. If the corpus runs out, withdrawals stop
+ * and the page says in which month.
+ */
+
+const inputs = {
+  investment: { min: 10000, max: 50000000, step: 10000, value: 1000000 },
+  withdrawal: { min: 500, max: 500000, step: 500, value: 10000 },
+  rate: { min: 1, max: 30, step: 0.5, value: 8 },
+  tenure: { min: 1, max: 30, step: 1, value: 10 },
+};
+
+const faqItems = [
+  {
+    question: "What is a Systematic Withdrawal Plan (SWP)?",
+    answer:
+      "An SWP lets you withdraw a fixed amount from a mutual fund at regular intervals, usually monthly. The rest of your money stays invested and keeps earning returns, which makes an SWP a popular way to draw a steady income from a lump sum.",
+  },
+  {
+    question: "How does the GoPocket SWP Calculator work?",
+    answer:
+      "Enter your total investment, the amount you want to withdraw every month, the expected annual return and the time period. The calculator shows how much you will withdraw in total and what your investment will be worth at the end.",
+  },
+  {
+    question: "What happens if my withdrawals are higher than my returns?",
+    answer:
+      "Your investment shrinks each month, because you are taking out more than it earns. If the withdrawal is high enough, the corpus runs out before the period ends - the calculator tells you in which month that happens.",
+  },
+  {
+    question: "How are SWP withdrawals taxed?",
+    answer:
+      "Each withdrawal is treated as a redemption of mutual fund units, so only the gain portion of each withdrawal is taxed as capital gains - not the whole amount. The rate depends on the fund type and how long the units were held; check the current rules or a tax adviser for your case.",
+  },
+  {
+    question: "Are SWP returns guaranteed?",
+    answer:
+      "No. Mutual fund returns are subject to market risk, so the value left after withdrawals can be higher or lower than this estimate. Treat the result as a projection at a constant return rate.",
+  },
+];
+
+const faqCategories = [{ id: "swp-faqs", label: "SWP FAQs", items: faqItems }];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+};
+
+const incomeOptions = [
+  {
+    name: "SWP (Mutual Funds)",
+    payout: "Fixed amount redeemed from your fund every month",
+    flexibility: "High - change, pause or stop any time",
+    returns: "Market-linked",
+    note: "Only the gain part of each withdrawal is taxed",
+  },
+  {
+    name: "FD Interest Payout",
+    payout: "Bank pays interest monthly or quarterly",
+    flexibility: "Low - premature closure carries a penalty",
+    returns: "Fixed by the bank",
+    note: "Interest is taxed at your income-tax slab rate",
+  },
+  {
+    name: "IDCW (Dividend) Option",
+    payout: "Fund pays out distributions when it declares them",
+    flexibility: "None - amount and timing decided by the fund",
+    returns: "Not guaranteed",
+    note: "Payouts are irregular and taxed at your slab rate",
+  },
+  {
+    name: "Senior Citizens' Savings Scheme",
+    payout: "Government scheme paying interest every quarter",
+    flexibility: "Low - 5-year lock-in, limited early exit",
+    returns: "Set by the government",
+    note: "Only for investors aged 60 and above; capped deposit",
+  },
+  {
+    name: "Annuity Plans",
+    payout: "Insurer pays a fixed income for life or a set term",
+    flexibility: "Very low - usually irreversible once bought",
+    returns: "Fixed at purchase",
+    note: "Income is fully taxable; money cannot be withdrawn",
+  },
+];
+---
+
+<Layout
+  title="SWP Calculator Online | Systematic Withdrawal Plan Calculator | GoPocket"
+  description="Plan a steady monthly income with GoPocket's free SWP Calculator. See your total withdrawals, final investment value and year-by-year balance for any systematic withdrawal plan."
+  canonical="/swp-calculator"
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <Header currentPath="/swp-calculator" />
+
+  <main class="pt-8 md:pt-14 pb-16">
+    <div class="container max-w-[1400px] px-4 sm:px-6 space-y-12">
+      <div class="mb-8">
+        <h1 class="h3 font-bold text-dark tracking-tight">SWP Calculator</h1>
+      </div>
+
+      <!-- Main Grid Container (8 Cols Left + 4 Cols Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- LEFT COLUMN: Calculator Card (8 Cols) -->
+        <div class="lg:col-span-8 space-y-8">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-8"
+          >
+            <!-- TOP GRID: Sliders (7 Cols) & Chart (5 Cols) -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
+              <div class="md:col-span-7 space-y-8">
+                <!-- 1. Total investment -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="investment-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Total investment
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                      <input
+                        type="number"
+                        id="investment-input"
+                        value={inputs.investment.value}
+                        min={inputs.investment.min}
+                        max={inputs.investment.max}
+                        step={inputs.investment.step}
+                        class="w-28 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="investment-slider"
+                    aria-label="Total investment"
+                    min={inputs.investment.min}
+                    max={inputs.investment.max}
+                    step={inputs.investment.step}
+                    value={inputs.investment.value}
+                    class="swp-minimal-slider"
+                  />
+                </div>
+
+                <!-- 2. Withdrawal per month -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="withdrawal-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Withdrawal per month
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                      <input
+                        type="number"
+                        id="withdrawal-input"
+                        value={inputs.withdrawal.value}
+                        min={inputs.withdrawal.min}
+                        max={inputs.withdrawal.max}
+                        step={inputs.withdrawal.step}
+                        class="w-28 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="withdrawal-slider"
+                    aria-label="Withdrawal per month"
+                    min={inputs.withdrawal.min}
+                    max={inputs.withdrawal.max}
+                    step={inputs.withdrawal.step}
+                    value={inputs.withdrawal.value}
+                    class="swp-minimal-slider"
+                  />
+                </div>
+
+                <!-- 3. Expected return rate -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="return-rate-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Expected return rate (p.a)
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <input
+                        type="number"
+                        id="return-rate-input"
+                        value={inputs.rate.value}
+                        min={inputs.rate.min}
+                        max={inputs.rate.max}
+                        step={inputs.rate.step}
+                        class="w-20 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                      <span class="text-sm sm:text-base font-bold text-primary ml-1">%</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="return-rate-slider"
+                    aria-label="Expected return rate per annum"
+                    min={inputs.rate.min}
+                    max={inputs.rate.max}
+                    step={inputs.rate.step}
+                    value={inputs.rate.value}
+                    class="swp-minimal-slider"
+                  />
+                </div>
+
+                <!-- 4. Time period -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="time-period-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Time period
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <input
+                        type="number"
+                        id="time-period-input"
+                        value={inputs.tenure.value}
+                        min={inputs.tenure.min}
+                        max={inputs.tenure.max}
+                        step={inputs.tenure.step}
+                        class="w-20 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                      <span class="text-sm sm:text-base font-bold text-primary ml-1">Yr</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="time-period-slider"
+                    aria-label="Time period in years"
+                    min={inputs.tenure.min}
+                    max={inputs.tenure.max}
+                    step={inputs.tenure.step}
+                    value={inputs.tenure.value}
+                    class="swp-minimal-slider"
+                  />
+                </div>
+              </div>
+
+              <!-- CHART & LEGEND (5 Cols) -->
+              <div class="md:col-span-5 flex flex-col items-center justify-center space-y-4">
+                <div class="flex items-center justify-center gap-6 text-xs sm:text-sm text-text-default font-semibold">
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary/20 inline-block"></span>
+                    <span class="opacity-80">Final value</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary inline-block"></span>
+                    <span class="opacity-80">Total withdrawal</span>
+                  </div>
+                </div>
+
+                <div class="relative w-52 h-52 sm:w-64 sm:h-64 flex items-center justify-center">
+                  <canvas
+                    id="swp-chart"
+                    width="240"
+                    height="240"
+                    aria-label="Final value versus total withdrawal"
+                    role="img"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTTOM ROW: Summary Stats (7 Cols, aligned under the sliders) -->
+            <div
+              class="pt-8 border-t border-gray-100 dark:border-[#262938] grid grid-cols-1 md:grid-cols-12 gap-6 items-end"
+            >
+              <div class="md:col-span-7 space-y-3.5 text-sm sm:text-base">
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Total investment</span>
+                  <span id="output-investment" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >₹10,00,000</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Total withdrawal</span>
+                  <span id="output-withdrawal" class="font-extrabold text-primary text-base sm:text-lg text-right"
+                    >₹12,00,000</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4 pt-1">
+                  <span class="text-text-default opacity-70 font-semibold">Final value</span>
+                  <span id="output-final-value" class="font-black text-dark text-lg sm:text-xl text-right"
+                    >₹3,90,180</span
+                  >
+                </div>
+                <p
+                  id="output-depletion"
+                  class="hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200"
+                  role="status"
+                >
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <CalculatorSidebar current="swp" tag="SWP Calculator" />
+      </div>
+
+      <!-- RICH SEO CONTENT SECTION -->
+      <section class="mt-16 space-y-12 border-t border-gray-200 dark:border-[#262938] pt-12">
+        <div class="space-y-6">
+          <div class="max-w-4xl space-y-4">
+            <h2 class="h3 font-bold text-dark tracking-tight">What is an SWP Calculator?</h2>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              An <strong>SWP Calculator</strong> is a free online tool that shows how a Systematic Withdrawal Plan will play
+              out over time. It tells you how much you can take out every month, how much you will have withdrawn in total,
+              and what your investment will still be worth at the end of the period.
+            </p>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              Enter your total investment, the monthly withdrawal you need, the expected annual return and the time
+              period. The calculator projects your balance month by month - and warns you if your withdrawals would use
+              up the whole corpus before the period ends.
+            </p>
+          </div>
+
+          <!-- Year-by-year balance schedule -->
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5"
+          >
+            <div class="flex items-center justify-between gap-4">
+              <h3 class="h4 text-lg sm:text-xl font-bold text-dark">Year-by-Year Withdrawal Schedule</h3>
+              <span class="text-sm text-text-default opacity-70 font-semibold">Balance Projection</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-[#262938]">
+              <table class="w-full text-left text-base sm:text-lg">
+                <thead
+                  class="bg-gray-50 dark:bg-[#1c202e] font-bold text-text-default border-b border-gray-100 dark:border-[#262938]"
+                >
+                  <tr>
+                    <th class="px-5 py-4">Year</th>
+                    <th class="px-5 py-4">Withdrawn</th>
+                    <th class="px-5 py-4">Returns Earned</th>
+                    <th class="px-5 py-4 text-right">Year-End Balance</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="swp-schedule-body"
+                  class="divide-y divide-gray-100 dark:divide-[#262938] text-dark font-medium"
+                >
+                  {/* Filled by the script below. */}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- How it works & example -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">How Does an SWP Calculator Work?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            Each month your remaining investment earns a return, and then your withdrawal is paid out of it. When the
+            monthly return is larger than the withdrawal, your corpus keeps growing even as you draw an income; when it
+            is smaller, the corpus slowly shrinks. The calculator repeats this for every month of the period.
+          </p>
+
+          <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-6 space-y-4">
+            <h3 class="h4 text-base sm:text-lg font-bold text-primary">Practical Example:</h3>
+            <p class="text-base sm:text-lg text-text-default font-medium leading-relaxed">
+              Suppose you invest <strong>₹10,00,000</strong> and withdraw <strong>₹8,000 every month</strong> for
+              <strong>10 years</strong> at an expected return of <strong>10% p.a.</strong>:
+            </p>
+            <ul class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm sm:text-base pt-2">
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm"
+                  >Total Investment:</span
+                >
+                <span class="font-extrabold text-dark text-lg sm:text-xl">₹10,00,000</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Total Withdrawn:</span
+                >
+                <span class="font-extrabold text-primary text-lg sm:text-xl">₹9,60,000</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm"
+                  >Value Left After 10 Years:</span
+                >
+                <span class="font-black text-dark text-xl sm:text-2xl">₹10,68,282</span>
+              </li>
+            </ul>
+            <p class="text-sm sm:text-base text-text-default opacity-80">
+              You draw ₹9.6 lakh over the decade and still end with more than you started, because the monthly return
+              outpaces the withdrawal.
+            </p>
+          </div>
+        </div>
+
+        <!-- Formula -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">What is the SWP Calculator Formula?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            The value left at the end of a systematic withdrawal plan, with withdrawals at the end of each month, is:
+          </p>
+
+          <div
+            class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 text-center font-mono text-lg sm:text-2xl font-black text-primary overflow-x-auto"
+          >
+            Final Value = P × (1 + i)^n - W × [ ( (1 + i)^n - 1 ) / i ]
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 text-sm sm:text-base">
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">P (Investment)</strong>
+              <span class="opacity-80">The lump sum you invest at the start.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">W (Withdrawal)</strong>
+              <span class="opacity-80">The fixed amount you withdraw every month.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">i (Monthly Rate)</strong>
+              <span class="opacity-80">Monthly return rate (Annual expected return / 12 / 100).</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">n (Number of Months)</strong>
+              <span class="opacity-80">Total monthly withdrawals (Time period in years × 12).</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Regular income options comparison -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">Ways to earn a regular income and their details:</h2>
+
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5 w-48">Income Option</th>
+                  <th class="px-6 py-4.5 min-w-[220px]">How You Are Paid</th>
+                  <th class="px-6 py-4.5 min-w-[200px]">Flexibility</th>
+                  <th class="px-6 py-4.5 text-center min-w-[150px]">Returns</th>
+                  <th class="px-6 py-4.5 min-w-[220px]">Things To Note</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  incomeOptions.map((option, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4.5 font-bold text-dark">{option.name}</td>
+                      <td class="px-6 py-4.5 opacity-85">{option.payout}</td>
+                      <td class="px-6 py-4.5 opacity-85">{option.flexibility}</td>
+                      <td class="px-6 py-4.5 text-center font-bold text-primary">{option.returns}</td>
+                      <td class="px-6 py-4.5 opacity-85">{option.note}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="text-sm text-text-default opacity-70">
+            Tax treatment summarised for general information only; rules change, so check the current position before
+            investing.
+          </p>
+        </div>
+      </section>
+
+      <FAQSection2 title="asked questions" titleBold="Frequently" categories={faqCategories} />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .swp-minimal-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    outline: none;
+    cursor: pointer;
+  }
+  .swp-minimal-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2.5px solid #6b1aff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .swp-minimal-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .swp-minimal-slider::-webkit-slider-thumb {
+      transition: none;
+    }
+  }
+</style>
+
+<!-- Chart.js, loaded the same way as on the other calculator pages. -->
+<script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  let chartInstance: any = null;
+
+  const fields = [
+    ["investment-input", "investment-slider"],
+    ["withdrawal-input", "withdrawal-slider"],
+    ["return-rate-input", "return-rate-slider"],
+    ["time-period-input", "time-period-slider"],
+  ] as const;
+
+  const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  function formatCurrency(val: number): string {
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val);
+  }
+
+  function updateSliderTrack(slider: HTMLInputElement | null) {
+    if (!slider) return;
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 100;
+    const val = parseFloat(slider.value) || 0;
+    const pct = Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
+    const isDark = document.documentElement.classList.contains("dark");
+    const trackBg = isDark ? "#262938" : "#e2e8f0";
+    slider.style.background = `linear-gradient(to right, #6b1aff 0%, #6b1aff ${pct}%, ${trackBg} ${pct}%, ${trackBg} 100%)`;
+  }
+
+  // Reads an input clamped to its own min/max, so a half-typed value never
+  // produces a negative balance or a runaway schedule.
+  function readValue(inputId: string): number {
+    const input = byId<HTMLInputElement>(inputId);
+    if (!input) return 0;
+    const min = parseFloat(input.min) || 0;
+    const max = parseFloat(input.max) || Infinity;
+    return Math.min(max, Math.max(min, parseFloat(input.value) || min));
+  }
+
+  interface YearRow {
+    withdrawn: number;
+    returns: number;
+    balance: number;
+  }
+
+  // Month by month: credit the return, then pay the withdrawal (or whatever
+  // is left, once the corpus can no longer cover it).
+  function simulate(investment: number, withdrawal: number, ratePa: number, years: number) {
+    const i = ratePa / 12 / 100;
+    let balance = investment;
+    let totalWithdrawn = 0;
+    let depletedMonth = 0;
+    const rows: YearRow[] = [];
+
+    for (let yr = 1; yr <= years; yr++) {
+      const row: YearRow = { withdrawn: 0, returns: 0, balance: 0 };
+      for (let m = 1; m <= 12; m++) {
+        const growth = balance * i;
+        balance += growth;
+        const paid = Math.min(withdrawal, balance);
+        balance -= paid;
+        row.returns += growth;
+        row.withdrawn += paid;
+        totalWithdrawn += paid;
+        if (balance <= 0.005 && !depletedMonth) depletedMonth = (yr - 1) * 12 + m;
+      }
+      row.balance = Math.max(0, balance);
+      rows.push(row);
+    }
+
+    return { totalWithdrawn, finalValue: Math.max(0, balance), depletedMonth, rows };
+  }
+
+  function calculateSWP() {
+    const investment = readValue(fields[0][0]);
+    const withdrawal = readValue(fields[1][0]);
+    const ratePa = readValue(fields[2][0]);
+    const years = Math.round(readValue(fields[3][0]));
+
+    const { totalWithdrawn, finalValue, depletedMonth, rows } = simulate(investment, withdrawal, ratePa, years);
+
+    const set = (id: string, value: number) => {
+      const el = byId(id);
+      if (el) el.innerText = formatCurrency(Math.round(value));
+    };
+    set("output-investment", investment);
+    set("output-withdrawal", totalWithdrawn);
+    set("output-final-value", finalValue);
+
+    const depletion = byId("output-depletion");
+    if (depletion) {
+      const withinPeriod = depletedMonth > 0 && depletedMonth < years * 12;
+      depletion.classList.toggle("hidden", !withinPeriod);
+      if (withinPeriod) {
+        const y = Math.floor(depletedMonth / 12);
+        const m = depletedMonth % 12;
+        const when = [y ? `${y} year${y > 1 ? "s" : ""}` : "", m ? `${m} month${m > 1 ? "s" : ""}` : ""]
+          .filter(Boolean)
+          .join(" ");
+        depletion.innerText = `At this withdrawal rate your investment runs out after ${when}. Withdrawals stop there.`;
+      }
+    }
+
+    fields.forEach(([, sliderId]) => updateSliderTrack(byId<HTMLInputElement>(sliderId)));
+    updateChart(finalValue, totalWithdrawn);
+    updateSchedule(rows);
+  }
+
+  function updateChart(finalValue: number, withdrawn: number) {
+    const canvas = byId<HTMLCanvasElement>("swp-chart");
+    if (!canvas) return;
+
+    if (chartInstance) {
+      chartInstance.data.datasets[0].data = [finalValue, withdrawn];
+      chartInstance.update();
+      return;
+    }
+
+    const ChartClass = (window as any).Chart;
+    if (!ChartClass) return;
+    chartInstance = new ChartClass(canvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Final value", "Total withdrawal"],
+        datasets: [
+          {
+            data: [finalValue, withdrawn],
+            backgroundColor: ["rgba(107, 26, 255, 0.2)", "#6b1aff"],
+            borderWidth: 0,
+            hoverOffset: 5,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "78%",
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context: any) => ` ${context.label || ""}: ${formatCurrency(context.parsed || 0)}`,
+            },
+          },
+        },
+        animation: { duration: 400, easing: "easeOutQuart" },
+      },
+    });
+  }
+
+  function updateSchedule(rows: YearRow[]) {
+    const tbody = byId("swp-schedule-body");
+    if (!tbody) return;
+
+    tbody.innerHTML = rows
+      .map(
+        (row, index) => `
+        <tr class="hover:bg-gray-50 dark:hover:bg-[#181b25] transition">
+          <td class="px-5 py-3.5 font-semibold">${index + 1} ${index === 0 ? "Year" : "Years"}</td>
+          <td class="px-5 py-3.5">${formatCurrency(Math.round(row.withdrawn))}</td>
+          <td class="px-5 py-3.5 text-primary font-semibold">${formatCurrency(Math.round(row.returns))}</td>
+          <td class="px-5 py-3.5 text-right font-bold text-dark">${formatCurrency(Math.round(row.balance))}</td>
+        </tr>
+      `,
+      )
+      .join("");
+  }
+
+  function setupEventListeners() {
+    // Each number box and its slider mirror one another.
+    fields.forEach(([inputId, sliderId]) => {
+      const input = byId<HTMLInputElement>(inputId);
+      const slider = byId<HTMLInputElement>(sliderId);
+      input?.addEventListener("input", () => {
+        if (slider) slider.value = input.value;
+        calculateSWP();
+      });
+      slider?.addEventListener("input", () => {
+        if (input) input.value = slider.value;
+        calculateSWP();
+      });
+    });
+  }
+
+  function initCalculator() {
+    setupEventListeners();
+    calculateSWP();
+  }
+
+  if (document.readyState !== "loading") {
+    initCalculator();
+  } else {
+    document.addEventListener("DOMContentLoaded", initCalculator);
+  }
+</script>

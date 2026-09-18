@@ -1,0 +1,984 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import FAQSection2 from "../components/FAQSection2.astro";
+import CalculatorSidebar from "../components/calculators/CalculatorSidebar.astro";
+
+/*
+ * XIRR calculator. Same frame as the other calculator pages (boxed calculator,
+ * shared sidebar, SEO sections, FAQs), with two additions this one needs: a
+ * wealth-projection line chart and an Excel-style cash-flow table.
+ *
+ * The maths matches Excel's XIRR(): one outflow per instalment date from the
+ * start date up to (not including) the maturity date, one inflow on the
+ * maturity date, day counts over a 365-day year, solved with Newton's method
+ * and a bisection fallback when Newton does not converge.
+ *
+ * The default dates are relative to the request: five years back from the 1st
+ * of the current month. Every route is SSR, so they stay current on their own.
+ */
+
+const frequencies = [
+  { id: "monthly", label: "Monthly", months: 1 },
+  { id: "quarterly", label: "Quarterly", months: 3 },
+  { id: "half-yearly", label: "Half-yearly", months: 6 },
+  { id: "yearly", label: "Yearly", months: 12 },
+];
+
+const today = new Date();
+const maturityDefault = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));
+const startDefault = new Date(Date.UTC(today.getUTCFullYear() - 5, today.getUTCMonth(), 1));
+const isoDate = (date: Date) => date.toISOString().slice(0, 10);
+
+const amount = { min: 500, max: 1000000, step: 500, value: 10000 };
+const maturityAmountDefault = 850000;
+
+const activeTabClass =
+  "px-5 py-2 text-sm sm:text-base font-bold rounded-full border border-primary bg-primary/10 text-primary transition-all";
+const idleTabClass =
+  "px-5 py-2 text-sm sm:text-base font-bold rounded-full border border-transparent text-text-default opacity-70 hover:opacity-100 transition-all";
+
+const faqItems = [
+  {
+    question: "What is XIRR in mutual funds?",
+    answer:
+      "XIRR (Extended Internal Rate of Return) is the annualised return on investments made at different times - such as SIP instalments - each with its own date and amount. It is the standard way to measure SIP returns because it accounts for how long every instalment was actually invested.",
+  },
+  {
+    question: "How do I calculate XIRR for my SIP?",
+    answer:
+      "Choose your SIP frequency, enter the start date, the maturity (or valuation) date, your instalment amount and the current value of your investment. The GoPocket XIRR calculator builds the dated cash flows for you and solves for the annual rate that makes them balance - the same result as Excel's XIRR function.",
+  },
+  {
+    question: "What is the difference between XIRR and CAGR?",
+    answer:
+      "CAGR measures the annual growth of a single lump-sum investment between two dates. XIRR handles many investments on different dates, so it is the right measure for SIPs, top-ups and partial withdrawals. For a single lump sum with no other cash flows, XIRR and CAGR give the same answer.",
+  },
+  {
+    question: "Is XIRR an annualised return?",
+    answer:
+      "Yes. XIRR is always expressed as a yearly rate, which makes it directly comparable with FD rates, fund benchmarks and other annual returns - even when your money was invested for less than a year in total.",
+  },
+  {
+    question: "How do I calculate XIRR in Excel or Google Sheets?",
+    answer:
+      "List every investment as a negative number and the current value (or redemption) as a positive number in one column, put the matching dates in the next column, then use =XIRR(values, dates). Format the result as a percentage.",
+  },
+  {
+    question: "What is a good XIRR for a SIP?",
+    answer:
+      "There is no single number - judge XIRR against the right yardstick. Compare an equity SIP's XIRR with its benchmark index over the same period, and any investment's XIRR with FD rates and inflation. Short periods can show very high or negative XIRR simply because of market swings.",
+  },
+  {
+    question: "Can XIRR be negative?",
+    answer:
+      "Yes. If the maturity amount is less than the total you invested, the XIRR is negative, showing the annual rate at which your money lost value.",
+  },
+  {
+    question: "Why is my XIRR different from the absolute return?",
+    answer:
+      "Absolute return is total gain divided by total invested, with no regard to time. XIRR spreads that gain over how long each instalment was invested, so a SIP's XIRR is usually higher than you might expect from the absolute figure, while a long lump-sum holding shows a lower XIRR than its absolute return.",
+  },
+];
+
+const faqCategories = [{ id: "xirr-faqs", label: "XIRR FAQs", items: faqItems }];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+};
+
+const returnMeasures = [
+  {
+    name: "XIRR",
+    measures: "Annualised return across many dated cash flows",
+    bestFor: "SIPs, top-ups, STPs, SWPs, irregular investments",
+    time: "Yes - every cash flow's own date",
+    annualised: "Yes",
+  },
+  {
+    name: "CAGR",
+    measures: "Annual growth rate of one investment between two dates",
+    bestFor: "Lump-sum investments, fund NAV growth",
+    time: "Only the start and end dates",
+    annualised: "Yes",
+  },
+  {
+    name: "Absolute Return",
+    measures: "Total gain as a percentage of the amount invested",
+    bestFor: "Holdings of under one year",
+    time: "No",
+    annualised: "No",
+  },
+  {
+    name: "Annualised Return",
+    measures: "Absolute return converted to a yearly figure",
+    bestFor: "Quick comparisons of lump sums",
+    time: "Only the holding period",
+    annualised: "Yes",
+  },
+];
+
+const excelSteps = [
+  "In column A, list the date of every instalment, followed by the maturity or valuation date.",
+  "In column B, enter each instalment as a negative number (money going out) and the maturity value as a positive number.",
+  "In an empty cell, type =XIRR(B2:B62, A2:A62) - adjusting the ranges to your rows.",
+  "Press Enter and format the cell as a percentage. That is your annualised return.",
+];
+---
+
+<Layout
+  title="XIRR Calculator Online | Calculate SIP & Mutual Fund XIRR Returns | GoPocket"
+  description="Free XIRR calculator to find the annualised return on your SIP or mutual fund. Enter frequency, dates, instalment and maturity amount to get XIRR with a wealth projection graph."
+  keywords="xirr calculator, xirr calculator online, xirr calculator for sip, mutual fund xirr calculator, xirr formula, xirr vs cagr, how to calculate xirr, xirr in excel, extended internal rate of return"
+  canonical="/xirr-calculator"
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <Header currentPath="/xirr-calculator" />
+
+  <main class="pt-8 md:pt-14 pb-16">
+    <div class="container max-w-[1400px] px-4 sm:px-6 space-y-12">
+      <div class="mb-8">
+        <h1 class="h3 font-bold text-dark tracking-tight">XIRR Calculator</h1>
+      </div>
+
+      <!-- Main Grid Container (8 Cols Left + 4 Cols Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- LEFT COLUMN: Calculator Card (8 Cols) -->
+        <div class="lg:col-span-8 space-y-8">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-8"
+          >
+            <!-- Investment frequency -->
+            <div class="space-y-3">
+              <span id="frequency-label" class="block text-sm sm:text-base font-semibold text-dark">
+                Investment frequency
+              </span>
+              <div
+                class="flex flex-wrap items-center gap-3"
+                role="group"
+                aria-labelledby="frequency-label"
+                data-active-class={activeTabClass}
+                data-idle-class={idleTabClass}
+              >
+                {
+                  frequencies.map((freq, index) => (
+                    <button
+                      type="button"
+                      data-frequency={freq.months}
+                      aria-pressed={index === 0 ? "true" : "false"}
+                      class={index === 0 ? activeTabClass : idleTabClass}
+                    >
+                      {freq.label}
+                    </button>
+                  ))
+                }
+              </div>
+            </div>
+
+            <!-- TOP GRID: Inputs (7 Cols) & Result (5 Cols) -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
+              <div class="md:col-span-7 space-y-8">
+                <!-- Recurring investment amount -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="amount-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Recurring investment
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                      <input
+                        type="number"
+                        id="amount-input"
+                        value={amount.value}
+                        min={amount.min}
+                        max={amount.max}
+                        step={amount.step}
+                        class="w-28 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="amount-slider"
+                    aria-label="Recurring investment"
+                    min={amount.min}
+                    max={100000}
+                    step={amount.step}
+                    value={amount.value}
+                    class="xirr-minimal-slider"
+                  />
+                </div>
+
+                <!-- Start date -->
+                <div class="flex items-center justify-between gap-4">
+                  <label for="start-date" class="text-sm sm:text-base font-semibold text-dark">Start date</label>
+                  <input
+                    type="date"
+                    id="start-date"
+                    value={isoDate(startDefault)}
+                    class="xirr-date bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-2 font-extrabold text-primary text-sm sm:text-base focus:outline-none focus:border-primary"
+                  />
+                </div>
+
+                <!-- Maturity date -->
+                <div class="flex items-center justify-between gap-4">
+                  <label for="maturity-date" class="text-sm sm:text-base font-semibold text-dark">Maturity date</label>
+                  <input
+                    type="date"
+                    id="maturity-date"
+                    value={isoDate(maturityDefault)}
+                    class="xirr-date bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-2 font-extrabold text-primary text-sm sm:text-base focus:outline-none focus:border-primary"
+                  />
+                </div>
+
+                <!-- Total maturity amount -->
+                <div class="flex items-center justify-between gap-4">
+                  <label for="maturity-amount-input" class="text-sm sm:text-base font-semibold text-dark">
+                    Total maturity amount
+                  </label>
+                  <div
+                    class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                  >
+                    <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                    <input
+                      type="number"
+                      id="maturity-amount-input"
+                      value={maturityAmountDefault}
+                      min="1"
+                      step="1000"
+                      class="w-32 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- XIRR RESULT & SPLIT (5 Cols) -->
+              <div class="md:col-span-5 flex flex-col items-center justify-center space-y-4">
+                <div class="flex items-center justify-center gap-6 text-xs sm:text-sm text-text-default font-semibold">
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary/20 inline-block"></span>
+                    <span class="opacity-80">Invested</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary inline-block"></span>
+                    <span class="opacity-80">Gain</span>
+                  </div>
+                </div>
+
+                <div class="relative w-52 h-52 sm:w-64 sm:h-64 flex items-center justify-center">
+                  <canvas id="xirr-split-chart" width="240" height="240" aria-hidden="true"></canvas>
+                  <!-- The headline number sits in the doughnut's hole. -->
+                  <div
+                    class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center"
+                  >
+                    <span class="text-xs sm:text-sm font-semibold text-text-default opacity-70">Your XIRR</span>
+                    <span id="output-xirr" class="text-3xl sm:text-4xl font-black text-primary" aria-live="polite"
+                      >13.88%</span
+                    >
+                    <span class="text-xs text-text-default opacity-60">per annum</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <p
+              id="xirr-message"
+              class="hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200"
+              role="status"
+            >
+            </p>
+
+            <!-- Wealth projection graph -->
+            <div class="pt-8 border-t border-gray-100 dark:border-[#262938] space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <h2 class="h4 text-base sm:text-lg font-bold text-dark">Wealth Projection</h2>
+                <div class="flex items-center gap-5 text-xs sm:text-sm text-text-default font-semibold">
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary/30 inline-block"></span>
+                    <span class="opacity-80">Amount invested</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary inline-block"></span>
+                    <span class="opacity-80">Value at your XIRR</span>
+                  </div>
+                </div>
+              </div>
+              <div class="relative h-64 sm:h-72 w-full">
+                <canvas
+                  id="xirr-projection-chart"
+                  role="img"
+                  aria-label="Amount invested over time compared with its value growing at your XIRR"></canvas>
+              </div>
+            </div>
+
+            <!-- Summary stats -->
+            <div
+              class="pt-8 border-t border-gray-100 dark:border-[#262938] grid grid-cols-1 md:grid-cols-12 gap-6 items-end"
+            >
+              <div class="md:col-span-7 space-y-3.5 text-sm sm:text-base">
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Number of instalments</span>
+                  <span id="output-count" class="font-extrabold text-dark text-base sm:text-lg text-right">60</span>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Total invested</span>
+                  <span id="output-invested" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >₹6,00,000</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Total gain</span>
+                  <span id="output-gain" class="font-extrabold text-primary text-base sm:text-lg text-right"
+                    >₹2,50,000</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Absolute return</span>
+                  <span id="output-absolute" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >41.67%</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4 pt-1">
+                  <span class="text-text-default opacity-70 font-semibold">Total maturity amount</span>
+                  <span id="output-maturity" class="font-black text-dark text-lg sm:text-xl text-right">₹8,50,000</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <CalculatorSidebar current="xirr" tag="XIRR Calculator" />
+      </div>
+
+      <!-- RICH SEO CONTENT SECTION -->
+      <section class="mt-16 space-y-12 border-t border-gray-200 dark:border-[#262938] pt-12">
+        <div class="space-y-6">
+          <div class="max-w-4xl space-y-4">
+            <h2 class="h3 font-bold text-dark tracking-tight">What is XIRR?</h2>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              <strong>XIRR (Extended Internal Rate of Return)</strong> is the annualised return on a series of investments
+              made on different dates. A SIP is the classic case: your first instalment has been invested for years, your
+              latest for only a few days, so a simple "total gain ÷ total invested" figure badly misstates your real return.
+              XIRR weighs every rupee by how long it was actually invested.
+            </p>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              That is why mutual fund statements, AMCs and SEBI-registered platforms report SIP returns as XIRR. The
+              <strong>GoPocket XIRR calculator</strong> gives you the same figure in seconds - pick your SIP frequency, enter
+              your start date, maturity date, instalment amount and current value, and it does the rest.
+            </p>
+          </div>
+
+          <!-- Cash-flow schedule -->
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <h3 class="h4 text-lg sm:text-xl font-bold text-dark">Your Cash Flow Schedule</h3>
+              <span class="text-sm text-text-default opacity-70 font-semibold">Excel-ready XIRR inputs</span>
+            </div>
+            <p class="text-base text-text-default opacity-80">
+              These are the exact dated cash flows behind your result. Paste them into a spreadsheet and
+              <code class="font-mono text-primary">=XIRR()</code> returns the same rate.
+            </p>
+
+            <div class="max-h-[480px] overflow-auto rounded-xl border border-gray-100 dark:border-[#262938]">
+              <table class="w-full text-left text-base sm:text-lg">
+                <thead
+                  class="sticky top-0 bg-gray-50 dark:bg-[#1c202e] font-bold text-text-default border-b border-gray-100 dark:border-[#262938]"
+                >
+                  <tr>
+                    <th class="px-5 py-4">#</th>
+                    <th class="px-5 py-4">Date</th>
+                    <th class="px-5 py-4">Type</th>
+                    <th class="px-5 py-4 text-right">Cash Flow</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="xirr-cashflow-body"
+                  class="divide-y divide-gray-100 dark:divide-[#262938] text-dark font-medium"
+                >
+                  {/* Filled by the script below. */}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- How it works & example -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">How Does the XIRR Calculator Work?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            The calculator turns your inputs into a list of dated cash flows: one outflow for every instalment, from the
+            start date until the maturity date, and one inflow - your maturity amount - on the maturity date. It then
+            finds the single annual rate at which all of those cash flows, discounted back to the start date, add up to
+            zero. That rate is your XIRR.
+          </p>
+
+          <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-6 space-y-4">
+            <h3 class="h4 text-base sm:text-lg font-bold text-primary">Practical Example:</h3>
+            <p class="text-base sm:text-lg text-text-default font-medium leading-relaxed">
+              Suppose you invest <strong>₹5,000 every month</strong> from <strong>1 April 2020</strong> to
+              <strong>1 April 2025</strong> - 60 instalments - and your investment is worth <strong>₹5,00,000</strong> on
+              the maturity date:
+            </p>
+            <ul class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm sm:text-base pt-2">
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Total Invested:</span>
+                <span class="font-extrabold text-dark text-lg sm:text-xl">₹3,00,000</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Absolute Return:</span
+                >
+                <span class="font-extrabold text-dark text-lg sm:text-xl">66.67%</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">XIRR:</span>
+                <span class="font-black text-primary text-xl sm:text-2xl">20.53% p.a.</span>
+              </li>
+            </ul>
+            <p class="text-sm sm:text-base text-text-default opacity-80">
+              Treating the same ₹3,00,000 as a single lump sum invested on day one would suggest a CAGR of only about
+              10.8% - it ignores that most of the money went in much later. XIRR gets it right.
+            </p>
+          </div>
+        </div>
+
+        <!-- Formula -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">What is the XIRR Formula?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            XIRR is the rate that sets the net present value of all your cash flows to zero:
+          </p>
+
+          <div
+            class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 text-center font-mono text-lg sm:text-2xl font-black text-primary overflow-x-auto"
+          >
+            Σ Cᵢ / (1 + XIRR)^((dᵢ - d₀) / 365) = 0
+          </div>
+          <p class="text-base sm:text-lg text-text-default opacity-85 leading-relaxed">
+            There is no way to rearrange this for XIRR directly, so it is solved numerically - the calculator (like
+            Excel) starts from a guess and refines it until the equation balances.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 text-sm sm:text-base">
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">Cᵢ (Cash Flow)</strong>
+              <span class="opacity-80">Each instalment (negative) and the maturity amount (positive).</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">dᵢ (Cash Flow Date)</strong>
+              <span class="opacity-80">The date on which that cash flow happened.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">d₀ (First Date)</strong>
+              <span class="opacity-80">The date of your very first instalment.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">XIRR</strong>
+              <span class="opacity-80">The annualised rate of return being solved for.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- XIRR in Excel -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">How to Calculate XIRR in Excel or Google Sheets</h2>
+          <ol class="space-y-4">
+            {
+              excelSteps.map((step, index) => (
+                <li class="flex gap-4">
+                  <span class="bg-primary/10 text-primary flex h-9 w-9 flex-none items-center justify-center rounded-full text-sm font-bold">
+                    {index + 1}
+                  </span>
+                  <p class="pt-1.5 text-base sm:text-lg text-text-default opacity-85 leading-relaxed">{step}</p>
+                </li>
+              ))
+            }
+          </ol>
+          <div
+            class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 text-center font-mono text-lg sm:text-2xl font-black text-primary overflow-x-auto"
+          >
+            =XIRR(values, dates, [guess])
+          </div>
+          <p class="text-base sm:text-lg text-text-default opacity-85 leading-relaxed">
+            The cash flow schedule above is laid out exactly this way, so you can check any result from this calculator
+            in your own spreadsheet.
+          </p>
+        </div>
+
+        <!-- XIRR vs CAGR vs Absolute return -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">XIRR vs CAGR vs Absolute Return:</h2>
+
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5 w-44">Return Measure</th>
+                  <th class="px-6 py-4.5 min-w-[240px]">What It Measures</th>
+                  <th class="px-6 py-4.5 min-w-[220px]">Best For</th>
+                  <th class="px-6 py-4.5 min-w-[200px]">Accounts for Timing</th>
+                  <th class="px-6 py-4.5 text-center min-w-[120px]">Annualised</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  returnMeasures.map((measure, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4.5 font-bold text-dark">{measure.name}</td>
+                      <td class="px-6 py-4.5 opacity-85">{measure.measures}</td>
+                      <td class="px-6 py-4.5 opacity-85">{measure.bestFor}</td>
+                      <td class="px-6 py-4.5 opacity-85">{measure.time}</td>
+                      <td class="px-6 py-4.5 text-center font-bold text-primary">{measure.annualised}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Good XIRR -->
+        <div class="max-w-4xl space-y-4">
+          <h2 class="h3 font-bold text-dark tracking-tight">What is a Good XIRR?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            A "good" XIRR depends on what you are comparing it with. Measure an equity SIP against its benchmark index
+            over the same dates - beating the index is the real test of a fund. For any investment, an XIRR comfortably
+            above fixed-deposit rates and inflation means your money is genuinely growing.
+          </p>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            Be careful with short periods. A SIP only a few months old can show a very high or negative XIRR because a
+            small market move is annualised over a short time. XIRR becomes meaningful over three years or more.
+          </p>
+        </div>
+      </section>
+
+      <FAQSection2 title="asked questions" titleBold="Frequently" categories={faqCategories} />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .xirr-minimal-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    outline: none;
+    cursor: pointer;
+  }
+  .xirr-minimal-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2.5px solid #6b1aff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .xirr-minimal-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+  }
+  /* Keeps the native date picker icon visible against the purple tint in dark mode. */
+  :global(html.dark) .xirr-date {
+    color-scheme: dark;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .xirr-minimal-slider::-webkit-slider-thumb {
+      transition: none;
+    }
+  }
+</style>
+
+<!-- Chart.js, loaded the same way as on the other calculator pages. -->
+<script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const DAY_MS = 86400000;
+  // Beyond this many points the projection chart is thinned out; a 30-year
+  // monthly SIP would otherwise draw 360 points into a 700px-wide canvas.
+  const MAX_CHART_POINTS = 120;
+  const MAX_YEARS = 50;
+
+  interface CashFlow {
+    date: Date;
+    amount: number;
+  }
+
+  let splitChart: any = null;
+  let projectionChart: any = null;
+  let frequencyMonths = 1;
+
+  const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val);
+  const formatDate = (date: Date) =>
+    date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" });
+  const formatMonth = (date: Date) =>
+    date.toLocaleDateString("en-IN", { month: "short", year: "numeric", timeZone: "UTC" });
+
+  function parseDate(value: string): Date | null {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+    const date = new Date(`${value}T00:00:00Z`);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  // Month arithmetic that clamps to the month's last day, so a SIP on the 31st
+  // falls on 28/29 Feb, 30 Apr and so on - the way banks schedule mandates.
+  function addMonths(date: Date, months: number): Date {
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth() + months;
+    const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    return new Date(Date.UTC(year, month, Math.min(date.getUTCDate(), lastDay)));
+  }
+
+  function buildCashFlows(start: Date, end: Date, amount: number, maturity: number): CashFlow[] {
+    const flows: CashFlow[] = [];
+    for (let i = 0; ; i++) {
+      const date = addMonths(start, i * frequencyMonths);
+      if (date >= end) break;
+      flows.push({ date, amount: -amount });
+    }
+    flows.push({ date: end, amount: maturity });
+    return flows;
+  }
+
+  const yearsBetween = (from: Date, to: Date) => (to.getTime() - from.getTime()) / DAY_MS / 365;
+
+  function npv(rate: number, flows: CashFlow[]): number {
+    const t0 = flows[0].date;
+    return flows.reduce((sum, cf) => sum + cf.amount / Math.pow(1 + rate, yearsBetween(t0, cf.date)), 0);
+  }
+
+  function npvDerivative(rate: number, flows: CashFlow[]): number {
+    const t0 = flows[0].date;
+    return flows.reduce((sum, cf) => {
+      const t = yearsBetween(t0, cf.date);
+      return sum - (t * cf.amount) / Math.pow(1 + rate, t + 1);
+    }, 0);
+  }
+
+  // Newton's method from a 10% guess, as Excel does; if it wanders off or
+  // stalls, fall back to bisection, which is slower but cannot diverge.
+  function solveXirr(flows: CashFlow[]): number {
+    let rate = 0.1;
+    for (let i = 0; i < 100; i++) {
+      const value = npv(rate, flows);
+      const slope = npvDerivative(rate, flows);
+      if (!Number.isFinite(value) || !Number.isFinite(slope) || slope === 0) break;
+      const next = rate - value / slope;
+      if (next <= -0.9999 || !Number.isFinite(next)) break;
+      if (Math.abs(next - rate) < 1e-10) return next;
+      rate = next;
+    }
+
+    let low = -0.9999;
+    let high = 100;
+    let lowValue = npv(low, flows);
+    if (lowValue * npv(high, flows) > 0) return NaN;
+    for (let i = 0; i < 300; i++) {
+      const mid = (low + high) / 2;
+      const midValue = npv(mid, flows);
+      if (Math.abs(midValue) < 1e-7) return mid;
+      if (lowValue * midValue < 0) {
+        high = mid;
+      } else {
+        low = mid;
+        lowValue = midValue;
+      }
+    }
+    return (low + high) / 2;
+  }
+
+  function showMessage(text: string) {
+    const el = byId("xirr-message");
+    if (!el) return;
+    el.innerText = text;
+    el.classList.toggle("hidden", !text);
+  }
+
+  function updateSliderTrack(slider: HTMLInputElement | null) {
+    if (!slider) return;
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 100;
+    const val = parseFloat(slider.value) || 0;
+    const pct = Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
+    const trackBg = document.documentElement.classList.contains("dark") ? "#262938" : "#e2e8f0";
+    slider.style.background = `linear-gradient(to right, #6b1aff 0%, #6b1aff ${pct}%, ${trackBg} ${pct}%, ${trackBg} 100%)`;
+  }
+
+  function setText(id: string, text: string) {
+    const el = byId(id);
+    if (el) el.innerText = text;
+  }
+
+  function calculateXIRR() {
+    updateSliderTrack(byId<HTMLInputElement>("amount-slider"));
+
+    const amount = parseFloat(byId<HTMLInputElement>("amount-input")?.value || "");
+    const maturity = parseFloat(byId<HTMLInputElement>("maturity-amount-input")?.value || "");
+    const start = parseDate(byId<HTMLInputElement>("start-date")?.value || "");
+    const end = parseDate(byId<HTMLInputElement>("maturity-date")?.value || "");
+
+    if (!start || !end) return showMessage("Please enter both a start date and a maturity date.");
+    if (end <= start) return showMessage("The maturity date must be after the start date.");
+    if (yearsBetween(start, end) > MAX_YEARS)
+      return showMessage(`Please choose a period of ${MAX_YEARS} years or less.`);
+    if (!(amount > 0)) return showMessage("Please enter a recurring investment amount.");
+    if (!(maturity > 0)) return showMessage("Please enter the total maturity amount.");
+
+    const flows = buildCashFlows(start, end, amount, maturity);
+    const instalments = flows.length - 1;
+    const invested = amount * instalments;
+    const rate = solveXirr(flows);
+
+    if (!Number.isFinite(rate)) {
+      return showMessage("XIRR could not be calculated for these values. Please check the amounts and dates.");
+    }
+    showMessage("");
+
+    const gain = maturity - invested;
+    setText("output-xirr", `${(rate * 100).toFixed(2)}%`);
+    setText("output-count", String(instalments));
+    setText("output-invested", formatCurrency(invested));
+    setText("output-gain", formatCurrency(gain));
+    setText("output-absolute", `${((gain / invested) * 100).toFixed(2)}%`);
+    setText("output-maturity", formatCurrency(maturity));
+
+    updateSplitChart(invested, Math.max(0, gain));
+    updateProjectionChart(flows, amount, rate);
+    updateCashFlowTable(flows);
+  }
+
+  const ChartClass = () => (window as any).Chart;
+
+  function updateSplitChart(invested: number, gain: number) {
+    const canvas = byId<HTMLCanvasElement>("xirr-split-chart");
+    if (!canvas) return;
+    if (splitChart) {
+      splitChart.data.datasets[0].data = [invested, gain];
+      splitChart.update();
+      return;
+    }
+    const Chart = ChartClass();
+    if (!Chart) return;
+    splitChart = new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Invested", "Gain"],
+        datasets: [
+          {
+            data: [invested, gain],
+            backgroundColor: ["rgba(107, 26, 255, 0.2)", "#6b1aff"],
+            borderWidth: 0,
+            hoverOffset: 5,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "80%",
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: (context: any) => ` ${context.label}: ${formatCurrency(context.parsed || 0)}` },
+          },
+        },
+        animation: { duration: 400, easing: "easeOutQuart" },
+      },
+    });
+  }
+
+  // Value on a given date of every instalment made so far, each grown at the
+  // XIRR for the time since it was invested. On the maturity date this equals
+  // the maturity amount - that is what XIRR means.
+  function projectedValue(date: Date, instalments: CashFlow[], amount: number, rate: number): number {
+    return instalments
+      .filter((cf) => cf.date <= date)
+      .reduce((sum, cf) => sum + amount * Math.pow(1 + rate, yearsBetween(cf.date, date)), 0);
+  }
+
+  function updateProjectionChart(flows: CashFlow[], amount: number, rate: number) {
+    const canvas = byId<HTMLCanvasElement>("xirr-projection-chart");
+    if (!canvas) return;
+
+    const instalments = flows.slice(0, -1);
+    const maturityDate = flows[flows.length - 1].date;
+    const every = Math.max(1, Math.ceil(instalments.length / MAX_CHART_POINTS));
+    const points = instalments
+      .map((cf, index) => ({ date: cf.date, count: index + 1 }))
+      .filter((_, index) => index % every === 0);
+    points.push({ date: maturityDate, count: instalments.length });
+
+    const labels = points.map((point) => formatMonth(point.date));
+    const investedSeries = points.map((point) => point.count * amount);
+    const valueSeries = points.map((point) => Math.round(projectedValue(point.date, instalments, amount, rate)));
+
+    if (projectionChart) {
+      projectionChart.data.labels = labels;
+      projectionChart.data.datasets[0].data = investedSeries;
+      projectionChart.data.datasets[1].data = valueSeries;
+      projectionChart.update();
+      return;
+    }
+
+    const Chart = ChartClass();
+    if (!Chart) return;
+    const isDark = document.documentElement.classList.contains("dark");
+    const gridColor = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+    const tickColor = isDark ? "#9aa0b4" : "#6b7280";
+
+    projectionChart = new Chart(canvas, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Amount invested",
+            data: investedSeries,
+            borderColor: "rgba(107, 26, 255, 0.35)",
+            backgroundColor: "rgba(107, 26, 255, 0.08)",
+            fill: true,
+            stepped: true,
+            pointRadius: 0,
+            borderWidth: 2,
+          },
+          {
+            label: "Value at your XIRR",
+            data: valueSeries,
+            borderColor: "#6b1aff",
+            backgroundColor: "rgba(107, 26, 255, 0.12)",
+            fill: true,
+            tension: 0.25,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            borderWidth: 2.5,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: (context: any) => ` ${context.dataset.label}: ${formatCurrency(context.parsed.y)}` },
+          },
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: tickColor, maxTicksLimit: 8, maxRotation: 0 } },
+          y: {
+            grid: { color: gridColor },
+            ticks: {
+              color: tickColor,
+              callback: (value: number) =>
+                new Intl.NumberFormat("en-IN", { notation: "compact", maximumFractionDigits: 1 }).format(value),
+            },
+          },
+        },
+        animation: { duration: 400, easing: "easeOutQuart" },
+      },
+    });
+  }
+
+  function updateCashFlowTable(flows: CashFlow[]) {
+    const tbody = byId("xirr-cashflow-body");
+    if (!tbody) return;
+    const last = flows.length - 1;
+    tbody.innerHTML = flows
+      .map(
+        (cf, index) => `
+        <tr class="hover:bg-gray-50 dark:hover:bg-[#181b25] transition">
+          <td class="px-5 py-3 opacity-70">${index + 1}</td>
+          <td class="px-5 py-3 font-semibold">${formatDate(cf.date)}</td>
+          <td class="px-5 py-3">${index === last ? "Maturity" : "Investment"}</td>
+          <td class="px-5 py-3 text-right font-bold ${index === last ? "text-primary" : "text-dark"}">${
+            index === last ? "" : "-"
+          }${formatCurrency(Math.abs(cf.amount))}</td>
+        </tr>
+      `,
+      )
+      .join("");
+  }
+
+  function setupEventListeners() {
+    const input = byId<HTMLInputElement>("amount-input");
+    const slider = byId<HTMLInputElement>("amount-slider");
+    input?.addEventListener("input", () => {
+      if (slider) slider.value = input.value;
+      calculateXIRR();
+    });
+    slider?.addEventListener("input", () => {
+      if (input) input.value = slider.value;
+      calculateXIRR();
+    });
+
+    ["start-date", "maturity-date", "maturity-amount-input"].forEach((id) =>
+      byId(id)?.addEventListener("input", calculateXIRR),
+    );
+
+    const tabs = document.querySelectorAll<HTMLButtonElement>("[data-frequency]");
+    const group = tabs[0]?.parentElement;
+    const activeClass = group?.dataset.activeClass || "";
+    const idleClass = group?.dataset.idleClass || "";
+    tabs.forEach((tab) =>
+      tab.addEventListener("click", () => {
+        frequencyMonths = Number(tab.dataset.frequency) || 1;
+        tabs.forEach((other) => {
+          const isActive = other === tab;
+          other.className = isActive ? activeClass : idleClass;
+          other.setAttribute("aria-pressed", String(isActive));
+        });
+        calculateXIRR();
+      }),
+    );
+  }
+
+  function initCalculator() {
+    setupEventListeners();
+    calculateXIRR();
+  }
+
+  if (document.readyState !== "loading") {
+    initCalculator();
+  } else {
+    document.addEventListener("DOMContentLoaded", initCalculator);
+  }
+</script>

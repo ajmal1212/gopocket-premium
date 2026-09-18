@@ -1,5 +1,9 @@
 ---
+import { calculators } from "./calculators/calculators-data";
 
+// One link per calculator page; the SIP calculator's Lumpsum and Mutual Fund
+// Returns tabs would only repeat its URL.
+const footerCalculators = calculators.filter((calc) => calc.ownPage);
 ---
 
 <footer class="relative has-call-to-action">
@@ -164,7 +168,7 @@
       </div>
 
       <!-- Navigation Columns -->
-      <div class="col-span-2 grid gap-y-10 sm:grid-cols-2 md:grid-cols-4 xl:ps-12">
+      <div class="col-span-2 grid gap-x-6 gap-y-10 sm:grid-cols-2 md:grid-cols-4 xl:ps-12">
         <div>
           <h3 class="text-dark mb-4 text-xl md:mb-6 font-semibold">Company</h3>
           <ul class="flex flex-col gap-y-1.5 text-sm">
@@ -178,17 +182,23 @@
               <a class="has-underline-anim inline-block py-px text-inherit" href="/blog">Blog</a>
             </li>
             <li>
-              <a class="has-underline-anim inline-block py-px text-inherit" href="/emi-calculator">EMI Calculator</a>
-            </li>
-            <li>
-              <a class="has-underline-anim inline-block py-px text-inherit" href="/sip-calculator">SIP Calculator</a>
-            </li>
-            <li>
-              <a class="has-underline-anim inline-block py-px text-inherit" href="/swp-calculator">SWP Calculator</a>
-            </li>
-            <li>
               <a class="has-underline-anim inline-block py-px text-inherit" href="/contact">Contact Us</a>
             </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-dark mb-4 text-xl md:mb-6 font-semibold">Calculators</h3>
+          <ul class="flex flex-col gap-y-1.5 text-sm">
+            {
+              footerCalculators.map((calc) => (
+                <li>
+                  <a class="has-underline-anim inline-block py-px text-inherit" href={calc.href}>
+                    {calc.label}
+                  </a>
+                </li>
+              ))
+            }
           </ul>
         </div>
 
@@ -324,40 +334,6 @@
                 href="https://cdn.gopocket.in/downloads/POFPO_UPI_ASBA_Policy.pdf"
                 target="_blank"
                 rel="noopener noreferrer">PO/FPO – UPI ASBA Policy</a
-              >
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <h3 class="text-dark mb-4 text-xl md:mb-6 font-semibold">Contact</h3>
-          <ul class="flex flex-col gap-3 text-sm">
-            <li>
-              <span class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
-                >Registered address:</span
-              >
-              <span class="block text-inherit"
-                >40-49, IG Towers, Devangapet 3rd Street, Flower Market, Coimbatore – 641 001, Tamil Nadu, India</span
-              >
-            </li>
-            <li>
-              <span class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
-                >Phone Number:</span
-              >
-              <a href="tel:+919585395753" class="block text-inherit hover:underline">0422 3525 900</a>
-            </li>
-            <li>
-              <span class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
-                >Support Email:</span
-              >
-              <a href="mailto:support@gopocket.in" class="block text-inherit hover:underline">support@gopocket.in</a>
-            </li>
-            <li>
-              <span class="text-dark/65 mb-1 inline-block text-xs font-medium uppercase tracking-wider"
-                >Compliance Email:</span
-              >
-              <a href="mailto:compliance@gopocket.in" class="block text-inherit hover:underline"
-                >compliance@gopocket.in</a
               >
             </li>
           </ul>

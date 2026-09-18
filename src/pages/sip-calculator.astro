@@ -3,6 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import FAQSection2 from "../components/FAQSection2.astro";
+import CalculatorSidebar from "../components/calculators/CalculatorSidebar.astro";
 
 // FAQ Schema for SEO
 const faqSchema = {
@@ -301,113 +302,7 @@ const sipFaqCategories = [
           </div>
         </div>
 
-        <!-- RIGHT COLUMN: Clean Boxed Sidebar (4 Cols) -->
-        <aside class="lg:col-span-4 space-y-6 w-full">
-          <!-- Top Card: Open Account in 5 Min -->
-          <div
-            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 text-center space-y-5"
-          >
-            <!-- Coin / Badge Illustration -->
-            <div
-              class="w-16 h-16 mx-auto rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-8 w-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
-              </svg>
-            </div>
-
-            <div class="space-y-1.5">
-              <h3 class="text-lg font-bold text-dark">Open Account in 5 min</h3>
-              <p class="text-sm text-text-default opacity-75">Start trading & investing today</p>
-            </div>
-
-            <a
-              class="btn btn-primary text-flip-hover-anim btn-md w-full justify-center cursor-pointer shadow-sm"
-              href="/open-account-call-back?src=Website&tag=SIP%20Calculator"
-            >
-              <span class="text-flip-inner" data-content="OPEN ACCOUNT">OPEN ACCOUNT</span>
-              <span
-                class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
-              >
-                <svg
-                  class="gradient-shape"
-                  width="150"
-                  height="28"
-                  viewBox="0 0 147 11"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
-                    stroke="currentColor"
-                    stroke-width="8"></path>
-                </svg>
-              </span>
-            </a>
-          </div>
-
-          <!-- Bottom Card: Popular Calculators List -->
-          <div
-            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl overflow-hidden"
-          >
-            <div class="p-4 sm:p-5 border-b border-gray-100 dark:border-[#262938] bg-gray-50/50 dark:bg-[#181b25]">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-text-default opacity-80">
-                Popular Calculators
-              </h4>
-            </div>
-
-            <div class="divide-y divide-gray-100 dark:divide-[#262938] text-sm">
-              <a
-                href="/sip-calculator"
-                class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] font-bold text-primary transition"
-              >
-                <span>SIP Calculator</span>
-                <span class="text-primary font-bold">→</span>
-              </a>
-              <a
-                href="/sip-calculator"
-                class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition"
-              >
-                <span>Lumpsum Calculator</span>
-              </a>
-              <a
-                href="/swp-calculator"
-                class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition"
-              >
-                <span>SWP Calculator</span>
-              </a>
-              <a
-                href="/sip-calculator"
-                class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition"
-              >
-                <span>Mutual Fund Returns Calculator</span>
-              </a>
-              <a
-                href="/emi-calculator"
-                class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition"
-              >
-                <span>EMI Calculator</span>
-              </a>
-              <a
-                href="/pricing"
-                class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#181b25] text-dark font-medium opacity-85 hover:opacity-100 transition"
-              >
-                <span>Brokerage Calculator</span>
-              </a>
-            </div>
-          </div>
-        </aside>
+        <CalculatorSidebar current="sip" tag="SIP Calculator" />
       </div>
 
       <!-- RICH SEO CONTENT SECTION -->

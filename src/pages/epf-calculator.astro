@@ -1,0 +1,720 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import FAQSection2 from "../components/FAQSection2.astro";
+import CalculatorSidebar from "../components/calculators/CalculatorSidebar.astro";
+
+/*
+ * EPF calculator. Same layout as the other calculator pages: boxed calculator
+ * with sliders and a doughnut chart, the shared sidebar, then the explainer,
+ * schedule table, formula, comparison table and FAQs.
+ *
+ * How the projection works (mirrored in the explainer copy below):
+ * - You contribute your chosen % (12% by default) of basic + DA every month.
+ * - Your employer contributes 12% of basic + DA, of which 8.33% goes to the
+ *   pension scheme (EPS) - capped at ₹1,250 a month by the ₹15,000 wage
+ *   ceiling - and the rest to your EPF. EPS money never reaches the EPF
+ *   balance, so it is left out.
+ * - Interest is worked out monthly on the running balance and credited once a
+ *   year, the way EPFO does it.
+ * - Salary rises once a year by the chosen %, and the account runs to 58.
+ */
+
+const RETIREMENT_AGE = 58;
+
+interface SliderInput {
+  id: string;
+  label: string;
+  prefix?: string;
+  suffix?: string;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  /** Width of the number box - rupee amounts need more room. */
+  wide?: boolean;
+  hint?: string;
+}
+
+const sliders: SliderInput[] = [
+  {
+    id: "salary",
+    label: "Monthly salary (basic + DA)",
+    prefix: "₹",
+    min: 5000,
+    max: 500000,
+    step: 1000,
+    value: 25000,
+    wide: true,
+  },
+  {
+    id: "age",
+    label: "Your age",
+    suffix: "Yr",
+    min: 18,
+    max: RETIREMENT_AGE - 1,
+    step: 1,
+    value: 25,
+    hint: `Contributions run until you retire at ${RETIREMENT_AGE}.`,
+  },
+  {
+    id: "contribution",
+    label: "Your contribution (% of salary)",
+    suffix: "%",
+    min: 12,
+    max: 30,
+    step: 1,
+    value: 12,
+    hint: "Anything above 12% is Voluntary PF (VPF) - your employer does not match it.",
+  },
+  { id: "increase", label: "Annual salary increase", suffix: "%", min: 0, max: 15, step: 0.5, value: 5 },
+  { id: "rate", label: "EPF interest rate (p.a)", suffix: "%", min: 5, max: 12, step: 0.05, value: 8.25 },
+  {
+    id: "balance",
+    label: "Current EPF balance",
+    prefix: "₹",
+    min: 0,
+    max: 5000000,
+    step: 5000,
+    value: 0,
+    wide: true,
+  },
+];
+
+const faqItems = [
+  {
+    question: "What is the Employees' Provident Fund (EPF)?",
+    answer:
+      "EPF is a retirement savings scheme run by the Employees' Provident Fund Organisation (EPFO). Every month you and your employer each contribute 12% of your basic salary plus DA; your share and part of your employer's go into your EPF account and earn interest declared by EPFO every year.",
+  },
+  {
+    question: "How much does my employer contribute to EPF?",
+    answer:
+      "Your employer contributes 12% of your basic salary plus DA, but not all of it reaches your EPF. 8.33% goes to the Employees' Pension Scheme (EPS), capped at ₹1,250 a month, and the rest - at least 3.67% - goes into your EPF account.",
+  },
+  {
+    question: "How does the GoPocket EPF Calculator work?",
+    answer:
+      "Enter your monthly basic salary plus DA, your age, your contribution rate, expected salary increase, the EPF interest rate and any existing balance. The calculator projects your balance month by month until 58, crediting interest once a year, and shows how much came from you, your employer and interest.",
+  },
+  {
+    question: "Is EPF interest taxable?",
+    answer:
+      "EPF is largely tax-free. Your contribution qualifies for a Section 80C deduction under the old tax regime, and interest and the final withdrawal are tax-free - except that interest on your own contributions above ₹2.5 lakh a year (₹5 lakh if your employer does not contribute) is taxable. Withdrawals before 5 years of continuous service are also taxable.",
+  },
+  {
+    question: "Can I withdraw my EPF before retirement?",
+    answer:
+      "Yes, partially, for specific needs such as buying or building a house, repaying a home loan, medical treatment, marriage or education, each with its own service and amount limits. You can withdraw the full balance if you are unemployed for two months or more.",
+  },
+];
+
+const faqCategories = [{ id: "epf-faqs", label: "EPF FAQs", items: faqItems }];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+};
+
+const retirementOptions = [
+  {
+    name: "EPF",
+    eligibility: "Salaried employees of EPFO-covered companies",
+    contribution: "12% of basic + DA, matched by the employer",
+    returns: "Declared yearly by EPFO",
+    access: "At 58; partial withdrawals for specific needs",
+  },
+  {
+    name: "VPF",
+    eligibility: "Existing EPF members",
+    contribution: "Any extra % over 12%, no employer match",
+    returns: "Same as EPF",
+    access: "Same rules as EPF",
+  },
+  {
+    name: "PPF",
+    eligibility: "Any resident individual",
+    contribution: "₹500 to ₹1.5 lakh a year",
+    returns: "Set by the government, reviewed quarterly",
+    access: "15-year lock-in; partial withdrawal from year 7",
+  },
+  {
+    name: "NPS",
+    eligibility: "Indian citizens aged 18 to 70",
+    contribution: "Flexible, from ₹1,000 a year",
+    returns: "Market-linked",
+    access: "At 60; part of the corpus must buy an annuity",
+  },
+];
+---
+
+<Layout
+  title="EPF Calculator Online | Calculate Your PF Balance at Retirement | GoPocket"
+  description="Estimate your EPF corpus at retirement with GoPocket's free EPF Calculator. See your contribution, your employer's share, interest earned and year-by-year Provident Fund growth."
+  canonical="/epf-calculator"
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <Header currentPath="/epf-calculator" />
+
+  <main class="pt-8 md:pt-14 pb-16">
+    <div class="container max-w-[1400px] px-4 sm:px-6 space-y-12">
+      <div class="mb-8">
+        <h1 class="h3 font-bold text-dark tracking-tight">EPF Calculator</h1>
+      </div>
+
+      <!-- Main Grid Container (8 Cols Left + 4 Cols Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- LEFT COLUMN: Calculator Card (8 Cols) -->
+        <div class="lg:col-span-8 space-y-8">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-8"
+          >
+            <!-- TOP GRID: Sliders (7 Cols) & Chart (5 Cols) -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
+              <div class="md:col-span-7 space-y-8">
+                {
+                  sliders.map((slider) => (
+                    <div class="space-y-4">
+                      <div class="flex items-center justify-between gap-4">
+                        <label for={`${slider.id}-input`} class="text-sm sm:text-base font-semibold text-dark">
+                          {slider.label}
+                        </label>
+                        <div class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5">
+                          {slider.prefix && (
+                            <span class="text-sm sm:text-base font-bold text-primary mr-1">{slider.prefix}</span>
+                          )}
+                          <input
+                            type="number"
+                            id={`${slider.id}-input`}
+                            value={slider.value}
+                            min={slider.min}
+                            max={slider.max}
+                            step={slider.step}
+                            class={`${slider.wide ? "w-28" : "w-20"} text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none`}
+                          />
+                          {slider.suffix && (
+                            <span class="text-sm sm:text-base font-bold text-primary ml-1">{slider.suffix}</span>
+                          )}
+                        </div>
+                      </div>
+                      <input
+                        type="range"
+                        id={`${slider.id}-slider`}
+                        aria-label={slider.label}
+                        min={slider.min}
+                        max={slider.max}
+                        step={slider.step}
+                        value={slider.value}
+                        class="epf-minimal-slider"
+                      />
+                      {slider.hint && <p class="text-xs sm:text-sm text-text-default opacity-70">{slider.hint}</p>}
+                    </div>
+                  ))
+                }
+              </div>
+
+              <!-- CHART & LEGEND (5 Cols) -->
+              <div class="md:col-span-5 flex flex-col items-center justify-center space-y-4">
+                <div
+                  class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs sm:text-sm text-text-default font-semibold"
+                >
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary/20 inline-block"></span>
+                    <span class="opacity-80">Your contribution</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary/50 inline-block"></span>
+                    <span class="opacity-80">Employer contribution</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary inline-block"></span>
+                    <span class="opacity-80">Total interest</span>
+                  </div>
+                </div>
+
+                <div class="relative w-52 h-52 sm:w-64 sm:h-64 flex items-center justify-center">
+                  <canvas
+                    id="epf-chart"
+                    width="240"
+                    height="240"
+                    aria-label="Your contribution, employer contribution and interest"
+                    role="img"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTTOM ROW: Summary Stats (7 Cols, aligned under the sliders) -->
+            <div
+              class="pt-8 border-t border-gray-100 dark:border-[#262938] grid grid-cols-1 md:grid-cols-12 gap-6 items-end"
+            >
+              <div class="md:col-span-7 space-y-3.5 text-sm sm:text-base">
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Your contribution</span>
+                  <span id="output-you" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >₹28,82,296</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Employer contribution</span>
+                  <span id="output-employer" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >₹23,87,296</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Total interest</span>
+                  <span id="output-interest" class="font-extrabold text-primary text-base sm:text-lg text-right"
+                    >₹1,24,05,735</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4 pt-1">
+                  <span class="text-text-default opacity-70 font-semibold">
+                    Balance at {RETIREMENT_AGE}
+                    <span id="output-years" class="font-medium opacity-80">(in 33 years)</span>
+                  </span>
+                  <span id="output-total" class="font-black text-dark text-lg sm:text-xl text-right">₹1,76,75,326</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <CalculatorSidebar current="epf" tag="EPF Calculator" />
+      </div>
+
+      <!-- RICH SEO CONTENT SECTION -->
+      <section class="mt-16 space-y-12 border-t border-gray-200 dark:border-[#262938] pt-12">
+        <div class="space-y-6">
+          <div class="max-w-4xl space-y-4">
+            <h2 class="h3 font-bold text-dark tracking-tight">What is an EPF Calculator?</h2>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              An <strong>EPF Calculator</strong> is a free online tool that estimates how much your Employees' Provident Fund
+              account will hold when you retire. It adds up your monthly contributions and your employer's, grows them with
+              your salary, and compounds the interest EPFO pays every year.
+            </p>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              Enter your basic salary plus dearness allowance, your age, how much you contribute, your expected yearly
+              raise and the EPF interest rate. The calculator shows your balance at {RETIREMENT_AGE} and how much of it came
+              from you, from your employer and from interest.
+            </p>
+          </div>
+
+          <!-- Year-by-year growth schedule -->
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5"
+          >
+            <div class="flex items-center justify-between gap-4">
+              <h3 class="h4 text-lg sm:text-xl font-bold text-dark">Year-by-Year EPF Growth</h3>
+              <span class="text-sm text-text-default opacity-70 font-semibold">Till Retirement</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-[#262938]">
+              <table class="w-full text-left text-base sm:text-lg">
+                <thead
+                  class="bg-gray-50 dark:bg-[#1c202e] font-bold text-text-default border-b border-gray-100 dark:border-[#262938]"
+                >
+                  <tr>
+                    <th class="px-5 py-4">Age</th>
+                    <th class="px-5 py-4">Your Contribution</th>
+                    <th class="px-5 py-4">Employer Contribution</th>
+                    <th class="px-5 py-4">Interest Earned</th>
+                    <th class="px-5 py-4 text-right">Year-End Balance</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="epf-schedule-body"
+                  class="divide-y divide-gray-100 dark:divide-[#262938] text-dark font-medium"
+                >
+                  {/* Filled by the script below. */}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- How it works & example -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">How Does an EPF Calculator Work?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            Every month, 12% of your basic salary plus DA is deducted from your pay and credited to your EPF account.
+            Your employer adds another 12% - but 8.33% of that (up to ₹1,250 a month) goes to the Employees' Pension
+            Scheme, so only the remainder reaches your EPF. Interest is worked out every month on your running balance
+            and added to the account at the end of each financial year, where it starts earning interest of its own.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm sm:text-base">
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">Your share: 12%</strong>
+              <span class="opacity-80">Of basic + DA, all of it into your EPF. You may add more as VPF.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">Employer to EPS: 8.33%</strong>
+              <span class="opacity-80"
+                >Goes to your pension, capped at ₹1,250 a month. Not part of the EPF balance.</span
+              >
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">Employer to EPF: the rest</strong>
+              <span class="opacity-80">12% minus the EPS share - 3.67% at a ₹15,000 salary, more above it.</span>
+            </div>
+          </div>
+
+          <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-6 space-y-4">
+            <h3 class="h4 text-base sm:text-lg font-bold text-primary">Practical Example:</h3>
+            <p class="text-base sm:text-lg text-text-default font-medium leading-relaxed">
+              Suppose you are <strong>30</strong>, earn a basic salary plus DA of <strong>₹30,000 a month</strong>,
+              contribute <strong>12%</strong>, get a <strong>5% raise every year</strong> and EPF pays
+              <strong>8.25% p.a.</strong>. By {RETIREMENT_AGE}:
+            </p>
+            <ul class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm sm:text-base pt-2">
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm"
+                  >You + Employer Contribute:</span
+                >
+                <span class="font-extrabold text-dark text-lg sm:text-xl">₹46,25,984</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Interest Earned:</span
+                >
+                <span class="font-extrabold text-primary text-lg sm:text-xl">₹84,90,674</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm"
+                  >EPF Balance at {RETIREMENT_AGE}:</span
+                >
+                <span class="font-black text-dark text-xl sm:text-2xl">₹1,31,16,657</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Formula -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">What is the EPF Calculator Formula?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            Because your salary changes every year, EPF is projected month by month rather than with a single formula.
+            Each month:
+          </p>
+
+          <div
+            class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 text-center font-mono text-base sm:text-xl font-black text-primary overflow-x-auto space-y-2"
+          >
+            <p>Balance = Balance + (E + R)</p>
+            <p>Interest = Balance × i / 12</p>
+          </div>
+          <p class="text-base sm:text-lg text-text-default opacity-85 leading-relaxed">
+            The year's interest is added to the balance at the end of each financial year, and salary is raised before
+            the next year begins.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 text-sm sm:text-base">
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">E (Your Contribution)</strong>
+              <span class="opacity-80">Your % of that month's basic salary + DA.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">R (Employer to EPF)</strong>
+              <span class="opacity-80">12% of basic + DA minus the EPS share (max ₹1,250).</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">i (Interest Rate)</strong>
+              <span class="opacity-80">Annual EPF rate declared by EPFO / 100.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">Salary Growth</strong>
+              <span class="opacity-80">Basic + DA rises by your expected % once every year.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Retirement savings options comparison -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">EPF compared with other retirement savings options:</h2>
+
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5 w-32">Scheme</th>
+                  <th class="px-6 py-4.5 min-w-[200px]">Who Can Invest</th>
+                  <th class="px-6 py-4.5 min-w-[220px]">Contribution</th>
+                  <th class="px-6 py-4.5 text-center min-w-[180px]">Returns</th>
+                  <th class="px-6 py-4.5 min-w-[220px]">When You Can Withdraw</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  retirementOptions.map((option, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4.5 font-bold text-dark">{option.name}</td>
+                      <td class="px-6 py-4.5 opacity-85">{option.eligibility}</td>
+                      <td class="px-6 py-4.5 opacity-85">{option.contribution}</td>
+                      <td class="px-6 py-4.5 text-center font-bold text-primary">{option.returns}</td>
+                      <td class="px-6 py-4.5 opacity-85">{option.access}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="text-sm text-text-default opacity-70">
+            Some employers limit their contribution to the ₹15,000 statutory wage ceiling, which lowers the employer
+            share shown here. Rates and tax rules change; check the current position with EPFO.
+          </p>
+        </div>
+      </section>
+
+      <FAQSection2 title="asked questions" titleBold="Frequently" categories={faqCategories} />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .epf-minimal-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    outline: none;
+    cursor: pointer;
+  }
+  .epf-minimal-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2.5px solid #6b1aff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .epf-minimal-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .epf-minimal-slider::-webkit-slider-thumb {
+      transition: none;
+    }
+  }
+</style>
+
+<!-- Chart.js, loaded the same way as on the other calculator pages. -->
+<script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const RETIREMENT_AGE = 58;
+  // EPS takes 8.33% of salary up to the ₹15,000 wage ceiling.
+  const EPS_RATE = 0.0833;
+  const EPS_MONTHLY_CAP = 1250;
+  const EMPLOYER_RATE = 0.12;
+
+  let chartInstance: any = null;
+
+  const ids = ["salary", "age", "contribution", "increase", "rate", "balance"] as const;
+  type FieldId = (typeof ids)[number];
+
+  const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  function formatCurrency(val: number): string {
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val);
+  }
+
+  function updateSliderTrack(slider: HTMLInputElement | null) {
+    if (!slider) return;
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 100;
+    const val = parseFloat(slider.value) || 0;
+    const pct = Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
+    const isDark = document.documentElement.classList.contains("dark");
+    const trackBg = isDark ? "#262938" : "#e2e8f0";
+    slider.style.background = `linear-gradient(to right, #6b1aff 0%, #6b1aff ${pct}%, ${trackBg} ${pct}%, ${trackBg} 100%)`;
+  }
+
+  // Reads an input clamped to its own min/max, so a half-typed value never
+  // produces a nonsense projection.
+  function read(id: FieldId): number {
+    const input = byId<HTMLInputElement>(`${id}-input`);
+    if (!input) return 0;
+    const min = parseFloat(input.min) || 0;
+    const max = parseFloat(input.max) || Infinity;
+    const value = parseFloat(input.value);
+    return Math.min(max, Math.max(min, Number.isFinite(value) ? value : min));
+  }
+
+  interface YearRow {
+    age: number;
+    you: number;
+    employer: number;
+    interest: number;
+    balance: number;
+  }
+
+  function project() {
+    const age = Math.round(read("age"));
+    const years = Math.max(0, RETIREMENT_AGE - age);
+    const contributionPct = read("contribution") / 100;
+    const increase = read("increase") / 100;
+    const monthlyRate = read("rate") / 100 / 12;
+
+    let salary = read("salary");
+    let balance = read("balance");
+    const rows: YearRow[] = [];
+
+    for (let yr = 0; yr < years; yr++) {
+      const row: YearRow = { age: age + yr, you: 0, employer: 0, interest: 0, balance: 0 };
+      for (let m = 0; m < 12; m++) {
+        const you = salary * contributionPct;
+        const employer = salary * EMPLOYER_RATE - Math.min(salary * EPS_RATE, EPS_MONTHLY_CAP);
+        balance += you + employer;
+        row.you += you;
+        row.employer += employer;
+        row.interest += balance * monthlyRate;
+      }
+      // EPFO credits the year's interest once, at the end of the financial year.
+      balance += row.interest;
+      row.balance = balance;
+      rows.push(row);
+      salary *= 1 + increase;
+    }
+
+    return { years, rows, balance };
+  }
+
+  function calculateEPF() {
+    const { years, rows, balance } = project();
+    const sum = (key: "you" | "employer" | "interest") => rows.reduce((total, row) => total + row[key], 0);
+    const you = sum("you");
+    const employer = sum("employer");
+    const interest = sum("interest");
+
+    const set = (id: string, value: number) => {
+      const el = byId(id);
+      if (el) el.innerText = formatCurrency(Math.round(value));
+    };
+    set("output-you", you);
+    set("output-employer", employer);
+    set("output-interest", interest);
+    set("output-total", balance);
+    const yearsEl = byId("output-years");
+    if (yearsEl) yearsEl.innerText = `(in ${years} ${years === 1 ? "year" : "years"})`;
+
+    ids.forEach((id) => updateSliderTrack(byId<HTMLInputElement>(`${id}-slider`)));
+    updateChart(you, employer, interest);
+    updateSchedule(rows);
+  }
+
+  function updateChart(you: number, employer: number, interest: number) {
+    const canvas = byId<HTMLCanvasElement>("epf-chart");
+    if (!canvas) return;
+
+    if (chartInstance) {
+      chartInstance.data.datasets[0].data = [you, employer, interest];
+      chartInstance.update();
+      return;
+    }
+
+    const ChartClass = (window as any).Chart;
+    if (!ChartClass) return;
+    chartInstance = new ChartClass(canvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Your contribution", "Employer contribution", "Total interest"],
+        datasets: [
+          {
+            data: [you, employer, interest],
+            backgroundColor: ["rgba(107, 26, 255, 0.2)", "rgba(107, 26, 255, 0.5)", "#6b1aff"],
+            borderWidth: 0,
+            hoverOffset: 5,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "78%",
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context: any) => ` ${context.label || ""}: ${formatCurrency(context.parsed || 0)}`,
+            },
+          },
+        },
+        animation: { duration: 400, easing: "easeOutQuart" },
+      },
+    });
+  }
+
+  function updateSchedule(rows: YearRow[]) {
+    const tbody = byId("epf-schedule-body");
+    if (!tbody) return;
+
+    tbody.innerHTML = rows
+      .map(
+        (row) => `
+        <tr class="hover:bg-gray-50 dark:hover:bg-[#181b25] transition">
+          <td class="px-5 py-3.5 font-semibold">${row.age}</td>
+          <td class="px-5 py-3.5">${formatCurrency(Math.round(row.you))}</td>
+          <td class="px-5 py-3.5">${formatCurrency(Math.round(row.employer))}</td>
+          <td class="px-5 py-3.5 text-primary font-semibold">${formatCurrency(Math.round(row.interest))}</td>
+          <td class="px-5 py-3.5 text-right font-bold text-dark">${formatCurrency(Math.round(row.balance))}</td>
+        </tr>
+      `,
+      )
+      .join("");
+  }
+
+  function setupEventListeners() {
+    // Each number box and its slider mirror one another.
+    ids.forEach((id) => {
+      const input = byId<HTMLInputElement>(`${id}-input`);
+      const slider = byId<HTMLInputElement>(`${id}-slider`);
+      input?.addEventListener("input", () => {
+        if (slider) slider.value = input.value;
+        calculateEPF();
+      });
+      slider?.addEventListener("input", () => {
+        if (input) input.value = slider.value;
+        calculateEPF();
+      });
+    });
+  }
+
+  function initCalculator() {
+    setupEventListeners();
+    calculateEPF();
+  }
+
+  if (document.readyState !== "loading") {
+    initCalculator();
+  } else {
+    document.addEventListener("DOMContentLoaded", initCalculator);
+  }
+</script>

@@ -1,0 +1,850 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import FAQSection2 from "../components/FAQSection2.astro";
+import CalculatorSidebar from "../components/calculators/CalculatorSidebar.astro";
+
+/*
+ * CAGR calculator. Same frame as the XIRR page: boxed calculator with the
+ * headline rate inside the invested-vs-gain doughnut, a growth line chart,
+ * the shared sidebar, then SEO sections and FAQs.
+ *
+ * CAGR = (final / initial)^(1 / years) - 1. The duration may be fractional
+ * (2.5 years), so the growth chart and table plot whole years and then add the
+ * exact end point when the duration does not land on a whole year.
+ */
+
+const inputs = {
+  initial: { min: 1000, max: 10000000, step: 1000, value: 100000, sliderMax: 5000000 },
+  final: { min: 1000, max: 100000000, step: 1000, value: 200000, sliderMax: 10000000 },
+  years: { min: 1, max: 40, step: 1, value: 5 },
+};
+
+const faqItems = [
+  {
+    question: "What is CAGR?",
+    answer:
+      "CAGR (Compound Annual Growth Rate) is the constant yearly rate at which an investment would have grown from its starting value to its ending value, assuming the gains were reinvested every year. It smooths out the ups and downs into one comparable annual figure.",
+  },
+  {
+    question: "How do I calculate CAGR?",
+    answer:
+      "Divide the final value by the initial value, raise the result to the power of 1 divided by the number of years, and subtract 1. The GoPocket CAGR calculator does this instantly: enter the initial investment, final value and duration to get the CAGR, total gain and absolute return.",
+  },
+  {
+    question: "What is the difference between CAGR and absolute return?",
+    answer:
+      "Absolute return is the total percentage gain, with no regard to how long it took. CAGR converts that gain into a yearly rate. A 100% absolute return over 5 years is a CAGR of about 14.87% - very different from 100% in a single year.",
+  },
+  {
+    question: "What is the difference between CAGR and XIRR?",
+    answer:
+      "CAGR works for a single investment with one start and one end value. XIRR handles many investments on different dates - such as SIP instalments, top-ups and withdrawals. For SIP returns, use XIRR; for a lump sum, CAGR and XIRR give the same result.",
+  },
+  {
+    question: "What is a good CAGR?",
+    answer:
+      "It depends on the asset and the period. Compare a stock or mutual fund's CAGR with its benchmark index over the same years, and any investment's CAGR with fixed-deposit rates and inflation. A CAGR that beats inflation by a clear margin is growing your real wealth.",
+  },
+  {
+    question: "Can CAGR be negative?",
+    answer:
+      "Yes. If the final value is lower than the initial investment, the CAGR is negative, showing the average yearly rate at which the investment lost value.",
+  },
+  {
+    question: "How do I calculate CAGR in Excel?",
+    answer:
+      "Use =(Final/Initial)^(1/Years)-1, or Excel's built-in =RRI(Years, Initial, Final). Both return the same value; format the cell as a percentage.",
+  },
+  {
+    question: "Does CAGR show the actual return every year?",
+    answer:
+      "No. CAGR is a smoothed average. The real investment may have risen 40% one year and fallen 10% the next; CAGR only tells you the steady rate that would connect the start and end values. It says nothing about volatility along the way.",
+  },
+];
+
+const faqCategories = [{ id: "cagr-faqs", label: "CAGR FAQs", items: faqItems }];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+};
+
+const returnMeasures = [
+  {
+    name: "CAGR",
+    measures: "Steady yearly growth rate between two values",
+    bestFor: "Lump-sum investments, stock and fund performance, revenue growth",
+    compounding: "Yes",
+  },
+  {
+    name: "XIRR",
+    measures: "Annualised return across many dated cash flows",
+    bestFor: "SIPs, top-ups, withdrawals, irregular investments",
+    compounding: "Yes",
+  },
+  {
+    name: "Absolute Return",
+    measures: "Total gain as a percentage of the amount invested",
+    bestFor: "Holdings of under one year",
+    compounding: "No",
+  },
+  {
+    name: "Average Annual Return",
+    measures: "Simple average of each year's return",
+    bestFor: "A rough look at year-by-year performance",
+    compounding: "No - overstates growth when returns vary",
+  },
+];
+
+const uses = [
+  {
+    title: "Compare investments",
+    description: "Put a stock, a mutual fund and an FD on the same yearly footing, whatever their holding periods.",
+  },
+  {
+    title: "Judge a fund against its benchmark",
+    description: "A fund's 5-year CAGR only means something next to its benchmark index's CAGR over the same 5 years.",
+  },
+  {
+    title: "Track business growth",
+    description: "Companies report revenue and profit CAGR to show steady growth across several years.",
+  },
+  {
+    title: "Plan a goal",
+    description: "Work out the yearly growth you need to turn today's savings into a target amount by a set date.",
+  },
+];
+---
+
+<Layout
+  title="CAGR Calculator Online | Compound Annual Growth Rate Calculator | GoPocket"
+  description="Free CAGR calculator to find the compound annual growth rate of your investment. Enter initial value, final value and duration to get CAGR, total gain and a year-by-year growth chart."
+  keywords="cagr calculator, cagr calculator online, compound annual growth rate calculator, cagr formula, how to calculate cagr, cagr vs xirr, cagr vs absolute return, cagr in excel, mutual fund cagr, stock cagr"
+  canonical="/cagr-calculator"
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <Header currentPath="/cagr-calculator" />
+
+  <main class="pt-8 md:pt-14 pb-16">
+    <div class="container max-w-[1400px] px-4 sm:px-6 space-y-12">
+      <div class="mb-8">
+        <h1 class="h3 font-bold text-dark tracking-tight">CAGR Calculator</h1>
+      </div>
+
+      <!-- Main Grid Container (8 Cols Left + 4 Cols Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- LEFT COLUMN: Calculator Card (8 Cols) -->
+        <div class="lg:col-span-8 space-y-8">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-8"
+          >
+            <!-- TOP GRID: Inputs (7 Cols) & Result (5 Cols) -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
+              <div class="md:col-span-7 space-y-8">
+                <!-- 1. Initial investment -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="initial-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Initial investment
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                      <input
+                        type="number"
+                        id="initial-input"
+                        value={inputs.initial.value}
+                        min={inputs.initial.min}
+                        max={inputs.initial.max}
+                        step={inputs.initial.step}
+                        class="w-32 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="initial-slider"
+                    aria-label="Initial investment"
+                    min={inputs.initial.min}
+                    max={inputs.initial.sliderMax}
+                    step={inputs.initial.step}
+                    value={inputs.initial.value}
+                    class="cagr-minimal-slider"
+                  />
+                </div>
+
+                <!-- 2. Final value -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="final-input" class="text-sm sm:text-base font-semibold text-dark"> Final value </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                      <input
+                        type="number"
+                        id="final-input"
+                        value={inputs.final.value}
+                        min={inputs.final.min}
+                        max={inputs.final.max}
+                        step={inputs.final.step}
+                        class="w-32 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="final-slider"
+                    aria-label="Final value"
+                    min={inputs.final.min}
+                    max={inputs.final.sliderMax}
+                    step={inputs.final.step}
+                    value={inputs.final.value}
+                    class="cagr-minimal-slider"
+                  />
+                </div>
+
+                <!-- 3. Duration -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="years-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Duration of investment
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <input
+                        type="number"
+                        id="years-input"
+                        value={inputs.years.value}
+                        min="0.1"
+                        max={inputs.years.max}
+                        step="0.1"
+                        class="w-20 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                      <span class="text-sm sm:text-base font-bold text-primary ml-1">Yr</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="years-slider"
+                    aria-label="Duration of investment in years"
+                    min={inputs.years.min}
+                    max={inputs.years.max}
+                    step={inputs.years.step}
+                    value={inputs.years.value}
+                    class="cagr-minimal-slider"
+                  />
+                  <p class="text-xs sm:text-sm text-text-default opacity-70">
+                    Type part-years in the box - 2.5 for two and a half years.
+                  </p>
+                </div>
+              </div>
+
+              <!-- CAGR RESULT & SPLIT (5 Cols) -->
+              <div class="md:col-span-5 flex flex-col items-center justify-center space-y-4">
+                <div class="flex items-center justify-center gap-6 text-xs sm:text-sm text-text-default font-semibold">
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary/20 inline-block"></span>
+                    <span class="opacity-80">Initial investment</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary inline-block"></span>
+                    <span class="opacity-80">Gain</span>
+                  </div>
+                </div>
+
+                <div class="relative w-52 h-52 sm:w-64 sm:h-64 flex items-center justify-center">
+                  <canvas id="cagr-split-chart" width="240" height="240" aria-hidden="true"></canvas>
+                  <!-- The headline number sits in the doughnut's hole. -->
+                  <div
+                    class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center"
+                  >
+                    <span class="text-xs sm:text-sm font-semibold text-text-default opacity-70">Your CAGR</span>
+                    <span id="output-cagr" class="text-3xl sm:text-4xl font-black text-primary" aria-live="polite"
+                      >14.87%</span
+                    >
+                    <span class="text-xs text-text-default opacity-60">per annum</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <p
+              id="cagr-message"
+              class="hidden rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200"
+              role="status"
+            >
+            </p>
+
+            <!-- Growth graph -->
+            <div class="pt-8 border-t border-gray-100 dark:border-[#262938] space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <h2 class="h4 text-base sm:text-lg font-bold text-dark">Growth at Your CAGR</h2>
+                <div class="flex items-center gap-5 text-xs sm:text-sm text-text-default font-semibold">
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary/30 inline-block"></span>
+                    <span class="opacity-80">Initial investment</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary inline-block"></span>
+                    <span class="opacity-80">Investment value</span>
+                  </div>
+                </div>
+              </div>
+              <div class="relative h-64 sm:h-72 w-full">
+                <canvas id="cagr-growth-chart" role="img" aria-label="Investment value growing each year at your CAGR"
+                ></canvas>
+              </div>
+            </div>
+
+            <!-- Summary stats -->
+            <div
+              class="pt-8 border-t border-gray-100 dark:border-[#262938] grid grid-cols-1 md:grid-cols-12 gap-6 items-end"
+            >
+              <div class="md:col-span-7 space-y-3.5 text-sm sm:text-base">
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Initial investment</span>
+                  <span id="output-initial" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >₹1,00,000</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Total gain</span>
+                  <span id="output-gain" class="font-extrabold text-primary text-base sm:text-lg text-right"
+                    >₹1,00,000</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Absolute return</span>
+                  <span id="output-absolute" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >100.00%</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4 pt-1">
+                  <span class="text-text-default opacity-70 font-semibold">Final value</span>
+                  <span id="output-final" class="font-black text-dark text-lg sm:text-xl text-right">₹2,00,000</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <CalculatorSidebar current="cagr" tag="CAGR Calculator" />
+      </div>
+
+      <!-- RICH SEO CONTENT SECTION -->
+      <section class="mt-16 space-y-12 border-t border-gray-200 dark:border-[#262938] pt-12">
+        <div class="space-y-6">
+          <div class="max-w-4xl space-y-4">
+            <h2 class="h3 font-bold text-dark tracking-tight">What is CAGR?</h2>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              <strong>CAGR (Compound Annual Growth Rate)</strong> is the steady yearly rate at which an investment would have
+              to grow, with its gains reinvested, to get from its starting value to its ending value. Real returns zig-zag
+              from year to year; CAGR replaces them with one smooth annual figure you can compare across stocks, mutual funds,
+              FDs and even a company's revenue.
+            </p>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              The <strong>GoPocket CAGR calculator</strong> works it out instantly. Enter your initial investment, the value
+              it has grown to and how many years it took, and you get the CAGR, your total gain, the absolute return and a
+              year-by-year view of the growth.
+            </p>
+          </div>
+
+          <!-- Year-by-year growth schedule -->
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5"
+          >
+            <div class="flex items-center justify-between gap-4">
+              <h3 class="h4 text-lg sm:text-xl font-bold text-dark">Year-by-Year Growth at Your CAGR</h3>
+              <span class="text-sm text-text-default opacity-70 font-semibold">Compounding Schedule</span>
+            </div>
+
+            <div class="max-h-[480px] overflow-auto rounded-xl border border-gray-100 dark:border-[#262938]">
+              <table class="w-full text-left text-base sm:text-lg">
+                <thead
+                  class="sticky top-0 bg-gray-50 dark:bg-[#1c202e] font-bold text-text-default border-b border-gray-100 dark:border-[#262938]"
+                >
+                  <tr>
+                    <th class="px-5 py-4">Year</th>
+                    <th class="px-5 py-4">Growth in Year</th>
+                    <th class="px-5 py-4">Total Gain</th>
+                    <th class="px-5 py-4 text-right">Investment Value</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="cagr-schedule-body"
+                  class="divide-y divide-gray-100 dark:divide-[#262938] text-dark font-medium"
+                >
+                  {/* Filled by the script below. */}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- How it works & example -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">How Does the CAGR Calculator Work?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            The calculator compares where your investment ended with where it started, then asks: what single rate,
+            compounded every year for this many years, turns the first number into the second? That rate is the CAGR.
+            Because it compounds, it is always lower than the simple average of your total return spread over the years.
+          </p>
+
+          <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-6 space-y-4">
+            <h3 class="h4 text-base sm:text-lg font-bold text-primary">Practical Example:</h3>
+            <p class="text-base sm:text-lg text-text-default font-medium leading-relaxed">
+              Suppose you invested <strong>₹1,00,000</strong> in a mutual fund and it grew to <strong>₹2,50,000</strong>
+              in <strong>5 years</strong>:
+            </p>
+            <ul class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm sm:text-base pt-2">
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Absolute Return:</span
+                >
+                <span class="font-extrabold text-dark text-lg sm:text-xl">150%</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm"
+                  >Simple Average (150% ÷ 5):</span
+                >
+                <span class="font-extrabold text-dark text-lg sm:text-xl">30% a year</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">CAGR:</span>
+                <span class="font-black text-primary text-xl sm:text-2xl">20.11% p.a.</span>
+              </li>
+            </ul>
+            <p class="text-sm sm:text-base text-text-default opacity-80">
+              The simple average says 30%, but growing ₹1,00,000 at 30% compounded for 5 years would give over ₹3.7
+              lakh. The rate that actually reaches ₹2,50,000 is 20.11% - the CAGR.
+            </p>
+          </div>
+        </div>
+
+        <!-- Formula -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">What is the CAGR Formula?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            Compound annual growth rate is calculated as:
+          </p>
+
+          <div
+            class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 text-center font-mono text-lg sm:text-2xl font-black text-primary overflow-x-auto"
+          >
+            CAGR = ( FV / IV )^(1 / n) - 1
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm sm:text-base">
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">FV (Final Value)</strong>
+              <span class="opacity-80">What the investment is worth at the end of the period.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">IV (Initial Value)</strong>
+              <span class="opacity-80">The amount you invested at the start.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">n (Number of Years)</strong>
+              <span class="opacity-80">How long the investment was held, part-years included.</span>
+            </div>
+          </div>
+
+          <div class="space-y-3 pt-2">
+            <h3 class="h4 text-base sm:text-lg font-bold text-dark">Calculating CAGR in Excel or Google Sheets</h3>
+            <p class="text-base sm:text-lg text-text-default opacity-85 leading-relaxed">
+              With the initial value in B1, the final value in B2 and the years in B3, either formula gives the CAGR -
+              format the cell as a percentage:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div
+                class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-5 text-center font-mono text-base sm:text-xl font-black text-primary overflow-x-auto"
+              >
+                =(B2/B1)^(1/B3)-1
+              </div>
+              <div
+                class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-5 text-center font-mono text-base sm:text-xl font-black text-primary overflow-x-auto"
+              >
+                =RRI(B3, B1, B2)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Uses of CAGR -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">Where is CAGR Used?</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 text-sm sm:text-base">
+            {
+              uses.map((use) => (
+                <div class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-5 space-y-2">
+                  <h3 class="h4 text-base sm:text-lg font-bold text-primary">{use.title}</h3>
+                  <p class="opacity-80">{use.description}</p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+
+        <!-- CAGR vs other return measures -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">CAGR vs XIRR vs Absolute Return:</h2>
+
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5 w-48">Return Measure</th>
+                  <th class="px-6 py-4.5 min-w-[240px]">What It Measures</th>
+                  <th class="px-6 py-4.5 min-w-[260px]">Best For</th>
+                  <th class="px-6 py-4.5 text-center min-w-[180px]">Accounts for Compounding</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  returnMeasures.map((measure, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4.5 font-bold text-dark">{measure.name}</td>
+                      <td class="px-6 py-4.5 opacity-85">{measure.measures}</td>
+                      <td class="px-6 py-4.5 opacity-85">{measure.bestFor}</td>
+                      <td class="px-6 py-4.5 text-center font-bold text-primary">{measure.compounding}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Limitations -->
+        <div class="max-w-4xl space-y-4">
+          <h2 class="h3 font-bold text-dark tracking-tight">Limitations of CAGR</h2>
+          <ul class="list-disc space-y-3 pl-6 text-lg sm:text-xl text-text-default opacity-85 leading-relaxed">
+            <li>
+              <strong>It hides volatility.</strong> Two investments with the same CAGR can have taken very different, and
+              very differently risky, paths.
+            </li>
+            <li>
+              <strong>It assumes one lump sum.</strong> CAGR cannot handle money added or withdrawn along the way. For SIPs
+              and top-ups, use the <a href="/xirr-calculator" class="text-primary font-semibold underline"
+                >XIRR calculator</a
+              > instead.
+            </li>
+            <li>
+              <strong>It looks only at the endpoints.</strong> Choosing a start date at a market low, or an end date at a
+              peak, can make CAGR look much better than typical performance.
+            </li>
+            <li>
+              <strong>It is backward-looking.</strong> A past CAGR does not predict future returns.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <FAQSection2 title="asked questions" titleBold="Frequently" categories={faqCategories} />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .cagr-minimal-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    outline: none;
+    cursor: pointer;
+  }
+  .cagr-minimal-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2.5px solid #6b1aff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .cagr-minimal-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cagr-minimal-slider::-webkit-slider-thumb {
+      transition: none;
+    }
+  }
+</style>
+
+<!-- Chart.js, loaded the same way as on the other calculator pages. -->
+<script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  let splitChart: any = null;
+  let growthChart: any = null;
+
+  const fields = [
+    ["initial-input", "initial-slider"],
+    ["final-input", "final-slider"],
+    ["years-input", "years-slider"],
+  ] as const;
+
+  const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(val);
+  const formatYears = (years: number) => `${Number(years.toFixed(2))} ${years === 1 ? "Year" : "Years"}`;
+
+  function updateSliderTrack(slider: HTMLInputElement | null) {
+    if (!slider) return;
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 100;
+    const val = parseFloat(slider.value) || 0;
+    const pct = Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
+    const trackBg = document.documentElement.classList.contains("dark") ? "#262938" : "#e2e8f0";
+    slider.style.background = `linear-gradient(to right, #6b1aff 0%, #6b1aff ${pct}%, ${trackBg} ${pct}%, ${trackBg} 100%)`;
+  }
+
+  function setText(id: string, text: string) {
+    const el = byId(id);
+    if (el) el.innerText = text;
+  }
+
+  function showMessage(text: string) {
+    const el = byId("cagr-message");
+    if (!el) return;
+    el.innerText = text;
+    el.classList.toggle("hidden", !text);
+  }
+
+  // Whole years, plus the exact end point when the duration is fractional.
+  function timePoints(years: number): number[] {
+    const points = [0];
+    for (let y = 1; y <= Math.floor(years); y++) points.push(y);
+    if (years % 1 > 1e-9) points.push(years);
+    return points;
+  }
+
+  function calculateCAGR() {
+    fields.forEach(([, sliderId]) => updateSliderTrack(byId<HTMLInputElement>(sliderId)));
+
+    const initial = parseFloat(byId<HTMLInputElement>("initial-input")?.value || "");
+    const final = parseFloat(byId<HTMLInputElement>("final-input")?.value || "");
+    const years = parseFloat(byId<HTMLInputElement>("years-input")?.value || "");
+
+    if (!(initial > 0)) return showMessage("Please enter an initial investment greater than zero.");
+    if (!(final > 0)) return showMessage("Please enter a final value greater than zero.");
+    if (!(years > 0) || years > 100) return showMessage("Please enter a duration between 0.1 and 100 years.");
+    showMessage("");
+
+    const rate = Math.pow(final / initial, 1 / years) - 1;
+    const gain = final - initial;
+
+    setText("output-cagr", `${(rate * 100).toFixed(2)}%`);
+    setText("output-initial", formatCurrency(initial));
+    setText("output-gain", formatCurrency(gain));
+    setText("output-absolute", `${((gain / initial) * 100).toFixed(2)}%`);
+    setText("output-final", formatCurrency(final));
+
+    const points = timePoints(years);
+    const values = points.map((t) => initial * Math.pow(1 + rate, t));
+
+    updateSplitChart(initial, Math.max(0, gain));
+    updateGrowthChart(points, values, initial);
+    updateSchedule(points, values, initial);
+  }
+
+  const ChartClass = () => (window as any).Chart;
+
+  function updateSplitChart(initial: number, gain: number) {
+    const canvas = byId<HTMLCanvasElement>("cagr-split-chart");
+    if (!canvas) return;
+    if (splitChart) {
+      splitChart.data.datasets[0].data = [initial, gain];
+      splitChart.update();
+      return;
+    }
+    const Chart = ChartClass();
+    if (!Chart) return;
+    splitChart = new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Initial investment", "Gain"],
+        datasets: [
+          {
+            data: [initial, gain],
+            backgroundColor: ["rgba(107, 26, 255, 0.2)", "#6b1aff"],
+            borderWidth: 0,
+            hoverOffset: 5,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "80%",
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: (context: any) => ` ${context.label}: ${formatCurrency(context.parsed || 0)}` },
+          },
+        },
+        animation: { duration: 400, easing: "easeOutQuart" },
+      },
+    });
+  }
+
+  function updateGrowthChart(points: number[], values: number[], initial: number) {
+    const canvas = byId<HTMLCanvasElement>("cagr-growth-chart");
+    if (!canvas) return;
+
+    const labels = points.map((t) => (t === 0 ? "Start" : `Yr ${Number(t.toFixed(2))}`));
+    const valueSeries = values.map(Math.round);
+    const initialSeries = points.map(() => initial);
+
+    if (growthChart) {
+      growthChart.data.labels = labels;
+      growthChart.data.datasets[0].data = initialSeries;
+      growthChart.data.datasets[1].data = valueSeries;
+      growthChart.update();
+      return;
+    }
+
+    const Chart = ChartClass();
+    if (!Chart) return;
+    const isDark = document.documentElement.classList.contains("dark");
+    const gridColor = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+    const tickColor = isDark ? "#9aa0b4" : "#6b7280";
+
+    growthChart = new Chart(canvas, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Initial investment",
+            data: initialSeries,
+            borderColor: "rgba(107, 26, 255, 0.35)",
+            backgroundColor: "rgba(107, 26, 255, 0.08)",
+            borderDash: [6, 4],
+            fill: true,
+            pointRadius: 0,
+            borderWidth: 2,
+          },
+          {
+            label: "Investment value",
+            data: valueSeries,
+            borderColor: "#6b1aff",
+            backgroundColor: "rgba(107, 26, 255, 0.12)",
+            fill: true,
+            tension: 0.3,
+            pointRadius: 3,
+            pointBackgroundColor: "#6b1aff",
+            pointHoverRadius: 5,
+            borderWidth: 2.5,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: (context: any) => ` ${context.dataset.label}: ${formatCurrency(context.parsed.y)}` },
+          },
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: tickColor, maxTicksLimit: 10, maxRotation: 0 } },
+          y: {
+            grid: { color: gridColor },
+            ticks: {
+              color: tickColor,
+              callback: (value: number) =>
+                new Intl.NumberFormat("en-IN", { notation: "compact", maximumFractionDigits: 1 }).format(value),
+            },
+          },
+        },
+        animation: { duration: 400, easing: "easeOutQuart" },
+      },
+    });
+  }
+
+  function updateSchedule(points: number[], values: number[], initial: number) {
+    const tbody = byId("cagr-schedule-body");
+    if (!tbody) return;
+    tbody.innerHTML = points
+      .slice(1)
+      .map((t, index) => {
+        const value = values[index + 1];
+        const growth = value - values[index];
+        return `
+        <tr class="hover:bg-gray-50 dark:hover:bg-[#181b25] transition">
+          <td class="px-5 py-3.5 font-semibold">${formatYears(t)}</td>
+          <td class="px-5 py-3.5">${formatCurrency(Math.round(growth))}</td>
+          <td class="px-5 py-3.5 text-primary font-semibold">${formatCurrency(Math.round(value - initial))}</td>
+          <td class="px-5 py-3.5 text-right font-bold text-dark">${formatCurrency(Math.round(value))}</td>
+        </tr>
+      `;
+      })
+      .join("");
+  }
+
+  function setupEventListeners() {
+    // Each number box and its slider mirror one another. The years box takes
+    // part-years; the slider snaps to whole years.
+    fields.forEach(([inputId, sliderId]) => {
+      const input = byId<HTMLInputElement>(inputId);
+      const slider = byId<HTMLInputElement>(sliderId);
+      input?.addEventListener("input", () => {
+        if (slider) slider.value = input.value;
+        calculateCAGR();
+      });
+      slider?.addEventListener("input", () => {
+        if (input) input.value = slider.value;
+        calculateCAGR();
+      });
+    });
+  }
+
+  function initCalculator() {
+    setupEventListeners();
+    calculateCAGR();
+  }
+
+  if (document.readyState !== "loading") {
+    initCalculator();
+  } else {
+    document.addEventListener("DOMContentLoaded", initCalculator);
+  }
+</script>

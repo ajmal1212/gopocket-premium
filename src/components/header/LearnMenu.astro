@@ -21,9 +21,15 @@ import { learnTopics } from "./header-data";
             learnTopics.map((topic) => (
               <li>
                 <a href={topic.href} class="group/item flex gap-x-8 rounded-lg p-4 text-inherit transition-colors">
-                  <MenuItemIcon icon={topic.icon} size={24} />
+                  <MenuItemIcon
+                    icon={topic.icon}
+                    size={24}
+                    iconClass="transition-colors group-hover/item:text-primary"
+                  />
                   <div class="space-y-1">
-                    <div class="text-lg tracking-normal">{topic.title}</div>
+                    <div class="text-lg tracking-normal transition-colors group-hover/item:text-primary">
+                      {topic.title}
+                    </div>
                     <p class="text-sm/relaxed opacity-80">{topic.description}</p>
                   </div>
                 </a>

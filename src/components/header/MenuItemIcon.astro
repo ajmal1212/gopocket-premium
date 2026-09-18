@@ -6,9 +6,11 @@ interface Props {
   /** Intrinsic svg size; the h-4 w-4 class is what actually renders it at 16px. */
   size?: number;
   class?: string;
+  /** Extra classes for the icon itself, e.g. a hover colour tied to the row. */
+  iconClass?: string;
 }
 
-const { icon: Icon, size = 20, class: className = "" } = Astro.props;
+const { icon: Icon, size = 20, class: className = "", iconClass = "" } = Astro.props;
 ---
 
 <span class={`relative -mt-0.5 inline-block min-w-4 bg-white ${className}`.trim()}>
@@ -29,5 +31,5 @@ const { icon: Icon, size = 20, class: className = "" } = Astro.props;
     aria-hidden="true"
     class="bg-border-light absolute -top-2.5 -right-2 h-12 w-px transition-all duration-300 group-hover/item:bg-black/30"
   ></span>
-  <Icon size={size} class="text-text-default mt-1 inline-block h-4 w-4" />
+  <Icon size={size} class={`text-text-default mt-1 inline-block h-4 w-4 ${iconClass}`.trim()} />
 </span>

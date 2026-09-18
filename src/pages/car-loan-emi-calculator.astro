@@ -1,0 +1,1021 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import FAQSection2 from "../components/FAQSection2.astro";
+import CalculatorSidebar from "../components/calculators/CalculatorSidebar.astro";
+
+/*
+ * Car loan EMI calculator - an SEO landing page for "car loan emi calculator"
+ * and its long tail, separate from the general /emi-calculator.
+ *
+ * What makes it car-specific: New / Used tabs with their own rate and tenure
+ * ranges, on-road price and down payment (the loan is the difference), and
+ * the total cost of owning the car. The two reference tables (EMI per ₹1 lakh,
+ * EMI by tenure) are computed here from the same formula the calculator uses,
+ * so their figures cannot drift from it.
+ */
+
+function monthlyEmi(principal: number, ratePa: number, years: number): number {
+  const r = ratePa / 12 / 100;
+  const n = years * 12;
+  const growth = Math.pow(1 + r, n);
+  return (principal * r * growth) / (growth - 1);
+}
+
+const rupees = (value: number) =>
+  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(
+    Math.round(value),
+  );
+
+const carTypes = [
+  {
+    id: "new",
+    label: "New Car",
+    price: { min: 100000, max: 10000000, step: 10000, value: 1000000 },
+    down: 200000,
+    rate: { min: 7, max: 16, step: 0.05, value: 9 },
+    tenure: { min: 1, max: 7, step: 1, value: 5 },
+  },
+  {
+    id: "used",
+    label: "Used Car",
+    price: { min: 50000, max: 5000000, step: 10000, value: 500000 },
+    down: 100000,
+    rate: { min: 9, max: 20, step: 0.05, value: 12 },
+    tenure: { min: 1, max: 5, step: 1, value: 4 },
+  },
+];
+
+const defaultCar = carTypes[0];
+const defaultLoan = defaultCar.price.value - defaultCar.down;
+const defaultEmi = monthlyEmi(defaultLoan, defaultCar.rate.value, defaultCar.tenure.value);
+const defaultTotal = defaultEmi * defaultCar.tenure.value * 12;
+
+// Reference tables.
+const perLakhRates = [8.5, 9, 9.5, 10, 11, 12];
+const perLakhTenures = [3, 4, 5, 6, 7];
+const perLakhRows = perLakhRates.map((rate) => ({
+  rate,
+  emis: perLakhTenures.map((years) => rupees(monthlyEmi(100000, rate, years))),
+}));
+
+const example = { loan: 800000, rate: 9, years: 5 };
+const exampleEmi = monthlyEmi(example.loan, example.rate, example.years);
+const exampleTotal = exampleEmi * example.years * 12;
+
+const tenureRows = [3, 4, 5, 6, 7].map((years) => {
+  const emi = monthlyEmi(example.loan, example.rate, years);
+  return { years, emi: rupees(emi), interest: rupees(emi * years * 12 - example.loan) };
+});
+
+const eligibility = [
+  {
+    title: "Age",
+    description: "Usually 21 to 60 for salaried and up to 65 for self-employed borrowers at loan maturity.",
+  },
+  {
+    title: "Income",
+    description: "A steady monthly income; lenders set a minimum and cap your total EMIs at a share of it.",
+  },
+  {
+    title: "Credit score",
+    description: "A CIBIL score of 750 or more gets faster approval and a lower interest rate.",
+  },
+  { title: "Work stability", description: "Typically at least 1-2 years of employment or 2-3 years in business." },
+];
+
+const documents = [
+  "Identity proof - PAN card, Aadhaar, passport or voter ID",
+  "Address proof - Aadhaar, utility bill, passport or rent agreement",
+  "Income proof - latest salary slips and Form 16, or ITRs for the self-employed",
+  "Bank statements for the last 6 months",
+  "Proforma invoice or quotation from the car dealer",
+  "Passport-size photographs and a filled application form",
+];
+
+const tips = [
+  {
+    title: "Make a bigger down payment",
+    description:
+      "Every rupee you pay upfront is a rupee you do not pay interest on - it cuts both the EMI and total cost.",
+  },
+  {
+    title: "Improve your credit score",
+    description:
+      "A score above 750 can get you a noticeably lower rate. Clear dues and keep card usage low before applying.",
+  },
+  {
+    title: "Compare lenders",
+    description:
+      "Rates, processing fees and prepayment charges vary widely - compare the total cost, not just the EMI.",
+  },
+  {
+    title: "Pick the shortest tenure you can afford",
+    description: "A longer tenure lowers the EMI but raises the total interest - see the tenure table above.",
+  },
+  {
+    title: "Prepay when you can",
+    description: "Part-prepayments reduce the outstanding principal; check your lender's prepayment charges first.",
+  },
+  {
+    title: "Negotiate the on-road price",
+    description: "Discounts, exchange bonuses and skipping unneeded add-ons shrink the amount you need to borrow.",
+  },
+];
+
+const newVsUsed = [
+  { feature: "Interest rate", newCar: "Lower", usedCar: "Higher - typically 2-5% more" },
+  { feature: "Maximum tenure", newCar: "Up to 7 years", usedCar: "Usually up to 5 years" },
+  { feature: "Loan amount", newCar: "Up to 90-100% of on-road price", usedCar: "Up to 70-85% of the car's value" },
+  { feature: "Car age limit", newCar: "Not applicable", usedCar: "Car age + tenure often capped at 8-10 years" },
+  { feature: "Processing", newCar: "Quick, often at the dealership", usedCar: "Needs valuation and ownership checks" },
+];
+
+const faqItems = [
+  {
+    question: "How is car loan EMI calculated?",
+    answer:
+      "Car loan EMI is calculated with the formula EMI = P × r × (1 + r)^n / ((1 + r)^n − 1), where P is the loan amount (on-road price minus down payment), r is the monthly interest rate and n is the tenure in months. The GoPocket car loan EMI calculator applies it instantly as you move the sliders.",
+  },
+  {
+    question: "What is the EMI for a ₹5 lakh car loan?",
+    answer: `At 9% interest, a ₹5 lakh car loan costs about ${rupees(monthlyEmi(500000, 9, 5))} a month over 5 years, or ${rupees(monthlyEmi(500000, 9, 7))} over 7 years. Use the calculator for your exact rate and tenure.`,
+  },
+  {
+    question: "What is the EMI for a ₹10 lakh car loan?",
+    answer: `At 9% interest, a ₹10 lakh car loan costs about ${rupees(monthlyEmi(1000000, 9, 5))} a month over 5 years, or ${rupees(monthlyEmi(1000000, 9, 7))} over 7 years.`,
+  },
+  {
+    question: "How much down payment should I make for a car?",
+    answer:
+      "Aim for at least 20% of the on-road price. Many lenders finance up to 90% or more, but a larger down payment lowers your EMI and total interest, and helps you avoid owing more than the car is worth as it depreciates.",
+  },
+  {
+    question: "What is the maximum tenure for a car loan?",
+    answer:
+      "New car loans usually run up to 7 years; used car loans are typically shorter, up to about 5 years, and often limited by the car's age.",
+  },
+  {
+    question: "Is a used car loan more expensive than a new car loan?",
+    answer:
+      "Usually, yes. Used car loans carry higher interest rates and shorter tenures because the car is older and worth less as security. Switch the calculator to Used Car to see the difference.",
+  },
+  {
+    question: "Can I prepay or foreclose my car loan?",
+    answer:
+      "Most lenders allow part-prepayment and foreclosure after a set number of EMIs, sometimes with a charge. Prepaying reduces your outstanding principal and total interest.",
+  },
+  {
+    question: "Does the car loan EMI calculator work for all banks?",
+    answer:
+      "Yes. The EMI formula is the same at every bank and NBFC. Enter the interest rate and tenure your lender quotes to see your EMI; the actual amount can differ slightly because of processing fees or insurance added to the loan.",
+  },
+];
+
+const faqCategories = [{ id: "car-loan-faqs", label: "Car Loan FAQs", items: faqItems }];
+
+const structuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Car Loan EMI Calculator",
+    url: "https://gopocket.in/car-loan-emi-calculator",
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Any",
+    description:
+      "Free online car loan EMI calculator for new and used cars. Calculate monthly EMI, total interest and total cost from on-road price, down payment, interest rate and tenure.",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+    provider: { "@type": "Organization", name: "GoPocket", url: "https://gopocket.in" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  },
+];
+
+const activeTabClass =
+  "px-5 py-2 text-sm sm:text-base font-bold rounded-full border border-primary bg-primary/10 text-primary transition-all";
+const idleTabClass =
+  "px-5 py-2 text-sm sm:text-base font-bold rounded-full border border-transparent text-text-default opacity-70 hover:opacity-100 transition-all";
+---
+
+<Layout
+  title="Car Loan EMI Calculator - Calculate Car Loan EMI Online | GoPocket"
+  description="Free car loan EMI calculator for new and used cars. Enter on-road price, down payment, interest rate and tenure to get your monthly EMI, total interest and repayment schedule."
+  keywords="car loan emi calculator, car loan calculator, car emi calculator, new car loan emi calculator, used car loan emi calculator, car loan interest calculator, car loan emi per lakh, auto loan emi calculator, car finance calculator"
+  canonical="/car-loan-emi-calculator"
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+
+  <Header currentPath="/car-loan-emi-calculator" />
+
+  <main class="pt-8 md:pt-14 pb-16">
+    <div class="container max-w-[1400px] px-4 sm:px-6 space-y-12">
+      <div class="mb-8 space-y-2">
+        <h1 class="h3 font-bold text-dark tracking-tight">Car Loan EMI Calculator</h1>
+        <p class="text-base sm:text-lg text-text-default opacity-80 max-w-3xl">
+          Calculate your car loan EMI in seconds. Enter the on-road price, down payment, interest rate and tenure to see
+          your monthly EMI, total interest and the full cost of your new or used car.
+        </p>
+      </div>
+
+      <!-- Main Grid Container (8 Cols Left + 4 Cols Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- LEFT COLUMN: Calculator Card (8 Cols) -->
+        <div class="lg:col-span-8 space-y-8">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-8"
+          >
+            <!-- New / Used tabs -->
+            <div
+              class="flex flex-wrap items-center gap-3"
+              role="group"
+              aria-label="Car type"
+              data-active-class={activeTabClass}
+              data-idle-class={idleTabClass}
+            >
+              {
+                carTypes.map((car) => (
+                  <button
+                    type="button"
+                    data-car-tab={car.id}
+                    data-car={JSON.stringify(car)}
+                    aria-pressed={car.id === defaultCar.id ? "true" : "false"}
+                    class={car.id === defaultCar.id ? activeTabClass : idleTabClass}
+                  >
+                    {car.label}
+                  </button>
+                ))
+              }
+            </div>
+
+            <!-- TOP GRID: Sliders (7 Cols) & Chart (5 Cols) -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
+              <div class="md:col-span-7 space-y-8">
+                <!-- 1. On-road price -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="price-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Car on-road price
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                      <input
+                        type="number"
+                        id="price-input"
+                        value={defaultCar.price.value}
+                        min={defaultCar.price.min}
+                        max={defaultCar.price.max}
+                        step={defaultCar.price.step}
+                        class="w-28 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="price-slider"
+                    aria-label="Car on-road price"
+                    min={defaultCar.price.min}
+                    max={defaultCar.price.max}
+                    step={defaultCar.price.step}
+                    value={defaultCar.price.value}
+                    class="car-minimal-slider"
+                  />
+                </div>
+
+                <!-- 2. Down payment -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="down-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Down payment <span id="down-percent" class="font-medium opacity-70">(20%)</span>
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                      <input
+                        type="number"
+                        id="down-input"
+                        value={defaultCar.down}
+                        min="0"
+                        max={defaultCar.price.value - 10000}
+                        step="5000"
+                        class="w-28 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="down-slider"
+                    aria-label="Down payment"
+                    min="0"
+                    max={defaultCar.price.value - 10000}
+                    step="5000"
+                    value={defaultCar.down}
+                    class="car-minimal-slider"
+                  />
+                </div>
+
+                <!-- 3. Interest rate -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="rate-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Interest rate (p.a)
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <input
+                        type="number"
+                        id="rate-input"
+                        value={defaultCar.rate.value}
+                        min={defaultCar.rate.min}
+                        max={defaultCar.rate.max}
+                        step={defaultCar.rate.step}
+                        class="w-20 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                      <span class="text-sm sm:text-base font-bold text-primary ml-1">%</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="rate-slider"
+                    aria-label="Interest rate per annum"
+                    min={defaultCar.rate.min}
+                    max={defaultCar.rate.max}
+                    step={defaultCar.rate.step}
+                    value={defaultCar.rate.value}
+                    class="car-minimal-slider"
+                  />
+                </div>
+
+                <!-- 4. Tenure -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="tenure-input" class="text-sm sm:text-base font-semibold text-dark">Loan tenure</label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <input
+                        type="number"
+                        id="tenure-input"
+                        value={defaultCar.tenure.value}
+                        min={defaultCar.tenure.min}
+                        max={defaultCar.tenure.max}
+                        step={defaultCar.tenure.step}
+                        class="w-20 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                      <span class="text-sm sm:text-base font-bold text-primary ml-1">Yr</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="tenure-slider"
+                    aria-label="Loan tenure in years"
+                    min={defaultCar.tenure.min}
+                    max={defaultCar.tenure.max}
+                    step={defaultCar.tenure.step}
+                    value={defaultCar.tenure.value}
+                    class="car-minimal-slider"
+                  />
+                </div>
+              </div>
+
+              <!-- EMI & CHART (5 Cols) -->
+              <div class="md:col-span-5 flex flex-col items-center justify-center space-y-4">
+                <div class="flex items-center justify-center gap-6 text-xs sm:text-sm text-text-default font-semibold">
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary/20 inline-block"></span>
+                    <span class="opacity-80">Loan amount</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary inline-block"></span>
+                    <span class="opacity-80">Total interest</span>
+                  </div>
+                </div>
+
+                <div class="relative w-52 h-52 sm:w-64 sm:h-64 flex items-center justify-center">
+                  <canvas id="car-chart" width="240" height="240" aria-hidden="true"></canvas>
+                  <!-- The headline EMI sits in the doughnut's hole. -->
+                  <div
+                    class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center"
+                  >
+                    <span class="text-xs sm:text-sm font-semibold text-text-default opacity-70">Monthly EMI</span>
+                    <span id="output-emi" class="text-2xl sm:text-3xl font-black text-primary" aria-live="polite"
+                      >{rupees(defaultEmi)}</span
+                    >
+                    <span id="output-emi-note" class="text-xs text-text-default opacity-60"
+                      >for {defaultCar.tenure.value * 12} months</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Summary stats -->
+            <div
+              class="pt-8 border-t border-gray-100 dark:border-[#262938] grid grid-cols-1 md:grid-cols-12 gap-6 items-end"
+            >
+              <div class="md:col-span-7 space-y-3.5 text-sm sm:text-base">
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Loan amount</span>
+                  <span id="output-loan" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >{rupees(defaultLoan)}</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Total interest</span>
+                  <span id="output-interest" class="font-extrabold text-primary text-base sm:text-lg text-right"
+                    >{rupees(defaultTotal - defaultLoan)}</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Total loan repayment</span>
+                  <span id="output-repayment" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >{rupees(defaultTotal)}</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4 pt-1">
+                  <span class="text-text-default opacity-70 font-semibold">Total cost of car</span>
+                  <span id="output-cost" class="font-black text-dark text-lg sm:text-xl text-right"
+                    >{rupees(defaultTotal + defaultCar.down)}</span
+                  >
+                </div>
+                <p class="text-xs sm:text-sm text-text-default opacity-60">
+                  Total cost of car = down payment + total loan repayment.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <CalculatorSidebar current="car-loan" tag="Car Loan EMI Calculator" />
+      </div>
+
+      <!-- RICH SEO CONTENT SECTION -->
+      <section class="mt-16 space-y-12 border-t border-gray-200 dark:border-[#262938] pt-12">
+        <div class="space-y-6">
+          <div class="max-w-4xl space-y-4">
+            <h2 class="h3 font-bold text-dark tracking-tight">What is a Car Loan EMI Calculator?</h2>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              A <strong>car loan EMI calculator</strong> is a free online tool that shows the Equated Monthly Instalment you
+              will pay on a car loan before you apply. Enter the car's on-road price, your down payment, the interest rate
+              and the loan tenure, and it instantly tells you your monthly EMI, the total interest and what the car will really
+              cost you once the loan is repaid.
+            </p>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              It works for <strong>new car loans</strong> and <strong>used car loans</strong> from any bank or NBFC - just
+              use the rate and tenure your lender quotes. Try different down payments and tenures to find an EMI that fits
+              your monthly budget.
+            </p>
+          </div>
+
+          <!-- Year-by-year repayment schedule -->
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5"
+          >
+            <div class="flex items-center justify-between gap-4">
+              <h3 class="h4 text-lg sm:text-xl font-bold text-dark">Car Loan Repayment Schedule</h3>
+              <span class="text-sm text-text-default opacity-70 font-semibold">Year by Year</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-[#262938]">
+              <table class="w-full text-left text-base sm:text-lg">
+                <thead
+                  class="bg-gray-50 dark:bg-[#1c202e] font-bold text-text-default border-b border-gray-100 dark:border-[#262938]"
+                >
+                  <tr>
+                    <th class="px-5 py-4">Year</th>
+                    <th class="px-5 py-4">Principal Paid</th>
+                    <th class="px-5 py-4">Interest Paid</th>
+                    <th class="px-5 py-4 text-right">Outstanding Balance</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="car-schedule-body"
+                  class="divide-y divide-gray-100 dark:divide-[#262938] text-dark font-medium"
+                >
+                  {/* Filled by the script below. */}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- How it works & example -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">How is Car Loan EMI Calculated?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            Your loan amount is the car's on-road price minus your down payment. The EMI on that amount is worked out
+            with the standard reducing-balance formula used by every bank:
+          </p>
+
+          <div
+            class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 text-center font-mono text-lg sm:text-2xl font-black text-primary overflow-x-auto"
+          >
+            EMI = P × r × (1 + r)^n / [ (1 + r)^n - 1 ]
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm sm:text-base">
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">P (Loan Amount)</strong>
+              <span class="opacity-80">On-road price minus down payment.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">r (Monthly Rate)</strong>
+              <span class="opacity-80">Annual interest rate / 12 / 100.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">n (Number of EMIs)</strong>
+              <span class="opacity-80">Loan tenure in years × 12.</span>
+            </div>
+          </div>
+
+          <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-6 space-y-4">
+            <h3 class="h4 text-base sm:text-lg font-bold text-primary">Car Loan EMI Example:</h3>
+            <p class="text-base sm:text-lg text-text-default font-medium leading-relaxed">
+              You buy a car with an on-road price of <strong>₹10,00,000</strong>, pay <strong>₹2,00,000</strong> down and
+              borrow <strong>{rupees(example.loan)}</strong> at <strong>{example.rate}% p.a.</strong> for
+              <strong>{example.years} years</strong>:
+            </p>
+            <ul class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm sm:text-base pt-2">
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Monthly EMI:</span>
+                <span class="font-extrabold text-primary text-lg sm:text-xl">{rupees(exampleEmi)}</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Total Interest:</span>
+                <span class="font-extrabold text-dark text-lg sm:text-xl">{rupees(exampleTotal - example.loan)}</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm"
+                  >Total Cost of Car:</span
+                >
+                <span class="font-black text-dark text-xl sm:text-2xl">{rupees(exampleTotal + 200000)}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- EMI per lakh -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">Car Loan EMI per ₹1 Lakh</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal max-w-4xl">
+            A quick way to estimate your EMI: find your interest rate and tenure below, then multiply by your loan
+            amount in lakhs. For a ₹6 lakh loan, multiply the figure by 6.
+          </p>
+
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5">Interest Rate</th>
+                  {perLakhTenures.map((years) => <th class="px-6 py-4.5 text-right">{years} Years</th>)}
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  perLakhRows.map((row, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4 font-bold text-primary">{row.rate}%</td>
+                      {row.emis.map((emi) => (
+                        <td class="px-6 py-4 text-right opacity-90">{emi}</td>
+                      ))}
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tenure comparison -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">How Loan Tenure Changes Your Car EMI</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal max-w-4xl">
+            For a {rupees(example.loan)} car loan at {example.rate}%: a longer tenure makes each EMI smaller, but you
+            pay far more interest in total.
+          </p>
+
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5">Tenure</th>
+                  <th class="px-6 py-4.5 text-right">Monthly EMI</th>
+                  <th class="px-6 py-4.5 text-right">Total Interest</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  tenureRows.map((row, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4 font-bold text-dark">{row.years} Years</td>
+                      <td class="px-6 py-4 text-right font-bold text-primary">{row.emi}</td>
+                      <td class="px-6 py-4 text-right opacity-90">{row.interest}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- New vs used -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">New Car Loan vs Used Car Loan</h2>
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5 w-48">Feature</th>
+                  <th class="px-6 py-4.5 min-w-[220px]">New Car Loan</th>
+                  <th class="px-6 py-4.5 min-w-[240px]">Used Car Loan</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  newVsUsed.map((row, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4 font-bold text-dark">{row.feature}</td>
+                      <td class="px-6 py-4 opacity-85">{row.newCar}</td>
+                      <td class="px-6 py-4 opacity-85">{row.usedCar}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="text-sm text-text-default opacity-70">
+            Typical market terms; exact rates, tenures and limits vary by lender and your profile.
+          </p>
+        </div>
+
+        <!-- Eligibility & documents -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5"
+          >
+            <h2 class="h3 font-bold text-dark tracking-tight">Car Loan Eligibility</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base">
+              {
+                eligibility.map((item) => (
+                  <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+                    <strong class="text-primary block text-base sm:text-lg font-bold mb-1">{item.title}</strong>
+                    <span class="opacity-80">{item.description}</span>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5"
+          >
+            <h2 class="h3 font-bold text-dark tracking-tight">Documents Required for a Car Loan</h2>
+            <ul class="space-y-3 text-base sm:text-lg text-text-default">
+              {
+                documents.map((doc) => (
+                  <li class="flex gap-3">
+                    <span class="text-primary font-bold" aria-hidden="true">
+                      ✓
+                    </span>
+                    <span class="opacity-85">{doc}</span>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">6 Ways to Reduce Your Car Loan EMI</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 text-sm sm:text-base">
+            {
+              tips.map((tip, index) => (
+                <div class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-5 space-y-2">
+                  <span class="bg-primary/10 text-primary inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold">
+                    {index + 1}
+                  </span>
+                  <h3 class="h4 text-base sm:text-lg font-bold text-dark">{tip.title}</h3>
+                  <p class="opacity-80">{tip.description}</p>
+                </div>
+              ))
+            }
+          </div>
+          <p class="text-base text-text-default opacity-80">
+            Comparing a home, personal or car loan side by side? Try the general
+            <a href="/emi-calculator" class="text-primary font-semibold underline">EMI calculator</a>.
+          </p>
+        </div>
+      </section>
+
+      <FAQSection2 title="asked questions" titleBold="Frequently" categories={faqCategories} />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .car-minimal-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    outline: none;
+    cursor: pointer;
+  }
+  .car-minimal-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2.5px solid #6b1aff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .car-minimal-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .car-minimal-slider::-webkit-slider-thumb {
+      transition: none;
+    }
+  }
+</style>
+
+<!-- Chart.js, loaded the same way as on the other calculator pages. -->
+<script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  interface Range {
+    min: number;
+    max: number;
+    step: number;
+    value: number;
+  }
+
+  interface CarType {
+    id: string;
+    price: Range;
+    down: number;
+    rate: Range;
+    tenure: Range;
+  }
+
+  // The loan must be at least this much, so the down payment can never reach
+  // the full price.
+  const MIN_LOAN = 10000;
+
+  let chartInstance: any = null;
+
+  const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(
+      Math.round(val),
+    );
+
+  function updateSliderTrack(slider: HTMLInputElement | null) {
+    if (!slider) return;
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 100;
+    const val = parseFloat(slider.value) || 0;
+    const pct = Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
+    const trackBg = document.documentElement.classList.contains("dark") ? "#262938" : "#e2e8f0";
+    slider.style.background = `linear-gradient(to right, #6b1aff 0%, #6b1aff ${pct}%, ${trackBg} ${pct}%, ${trackBg} 100%)`;
+  }
+
+  // Reads an input clamped to its own min/max.
+  function read(id: string): number {
+    const input = byId<HTMLInputElement>(`${id}-input`);
+    if (!input) return 0;
+    const min = parseFloat(input.min) || 0;
+    const max = parseFloat(input.max) || Infinity;
+    const value = parseFloat(input.value);
+    return Math.min(max, Math.max(min, Number.isFinite(value) ? value : min));
+  }
+
+  function monthlyEmi(principal: number, ratePa: number, months: number): number {
+    const r = ratePa / 12 / 100;
+    if (r === 0) return principal / months;
+    const growth = Math.pow(1 + r, months);
+    return (principal * r * growth) / (growth - 1);
+  }
+
+  // The down payment's ceiling follows the price, so a cheaper car can never
+  // be left with a down payment larger than itself.
+  function syncDownPaymentLimit() {
+    const price = read("price");
+    const cap = Math.max(0, price - MIN_LOAN);
+    ["down-input", "down-slider"].forEach((id) => {
+      const el = byId<HTMLInputElement>(id);
+      if (!el) return;
+      el.max = String(cap);
+      if (parseFloat(el.value) > cap) el.value = String(cap);
+    });
+  }
+
+  function calculate() {
+    syncDownPaymentLimit();
+
+    const price = read("price");
+    const down = read("down");
+    const rate = read("rate");
+    const years = Math.round(read("tenure"));
+    const months = years * 12;
+
+    const loan = Math.max(0, price - down);
+    const emi = monthlyEmi(loan, rate, months);
+    const repayment = emi * months;
+    const interest = Math.max(0, repayment - loan);
+
+    const set = (id: string, text: string) => {
+      const el = byId(id);
+      if (el) el.innerText = text;
+    };
+    set("output-emi", formatCurrency(emi));
+    set("output-emi-note", `for ${months} months`);
+    set("output-loan", formatCurrency(loan));
+    set("output-interest", formatCurrency(interest));
+    set("output-repayment", formatCurrency(repayment));
+    set("output-cost", formatCurrency(repayment + down));
+    set("down-percent", `(${Math.round((down / price) * 100)}%)`);
+
+    ["price", "down", "rate", "tenure"].forEach((id) => updateSliderTrack(byId<HTMLInputElement>(`${id}-slider`)));
+    updateChart(loan, interest);
+    updateSchedule(loan, rate, years, emi);
+  }
+
+  function updateChart(loan: number, interest: number) {
+    const canvas = byId<HTMLCanvasElement>("car-chart");
+    if (!canvas) return;
+    if (chartInstance) {
+      chartInstance.data.datasets[0].data = [loan, interest];
+      chartInstance.update();
+      return;
+    }
+    const Chart = (window as any).Chart;
+    if (!Chart) return;
+    chartInstance = new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Loan amount", "Total interest"],
+        datasets: [
+          {
+            data: [loan, interest],
+            backgroundColor: ["rgba(107, 26, 255, 0.2)", "#6b1aff"],
+            borderWidth: 0,
+            hoverOffset: 5,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "80%",
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: (context: any) => ` ${context.label}: ${formatCurrency(context.parsed || 0)}` },
+          },
+        },
+        animation: { duration: 400, easing: "easeOutQuart" },
+      },
+    });
+  }
+
+  // Walks the loan month by month and rolls the split up per year.
+  function updateSchedule(loan: number, rate: number, years: number, emi: number) {
+    const tbody = byId("car-schedule-body");
+    if (!tbody) return;
+    const r = rate / 12 / 100;
+    let balance = loan;
+    let rows = "";
+    for (let yr = 1; yr <= years; yr++) {
+      let principalPaid = 0;
+      let interestPaid = 0;
+      for (let m = 0; m < 12; m++) {
+        const interest = balance * r;
+        const towardsPrincipal = Math.min(balance, emi - interest);
+        interestPaid += interest;
+        principalPaid += towardsPrincipal;
+        balance -= towardsPrincipal;
+      }
+      // Floating-point drift leaves a few paise on the last row; show zero.
+      const shownBalance = yr === years ? 0 : Math.max(0, balance);
+      rows += `
+        <tr class="hover:bg-gray-50 dark:hover:bg-[#181b25] transition">
+          <td class="px-5 py-3.5 font-semibold">${yr} ${yr === 1 ? "Year" : "Years"}</td>
+          <td class="px-5 py-3.5">${formatCurrency(principalPaid)}</td>
+          <td class="px-5 py-3.5 text-primary font-semibold">${formatCurrency(interestPaid)}</td>
+          <td class="px-5 py-3.5 text-right font-bold text-dark">${formatCurrency(shownBalance)}</td>
+        </tr>
+      `;
+    }
+    tbody.innerHTML = rows;
+  }
+
+  function applyRange(id: string, range: Range) {
+    [byId<HTMLInputElement>(`${id}-input`), byId<HTMLInputElement>(`${id}-slider`)].forEach((el) => {
+      if (!el) return;
+      el.min = String(range.min);
+      el.max = String(range.max);
+      el.step = String(range.step);
+      el.value = String(range.value);
+    });
+  }
+
+  function setupEventListeners() {
+    // Each number box and its slider mirror one another.
+    ["price", "down", "rate", "tenure"].forEach((id) => {
+      const input = byId<HTMLInputElement>(`${id}-input`);
+      const slider = byId<HTMLInputElement>(`${id}-slider`);
+      input?.addEventListener("input", () => {
+        if (slider) slider.value = input.value;
+        calculate();
+      });
+      slider?.addEventListener("input", () => {
+        if (input) input.value = slider.value;
+        calculate();
+      });
+    });
+
+    // New / Used tabs swap in that car type's ranges and starting values.
+    const tabs = document.querySelectorAll<HTMLButtonElement>("[data-car-tab]");
+    const group = tabs[0]?.parentElement;
+    const activeClass = group?.dataset.activeClass || "";
+    const idleClass = group?.dataset.idleClass || "";
+    tabs.forEach((tab) =>
+      tab.addEventListener("click", () => {
+        const car = JSON.parse(tab.dataset.car || "{}") as CarType;
+        tabs.forEach((other) => {
+          const isActive = other === tab;
+          other.className = isActive ? activeClass : idleClass;
+          other.setAttribute("aria-pressed", String(isActive));
+        });
+        applyRange("price", car.price);
+        applyRange("rate", car.rate);
+        applyRange("tenure", car.tenure);
+        ["down-input", "down-slider"].forEach((id) => {
+          const el = byId<HTMLInputElement>(id);
+          if (el) {
+            el.max = String(car.price.value - MIN_LOAN);
+            el.value = String(car.down);
+          }
+        });
+        calculate();
+      }),
+    );
+  }
+
+  function initCalculator() {
+    setupEventListeners();
+    calculate();
+  }
+
+  if (document.readyState !== "loading") {
+    initCalculator();
+  } else {
+    document.addEventListener("DOMContentLoaded", initCalculator);
+  }
+</script>

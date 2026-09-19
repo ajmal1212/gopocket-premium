@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { getBlogPosts } from "@/lib/frappe";
+import { getBlogPosts, getNewsList } from "@/lib/frappe";
 import { originFor, renderUrlset, xmlResponse, type SitemapEntry } from "@/lib/sitemap";
 
 /**
@@ -46,7 +46,7 @@ export const GET: APIRoute = async ({ site, url }) => {
 
   for (const route of staticRoutes()) {
     const isHome = route === "/";
-    const isIndex = route === "/blog" || route === "/ipo";
+    const isIndex = route === "/blog" || route === "/news" || route === "/ipo";
     entries.push({
       loc: isHome ? `${SITE}/` : `${SITE}${route}`,
       changefreq: isHome || isIndex ? "daily" : "monthly",
@@ -69,6 +69,21 @@ export const GET: APIRoute = async ({ site, url }) => {
     }
   } catch (error) {
     console.error("sitemap: could not load blog posts", error);
+  }
+
+  // News articles are SSR routes too, and enumerated the same guarded way.
+  try {
+    const articles = await getNewsList(200);
+    for (const article of articles) {
+      entries.push({
+        loc: `${SITE}/news/${article.slug}`,
+        lastmod: article.modifiedISO || article.publishedISO || undefined,
+        changefreq: "monthly",
+        priority: "0.8",
+      });
+    }
+  } catch (error) {
+    console.error("sitemap: could not load news articles", error);
   }
 
   // Seminars are deliberately NOT listed. Each one drops off the site once its

@@ -891,3 +891,167 @@ export async function createLead(params: CreateLeadParams): Promise<CreateLeadRe
     return { ok: false, message: "Could not reach the lead service." };
   }
 }
+
+/* ============================================================================
+   NEWS
+   ============================================================================
+   The News doctype mirrors Blog: same meta_tittle / meta_description / slug /
+   category1-3 / post_body / faq shape. It currently ships no image fields, so
+   `mainImage` / `thumbnailImage` come back empty and the pages fall back to the
+   generated cover (NewsCover.astro). Should main_image / thumbnail_image be
+   added to the doctype later, they are picked up here with no further change
+   and the pages show the real image instead.
+   ========================================================================== */
+
+export interface NewsDoc {
+  name: string | number;
+  meta_tittle?: string;
+  meta_title?: string;
+  meta_description?: string;
+  slug?: string;
+  post_body?: string;
+  post_summary?: string | null;
+  main_image?: string | null;
+  thumbnail_image?: string | null;
+  category1?: string | null;
+  category2?: string | null;
+  category3?: string | null;
+  faq?: BlogFaqRow[];
+  owner?: string;
+  creation?: string;
+  modified?: string;
+  docstatus?: number;
+}
+
+/**
+ * Same shape as FormattedBlog, except the two image fields are empty strings
+ * when the record carries no image - getFullImageUrl's stock placeholder would
+ * otherwise hide the fact that there is nothing to show.
+ */
+export type FormattedNews = FormattedBlog;
+
+export function formatNews(doc: NewsDoc): FormattedNews {
+  // formatBlog owns the title/slug/date/category/FAQ normalisation, and News
+  // shares every one of those fields, so reuse it rather than keeping a second
+  // copy of the same rules in step; only the images are resolved differently.
+  const news = formatBlog(doc as BlogDoc);
+  const main = (doc.main_image || "").trim();
+  const thumb = (doc.thumbnail_image || "").trim();
+
+  return {
+    ...news,
+    mainImage: main || thumb ? getFullImageUrl(main || thumb) : "",
+    thumbnailImage: thumb || main ? getFullImageUrl(thumb || main) : "",
+  };
+}
+
+function formatNewsListItem(doc: NewsDoc): FormattedNews {
+  return {
+    ...formatNews({ ...doc, post_body: undefined }),
+    readingMinutes: estimateReadingMinutes(doc.post_body),
+  };
+}
+
+/**
+ * Fetches the news collection, newest first, without post bodies.
+ * `withReadingTime` behaves as it does for getBlogPosts.
+ */
+export async function getNewsList(limit = 20, withReadingTime = false): Promise<FormattedNews[]> {
+  // The listing already needs the body for its reading time, so it asks for the
+  // whole document: that way image fields added to the doctype later are picked
+  // up without touching this list. Naming them explicitly would instead make
+  // every request fail with "unknown column" until they exist. Callers that
+  // only want addresses (the sitemap) keep the narrow, body-free field list.
+  const fields = withReadingTime
+    ? ["*"]
+    : [
+        "name",
+        "meta_tittle",
+        "meta_description",
+        "slug",
+        "category1",
+        "category2",
+        "category3",
+        "creation",
+        "modified",
+      ];
+
+  // 1. Try SDK
+  try {
+    const db = getFrappeInstance().db();
+    const docs = await db.getDocList<NewsDoc>("News", {
+      fields: fields as any,
+      limit,
+      orderBy: { field: "creation", order: "desc" },
+    });
+
+    if (docs && docs.length > 0) {
+      return docs.map(formatNewsListItem);
+    }
+  } catch (error) {
+    console.warn("Frappe SDK getNewsList failed, trying native fetch...", error);
+  }
+
+  // 2. Native fetch
+  try {
+    const url = `${getFrappeUrl()}/api/resource/News?fields=${encodeURIComponent(
+      JSON.stringify(fields),
+    )}&limit_page_length=${limit}&order_by=creation desc`;
+
+    const rows = await frappeResourceGet<NewsDoc[]>(url, "getNewsList");
+    if (Array.isArray(rows) && rows.length > 0) {
+      return rows.map(formatNewsListItem);
+    }
+  } catch (error) {
+    console.error("Native fetch getNewsList failed:", error);
+  }
+
+  return [];
+}
+
+/** GET /api/resource/News/<name> - the only call that returns the full body. */
+export async function getNewsDocByName(name: string | number): Promise<NewsDoc | null> {
+  const url = `${getFrappeUrl()}/api/resource/News/${encodeURIComponent(String(name))}`;
+  return frappeResourceGet<NewsDoc>(url, "getNewsDocByName");
+}
+
+/** Resolves a /news/<slug> URL segment to the News record id. */
+export async function getNewsNameBySlug(slug: string): Promise<string | null> {
+  const params = new URLSearchParams({
+    filters: JSON.stringify([["slug", "=", slug]]),
+    fields: JSON.stringify(["name"]),
+    limit_page_length: "1",
+  });
+
+  const url = `${getFrappeUrl()}/api/resource/News?${params.toString()}`;
+  const rows = await frappeResourceGet<Array<{ name: string | number }>>(url, "getNewsNameBySlug");
+
+  if (Array.isArray(rows) && rows.length > 0 && rows[0]?.name != null) {
+    return String(rows[0].name);
+  }
+  return null;
+}
+
+/** Fetches one news article for /news/<identifier>, by record id or slug. */
+export async function getNewsBySlugOrId(identifier: string): Promise<FormattedNews | null> {
+  const id = (identifier || "").trim();
+  if (!id) return null;
+
+  if (/^\d+$/.test(id)) {
+    const doc = await getNewsDocByName(id);
+    if (doc) return formatNews(doc);
+  }
+
+  const nameFromSlug = await getNewsNameBySlug(id);
+  if (nameFromSlug) {
+    const doc = await getNewsDocByName(nameFromSlug);
+    if (doc) return formatNews(doc);
+  }
+
+  if (!/^\d+$/.test(id)) {
+    const doc = await getNewsDocByName(id);
+    if (doc) return formatNews(doc);
+  }
+
+  return null;
+}

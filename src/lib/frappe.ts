@@ -542,12 +542,17 @@ export function formatPostBody(rawBody?: string): string {
     return `src="${fullUrl}"`;
   });
 
-  // 2. Convert any remaining unmasked raw /files/ or /private/files/ text paths into responsive <img> elements
+  // 2. Convert any remaining unmasked raw /files/ or /private/files/ text paths into responsive <img> elements.
+  //    Editors often paste the path with an invisible zero-width character in
+  //    front (e.g. "‍/files/MACD.png"). Left behind, it becomes a line of
+  //    its own above the image and adds a line-height of extra space, so it is
+  //    consumed together with the path. Only characters touching the path are
+  //    removed - ZWJ/ZWNJ are meaningful inside Indic-script text elsewhere.
   html = html.replace(
-    /(\/(?:private\/)?files\/[^\s<>"']+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>"']*)?)/gi,
-    (match) => {
-      const fullUrl = getFullImageUrl(match);
-      return `<img src="${fullUrl}" alt="Blog Image" class="w-full h-auto object-cover rounded-3xl my-6 border border-border-light shadow-lg" loading="lazy" />`;
+    /[\u200B-\u200D\uFEFF]*(\/(?:private\/)?files\/[^\s<>"']+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>"']*)?)[\u200B-\u200D\uFEFF]*/gi,
+    (_match, path) => {
+      const fullUrl = getFullImageUrl(path);
+      return `<img src="${fullUrl}" alt="Blog Image" class="w-full h-auto object-cover my-6 border border-border-light shadow-lg" loading="lazy" />`;
     },
   );
 

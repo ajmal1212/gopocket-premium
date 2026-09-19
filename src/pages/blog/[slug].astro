@@ -5,17 +5,29 @@ import Footer from "../../components/Footer.astro";
 import FinalCTA from "../../components/FinalCTA.astro";
 import FAQSection2 from "../../components/FAQSection2.astro";
 import ArticleCtaSidebar from "@/components/blog/ArticleCtaSidebar.astro";
+import LatestPosts from "@/components/blog/LatestPosts.astro";
 import ProseEnhancements from "@/components/blog/ProseEnhancements.astro";
-import { getBlogPostBySlugOrId } from "../../lib/frappe";
+import { getBlogPostBySlugOrId, getBlogPosts } from "../../lib/frappe";
 
 const { slug } = Astro.params;
 
-// Fetch individual blog post from Frappe with fields=["*"]
-const post = slug ? await getBlogPostBySlugOrId(slug) : null;
+// Sidebar shows this many recent posts. One extra is fetched because the post
+// being read may be among the newest and is filtered out; the list request is
+// capped at that count and carries no post bodies.
+const LATEST_COUNT = 4;
+
+// Both requests are independent, so they run side by side rather than adding
+// the list's round trip to every article's response time.
+const [post, recentPosts] = await Promise.all([
+  slug ? getBlogPostBySlugOrId(slug) : Promise.resolve(null),
+  getBlogPosts(LATEST_COUNT + 1),
+]);
 
 if (!post) {
   return Astro.redirect("/blog");
 }
+
+const latestPosts = recentPosts.filter((recent) => recent.slug !== post.slug).slice(0, LATEST_COUNT);
 
 // FAQSection2 renders its FAQs grouped under category tabs, but a post's FAQ
 // rows are a flat list, so present them as one group labelled with the post's
@@ -195,7 +207,9 @@ const faqSchema = post.faqs.length
             </div>
           </article>
 
-          <ArticleCtaSidebar tag="Blog" />
+          <ArticleCtaSidebar tag="Blog">
+            <LatestPosts posts={latestPosts} />
+          </ArticleCtaSidebar>
         </div>
       </div>
     </section>

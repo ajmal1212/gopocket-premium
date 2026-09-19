@@ -3553,7 +3553,7 @@ html {
 .ql-editor td img,
 .ql-editor th img {
   margin-block: 0.25rem !important;
-  border-radius: 0.5rem !important;
+  border-radius: 0 !important;
   border: 0 !important;
   box-shadow: none !important;
 }

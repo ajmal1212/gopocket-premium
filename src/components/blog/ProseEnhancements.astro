@@ -29,14 +29,16 @@
       return match;
     });
 
-    // 2. Convert unmasked raw /files/ text paths into responsive <img> elements
+    // 2. Convert unmasked raw /files/ text paths into responsive <img> elements,
+    //    consuming any zero-width character stuck to the path (see formatPostBody
+    //    in src/lib/frappe.ts for why).
     html = html.replace(
-      /(\/(?:private\/)?files\/[^\s<>"']+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>"']*)?)/gi,
-      (match) => {
-        const fullUrl = match.startsWith("http")
-          ? match
-          : `https://hrms.gopocket.in${match.startsWith("/") ? "" : "/"}${match}`;
-        return `<img src="${fullUrl}" alt="Blog Image" class="w-full h-auto object-cover rounded-3xl my-6 border border-border-light shadow-lg" loading="lazy" />`;
+      /[\u200B-\u200D\uFEFF]*(\/(?:private\/)?files\/[^\s<>"']+\.(?:jpg|jpeg|png|webp|gif|svg)(?:\?[^\s<>"']*)?)[\u200B-\u200D\uFEFF]*/gi,
+      (_match, path) => {
+        const fullUrl = path.startsWith("http")
+          ? path
+          : `https://hrms.gopocket.in${path.startsWith("/") ? "" : "/"}${path}`;
+        return `<img src="${fullUrl}" alt="Blog Image" class="w-full h-auto object-cover my-6 border border-border-light shadow-lg" loading="lazy" />`;
       },
     );
 
@@ -51,16 +53,7 @@
       if (src && (src.startsWith("/files/") || src.startsWith("/private/files/"))) {
         img.src = `https://hrms.gopocket.in${src}`;
       }
-      img.classList.add(
-        "w-full",
-        "h-auto",
-        "object-cover",
-        "rounded-3xl",
-        "my-6",
-        "border",
-        "border-border-light",
-        "shadow-lg",
-      );
+      img.classList.add("w-full", "h-auto", "object-cover", "my-6", "border", "border-border-light", "shadow-lg");
     });
   }
 

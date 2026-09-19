@@ -2,7 +2,8 @@
 /**
  * The sticky "Open Account" panel beside an article body, shared by the blog
  * and news article pages. `tag` is passed through to the lead form so the
- * source of a sign-up stays distinguishable between the two.
+ * source of a sign-up stays distinguishable between the two. Anything passed
+ * as children (e.g. a latest-posts list) renders below the panel.
  */
 interface Props {
   tag?: string;
@@ -12,7 +13,7 @@ interface Props {
 const { tag = "Blog", class: className = "" } = Astro.props;
 ---
 
-<aside class:list={["lg:col-span-3 lg:sticky lg:top-28 space-y-6 w-full max-w-[340px] mx-auto lg:mx-0", className]}>
+<aside class:list={["article-sidebar lg:col-span-3 space-y-6 w-full max-w-[340px] mx-auto lg:mx-0", className]}>
   <div class="relative overflow-hidden rounded-3xl bg-primary p-6 sm:p-7 shadow-lg shadow-primary/30 space-y-6">
     <!-- Texture: fine dot grid over two soft colour blooms -->
     <div
@@ -75,9 +76,22 @@ const { tag = "Blog", class: className = "" } = Astro.props;
       </div> -->
     </div>
   </div>
+
+  <slot />
 </aside>
 
 <style>
+  /* Sticky only where the whole sidebar fits in the viewport. With a list under
+     the panel it is taller than a short laptop screen, and a sticky element
+     taller than the viewport pins its top while its bottom stays out of reach
+     until the article ends - so on short screens it simply scrolls instead. */
+  @media (min-width: 1024px) and (min-height: 800px) {
+    .article-sidebar {
+      position: sticky;
+      top: 7rem;
+    }
+  }
+
   /* global.css styles bare h1-h6 unlayered (both colour and font-size), and
      unlayered CSS outranks every @layer -- Tailwind utilities included -- so
      `text-white` / `text-2xl` on this heading would silently lose. Set it here,

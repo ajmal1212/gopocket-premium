@@ -1,0 +1,61 @@
+---
+/**
+ * A compact "latest posts" list for an article sidebar: small thumbnail, title
+ * and date per row.
+ *
+ * `global.css` colours every bare <a> with an unlayered rule, which beats any
+ * colour utility placed on the link itself. The title colour and its hover
+ * state therefore live on an inner <span>, which the rule does not reach.
+ */
+import type { FormattedBlog } from "@/lib/frappe";
+
+type Post = Pick<FormattedBlog, "slug" | "title" | "thumbnailImage" | "formattedDate" | "publishedISO">;
+
+interface Props {
+  posts: Post[];
+  heading?: string;
+  /** Route prefix the post slugs hang off. */
+  basePath?: string;
+  class?: string;
+}
+
+const { posts, heading = "Latest Blogs", basePath = "/blog", class: className = "" } = Astro.props;
+---
+
+{
+  posts.length > 0 && (
+    <section
+      class:list={["bg-theme-light border-border-light rounded-3xl border p-5", className]}
+      aria-labelledby="latest-posts-heading"
+    >
+      <h2 id="latest-posts-heading" class="text-dark text-[19px]! leading-snug! font-bold tracking-tight">
+        {heading}
+      </h2>
+      <ul class="mt-4 flex flex-col gap-4">
+        {posts.map((post) => (
+          <li>
+            <a href={`${basePath}/${post.slug}`} class="group flex items-start gap-3">
+              <img
+                src={post.thumbnailImage}
+                alt=""
+                width={96}
+                height={76}
+                loading="lazy"
+                decoding="async"
+                class="border-border-light h-[76px] w-24 shrink-0 rounded-lg border object-cover"
+              />
+              <span class="flex min-w-0 flex-col gap-1">
+                <span class="text-dark group-hover:text-primary line-clamp-2 text-[15px] leading-snug font-semibold transition-colors">
+                  {post.title}
+                </span>
+                <time class="text-text-default text-[13px]" datetime={post.publishedISO || undefined}>
+                  {post.formattedDate}
+                </time>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}

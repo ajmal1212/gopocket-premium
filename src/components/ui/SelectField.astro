@@ -1,0 +1,380 @@
+---
+/**
+ * A styled dropdown with the chrome of the IPO dashboard's "IPO type" filter:
+ * a toggle carrying the current value and a chevron that flips open, over a
+ * rounded glass panel of pill options that fades in while its top margin
+ * tightens.
+ *
+ * A real <select> stays in the DOM, visually hidden, and remains the value's
+ * source of truth: existing page scripts keep reading `.value`, listening for
+ * `change`, and disabling or hiding individual <option>s, none of which a
+ * div-based widget would support. The visible control mirrors that select and
+ * writes back to it, dispatching `change` so those listeners still fire.
+ *
+ * Unknown props (`data-field`, `name`, …) are forwarded to the select, so a
+ * caller wires it up exactly as it would a plain one.
+ */
+import ChevronDown from "@lucide/astro/icons/chevron-down";
+
+export interface SelectOption {
+  value: string;
+  label: string;
+  disabled?: boolean;
+}
+
+interface Props {
+  /** Lands on the visible control, so a <label for> points at what is clicked. */
+  id: string;
+  options: SelectOption[];
+  /** Selected value; falls back to the first option. */
+  value?: string;
+  /** id of the element naming this control, as `aria-labelledby` would take. */
+  labelledby?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { id, options, value, labelledby, class: className = "", ...rest } = Astro.props;
+
+const selected = options.find((option) => option.value === value) ?? options[0];
+const valueId = `${id}-value`;
+---
+
+<div class:list={["select-field", className]} data-select-field>
+  {
+    /* aria-hidden + tabindex="-1": the button below is the control users reach;
+      leaving this focusable would put two stops on one field. */
+  }
+  <select class="select-field-native" tabindex="-1" aria-hidden="true" {...rest}>
+    {
+      options.map((option) => (
+        <option value={option.value} selected={option.value === selected?.value} disabled={option.disabled}>
+          {option.label}
+        </option>
+      ))
+    }
+  </select>
+
+  <button
+    type="button"
+    id={id}
+    class="select-field-toggle"
+    data-select-field-toggle
+    aria-haspopup="menu"
+    aria-expanded="false"
+    aria-labelledby={labelledby ? `${labelledby} ${valueId}` : undefined}
+  >
+    <span id={valueId} data-select-field-value>{selected?.label ?? ""}</span>
+    <ChevronDown stroke-width={2} aria-hidden="true" />
+  </button>
+
+  <ul class="select-field-menu" role="menu" aria-labelledby={labelledby ?? id}>
+    {
+      options.map((option) => (
+        // role="none" so the <li> does not sit between role="menu" and its
+        // items, which would break the ownership relationship.
+        <li role="none">
+          <button
+            type="button"
+            role="menuitemradio"
+            aria-checked={option.value === selected?.value ? "true" : "false"}
+            class="select-field-option"
+            data-select-field-option={option.value}
+            hidden={option.disabled}
+          >
+            {option.label}
+          </button>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style>
+  /* Chrome lifted from the IPO dashboard's filter, which in turn rebuilds the
+     header's Pages menu from the shared surface tokens. Those tokens carry both
+     light and dark values, so one set of rules covers both themes. */
+  .select-field {
+    position: relative;
+    /* Its own stacking context, so the open panel clears whatever follows it
+       in the form regardless of document order. */
+    z-index: 30;
+  }
+
+  .select-field-native {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .select-field-toggle {
+    display: flex;
+    width: 100%;
+    height: 46px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+    border-radius: var(--radius-xl);
+    background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+    padding: 0 1rem;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  @media (min-width: 640px) {
+    .select-field-toggle {
+      font-size: 1.125rem;
+    }
+  }
+
+  :global(html.dark) .select-field-toggle {
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  }
+
+  .select-field-toggle:hover,
+  .select-field.is-open .select-field-toggle {
+    border-color: var(--color-primary);
+  }
+
+  .select-field-toggle:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* Matched as `svg` rather than by class: the chevron is an Astro component,
+     and a scoped class selector is not guaranteed to reach inside one. There is
+     exactly one svg in the toggle. */
+  .select-field-toggle :global(svg) {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+  }
+
+  .select-field.is-open .select-field-toggle :global(svg) {
+    transform: rotate(180deg);
+  }
+
+  .select-field-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    /* Inside .select-field's own stacking context, so any positive value works. */
+    z-index: 1;
+    /* Closed sits lower and slides up as it fades in, as the header's does. */
+    margin-top: 1rem;
+    max-height: 18rem;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0.25rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl);
+    /* The mega-menu glass: 55% white rather than 70%, which under a heavy blur
+       reads as milk and hides the page instead of frosting it. */
+    background-color: rgba(255, 255, 255, 0.55);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    box-shadow: 0 24px 48px -20px var(--shadow-strong);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.2s ease,
+      margin-top 0.2s ease;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .select-field-menu {
+      background-color: color-mix(in oklab, #ffffff 55%, transparent);
+    }
+  }
+
+  /* Dark mode drops to saturate(140%), as the mega-menus do - 180% over a dark
+     ground pushes whatever is behind the panel into neon. */
+  :global(html.dark) .select-field-menu {
+    background-color: var(--glass);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    backdrop-filter: blur(24px) saturate(140%);
+  }
+
+  /* Without blur support the translucent fill would just look washed out. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .select-field-menu {
+      background-color: rgba(255, 255, 255, 0.97);
+    }
+
+    :global(html.dark) .select-field-menu {
+      background-color: var(--surface-1);
+    }
+  }
+
+  .select-field.is-open .select-field-menu {
+    margin-top: 0.5rem;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .select-field-option {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-radius: 9999px;
+    background: transparent;
+    padding: 0.5rem 1rem;
+    text-align: left;
+    font-size: 0.875rem;
+    color: var(--fg);
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  @media (hover: hover) {
+    .select-field-option:hover {
+      background: var(--surface-3);
+      color: var(--color-primary);
+    }
+  }
+
+  .select-field-option:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+  }
+
+  .select-field-option[aria-checked="true"] {
+    background: var(--surface-3);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .select-field-toggle,
+    .select-field-toggle :global(svg),
+    .select-field-menu,
+    .select-field-option {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * One handler for every SelectField on the page. Astro bundles a component's
+   * script once no matter how many instances render, so this runs a single time.
+   */
+  function setupSelectFields() {
+    document.querySelectorAll<HTMLElement>("[data-select-field]").forEach((root) => {
+      if (root.dataset.selectFieldReady === "true") return;
+      root.dataset.selectFieldReady = "true";
+
+      const native = root.querySelector<HTMLSelectElement>("select");
+      const toggle = root.querySelector<HTMLButtonElement>("[data-select-field-toggle]");
+      const valueLabel = root.querySelector<HTMLElement>("[data-select-field-value]");
+      const options = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-select-field-option]"));
+      if (!native || !toggle) return;
+
+      function setOpen(open: boolean) {
+        root.classList.toggle("is-open", open);
+        toggle!.setAttribute("aria-expanded", String(open));
+        if (open) {
+          const checked = options.find((option) => option.getAttribute("aria-checked") === "true" && !option.hidden);
+          (checked ?? options.find((option) => !option.hidden))?.focus();
+        }
+      }
+
+      /** Mirrors the native select: current value, and which options it offers. */
+      function syncFromNative() {
+        options.forEach((option) => {
+          const value = option.dataset.selectFieldOption ?? "";
+          const source = Array.from(native!.options).find((entry) => entry.value === value);
+          option.hidden = !source || source.hidden || source.disabled;
+          option.setAttribute("aria-checked", String(value === native!.value));
+        });
+
+        const current = Array.from(native!.options).find((entry) => entry.value === native!.value);
+        if (valueLabel && current) valueLabel.textContent = current.text;
+      }
+
+      toggle.addEventListener("click", (event) => {
+        event.stopPropagation();
+        setOpen(toggle.getAttribute("aria-expanded") !== "true");
+      });
+
+      options.forEach((option) => {
+        option.addEventListener("click", () => {
+          native.value = option.dataset.selectFieldOption ?? "";
+          // The page's own listeners are bound to the select, not to this
+          // widget, so the change has to be announced the usual way.
+          native.dispatchEvent(new Event("change", { bubbles: true }));
+          syncFromNative();
+          setOpen(false);
+          toggle.focus();
+        });
+      });
+
+      // Roving focus through the open menu, as a menu role promises.
+      root.addEventListener("keydown", (event) => {
+        const visible = options.filter((option) => !option.hidden);
+        const index = visible.indexOf(document.activeElement as HTMLButtonElement);
+
+        if (event.key === "Escape") {
+          setOpen(false);
+          toggle.focus();
+          return;
+        }
+
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          event.preventDefault();
+          if (toggle.getAttribute("aria-expanded") !== "true") {
+            setOpen(true);
+            return;
+          }
+          const step = event.key === "ArrowDown" ? 1 : -1;
+          const next = visible[(Math.max(index, 0) + step + visible.length) % visible.length];
+          next?.focus();
+        }
+
+        if (event.key === "Home" || event.key === "End") {
+          if (index === -1) return;
+          event.preventDefault();
+          (event.key === "Home" ? visible[0] : visible[visible.length - 1])?.focus();
+        }
+      });
+
+      // A page script may change the selection or narrow the list itself; watch
+      // the select rather than assuming this widget made every change.
+      native.addEventListener("change", syncFromNative);
+      new MutationObserver(syncFromNative).observe(native, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["hidden", "disabled", "selected"],
+      });
+
+      document.addEventListener("click", (event) => {
+        if (!root.contains(event.target as Node)) setOpen(false);
+      });
+
+      syncFromNative();
+    });
+  }
+
+  if (document.readyState !== "loading") {
+    setupSelectFields();
+  } else {
+    document.addEventListener("DOMContentLoaded", setupSelectFields);
+  }
+</script>

@@ -1,0 +1,227 @@
+---
+/**
+ * The whole of /markets/top-gainers and /markets/top-losers, which differ only
+ * in which list they read and their copy (movers-data.ts).
+ *
+ * The index tabs are plain links carrying ?index=, not a script: each is a
+ * server render of one group, so the page ships no JS and every tab is a real
+ * address. All of them canonicalise to the bare path - they are one page
+ * filtered, not seven pages competing for the same query.
+ */
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import FAQSection from "@/components/FAQSection.astro";
+import OpenAccountCard from "@/components/OpenAccountCard.astro";
+import MoversTable from "@/components/markets/MoversTable.astro";
+import { MOVERS_COPY } from "@/components/markets/movers-data";
+import { fetchMovers, groupByParam, MOVER_GROUPS, type MoverKind } from "@/lib/market-movers";
+import { price } from "@/lib/feed/format";
+import TrendingUp from "@lucide/astro/icons/trending-up";
+import TrendingDown from "@lucide/astro/icons/trending-down";
+
+interface Props {
+  kind: MoverKind;
+}
+
+const { kind } = Astro.props;
+const copy = MOVERS_COPY[kind];
+const group = groupByParam(Astro.url.searchParams.get("index"));
+
+const groups = await fetchMovers(kind);
+const list = groups?.[group.id] ?? null;
+const rows = list?.rows ?? [];
+const leaders = rows.slice(0, 3);
+
+const hrefFor = (path: string, param: string) => (param === MOVER_GROUPS[0].param ? path : `${path}?index=${param}`);
+
+const signed = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
+const up = kind === "gainers";
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: copy.faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: { "@type": "Answer", text: faq.answer },
+  })),
+};
+---
+
+<Layout title={copy.title} description={copy.description} canonical={copy.path}>
+  <Header currentPath={copy.path} />
+
+  <main class="mx-auto max-w-7xl px-4 py-10 md:px-8 lg:py-14">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10">
+      <div class="flex min-w-0 flex-col gap-8">
+        <header class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <h1 class="text-h3 text-dark font-semibold tracking-tight lg:text-h2">{copy.heading}</h1>
+
+          <nav
+            aria-label="Market movers"
+            class="border-border-light inline-flex shrink-0 self-start rounded-full md:self-center border bg-white p-1 dark:bg-transparent"
+          >
+            {
+              (["gainers", "losers"] as const).map((side) => {
+                const active = side === kind;
+                const Icon = side === "gainers" ? TrendingUp : TrendingDown;
+                return (
+                  <a
+                    href={hrefFor(MOVERS_COPY[side].path, group.param)}
+                    aria-current={active ? "page" : undefined}
+                    class:list={[
+                      "inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                      active
+                        ? side === "gainers"
+                          ? "bg-emerald-600 text-white!"
+                          : "bg-red-600 text-white!"
+                        : "text-text-default hover:text-dark",
+                    ]}
+                  >
+                    <Icon class="h-4 w-4" stroke-width={1.8} aria-hidden="true" />
+                    {MOVERS_COPY[side].label}
+                  </a>
+                );
+              })
+            }
+          </nav>
+        </header>
+
+        {
+          leaders.length > 0 && (
+            <ul class="hidden gap-3 sm:grid sm:grid-cols-3" aria-label={`Biggest ${kind} in ${group.label}`}>
+              {leaders.map((row) => (
+                <li class="border-border-light relative flex flex-col gap-3 rounded-2xl border bg-white p-4 dark:bg-transparent">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      {row.href ? (
+                        <a
+                          href={row.href}
+                          class="text-dark hover:text-primary font-semibold transition-colors after:absolute after:inset-0"
+                        >
+                          {row.symbol}
+                        </a>
+                      ) : (
+                        <span class="text-dark font-semibold">{row.symbol}</span>
+                      )}
+                      <p class="text-text-default truncate text-xs" title={row.name}>
+                        {row.name}
+                      </p>
+                    </div>
+                    <span
+                      class:list={[
+                        "shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums",
+                        up
+                          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+                          : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400",
+                      ]}
+                    >
+                      {signed(row.percent)}%
+                    </span>
+                  </div>
+                  <p class="flex items-baseline justify-between gap-2">
+                    <span class="text-dark text-xl font-semibold tabular-nums">₹{price(row.ltp)}</span>
+                    <span
+                      class:list={[
+                        "text-xs tabular-nums",
+                        up ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400",
+                      ]}
+                    >
+                      {signed(row.change)}
+                    </span>
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+
+        <section class="flex flex-col gap-4" aria-labelledby="movers-table-heading">
+          <h2 id="movers-table-heading" class="sr-only">
+            {copy.label} in {group.label}
+          </h2>
+
+          {
+            /*
+              Scrolls sideways on a phone rather than wrapping, so the tabs stay
+              on one line. The negative margin lets it run to the screen edge.
+            */
+          }
+          <nav aria-label="Filter by index" class="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
+            <ul class="flex w-max gap-2">
+              {
+                MOVER_GROUPS.map((option) => {
+                  const active = option.id === group.id;
+                  return (
+                    <li>
+                      <a
+                        href={hrefFor(copy.path, option.param)}
+                        aria-current={active ? "page" : undefined}
+                        class:list={[
+                          "inline-block rounded-full border px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
+                          active
+                            ? "border-primary bg-primary text-white!"
+                            : "border-border-light text-text-default hover:border-primary hover:text-primary",
+                        ]}
+                      >
+                        {option.label}
+                      </a>
+                    </li>
+                  );
+                })
+              }
+            </ul>
+          </nav>
+
+          {
+            rows.length > 0 ? (
+              <MoversTable
+                rows={rows}
+                caption={`${copy.label} in ${group.label}, ranked by % change`}
+                changeLabel={kind === "gainers" ? "Gain" : "Loss"}
+              />
+            ) : (
+              <div class="border-border-light text-text-default rounded-2xl border px-6 py-12 text-center text-sm">
+                {groups
+                  ? `No ${kind} in ${group.label} right now.`
+                  : "Market data is unavailable right now. Please try again in a minute."}
+              </div>
+            )
+          }
+        </section>
+
+        <section class="flex flex-col gap-3">
+          <h2 class="text-h5! text-dark font-semibold">About {copy.label.toLowerCase()}</h2>
+          {copy.about.map((paragraph) => <p class="text-text-default leading-relaxed">{paragraph}</p>)}
+        </section>
+
+        <p class="text-text-default/75 text-xs leading-relaxed">
+          Prices are sourced from NSE and shown for information only. They may be delayed and should not be relied on
+          for trading decisions. Investments in securities are subject to market risk; read all related documents
+          carefully before investing.
+        </p>
+      </div>
+
+      <aside class="lg:sticky lg:top-28 lg:self-start">
+        <OpenAccountCard
+          heading="Start investing with GoPocket"
+          description="Open a free demat account in minutes and trade today's movers the moment you spot them."
+        >
+          Ready to trade<br />the movers?
+        </OpenAccountCard>
+      </aside>
+    </div>
+  </main>
+
+  <FAQSection
+    eyebrow={`${copy.label} FAQs`}
+    title={`${copy.label} FAQs`}
+    description={`Common questions about today's ${copy.label.toLowerCase()} on the NSE.`}
+    faqs={copy.faqs}
+  />
+
+  <Footer />
+
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+</Layout>

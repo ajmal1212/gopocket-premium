@@ -4,6 +4,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import FAQSection2 from "../components/FAQSection2.astro";
 import CalculatorSidebar from "../components/calculators/CalculatorSidebar.astro";
+import SelectField from "@/components/ui/SelectField.astro";
 import {
   commodityFutures,
   commodityLotSizes,
@@ -301,20 +302,20 @@ const fieldInputClass =
                     >
                       {segment.defaults.commodity && (
                         <div class="space-y-2">
-                          <label for={`${segment.id}-commodity`} class="text-sm sm:text-base font-semibold text-dark">
+                          <label
+                            id={`${segment.id}-commodity-label`}
+                            for={`${segment.id}-commodity`}
+                            class="text-sm sm:text-base font-semibold text-dark"
+                          >
                             Commodity
                           </label>
-                          <select
+                          <SelectField
                             id={`${segment.id}-commodity`}
+                            labelledby={`${segment.id}-commodity-label`}
                             data-field="commodity"
-                            class="h-[46px] w-full rounded-xl border border-primary/20 bg-primary/5 px-4 font-extrabold text-primary text-base sm:text-lg focus:outline-none focus:border-primary dark:bg-primary/10"
-                          >
-                            {commodities.map((name) => (
-                              <option value={name} selected={name === segment.defaults.commodity}>
-                                {name}
-                              </option>
-                            ))}
-                          </select>
+                            value={segment.defaults.commodity}
+                            options={commodities.map((name) => ({ value: name, label: name }))}
+                          />
                         </div>
                       )}
                       <div class="space-y-2">

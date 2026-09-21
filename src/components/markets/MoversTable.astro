@@ -1,0 +1,78 @@
+---
+import type { Mover } from "@/lib/market-movers";
+import { price } from "@/lib/feed/format";
+
+interface Props {
+  rows: Mover[];
+  caption: string;
+  /** Header for the rupee-change column: "Gain" on the gainers page, "Loss" on the losers. */
+  changeLabel: string;
+}
+
+const { rows, caption, changeLabel } = Astro.props;
+
+const signed = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
+const tone = (value: number) =>
+  value >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400";
+const pill = (value: number) =>
+  value >= 0
+    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+    : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400";
+
+// Header and body share these so a column hidden on a phone hides both.
+const md = "hidden md:table-cell";
+---
+
+<div class="border-border-light overflow-x-auto rounded-2xl border bg-white dark:bg-transparent">
+  <table class="w-full text-sm">
+    <caption class="sr-only">{caption}</caption>
+    <thead class="bg-theme-light text-text-default text-xs font-medium tracking-wide uppercase dark:bg-white/5">
+      <tr>
+        <th scope="col" class="hidden w-10 pr-1 pl-4 sm:table-cell py-3 text-left font-medium">#</th>
+        <th scope="col" class="px-3 py-3 text-left font-medium">Company</th>
+        <th scope="col" class="px-3 py-3 text-right font-medium">LTP (₹)</th>
+        <th scope="col" class="px-3 py-3 text-right font-medium" whitespace-nowrap">Change (%)</th>
+        <th scope="col" class:list={[md, "px-3 py-3 text-right font-medium whitespace-nowrap"]}>{changeLabel} (₹)</th>
+        <th scope="col" class:list={[md, "px-3 py-3 text-right font-medium"]}>Prev close</th>
+      </tr>
+    </thead>
+    <tbody class="divide-border-light divide-y">
+      {
+        rows.map((row, index) => (
+          <tr class="hover:bg-theme-light/60 transition-colors dark:hover:bg-white/5">
+            <td class="text-text-default/75 hidden pr-1 pl-4 sm:table-cell py-3 tabular-nums">{index + 1}</td>
+            <th scope="row" class="max-w-[160px] px-3 py-3 text-left font-normal md:max-w-[200px]">
+              {row.href ? (
+                <a href={row.href} class="text-dark hover:text-primary font-semibold transition-colors">
+                  {row.symbol}
+                </a>
+              ) : (
+                <span class="text-dark font-semibold">{row.symbol}</span>
+              )}
+              {row.name !== row.symbol && (
+                <span class="text-text-default block truncate text-xs" title={row.name}>
+                  {row.name}
+                </span>
+              )}
+            </th>
+            <td class="text-dark px-3 py-3 text-right font-medium tabular-nums">{price(row.ltp)}</td>
+            <td class="px-3 py-3 text-right whitespace-nowrap">
+              <span
+                class:list={[
+                  "inline-block rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums",
+                  pill(row.percent),
+                ]}
+              >
+                {signed(row.percent)}%
+              </span>
+            </td>
+            <td class:list={[md, "px-3 py-3 text-right font-medium tabular-nums", tone(row.change)]}>
+              {signed(row.change)}
+            </td>
+            <td class:list={[md, "text-text-default px-3 py-3 text-right tabular-nums"]}>{price(row.prevClose)}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>

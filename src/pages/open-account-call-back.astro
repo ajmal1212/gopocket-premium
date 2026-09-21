@@ -9,6 +9,7 @@ import PricingSection from "../components/PricingSection.astro";
 import TestimonialsSection from "../components/TestimonialsSection.astro";
 import FinalCTA from "../components/FinalCTA.astro";
 import LeadCapture from "../components/LeadCapture.astro";
+import Testimonials2 from "@/components/Testimonials2.astro";
 
 // Optional query parameters: src (default 'Website'), tag (default 'Menu').
 // `refer` is a partner code and has no default - it is passed through to Frappe
@@ -148,7 +149,7 @@ const referParam = Astro.url.searchParams.get("refer") || "";
     <TradingJourney />
     <SpecialBenefits />
     <PricingSection />
-    <TestimonialsSection />
+    <Testimonials2 />
     <FinalCTA />
   </main>
 

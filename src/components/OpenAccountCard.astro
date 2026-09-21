@@ -1,0 +1,45 @@
+---
+/**
+ * The sidebar conversion card on the market pages - a stock page and the
+ * top gainers / losers lists. The default slot is the card's large line.
+ */
+import Button from "@/components/Button.astro";
+import TrendingUp from "@lucide/astro/icons/trending-up";
+
+interface Props {
+  /** The card's <h2>, kept for the document outline and visually hidden. */
+  heading: string;
+  description: string;
+}
+
+const { heading, description } = Astro.props;
+---
+
+<div
+  class="border-border-light flex flex-col items-center gap-4 rounded-2xl border bg-white p-6 text-center dark:bg-transparent"
+>
+  <div
+    class="bg-theme-light flex h-14 w-14 items-center justify-center rounded-full dark:bg-white/5"
+    aria-hidden="true"
+  >
+    <TrendingUp class="text-primary h-7 w-7" stroke-width={1.6} />
+  </div>
+
+  <div class="flex flex-col gap-2">
+    {
+      /*
+        The visible line is a <p>, not the <h2>. global.css styles bare h2
+        unlayered, so it outranks any text-* utility in @layer utilities and
+        the card heading rendered at full section size, wrapping across three
+        lines. The heading stays for the document outline, visually hidden.
+      */
+    }
+    <h2 class="sr-only">{heading}</h2>
+    <p class="text-dark pb-4 text-3xl font-bold"><slot /></p>
+    <p class="text-text-default text-sm leading-relaxed">{description}</p>
+  </div>
+
+  <Button label="Open free account" href="/open-account-call-back" class="w-full" />
+
+  <p class="text-text-default/75 text-xs">Flat ₹20 per order. No hidden charges.</p>
+</div>

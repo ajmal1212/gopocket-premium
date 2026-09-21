@@ -97,6 +97,17 @@ function slugFor(exchange: string, symbol: string, name: string): string {
   return slugify(name);
 }
 
+/**
+ * The /stocks page and display name for an NSE symbol, from the bundled company
+ * list alone - no Contract Master lookup. For pages that list many symbols at
+ * once (the market movers), where a request per row is out of the question.
+ */
+export function nseCompany(symbol: string): { slug: string; name: string } | null {
+  const slug = companies().slugBySymbol.get(symbol);
+  const name = (NSE_COMPANIES as Record<string, string>)[symbol];
+  return slug && name ? { slug, name } : null;
+}
+
 /** The listing a company-name address stands for, or null for any other address. */
 function companyListing(slug: string): { exchange: "NSE" | "BSE"; symbol: string } | null {
   const { symbolBySlug } = companies();

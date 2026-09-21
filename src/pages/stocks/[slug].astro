@@ -1,6 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import Button from "@/components/Button.astro";
+import OpenAccountCard from "@/components/OpenAccountCard.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import FAQSection from "@/components/FAQSection.astro";
@@ -19,7 +19,6 @@ import { fetchQuote } from "@/lib/feed/quote";
 import { fetchCandles, fetchLatestSession, rangeById, sessionWindow } from "@/lib/feed/candles";
 import PriceChart from "@/components/stocks/PriceChart.astro";
 import StockOverview from "@/components/stocks/StockOverview.astro";
-import TrendingUp from "@lucide/astro/icons/trending-up";
 
 const { slug } = Astro.params;
 
@@ -239,39 +238,12 @@ const faqSchema =
       */
       }
       <aside class="lg:sticky lg:top-28 lg:self-start">
-        <div
-          class="border-border-light flex flex-col items-center gap-4 rounded-2xl border bg-white p-6 text-center dark:bg-transparent"
+        <OpenAccountCard
+          heading={`Invest in ${contract.symbol}`}
+          description={`Open a free demat account in minutes and start investing in ${displayName}.`}
         >
-          <div
-            class="bg-theme-light flex h-14 w-14 items-center justify-center rounded-full dark:bg-white/5"
-            aria-hidden="true"
-          >
-            <TrendingUp class="text-primary h-7 w-7" stroke-width={1.6} />
-          </div>
-
-          <div class="flex flex-col gap-2">
-            {
-              /*
-              The visible line is a <p>, not the <h2>. global.css styles bare
-              h2 unlayered, so it outranks any text-* utility in @layer
-              utilities and the card heading rendered at full section size,
-              wrapping across three lines. The heading stays for the document
-              outline, visually hidden.
-            */
-            }
-            <h2 class="sr-only">Invest in {contract.symbol}</h2>
-            <p class="text-dark pb-4 text-3xl font-bold">
-              Want to invest in<br />{contract.symbol}?
-            </p>
-            <p class="text-text-default text-sm leading-relaxed">
-              Open a free demat account in minutes and start investing in {displayName}.
-            </p>
-          </div>
-
-          <Button label="Open free account" href="/open-account-call-back" class="w-full" />
-
-          <p class="text-text-default/75 text-xs">Flat ₹20 per order. No hidden charges.</p>
-        </div>
+          Want to invest in<br />{contract.symbol}?
+        </OpenAccountCard>
       </aside>
     </div>
   </main>

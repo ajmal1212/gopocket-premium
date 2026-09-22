@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { addSeminarRegistration } from "../../lib/frappe";
+import { verifyTurnstile } from "../../lib/turnstile";
 
 /**
  * Seminar registration runs through this endpoint rather than calling Frappe
@@ -16,6 +17,7 @@ interface Payload {
   mobile?: unknown;
   city?: unknown;
   clientCode?: unknown;
+  turnstileToken?: unknown;
 }
 
 const asText = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
@@ -31,7 +33,7 @@ function invalid(message: string): Response {
   return json({ ok: false, title: "Check your details", message }, 400);
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   let payload: Payload;
   try {
     payload = (await request.json()) as Payload;
@@ -69,6 +71,15 @@ export const POST: APIRoute = async ({ request }) => {
   if (!fullName) return invalid("Please enter your full name.");
   if (!/^[0-9]{10}$/.test(mobile)) return invalid("Please enter a valid 10-digit mobile number.");
   if (!city) return invalid("Please enter your city.");
+
+  // After the field checks, so a typo does not spend the single-use token.
+  const check = await verifyTurnstile({
+    token: payload.turnstileToken,
+    action: "seminar-register",
+    request,
+    env: locals.runtime?.env,
+  });
+  if (!check.ok) return json({ ok: false, title: check.title, message: check.message }, check.status);
 
   const result = await addSeminarRegistration(seminar, {
     mobile_number: mobile,

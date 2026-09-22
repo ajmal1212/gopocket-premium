@@ -1,0 +1,23 @@
+---
+/**
+ * Slot for a Cloudflare Turnstile check. Place it inside a <form>, call
+ * mountTurnstile(form) from @/lib/turnstile-client in the page script, and
+ * verify the token in the endpoint with verifyTurnstile() from @/lib/turnstile.
+ * `action` must be the same string in this component and in the endpoint.
+ *
+ * The site key is read from the Worker environment per request, so it can be
+ * rotated without a rebuild. min-h reserves the widget's 65px before the
+ * script renders it, so the form below does not jump.
+ */
+interface Props {
+  action: string;
+  class?: string;
+}
+
+const { action, class: className = "" } = Astro.props;
+const siteKey = Astro.locals.runtime?.env?.TURNSTILE_SITE_KEY ?? "";
+
+if (!siteKey) console.error("TURNSTILE_SITE_KEY is not set; the Turnstile widget will not render.");
+---
+
+<div data-turnstile data-sitekey={siteKey} data-action={action} class:list={["min-h-[65px]", className]}></div>

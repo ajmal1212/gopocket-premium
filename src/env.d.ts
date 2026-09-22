@@ -4,3 +4,16 @@
 declare module "@n8n/chat" {
   export function createChat(options: Record<string, unknown>): unknown;
 }
+
+// Bindings the Worker receives at request time: "vars" from wrangler.json,
+// secrets from `wrangler secret put`, and .dev.vars under `astro dev`.
+interface Env {
+  TURNSTILE_SITE_KEY?: string;
+  TURNSTILE_SECRET_KEY?: string;
+}
+
+type Runtime = import("@astrojs/cloudflare").Runtime<Env>;
+
+declare namespace App {
+  interface Locals extends Runtime {}
+}

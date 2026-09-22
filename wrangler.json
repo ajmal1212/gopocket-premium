@@ -10,7 +10,8 @@
     "binding": "ASSETS"
   },
   "vars": {
-    "FRAPPE_URL": "https://pulse.gopocket.in"
+    "FRAPPE_URL": "https://pulse.gopocket.in",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAE_veyiniGGSPHaY"
   },
   "observability": {
     "enabled": true

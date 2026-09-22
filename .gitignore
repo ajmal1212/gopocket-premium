@@ -16,6 +16,7 @@ pnpm-debug.log*
 .env.development
 .env.local
 .env.*.local
+.dev.vars
 
 # astro temporary files
 .astro/

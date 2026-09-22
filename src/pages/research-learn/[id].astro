@@ -2,6 +2,7 @@
 import Layout from "../../layouts/Layout.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
+import TurnstileWidget from "../../components/TurnstileWidget.astro";
 import { getSeminarBySlugOrId } from "../../lib/frappe";
 
 const { id } = Astro.params;
@@ -284,36 +285,8 @@ const displayDate = webinar.date_and_time || webinar.formattedDate;
               </div>
             </div>
 
-            <!-- Field 5: Clean Custom reCAPTCHA Component -->
-            <div
-              class="p-3.5 bg-white border border-border-light rounded-2xl flex items-center justify-between shadow-2xs"
-            >
-              <label class="flex items-center gap-3 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  required
-                  class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary accent-purple-600 cursor-pointer"
-                />
-                <span class="text-sm font-medium text-dark">I'm not a robot</span>
-              </label>
-              <div class="flex items-center gap-1.5 text-gray-400 text-xs font-mono">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="text-primary"
-                >
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
-                <span>reCAPTCHA</span>
-              </div>
-            </div>
+            <!-- Field 5: Cloudflare Turnstile bot check -->
+            <TurnstileWidget action="seminar-register" />
 
             <!-- Submit Button (Website UI/UX Flip CTA Button) -->
             <button
@@ -357,10 +330,13 @@ const displayDate = webinar.date_and_time || webinar.formattedDate;
 
 <script>
   import { toast } from "@/lib/toast";
+  import { mountTurnstile } from "@/lib/turnstile-client";
 
   document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("webinar-register-form") as HTMLFormElement | null;
     if (!form) return;
+
+    const captcha = mountTurnstile(form);
 
     const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
     const buttonLabel = submitButton ? submitButton.querySelector(".text-flip-inner") : null;
@@ -389,6 +365,16 @@ const displayDate = webinar.date_and_time || webinar.formattedDate;
       event.preventDefault();
       if (!form.reportValidity()) return;
 
+      const turnstileToken = captcha.getToken();
+      if (!turnstileToken) {
+        toast({
+          title: "Verification needed",
+          message: "Please wait for the verification check to finish, then try again.",
+          variant: "error",
+        });
+        return;
+      }
+
       const data = new FormData(form);
       const payload = {
         seminar: data.get("seminar") || "",
@@ -396,6 +382,7 @@ const displayDate = webinar.date_and_time || webinar.formattedDate;
         mobile: data.get("mobile") || "",
         city: data.get("city") || "",
         clientCode: data.get("clientCode") || "",
+        turnstileToken,
       };
 
       setBusy(true);
@@ -423,6 +410,8 @@ const displayDate = webinar.date_and_time || webinar.formattedDate;
       } catch (error) {
         toast({ title: "Network error", message: "Please check your connection and try again.", variant: "error" });
       } finally {
+        // The token is spent whether or not the registration went through.
+        captcha.reset();
         setBusy(false);
       }
     });

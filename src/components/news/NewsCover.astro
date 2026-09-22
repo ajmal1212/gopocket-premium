@@ -1,9 +1,8 @@
 ---
 /**
- * Cover art for a news article.
+ * Cover art for a news article or blog post that has no image of its own.
  *
- * The News doctype carries no image fields, so instead of shipping a stock
- * placeholder this draws a branded panel: a tinted gradient behind the
+ * Instead of shipping a stock placeholder this draws a branded panel: a tinted gradient behind the
  * GoPocket mark. It carries no headline, because one already sits directly
  * below it wherever it is used. A record that does have an image never reaches
  * this component - the caller renders the image instead.

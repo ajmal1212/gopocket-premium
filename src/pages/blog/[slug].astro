@@ -6,6 +6,7 @@ import FinalCTA from "../../components/FinalCTA.astro";
 import FAQSection2 from "../../components/FAQSection2.astro";
 import ArticleCtaSidebar from "@/components/blog/ArticleCtaSidebar.astro";
 import LatestPosts from "@/components/blog/LatestPosts.astro";
+import NewsCover from "@/components/news/NewsCover.astro";
 import ProseEnhancements from "@/components/blog/ProseEnhancements.astro";
 import { getBlogPostBySlugOrId, getBlogPosts } from "../../lib/frappe";
 
@@ -100,7 +101,7 @@ const faqSchema = post.faqs.length
   title={`${post.title} - GoPocket Blog`}
   description={post.description || post.summary}
   canonical={postUrl}
-  ogImage={post.thumbnailImage}
+  ogImage={post.thumbnailImage || undefined}
   ogImageAlt={post.title}
   ogType="article"
 >
@@ -150,7 +151,7 @@ const faqSchema = post.faqs.length
 
         <!-- Main Featured Image -->
         {
-          post.mainImage && (
+          post.mainImage ? (
             <div class="max-w-7xl mx-auto mt-8 md:mt-12 rounded-3xl overflow-hidden border border-border-light shadow-lg aspect-[1150/500] w-full bg-white">
               <img
                 src={post.mainImage}
@@ -159,6 +160,13 @@ const faqSchema = post.faqs.length
                 loading="eager"
               />
             </div>
+          ) : (
+            <NewsCover
+              category={post.category}
+              slug={post.slug}
+              size="lg"
+              class="mx-auto mt-8 aspect-[23/10] w-full max-w-7xl rounded-3xl shadow-lg md:mt-12"
+            />
           )
         }
       </div>

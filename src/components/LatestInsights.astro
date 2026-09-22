@@ -1,5 +1,6 @@
 ---
 import { getBlogPosts } from "../lib/frappe";
+import NewsCover from "@/components/news/NewsCover.astro";
 
 // Latest three published blogs (limit_page_length = 3, newest first)
 const posts = await getBlogPosts(3);
@@ -67,15 +68,24 @@ const posts = await getBlogPosts(3);
                   </svg>
                 </span>
                 <div class="w-full overflow-hidden rounded-lg border-2 border-white md:rounded-2xl md:border-4">
-                  <img
-                    src={post.thumbnailImage || post.mainImage}
-                    alt={post.title}
-                    loading="lazy"
-                    decoding="async"
-                    width="640"
-                    height="550"
-                    class="min-w-full aspect-[16/10] object-cover transition duration-500 group-hover:scale-105 md:aspect-[640/550]"
-                  />
+                  {post.thumbnailImage ? (
+                    <img
+                      src={post.thumbnailImage}
+                      alt={post.title}
+                      loading="lazy"
+                      decoding="async"
+                      width="640"
+                      height="550"
+                      class="min-w-full aspect-[16/10] object-cover transition duration-500 group-hover:scale-105 md:aspect-[640/550]"
+                    />
+                  ) : (
+                    <NewsCover
+                      category={post.category}
+                      slug={post.slug}
+                      size="sm"
+                      class="min-w-full aspect-[16/10] border-0! md:aspect-[640/550]"
+                    />
+                  )}
                 </div>
                 <a class="absolute inset-0 z-30" href={`/blog/${post.slug}`}>
                   <span class="sr-only">Learn more about {post.title}</span>

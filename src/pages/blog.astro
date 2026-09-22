@@ -4,6 +4,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import FinalCTA from "../components/FinalCTA.astro";
 import BlogThumb from "@/components/blog/BlogThumb.astro";
+import NewsCover from "@/components/news/NewsCover.astro";
 import BlogMeta from "@/components/blog/BlogMeta.astro";
 import BlogReadMore from "@/components/blog/BlogReadMore.astro";
 import { getBlogPosts } from "../lib/frappe";
@@ -34,7 +35,7 @@ const blogSchema = {
     "@type": "BlogPosting",
     headline: post.title,
     description: post.description || post.summary,
-    image: post.thumbnailImage,
+    image: post.thumbnailImage || undefined,
     url: `${blogUrl}/${post.slug}`,
     mainEntityOfPage: { "@type": "WebPage", "@id": `${blogUrl}/${post.slug}` },
     datePublished: post.publishedISO,
@@ -58,7 +59,7 @@ const blogBreadcrumbSchema = {
   title="GoPocket Blog - Trading Insights, Algo Trading & Financial News"
   description="Discover practical tips, algo trading insights, options strategies, and market news designed to help you trade smarter."
   canonical={blogUrl}
-  ogImage={featuredPost ? featuredPost.thumbnailImage : undefined}
+  ogImage={featuredPost?.thumbnailImage || undefined}
   ogImageAlt={featuredPost ? featuredPost.title : undefined}
 >
   <Fragment slot="head">
@@ -87,15 +88,25 @@ const blogBreadcrumbSchema = {
             <h2 class="text-black! dark:text-white! text-h4 font-bold tracking-tight md:text-h3">Recent Blogs</h2>
             <div class="mt-8 grid gap-10 md:mt-10 lg:grid-cols-2 lg:gap-16 xl:gap-20">
               <article class="flex flex-col">
-                <BlogThumb
-                  href={`/blog/${featuredPost.slug}`}
-                  src={featuredPost.mainImage}
-                  category={featuredPost.category}
-                  width={1150}
-                  height={500}
-                  eager
-                  class="aspect-[23/10] rounded-3xl"
-                />
+                {featuredPost.mainImage ? (
+                  <BlogThumb
+                    href={`/blog/${featuredPost.slug}`}
+                    src={featuredPost.mainImage}
+                    category={featuredPost.category}
+                    width={1150}
+                    height={500}
+                    eager
+                    class="aspect-[23/10] rounded-3xl"
+                  />
+                ) : (
+                  <NewsCover
+                    href={`/blog/${featuredPost.slug}`}
+                    category={featuredPost.category}
+                    slug={featuredPost.slug}
+                    size="lg"
+                    class="aspect-[23/10] rounded-3xl"
+                  />
+                )}
                 <h2 class="text-black! dark:text-white! mt-6 text-[26px]! leading-tight font-bold tracking-tight md:text-[36px]!">
                   <a href={`/blog/${featuredPost.slug}`} class="text-inherit! hover:text-primary! transition-colors">
                     {featuredPost.title}
@@ -120,14 +131,24 @@ const blogBreadcrumbSchema = {
                 <div class="flex flex-col gap-8 lg:gap-10">
                   {sidePosts.map((post) => (
                     <article class="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] items-start gap-4 sm:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] sm:gap-7">
-                      <BlogThumb
-                        href={`/blog/${post.slug}`}
-                        src={post.thumbnailImage}
-                        category={post.category}
-                        width={640}
-                        height={550}
-                        class="aspect-[4/3] rounded-2xl"
-                      />
+                      {post.thumbnailImage ? (
+                        <BlogThumb
+                          href={`/blog/${post.slug}`}
+                          src={post.thumbnailImage}
+                          category={post.category}
+                          width={640}
+                          height={550}
+                          class="aspect-[4/3] rounded-2xl"
+                        />
+                      ) : (
+                        <NewsCover
+                          href={`/blog/${post.slug}`}
+                          category={post.category}
+                          slug={post.slug}
+                          size="sm"
+                          class="aspect-[4/3] rounded-2xl"
+                        />
+                      )}
                       <div class="flex flex-col">
                         <h2 class="text-black! dark:text-white! line-clamp-3 text-xl! leading-snug font-bold tracking-tight sm:text-2xl! xl:text-[28px]!">
                           <a href={`/blog/${post.slug}`} class="text-inherit! hover:text-primary! transition-colors">
@@ -160,14 +181,23 @@ const blogBreadcrumbSchema = {
             <div class="mt-8 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:gap-x-12 lg:gap-y-16 lg:grid-cols-3 md:mt-10">
               {gridPosts.map((post) => (
                 <article class="flex flex-col">
-                  <BlogThumb
-                    href={`/blog/${post.slug}`}
-                    src={post.thumbnailImage}
-                    category={post.category}
-                    width={640}
-                    height={550}
-                    class="aspect-[7/5] rounded-2xl"
-                  />
+                  {post.thumbnailImage ? (
+                    <BlogThumb
+                      href={`/blog/${post.slug}`}
+                      src={post.thumbnailImage}
+                      category={post.category}
+                      width={640}
+                      height={550}
+                      class="aspect-[7/5] rounded-2xl"
+                    />
+                  ) : (
+                    <NewsCover
+                      href={`/blog/${post.slug}`}
+                      category={post.category}
+                      slug={post.slug}
+                      class="aspect-[7/5] rounded-2xl"
+                    />
+                  )}
                   <h3 class="text-black! dark:text-white! mt-4 line-clamp-2 text-[26px]! leading-snug md:text-[32px]! font-bold tracking-tight">
                     <a href={`/blog/${post.slug}`} class="text-inherit! hover:text-primary! transition-colors">
                       {post.title}

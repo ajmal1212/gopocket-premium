@@ -35,15 +35,26 @@ const { posts, heading = "Latest Blogs", basePath = "/blog", class: className = 
         {posts.map((post) => (
           <li>
             <a href={`${basePath}/${post.slug}`} class="group flex items-start gap-3">
-              <img
-                src={post.thumbnailImage}
-                alt=""
-                width={96}
-                height={76}
-                loading="lazy"
-                decoding="async"
-                class="border-border-light h-[76px] w-24 shrink-0 rounded-lg border object-cover"
-              />
+              {/* No image on the record: the GoPocket mark on a plain tile. The full
+                  generated cover's category chip would crowd a thumbnail this small. */}
+              {post.thumbnailImage ? (
+                <img
+                  src={post.thumbnailImage}
+                  alt=""
+                  width={96}
+                  height={76}
+                  loading="lazy"
+                  decoding="async"
+                  class="border-border-light h-[76px] w-24 shrink-0 rounded-lg border object-cover"
+                />
+              ) : (
+                <span
+                  class="border-border-light flex h-[76px] w-24 shrink-0 items-center justify-center rounded-lg border bg-white dark:bg-white/5"
+                  aria-hidden="true"
+                >
+                  <img src="/gopocket-logo.svg" alt="" width={134} height={32} loading="lazy" class="h-auto w-14" />
+                </span>
+              )}
               <span class="flex min-w-0 flex-col gap-1">
                 <span class="text-dark group-hover:text-primary line-clamp-2 text-[15px] leading-snug font-semibold transition-colors">
                   {post.title}

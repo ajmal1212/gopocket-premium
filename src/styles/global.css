@@ -3445,8 +3445,8 @@ html {
   border-spacing: 0;
   background: #fff;
   color: #374151;
-  font-size: 1rem;
-  line-height: 1.65;
+  font-size: 0.875rem;
+  line-height: 1.55;
   text-align: left;
 }
 
@@ -3461,7 +3461,7 @@ html {
 /* Header row */
 .ql-editor thead th,
 .ql-editor thead td {
-  padding: 0.95rem 1.25rem;
+  padding: 0.85rem 1rem;
   background: linear-gradient(135deg, #6b1aff 0%, #8b48ff 55%, #a06bff 100%);
   color: #fff;
   font-size: 0.75rem;
@@ -3490,7 +3490,7 @@ html {
 /* Body cells */
 .ql-editor tbody th,
 .ql-editor tbody td {
-  padding: 0.9rem 1.25rem;
+  padding: 0.75rem 1rem;
   border-top: 1px solid var(--color-border-light, #eceef1);
   vertical-align: top;
 }
@@ -3634,7 +3634,7 @@ html {
   }
 
   .ql-editor tbody > tr > *:first-child {
-    font-size: 1.0625rem;
+    font-size: 1rem;
     font-weight: 700;
   }
 }

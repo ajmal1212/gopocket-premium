@@ -352,25 +352,24 @@ const displayDate = webinar.date_and_time || webinar.formattedDate;
       </div>
     </div>
   </main>
+  <Footer />
 </Layout>
-
-<Footer />
 
 <script>
   import { toast } from "@/lib/toast";
 
   document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("webinar-register-form");
+    const form = document.getElementById("webinar-register-form") as HTMLFormElement | null;
     if (!form) return;
 
-    const submitButton = form.querySelector('button[type="submit"]');
+    const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
     const buttonLabel = submitButton ? submitButton.querySelector(".text-flip-inner") : null;
     const originalLabel = buttonLabel ? buttonLabel.textContent : "";
 
     // type="tel" still accepts letters and symbols, and maxlength caps length
     // without filtering characters - so strip anything non-numeric as it is
     // typed or pasted, and hard-cap the value at 10 digits.
-    const mobileInput = form.querySelector('input[name="mobile"]');
+    const mobileInput = form.querySelector<HTMLInputElement>('input[name="mobile"]');
     if (mobileInput) {
       mobileInput.addEventListener("input", () => {
         const digitsOnly = mobileInput.value.replace(/\D/g, "").slice(0, 10);
@@ -378,7 +377,7 @@ const displayDate = webinar.date_and_time || webinar.formattedDate;
       });
     }
 
-    function setBusy(busy) {
+    function setBusy(busy: boolean) {
       if (submitButton) submitButton.disabled = busy;
       if (!buttonLabel) return;
       const label = busy ? "Registering..." : originalLabel;
@@ -388,7 +387,7 @@ const displayDate = webinar.date_and_time || webinar.formattedDate;
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      if (typeof form.reportValidity === "function" && !form.reportValidity()) return;
+      if (!form.reportValidity()) return;
 
       const data = new FormData(form);
       const payload = {

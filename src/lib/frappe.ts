@@ -559,7 +559,51 @@ export function formatPostBody(rawBody?: string): string {
   // 3. Unmask existing <img> src attributes back to normal /files/ and /private/files/
   html = html.replace(/__MASKED_FILES__/g, "files").replace(/__MASKED_PRIVATE_FILES__/g, "private/files");
 
+  // 4. Turn YouTube paragraphs into real embeds.
+  html = embedYouTubeParagraphs(html);
+
   return html;
+}
+
+const YOUTUBE_ID =
+  /(?:youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?(?:[^"'\s<]*&(?:amp;)?)?v=|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/i;
+
+/**
+ * Frappe's Text Editor has no video button, and it escapes anything pasted into
+ * it: YouTube's <iframe> embed code is stored as `&lt;iframe …&gt;` text (with
+ * the URL auto-linked), so it renders as a line of code instead of a player.
+ *
+ * So a paragraph whose entire text is either that escaped embed code or a bare
+ * YouTube URL is replaced with a player. Editors can paste either one on its
+ * own line. A YouTube link inside a sentence is left alone.
+ *
+ * Only the 11-character video ID is carried over; the iframe is rebuilt here
+ * rather than un-escaping the pasted markup, so a post body can never inject
+ * arbitrary HTML this way.
+ */
+function embedYouTubeParagraphs(html: string): string {
+  return html.replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, (paragraph, inner: string) => {
+    const text = inner
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;| /g, " ")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, "&")
+      .trim();
+
+    const isEmbedCode = /^<iframe[\s\S]*<\/iframe>$/i.test(text);
+    const isBareUrl = /^https?:\/\/\S+$/i.test(text);
+    const id = (isEmbedCode || isBareUrl) && text.match(YOUTUBE_ID)?.[1];
+    if (!id) return paragraph;
+
+    return (
+      `<div class="my-6 aspect-video w-full overflow-hidden rounded-2xl border border-border-light bg-black shadow-lg">` +
+      `<iframe src="https://www.youtube-nocookie.com/embed/${id}" title="YouTube video player" class="h-full w-full" loading="lazy" ` +
+      `allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ` +
+      `referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`
+    );
+  });
 }
 
 /**
@@ -580,6 +624,8 @@ export function formatBlog(doc: BlogDoc): FormattedBlog {
   const description = (doc.meta_description || doc.post_summary || "").trim();
   const slug = (doc.slug || "").trim() || String(doc.name);
   const creation = doc.creation || "";
+  const main = (doc.main_image || "").trim();
+  const thumb = (doc.thumbnail_image || "").trim();
 
   let formattedDate = "Recent";
   if (creation) {
@@ -621,8 +667,10 @@ export function formatBlog(doc: BlogDoc): FormattedBlog {
     description,
     slug,
     summary: doc.post_summary || description,
-    mainImage: getFullImageUrl(doc.main_image || doc.thumbnail_image),
-    thumbnailImage: getFullImageUrl(doc.thumbnail_image || doc.main_image),
+    // Empty when the record has no image, so the pages draw the generated
+    // cover (NewsCover) instead of getFullImageUrl's stock placeholder.
+    mainImage: main || thumb ? getFullImageUrl(main || thumb) : "",
+    thumbnailImage: thumb || main ? getFullImageUrl(thumb || main) : "",
     category: categories[0] || "Finance",
     categories,
     faqs,
@@ -928,26 +976,11 @@ export interface NewsDoc {
   docstatus?: number;
 }
 
-/**
- * Same shape as FormattedBlog, except the two image fields are empty strings
- * when the record carries no image - getFullImageUrl's stock placeholder would
- * otherwise hide the fact that there is nothing to show.
- */
+/** Same shape as FormattedBlog: News shares every field the Blog doctype has. */
 export type FormattedNews = FormattedBlog;
 
 export function formatNews(doc: NewsDoc): FormattedNews {
-  // formatBlog owns the title/slug/date/category/FAQ normalisation, and News
-  // shares every one of those fields, so reuse it rather than keeping a second
-  // copy of the same rules in step; only the images are resolved differently.
-  const news = formatBlog(doc as BlogDoc);
-  const main = (doc.main_image || "").trim();
-  const thumb = (doc.thumbnail_image || "").trim();
-
-  return {
-    ...news,
-    mainImage: main || thumb ? getFullImageUrl(main || thumb) : "",
-    thumbnailImage: thumb || main ? getFullImageUrl(thumb || main) : "",
-  };
+  return formatBlog(doc as BlogDoc);
 }
 
 function formatNewsListItem(doc: NewsDoc): FormattedNews {

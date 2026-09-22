@@ -1,16 +1,31 @@
+/* How close to the top counts as "at the top" for the full-size header. Lenis
+   eases the last few pixels in slowly - measured, about half a second to crawl
+   from 10px to exactly 0 - so waiting for scrollY === 0 left the bar compact
+   well after the page looked settled at the top. */
+const TOP_THRESHOLD = 10;
+
+/* Where the page is headed, not where it is. Lenis glides for about a second
+   after a flick; its targetScroll is already 0 the moment a scroll is bound for
+   the top, so the header expands with the gesture instead of when the glide
+   lands. Falls back to scrollY when Lenis is off (touch, reduced motion). */
+function isHeadingToTop(scrollY: number) {
+  const target = window.lenis?.targetScroll ?? scrollY;
+  return Math.min(scrollY, target) <= TOP_THRESHOLD;
+}
+
 function initHeader() {
   const header = document.querySelector(".sticky-header");
   if (header) {
     let lastScrollY = window.scrollY;
     let ticking = false;
-    if (lastScrollY > 0) header.classList.add("scroll-up");
+    if (lastScrollY > TOP_THRESHOLD) header.classList.add("scroll-up");
     const updateHeader = () => {
       const scrollY = Math.max(0, window.scrollY);
       if (scrollY === lastScrollY) {
         ticking = false;
         return;
       }
-      if (scrollY === 0) {
+      if (isHeadingToTop(scrollY)) {
         header.classList.remove("scroll-up", "scroll-down");
       } else if (lastScrollY > scrollY) {
         header.classList.remove("scroll-down");

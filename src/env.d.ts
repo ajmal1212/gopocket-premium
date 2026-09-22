@@ -17,3 +17,8 @@ type Runtime = import("@astrojs/cloudflare").Runtime<Env>;
 declare namespace App {
   interface Locals extends Runtime {}
 }
+
+interface Window {
+  /** The page's Lenis smooth-scroll instance, set by GlobalScripts.astro. */
+  lenis?: import("lenis").default;
+}

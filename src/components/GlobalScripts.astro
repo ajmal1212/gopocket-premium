@@ -69,8 +69,12 @@
     // accessibility panel, blog tables) to scroll natively. Touch is not
     // smoothed (Lenis's default), and prefers-reduced-motion turns smoothing
     // off entirely.
+    //
+    // Kept on window so other scripts can read where a glide is heading
+    // (lenis.targetScroll) - the header uses it to expand as soon as a scroll
+    // is bound for the top, not a second later when the glide lands.
     try {
-      new Lenis({
+      window.lenis = new Lenis({
         autoRaf: true,
         lerp: 0.1,
         anchors: true,

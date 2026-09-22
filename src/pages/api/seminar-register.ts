@@ -17,6 +17,8 @@ interface Payload {
   mobile?: unknown;
   city?: unknown;
   clientCode?: unknown;
+  refer?: unknown;
+  mode?: unknown;
   turnstileToken?: unknown;
 }
 
@@ -52,6 +54,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const fullName = asText(payload.fullName);
   const city = asText(payload.city);
   const clientCode = asText(payload.clientCode);
+  // Both come straight from a shareable URL, so cap them rather than store
+  // whatever length someone pastes in.
+  const refer = asText(payload.refer).slice(0, 40);
+  const mode = asText(payload.mode).slice(0, 40);
   // Strip spaces, dashes and a +91 prefix before validating, so a correctly
   // typed number is not rejected over formatting.
   const mobile = asText(payload.mobile)
@@ -87,7 +93,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
     client_name: fullName,
     city,
     client_code: clientCode || "New",
-    mode: "Website",
+    // A referral link's ?mode= names the channel (Instagram, WhatsApp...);
+    // anything else is a plain website sign-up.
+    mode: mode || "Website",
+    ...(refer && { refer }),
   });
 
   switch (result.status) {

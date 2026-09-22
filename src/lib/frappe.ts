@@ -390,13 +390,18 @@ export type SeminarRegistrationResult =
 /**
  * Appends one attendee to a seminar's `registration_details` child table.
  *
- * IMPORTANT: updateDoc replaces a Table field wholesale rather than appending to
+ * IMPORTANT: a PUT replaces a Table field wholesale rather than appending to
  * it, so the existing rows are read first and sent back alongside the new one.
  * Posting just the new row would silently delete every prior registration.
  *
  * This is a read-modify-write, so two people registering in the same instant can
  * race and one row can be lost. Frappe has no append-to-child-table REST call;
  * closing that gap properly needs a server-side whitelisted method.
+ *
+ * The write is a plain fetch, not the SDK's updateDoc: the SDK goes through
+ * axios, whose fetch adapter sends `cache: "default"` - a mode Workers do not
+ * support ("Unsupported cache mode" in the logs) - and a failed SDK call used to
+ * fall through to a second PUT, costing an extra round trip to Frappe.
  */
 export async function addSeminarRegistration(
   seminarName: string,
@@ -413,14 +418,6 @@ export async function addSeminarRegistration(
   }
 
   const registration_details = [...existing, row];
-
-  try {
-    const frappe = getFrappeInstance();
-    await frappe.db().updateDoc("Seminar", seminarName, { registration_details });
-    return { status: "ok", registrations: registration_details.length };
-  } catch (error) {
-    console.warn("SDK updateDoc failed for seminar registration, trying native fetch...", error);
-  }
 
   try {
     const res = await fetch(`${getFrappeUrl()}/api/resource/Seminar/${encodeURIComponent(seminarName)}`, {
@@ -443,7 +440,7 @@ export async function addSeminarRegistration(
     console.error("Seminar registration rejected by Frappe:", res.status, detail.slice(0, 300));
     return { status: "error", message: `Registration service returned ${res.status}.` };
   } catch (error) {
-    console.error("Native fetch seminar registration failed:", error);
+    console.error("Seminar registration request failed:", error);
     return { status: "error", message: "Could not reach the registration service." };
   }
 }

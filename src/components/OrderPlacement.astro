@@ -807,22 +807,16 @@ const steps: Step[] = [
       z-index: 1;
     }
 
-    /* The same glass as the header's Sign In / Learn dropdowns — 55% white, a
-       hairline in the site's border colour, and the same blur, saturation and
-       drop shadow. Copied as numbers rather than shared, because those rules
-       are scoped to `.header .hs-dropdown-menu.mega-menu`; if the header's
-       glass is ever retuned, this is the other place to change.
-
-       -webkit-backdrop-filter is written BEFORE the unprefixed property on
-       purpose — see the note at the top of global.css: Lightning CSS keeps only
-       the last form it sees, and the standard one last dropped the blur in
-       Firefox everywhere it was written the other way round. */
+    /* The header dropdowns' glass — 55% white, a hairline in the site's border
+       colour and the same drop shadow — minus the backdrop blur. These panels
+       sit over the section's plain background, where a blur changes nothing
+       visible (screenshots with and without are identical), yet they move on
+       every scroll frame, so the blur was re-sampled every frame and made the
+       page hitch through this pinned section. */
     .is-pinned .ofh-glass {
       border-radius: 1.25rem;
       border: 1px solid var(--color-border-light, #eceef1);
       background-color: rgba(255, 255, 255, 0.55);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      backdrop-filter: blur(24px) saturate(180%);
       box-shadow: 0 24px 48px -20px rgba(16, 18, 28, 0.28);
       color: var(--color-dark);
 
@@ -847,21 +841,8 @@ const steps: Step[] = [
     :global(html.dark) .is-pinned .ofh-glass {
       border-color: var(--line);
       background-color: var(--glass);
-      -webkit-backdrop-filter: blur(24px) saturate(140%);
-      backdrop-filter: blur(24px) saturate(140%);
       box-shadow: 0 24px 48px -20px var(--shadow-strong);
       color: var(--fg-strong);
-    }
-
-    /* No backdrop-filter support: a near-opaque panel, as the header does. */
-    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-      .is-pinned .ofh-glass {
-        background-color: rgba(255, 255, 255, 0.97);
-      }
-
-      :global(html.dark) .is-pinned .ofh-glass {
-        background-color: var(--surface-1);
-      }
     }
 
     .is-pinned .ofh-live {

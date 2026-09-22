@@ -6,7 +6,8 @@
   import AOS from "aos";
   // aos.css is already pulled in by global.css - importing it here too made Astro
   // emit a second, render-blocking copy of the same 26 kB stylesheet.
-  import SmoothScroll from "smoothscroll-for-websites";
+  import Lenis from "lenis";
+  import "lenis/dist/lenis.css";
   import { initAnimatedNumbers } from "../scripts/counter";
 
   const initGlobalScripts = () => {
@@ -30,22 +31,6 @@
       });
     };
     fixProseImages();
-    // Initialize smooth scrolling (kinetic momentum scroll)
-    try {
-      SmoothScroll({
-        animationTime: 800,
-        stepSize: 80,
-        accelerationDelta: 50,
-        accelerationMax: 3,
-        pulseAlgorithm: true,
-        pulseScale: 4,
-        pulseNormalize: 1,
-        keyboardSupport: true,
-        arrowScroll: 50,
-      });
-    } catch (err) {
-      console.error("SmoothScroll init error:", err);
-    }
 
     // Strip hardcoded static pre-rendered AOS classes so AOS can observe them dynamically
     document.querySelectorAll("[data-aos]").forEach((el) => {
@@ -71,6 +56,29 @@
     // refresh() re-measures the elements AOS already knows about, which is what
     // keeps below-the-fold sections appearing on the way back up the page.
     window.addEventListener("load", () => AOS.refresh(), { once: true });
+
+    // Smooth wheel scrolling, started only after AOS so that a failure here can
+    // never leave the [data-aos] sections stuck invisible.
+    //
+    // Lenis replaced smoothscroll-for-websites, which replayed each wheel notch
+    // as a fixed 800ms animation and froze mid-flick whenever the main thread
+    // was busy - the "scroll gets stuck" bug. Lenis eases continuously toward
+    // the current target instead, so a late frame just catches up.
+    //
+    // allowNestedScroll leaves inner scroll areas (menus, chat, the
+    // accessibility panel, blog tables) to scroll natively. Touch is not
+    // smoothed (Lenis's default), and prefers-reduced-motion turns smoothing
+    // off entirely.
+    try {
+      new Lenis({
+        autoRaf: true,
+        lerp: 0.1,
+        anchors: true,
+        allowNestedScroll: true,
+      });
+    } catch (err) {
+      console.error("Lenis init error:", err);
+    }
 
     // Intersection Observer for heading word reveal animations (.animated-text)
     const textElements = document.querySelectorAll<HTMLElement>(".animated-text");
@@ -106,6 +114,15 @@
     // over, and each container is wired up at most once.
     const wheelBound = new WeakSet<HTMLElement>();
 
+    // overflow: hidden boxes (marquees, the footer wordmark) also report
+    // scrollWidth > clientWidth but can't be scrolled by the user - binding a
+    // blocking wheel listener to them only stalls vertical page scrolling.
+    const scrollsHorizontally = (el: HTMLElement) => {
+      if (el.scrollWidth <= el.clientWidth) return false;
+      const overflowX = getComputedStyle(el).overflowX;
+      return overflowX === "auto" || overflowX === "scroll";
+    };
+
     const onHorizontalWheel = function (this: HTMLElement, event: WheelEvent) {
       if (!event.shiftKey) return;
       if (this.scrollWidth <= this.clientWidth) return;
@@ -118,7 +135,7 @@
       (event) => {
         let node = event.target instanceof HTMLElement ? event.target : null;
         while (node && node !== document.body) {
-          if (!wheelBound.has(node) && node.scrollWidth > node.clientWidth) {
+          if (!wheelBound.has(node) && scrollsHorizontally(node)) {
             wheelBound.add(node);
             node.addEventListener("wheel", onHorizontalWheel, { passive: false });
           }

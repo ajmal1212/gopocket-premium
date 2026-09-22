@@ -492,10 +492,13 @@ a {
   clip-path: inset(0);
   transform: translateY(0);
 }
+/* Opacity and transform only - both run on the compositor. This used to animate
+   filter: blur(10px) -> blur(0) per word as well, which repaints every word on
+   every frame; it fired as each section's heading entered the viewport, so the
+   page hitched right at the hand-over between sections. */
 @keyframes animated-text-reveal {
   to {
     opacity: 1;
-    filter: blur(0);
     transform: translateY(0);
   }
 }
@@ -542,11 +545,12 @@ a {
   display: inline-block;
 }
 @media (min-width: 768px) {
+  /* No will-change here: set permanently on every heading word it kept hundreds
+     of compositor layers alive site-wide. A running animation promotes the word
+     on its own for as long as it needs to. */
   .animated-text.is-ready .word {
     opacity: 0;
-    filter: blur(10px);
     transform: translateY(10px);
-    will-change: transform;
   }
 }
 @media (min-width: 768px) {

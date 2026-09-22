@@ -3,7 +3,8 @@
 //
 // Copy, names, cities and photos are the real customer testimonials published on
 // gopocket.in — do not replace them with placeholder/theme content. Quotes are
-// verbatim apart from whitespace normalisation and one added sentence break.
+// lightly condensed from the originals so each fits the card's four lines; keep
+// any new or edited quote to roughly 150 characters for the same reason.
 interface Testimonial {
   quote: string;
   name: string;
@@ -14,28 +15,28 @@ interface Testimonial {
 const rowOne: Testimonial[] = [
   {
     quote:
-      "I aspired to engage in stock market trading for two decades but struggled to find the right platform. Fortunately, a friend introduced me to GoPocket, and since then, I have been trading safely and find the app easy to use. Overall, my experience with GoPocket has been highly satisfactory.",
+      "For two decades I wanted to trade but couldn't find the right platform. A friend introduced me to GoPocket, and now I trade safely on an easy-to-use app.",
     name: "Vijaya Kumar",
     location: "Erode",
     image: "/assets/images/testimonials/customer-01.jpg",
   },
   {
     quote:
-      "Hi, I am new to trading and I choose GoPocket. I feel it's a good choice. The customer support provided is really excellent. Anytime they are available to help us. Happy to be a part of GoPocket user.",
+      "I am new to trading and chose GoPocket, a good choice. Customer support is excellent and always available to help. Happy to be a GoPocket user.",
     name: "Padmavathi",
     location: "Tirupur",
     image: "/assets/images/testimonials/customer-02.jpg",
   },
   {
     quote:
-      "Hello, I've been trading in the forex market for the past 10 years with significant investments, resulting in losses. However, my friend introduced me to GoPocket for trading. The mob app is excellent hassle free trading.",
+      "I traded forex for 10 years and faced losses. Then a friend introduced me to GoPocket. The mobile app is excellent for hassle-free trading.",
     name: "Rameshkumar",
     location: "Erode",
     image: "/assets/images/testimonials/customer-03.jpg",
   },
   {
     quote:
-      "I have been associated with GoPocket for more than a year. Previously I have invested in commodities, now I trade in securities and equities with GoPocket Thanks GoPocket for your support.",
+      "I have been with GoPocket for over a year. I used to invest in commodities; now I trade securities and equities. Thanks GoPocket for your support.",
     name: "Ajay Karthik",
     location: "Chennai",
     image: "/assets/images/testimonials/customer-04.jpg",
@@ -52,28 +53,28 @@ const rowOne: Testimonial[] = [
 const rowTwo: Testimonial[] = [
   {
     quote:
-      "GoPocket offers good customer support and they offer a safe app, as a beginner and learner of the stock market it is very helpful for me. Thank you GoPocket for service and support.",
+      "GoPocket offers good customer support and a safe app. As a beginner learning the stock market, it is very helpful for me. Thank you GoPocket!",
     name: "Lakshmi Narayanan",
     location: "Coimbatore",
     image: "/assets/images/testimonials/customer-06.jpg",
   },
   {
     quote:
-      "The GoPocket app is easy to use and they are kind with their customers when addressing issues and resolving problems. The application is simple as you can download from Google Play Store and installation process and joining process is hassle free. No hidden charges and no joining fee or maintenance fee. Overall GoPocket is a good choice for anyone who wants to enter in trading.",
+      "The GoPocket app is easy to use and the team is kind when resolving issues. Joining is hassle-free, with no hidden charges, joining or maintenance fee.",
     name: "Rajendran",
     location: "Karaikudi",
     image: "/assets/images/testimonials/customer-07.jpg",
   },
   {
     quote:
-      "I've been using the Sky app for over a few years and now Sky introduced Gopocket, I must say GoPocket offers a simple and hassle-free account opening process. It's the most supportive platform for both trading and investing.",
+      "I've used the Sky app for years, and GoPocket offers simple, hassle-free account opening. The most supportive platform for trading and investing.",
     name: "Muniraj",
     location: "Coimbatore",
     image: "/assets/images/testimonials/customer-08.jpg",
   },
   {
     quote:
-      "Hi all I have been using Sky for a few years and now am using GoPocket the app is user friendly and easy to place orders, and a secure app for investment. Thank you GoPocket.",
+      "I used Sky for a few years and now use GoPocket. The app is user-friendly, easy to place orders on and secure for investment. Thank you GoPocket.",
     name: "Arokianathan",
     location: "Coimbatore",
     image: "/assets/images/testimonials/customer-09.jpg",
@@ -160,17 +161,11 @@ const rows = [
                             </svg>
                           ))}
                         </div>
-                        {/* Quotes run from one line to a full paragraph. The box is a fixed five
-                          lines tall (5 x 1.625 leading-relaxed = 8.125em, so it tracks the
-                          text-base -> text-lg step on its own) plus a 12px strip for the
-                          scroll fade, so all five lines stay crisp; longer quotes scroll
-                          inside it, which keeps every card the same height.
-                          tabindex only on the real cards — the marquee's duplicate copies are
-                          aria-hidden and must not be focus stops. */}
-                        <blockquote
-                          class="testimonial-quote h-[calc(8.125em+0.75rem)] overflow-y-auto pr-3 text-base md:text-lg leading-relaxed text-gray-800"
-                          tabindex={isDuplicate ? undefined : 0}
-                        >
+                        {/* A fixed four lines tall (4 x 1.625 leading-relaxed = 6.5em, so it
+                          tracks the text-base -> text-lg step on its own), which keeps every
+                          card the same height. The quotes are written to fit; line-clamp is
+                          only a guard so an over-long one gets an ellipsis, never a scrollbar. */}
+                        <blockquote class="h-[6.5em] line-clamp-4 text-base md:text-lg leading-relaxed text-gray-800">
                           "{testimonial.quote}"
                         </blockquote>
                       </div>
@@ -201,23 +196,6 @@ const rows = [
   </div>
 
   <script type="module" is:inline={true}>
-    // A quote taller than its box gets a bottom fade as the "there is more" cue;
-    // it is dropped once the reader reaches the end so the last line stays crisp.
-    function setupQuoteFades() {
-      document.querySelectorAll(".testimonial-quote").forEach((quote) => {
-        const update = () => {
-          const scrollable = quote.scrollHeight - quote.clientHeight > 2;
-          const atEnd = quote.scrollTop + quote.clientHeight >= quote.scrollHeight - 2;
-          quote.toggleAttribute("data-scrollable", scrollable && !atEnd);
-        };
-        if (!quote.dataset.fadeBound) {
-          quote.addEventListener("scroll", update, { passive: true });
-          quote.dataset.fadeBound = "1";
-        }
-        update();
-      });
-    }
-
     function setupMarqueeWidth() {
       document.querySelectorAll(".marquee-element-width-auto").forEach((container) => {
         const totalWidth = container.scrollWidth;
@@ -227,50 +205,8 @@ const rows = [
     let resizeTimer;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(() => {
-        setupMarqueeWidth();
-        setupQuoteFades();
-      }, 100);
+      resizeTimer = window.setTimeout(setupMarqueeWidth, 100);
     });
     setupMarqueeWidth();
-    setupQuoteFades();
   </script>
-
-  <style>
-    /* Slim scrollbar for the quote area so a scrolling card still reads as a card.
-       Firefox gets scrollbar-width/color; WebKit needs the pseudo-elements. */
-    .testimonial-quote {
-      scrollbar-width: thin;
-      scrollbar-color: rgba(107, 26, 255, 0.35) transparent;
-      overscroll-behavior-y: contain;
-    }
-
-    .testimonial-quote[data-scrollable] {
-      -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 12px), transparent 100%);
-      mask-image: linear-gradient(to bottom, #000 calc(100% - 12px), transparent 100%);
-    }
-
-    .testimonial-quote::-webkit-scrollbar {
-      width: 5px;
-    }
-
-    .testimonial-quote::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .testimonial-quote::-webkit-scrollbar-thumb {
-      background-color: rgba(107, 26, 255, 0.28);
-      border-radius: 9999px;
-    }
-
-    .testimonial-quote:hover::-webkit-scrollbar-thumb {
-      background-color: rgba(107, 26, 255, 0.5);
-    }
-
-    .testimonial-quote:focus-visible {
-      outline: 2px solid var(--color-primary, #6b1aff);
-      outline-offset: 4px;
-      border-radius: 0.25rem;
-    }
-  </style>
 </section>

@@ -1,0 +1,17 @@
+---
+/**
+ * /courses/<slug> has no page of its own - a course IS its chapters, so this
+ * sends the reader to the first one and keeps the bare course URL working in
+ * anything already linking to it.
+ */
+import { getCourseBySlug } from "@/lib/frappe";
+
+const { course: courseSlugParam } = Astro.params;
+const course = courseSlugParam ? await getCourseBySlug(courseSlugParam) : null;
+
+if (!course || course.chapters.length === 0) {
+  return new Response(null, { status: 404, statusText: "Course not found" });
+}
+
+return Astro.redirect(`/courses/${course.slug}/${course.chapters[0].slug}`, 302);
+---

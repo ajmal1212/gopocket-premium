@@ -1,0 +1,22 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import CoursesSection from "@/components/CoursesSection.astro";
+import CallToAction2 from "@/components/CallToAction2.astro";
+---
+
+<Layout
+  title="Free Stock Market Courses - GoPocket"
+  description="Learn options, volatility, strategies and risk management with GoPocket's free, self-paced trading courses. Chapter-by-chapter lessons written by market experts."
+  canonical="/courses"
+>
+  <Header currentPath="/courses" />
+
+  <main class="has-section-spacing-lg">
+    <CoursesSection heading="h1" />
+
+    <CallToAction2 />
+  </main>
+  <Footer />
+</Layout>

@@ -1,0 +1,136 @@
+---
+/**
+ * One chapter of a course, with the course outline beside it.
+ *
+ * Each chapter is its own URL (/courses/basics-of-options/2) so a reader can
+ * link to one and search engines can index them separately. The chapter number
+ * in the URL is the row's position in the Courses doctype's `course` table.
+ */
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import ProseEnhancements from "@/components/blog/ProseEnhancements.astro";
+import ArrowLeft from "@lucide/astro/icons/arrow-left";
+import ArrowRight from "@lucide/astro/icons/arrow-right";
+import { getCourseBySlug } from "@/lib/frappe";
+
+const { course: courseSlugParam, chapter: chapterParam } = Astro.params;
+
+const course = courseSlugParam ? await getCourseBySlug(courseSlugParam) : null;
+
+// Chapters are addressed by their title slug ("are-options-for-you"); a plain
+// number still resolves, so links made before the slugs existed keep working.
+const wanted = decodeURIComponent(chapterParam || "").toLowerCase();
+const chapter =
+  course?.chapters.find((entry) => entry.slug === wanted) ||
+  course?.chapters.find((entry) => String(entry.number) === wanted);
+
+// A missing course, or a chapter number that is not a real chapter, is a 404
+// rather than a redirect to chapter 1 - the URL was wrong, not stale.
+if (!course || !chapter) {
+  return new Response(null, { status: 404, statusText: "Chapter not found" });
+}
+
+const previous = course.chapters.find((entry) => entry.number === chapter.number - 1);
+const next = course.chapters.find((entry) => entry.number === chapter.number + 1);
+
+// The chapter body is Quill HTML from the CMS and carries its own
+// .ql-editor wrapper, so it is not wrapped again here.
+const description = chapter.content
+  .replace(/<[^>]+>/g, " ")
+  .replace(/\s+/g, " ")
+  .trim()
+  .slice(0, 155);
+---
+
+<Layout
+  title={`${chapter.title} - ${course.title} | GoPocket`}
+  description={description || `Chapter ${chapter.number} of ${course.title}, a free GoPocket trading course.`}
+  canonical={`/courses/${course.slug}/${chapter.slug}`}
+>
+  <Header currentPath="/courses" />
+
+  <main class="pt-20 md:pt-28 pb-16 md:pb-24">
+    <div class="container">
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-10">
+        <!-- Course outline -->
+        <!-- The outline keeps its own scroll so a 24-chapter course does not
+             push the chapter text down the page. -->
+        <aside
+          class="lg:sticky lg:top-28 lg:h-[calc(100vh-10rem)] lg:overflow-y-auto lg:border-r lg:border-border-light lg:pr-6"
+        >
+          <p class="text-xs font-semibold uppercase tracking-wider text-text-default opacity-60">Course outline</p>
+          <h2 class="mt-2 text-2xl font-bold text-dark">
+            <a href="/courses" class="hover:text-primary">{course.title}</a>
+          </h2>
+
+          <ol class="mt-6 space-y-1">
+            {
+              course.chapters.map((entry) => {
+                const isCurrent = entry.number === chapter.number;
+                return (
+                  <li>
+                    <a
+                      href={`/courses/${course.slug}/${entry.slug}`}
+                      aria-current={isCurrent ? "page" : undefined}
+                      class:list={[
+                        "flex gap-3 rounded-xl border-b border-border-light px-3 py-3.5 text-sm transition-colors",
+                        isCurrent
+                          ? "bg-primary/5 font-semibold text-primary"
+                          : "text-text-default opacity-80 hover:bg-theme-light hover:opacity-100",
+                      ]}
+                    >
+                      <span class="shrink-0 tabular-nums">{entry.number}.</span>
+                      <span>{entry.title}</span>
+                    </a>
+                  </li>
+                );
+              })
+            }
+          </ol>
+        </aside>
+
+        <!-- Chapter -->
+        <article class="mx-auto w-full min-w-0 lg:max-w-5xl">
+          <p class="text-xs font-semibold uppercase tracking-wider text-text-default opacity-70">
+            Chapter {chapter.number}
+            <span class="opacity-40">|</span>
+            {chapter.minutes} min read
+          </p>
+          <h1 class="mt-3 text-3xl font-bold leading-tight tracking-tight text-dark sm:text-4xl">{chapter.title}</h1>
+
+          <div class="mt-8 w-full" set:html={chapter.content} />
+
+          <nav class="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-border-light pt-6">
+            {
+              previous ? (
+                <a
+                  href={`/courses/${course.slug}/${previous.slug}`}
+                  class="group flex max-w-[45%] items-center gap-2 text-sm font-medium text-text-default hover:text-primary"
+                >
+                  <ArrowLeft class="h-4 w-4 shrink-0" stroke-width={1.8} aria-hidden="true" />
+                  <span class="line-clamp-1">{previous.title}</span>
+                </a>
+              ) : (
+                <span />
+              )
+            }
+            {
+              next && (
+                <a
+                  href={`/courses/${course.slug}/${next.slug}`}
+                  class="group flex max-w-[45%] items-center gap-2 text-right text-sm font-medium text-primary"
+                >
+                  <span class="line-clamp-1">{next.title}</span>
+                  <ArrowRight class="h-4 w-4 shrink-0" stroke-width={1.8} aria-hidden="true" />
+                </a>
+              )
+            }
+          </nav>
+        </article>
+      </div>
+    </div>
+  </main>
+  <Footer />
+  <ProseEnhancements />
+</Layout>

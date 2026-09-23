@@ -591,6 +591,184 @@ export async function addSeminarRegistration(
 }
 
 /* ============================================================================
+   COURSES DOCTYPE FUNCTIONS
+   ============================================================================ */
+
+/** One row of the `course` child table on the Courses doctype: a chapter. */
+export interface CourseChapterRow {
+  name?: string;
+  idx?: number;
+  /** Spelled "tittle" on the doctype, as on Seminar. */
+  tittle?: string;
+  /** Quill HTML, already wrapped in its own .ql-editor div. */
+  content?: string;
+}
+
+export interface CourseDoc {
+  name: string;
+  course_name?: string;
+  course_image?: string | null;
+  level?: string;
+  course?: CourseChapterRow[];
+}
+
+export interface CourseChapter {
+  /** 1-based position, shown as "Chapter N". */
+  number: number;
+  /** URL segment from the chapter title, e.g. "are-options-for-you". */
+  slug: string;
+  title: string;
+  content: string;
+  /** Rounded reading time in minutes, from the chapter's own word count. */
+  minutes: number;
+}
+
+export interface FormattedCourse {
+  id: string;
+  /** URL segment built from the course name, e.g. "basics-of-options". */
+  slug: string;
+  title: string;
+  image: string;
+  level: string;
+  chapterCount: number;
+  chapters: CourseChapter[];
+  /** Where "Start course" goes; empty when the course has no chapters. */
+  firstChapterSlug: string;
+}
+
+/**
+ * "Basics of Options" -> "basics-of-options", "Are Options for You?" ->
+ * "are-options-for-you". Spaces and "?" cannot appear literally in a URL path -
+ * a "?" would start the query string - so titles are reduced to this form.
+ */
+export function courseSlug(courseName: string): string {
+  return courseName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** Same estimate the blog shows, so "5 min read" means the same thing sitewide. */
+function chapterMinutes(html: string): number {
+  return estimateReadingMinutes(html);
+}
+
+function formatCourse(doc: CourseDoc): FormattedCourse {
+  const title = doc.course_name || "Untitled course";
+  // Frappe returns child rows in insertion order, not necessarily by idx.
+  const rows = [...(doc.course || [])].sort((a, b) => Number(a.idx ?? 0) - Number(b.idx ?? 0));
+
+  // Two chapters can share a title; a slug has to stay unique or one of them
+  // becomes unreachable, so repeats get -2, -3 and so on.
+  const used = new Map<string, number>();
+
+  const chapters = rows
+    .filter((row) => row.tittle || row.content)
+    .map((row, index) => {
+      const title = (row.tittle || `Chapter ${index + 1}`).trim();
+      const base = courseSlug(title) || `chapter-${index + 1}`;
+      const seen = (used.get(base) ?? 0) + 1;
+      used.set(base, seen);
+
+      return {
+        number: index + 1,
+        slug: seen === 1 ? base : `${base}-${seen}`,
+        title,
+        content: row.content || "",
+        minutes: chapterMinutes(row.content || ""),
+      };
+    });
+
+  return {
+    id: doc.name,
+    slug: courseSlug(title),
+    title,
+    image: getFullImageUrl(doc.course_image),
+    level: doc.level || "Beginner",
+    chapterCount: chapters.length,
+    chapters,
+    firstChapterSlug: chapters[0]?.slug || "",
+  };
+}
+
+/**
+ * Courses for the listing page, with each one's chapter count and the slug of
+ * its first chapter, which is where "Start course" points.
+ *
+ * Both come from joining the `course` child table into the list query - one row
+ * per chapter, folded up here - so the listing never downloads chapter bodies
+ * just to count them. The join returns the rows in no particular order, hence
+ * `idx` being read to find which chapter is first.
+ */
+export async function getCourses(): Promise<FormattedCourse[]> {
+  const params = new URLSearchParams({
+    fields: JSON.stringify(["name", "course_name", "course_image", "level", "`tabcourse`.tittle", "`tabcourse`.idx"]),
+    limit_page_length: "0",
+  });
+
+  const rows = await frappeResourceGet<(CourseDoc & { tittle?: string; idx?: number })[]>(
+    `${getFrappeUrl()}/api/resource/Courses?${params.toString()}`,
+    "getCourses",
+  );
+  if (!rows) return [];
+
+  const byId = new Map<string, FormattedCourse>();
+  const firstChapter = new Map<string, { idx: number; title: string }>();
+
+  for (const row of rows) {
+    if (!byId.has(row.name)) {
+      const course = formatCourse(row);
+      course.chapterCount = 0;
+      byId.set(row.name, course);
+    }
+
+    if (!row.tittle) continue;
+    byId.get(row.name)!.chapterCount += 1;
+
+    const idx = Number(row.idx ?? 0);
+    const first = firstChapter.get(row.name);
+    if (!first || idx < first.idx) firstChapter.set(row.name, { idx, title: row.tittle });
+  }
+
+  for (const [id, course] of byId) {
+    const first = firstChapter.get(id);
+    course.firstChapterSlug = first ? courseSlug(first.title) : "";
+  }
+
+  return [...byId.values()];
+}
+
+/**
+ * One course with every chapter, found by its slug.
+ *
+ * Slugs are derived from the course name rather than stored, so the id has to
+ * be looked up first; that list query asks for names only, and the second call
+ * reads the chapters.
+ */
+export async function getCourseBySlug(slug: string): Promise<FormattedCourse | null> {
+  const wanted = (slug || "").trim().toLowerCase();
+  if (!wanted) return null;
+
+  const params = new URLSearchParams({
+    fields: JSON.stringify(["name", "course_name"]),
+    limit_page_length: "0",
+  });
+  const list = await frappeResourceGet<CourseDoc[]>(
+    `${getFrappeUrl()}/api/resource/Courses?${params.toString()}`,
+    "getCourseBySlug list",
+  );
+
+  const match = (list || []).find((doc) => courseSlug(doc.course_name || "") === wanted);
+  if (!match) return null;
+
+  const doc = await frappeResourceGet<CourseDoc>(
+    `${getFrappeUrl()}/api/resource/Courses/${encodeURIComponent(match.name)}`,
+    "getCourseBySlug doc",
+  );
+  return doc ? formatCourse(doc) : null;
+}
+
+/* ============================================================================
    BLOG DOCTYPE FUNCTIONS
    ============================================================================ */
 

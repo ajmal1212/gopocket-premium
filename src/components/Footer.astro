@@ -607,43 +607,52 @@ const footerCalculators = calculators.filter((calc) => calc.ownPage);
     </div>
   </div>
 
-  <!-- Brand Name -->
-  <div class="relative overflow-hidden text-[clamp(1rem,90%,25rem)] mt-12 md:mt-24">
-    <div
-      class="text-primary responsive-brand-text mx-auto text-center leading-[0.8] uppercase max-md:py-5"
-      style="font-size: 414.388px;"
-    >
-      GoPocket
-    </div>
-    <div class="pointer-events-none absolute right-0 bottom-0 left-0 z-10 h-[calc(70%+1.5rem)] w-full">
-      <div
-        class="absolute inset-0 z-70 mask-[linear-gradient(rgba(0,0,0,0),rgba(0,0,0,1)_10%,rgba(0,0,0,1)_30%,rgba(0,0,0,0)_40%)] backdrop-blur-[1px]"
-      >
-      </div>
-      <div
-        class="absolute inset-0 z-60 mask-[linear-gradient(rgba(0,0,0,0)_10%,rgba(0,0,0,1)_20%,rgba(0,0,0,1)_40%,rgba(0,0,0,0)_50%)] backdrop-blur-[2px]"
-      >
-      </div>
-      <div
-        class="absolute inset-0 z-50 mask-[linear-gradient(rgba(0,0,0,0)_15%,rgba(0,0,0,1)_30%,rgba(0,0,0,1)_50%,rgba(0,0,0,0)_60%)] backdrop-blur-xs"
-      >
-      </div>
-      <div
-        class="absolute inset-0 z-40 mask-[linear-gradient(rgba(0,0,0,0)_20%,rgba(0,0,0,1)_40%,rgba(0,0,0,1)_60%,rgba(0,0,0,0)_70%)] backdrop-blur-sm"
-      >
-      </div>
-      <div
-        class="absolute inset-0 z-30 mask-[linear-gradient(rgba(0,0,0,0)_40%,rgba(0,0,0,1)_60%,rgba(0,0,0,1)_80%,rgba(0,0,0,0)_90%)] backdrop-blur-lg"
-      >
-      </div>
-      <div
-        class="absolute inset-0 z-20 mask-[linear-gradient(rgba(0,0,0,0)_60%,rgba(0,0,0,1)_80%)] backdrop-blur-[32px]"
-      >
-      </div>
-      <div
-        class="absolute inset-0 z-10 mask-[linear-gradient(rgba(0,0,0,0)_70%,rgba(0,0,0,1)_100%)] backdrop-blur-[52px]"
-      >
-      </div>
+  <!-- Brand mark: the logo standing on its baseline, mirrored into a fading
+       reflection below it.
+
+       What used to sit here was a giant "GoPocket" text under seven stacked
+       backdrop-filter layers. backdrop-filter is re-rasterised on every scroll
+       frame; this is one flipped copy with a static blur and a mask, painted
+       once into the page's tiles.
+
+       The numbers come from measuring the artwork rather than guessing. The
+       logo is 382.69 x 91.21 (ratio 4.196) and its ink collapses at 72% of that
+       height - the bottom of the "o", below which only the "g" and "p" tails
+       continue. So:
+         - the reflection is mirrored about 0.72H, not about the image edge,
+           which is what makes the letters meet their own feet;
+         - it is pulled up by 0.28H to reach that line. A percentage margin
+           resolves against WIDTH, and 0.28H = 0.28w / 4.196 = 6.67% of w;
+         - it shows 0.45H of reflection, so its box is 4.196 / 0.45 = 9.32;
+         - inside that box the flipped copy sits at 2 x 0.72H - H = 0.44H, which
+           is -0.28H from the box top, or -62.2% of the box's own height.
+       Change the artwork and all four numbers have to be re-derived.
+
+       Decorative: the footer already carries a real logo with alt text, so this
+       one is hidden from screen readers rather than announcing the brand twice. -->
+  <div class="container mt-12 md:mt-24">
+    <img
+      src="/gopocket-logo.svg"
+      alt=""
+      aria-hidden="true"
+      width="383"
+      height="91"
+      loading="lazy"
+      decoding="async"
+      class="relative z-10 block w-full"
+    />
+
+    <div class="pointer-events-none relative z-0 -mt-[6.67%] aspect-[9.32] w-full overflow-hidden">
+      <img
+        src="/gopocket-logo.svg"
+        alt=""
+        aria-hidden="true"
+        width="383"
+        height="91"
+        loading="lazy"
+        decoding="async"
+        class="absolute inset-x-0 top-[-62.2%] block w-full scale-y-[-1] opacity-25 blur-[3px] mask-[linear-gradient(to_top,rgba(0,0,0,1),rgba(0,0,0,0))] md:blur-[5px]"
+      />
     </div>
   </div>
 

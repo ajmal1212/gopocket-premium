@@ -34,8 +34,9 @@ if (!course || !chapter) {
 const previous = course.chapters.find((entry) => entry.number === chapter.number - 1);
 const next = course.chapters.find((entry) => entry.number === chapter.number + 1);
 
-// The chapter body is Quill HTML from the CMS and carries its own
-// .ql-editor wrapper, so it is not wrapped again here.
+// formatCourse already ran the body through formatPostBody, which unwraps the
+// CMS's own .ql-editor div - the markup below re-adds it so the prose styles,
+// tables and images render as they do on a blog post.
 const description = chapter.content
   .replace(/<[^>]+>/g, " ")
   .replace(/\s+/g, " ")
@@ -99,7 +100,7 @@ const description = chapter.content
           </p>
           <h1 class="mt-3 text-3xl font-bold leading-tight tracking-tight text-dark sm:text-4xl">{chapter.title}</h1>
 
-          <div class="mt-8 w-full" set:html={chapter.content} />
+          <div class="ql-editor read-mode mt-8 w-full" set:html={chapter.content} />
 
           <nav class="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-border-light pt-6">
             {

@@ -670,12 +670,18 @@ function formatCourse(doc: CourseDoc): FormattedCourse {
       const seen = (used.get(base) ?? 0) + 1;
       used.set(base, seen);
 
+      // Same pipeline as blog posts: rebuilds YouTube embeds that Quill stored
+      // as escaped &lt;iframe&gt; text, and turns Frappe's relative /files/
+      // paths into absolute image URLs. It also strips the outer .ql-editor
+      // wrapper, which the chapter page re-adds so the prose styles still apply.
+      const content = formatPostBody(row.content);
+
       return {
         number: index + 1,
         slug: seen === 1 ? base : `${base}-${seen}`,
         title,
-        content: row.content || "",
-        minutes: chapterMinutes(row.content || ""),
+        content,
+        minutes: chapterMinutes(content),
       };
     });
 

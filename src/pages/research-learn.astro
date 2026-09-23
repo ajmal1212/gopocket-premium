@@ -5,10 +5,27 @@ import ResearchLearnHero from "../components/ResearchLearnHero.astro";
 import Footer from "../components/Footer.astro";
 import FinalCTA from "../components/FinalCTA.astro";
 import FAQSection from "../components/FAQSection.astro";
-import { getSeminars } from "../lib/frappe";
+import Calendar from "@lucide/astro/icons/calendar";
+import Video from "@lucide/astro/icons/video";
+import { getSeminars, type FormattedSeminar } from "../lib/frappe";
 
 // Fetch live seminars from Frappe Doctype 'Seminar'
 const seminars = await getSeminars();
+
+/**
+ * Card-sized date and time ("Sep 23", "5:30 PM"). formatSeminar's own strings
+ * are the long form used on the detail page, which wraps in a card column.
+ * Frappe stores a naive "YYYY-MM-DD HH:MM:SS" and no zone is applied here, so
+ * the wall-clock time is shown exactly as the seminar was entered.
+ */
+function cardDateTime(item: FormattedSeminar) {
+  const dt = new Date((item.date_and_time || "").replace(" ", "T"));
+  if (isNaN(dt.getTime())) return { date: item.formattedDate, time: item.formattedTime };
+  return {
+    date: dt.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    time: dt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }),
+  };
+}
 ---
 
 <Layout
@@ -39,79 +56,69 @@ const seminars = await getSeminars();
               >
             </div>
           </h2>
-          <p class="text-text-default opacity-80 mt-3">
-            Register for live upcoming workshops or download materials from completed sessions.
-          </p>
+          <p class="text-text-default opacity-80 mt-3">Register for our live upcoming workshops and masterclasses.</p>
         </div>
 
-        <div class="grid grid-cols-1 gap-8 md:gap-10 max-w-5xl mx-auto">
+        <div class="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 md:gap-8">
           {
             seminars.length === 0 ? (
-              <div class="text-center py-12 text-gray-500 bg-theme-light rounded-3xl border border-border-light">
+              <div class="sm:col-span-2 lg:col-span-3 text-center py-12 text-gray-500 bg-theme-light rounded-3xl border border-border-light">
                 <p class="text-lg font-medium">No upcoming seminars found at the moment.</p>
                 <p class="text-sm mt-1">Please check back soon for live masterclasses & webinars.</p>
               </div>
             ) : (
-              seminars.map((item, index) => (
-                <div
-                  data-aos="fade-up-sm"
-                  data-aos-delay={100 + index * 100}
-                  class="bg-theme-light flex flex-col md:flex-row rounded-4xl p-6 md:p-8 gap-6 md:gap-10 items-center md:items-start border border-border-light hover:border-black/20 transition-all duration-300 shadow-xs"
-                >
-                  <div
-                    class="rounded-3xl overflow-hidden bg-white border border-border-light shadow-sm shrink-0"
-                    style="width: 310px; max-width: 100%; aspect-ratio: 500 / 625; flex: 0 0 310px;"
+              seminars.map((item, index) => {
+                const { date, time } = cardDateTime(item);
+                return (
+                  <article
+                    data-aos="fade-up-sm"
+                    data-aos-delay={100 + index * 100}
+                    class="group flex flex-col overflow-hidden rounded-3xl border border-border-light bg-white shadow-xs transition-colors duration-300 hover:border-black/20"
                   >
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      class="w-full h-full object-cover rounded-3xl"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div
-                    class="flex flex-col justify-between space-y-6 w-full h-full"
-                    style="flex: 1 1 0%; min-width: 0;"
-                  >
-                    <div class="space-y-5">
-                      <div class="flex flex-wrap items-center gap-2.5">
-                        <span class="bg-white text-emerald-700 px-3.5 py-1 rounded-full text-xs font-semibold border border-border-light uppercase">
-                          {item.type}
-                        </span>
-                        <span class="bg-primary/10 text-primary px-3.5 py-1 rounded-full text-xs font-semibold uppercase">
-                          {item.cost}
-                        </span>
-                        <span class="text-xs text-text-default opacity-70 font-semibold">| {item.language}</span>
-                      </div>
-                      <h3 class="text-2xl md:text-3xl font-bold text-dark leading-snug">{item.title}</h3>
-                      <div class="flex items-center gap-2.5 text-sm md:text-base font-mono text-text-default opacity-90 font-medium my-4 py-2 border-y border-border-light/60 max-w-fit">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          class="text-primary"
-                        >
-                          <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-                          <line x1="16" x2="16" y1="2" y2="6" />
-                          <line x1="8" x2="8" y1="2" y2="6" />
-                          <line x1="3" x2="21" y1="10" y2="10" />
-                        </svg>
-                        <span>{item.date_and_time || item.formattedDate}</span>
-                      </div>
-                      <p class="text-text-default opacity-85 text-base md:text-lg/relaxed pt-1 whitespace-pre-line">
-                        {item.description}
-                      </p>
+                    <div class="relative">
+                      <img
+                        src={item.websiteImage}
+                        alt={item.title}
+                        width="640"
+                        height="360"
+                        loading="lazy"
+                        decoding="async"
+                        class="aspect-video w-full object-cover"
+                      />
+                      <span class="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary shadow-xs">
+                        {item.cost}
+                      </span>
                     </div>
 
-                    <div class="flex items-center gap-3 pt-4">
+                    <div class="flex flex-1 flex-col gap-4 p-5 md:p-6">
+                      <div class="space-y-2">
+                        <h3 class="line-clamp-2 text-lg font-bold leading-snug text-dark md:text-xl">{item.title}</h3>
+                        {/* Several Seminar docs repeat the title in `description`; showing
+                          both would just print the same line twice under the heading. */}
+                        {item.description && item.description.trim() !== item.title.trim() && (
+                          <p class="line-clamp-2 text-sm text-text-default opacity-75">{item.description}</p>
+                        )}
+                      </div>
+
+                      <div class="space-y-1.5 text-sm text-text-default opacity-90">
+                        <div class="flex items-center gap-2">
+                          <Calendar class="h-4 w-4 text-primary" stroke-width={1.8} aria-hidden="true" />
+                          <span>
+                            {date}
+                            {time && <span class="opacity-60"> | </span>}
+                            {time}
+                          </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <Video class="h-4 w-4 text-primary" stroke-width={1.8} aria-hidden="true" />
+                          <span>
+                            {item.type} <span class="opacity-60">·</span> {item.language}
+                          </span>
+                        </div>
+                      </div>
+
                       <a
-                        class="btn btn-primary text-flip-hover-anim cursor-pointer"
+                        class="btn btn-primary text-flip-hover-anim mt-auto cursor-pointer self-end"
                         href={`/research-learn/${item.slug}`}
                       >
                         <span class="text-flip-inner" data-content="Register">
@@ -135,12 +142,36 @@ const seminars = await getSeminars();
                         </span>
                       </a>
                     </div>
-                  </div>
-                </div>
-              ))
+                  </article>
+                );
+              })
             )
           }
         </div>
+      </div>
+    </section>
+
+    <!-- Courses CTA banner. The artwork carries its own headline and "View
+         Course" button, so the whole banner is the link and the alt text has to
+         speak for the wording baked into it. -->
+    <section aria-label="GoPocket courses">
+      <div class="container">
+        <a
+          href="#webinars"
+          class="mx-auto block max-w-7xl overflow-hidden rounded-3xl"
+          data-aos="fade-up-sm"
+          data-aos-delay="100"
+        >
+          <img
+            src="/assets/images/learn.webp"
+            alt="Unlimited learning at a limited price - access all GoPocket webinars and courses."
+            width="2172"
+            height="724"
+            loading="lazy"
+            decoding="async"
+            class="w-full"
+          />
+        </a>
       </div>
     </section>
 

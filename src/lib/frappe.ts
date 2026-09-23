@@ -60,11 +60,30 @@ export interface SeminarDoc {
   cost?: string;
   language?: string;
   image?: string | null;
+  /** Landscape banner, added for the website cards; portrait `image` is the fallback. */
+  website_image?: string | null;
+  about_this_course?: string | null;
+  /** Quill HTML holding an <ol> - parsed into `learningOutcomes`. */
+  learning_outcomes?: string | null;
+  mentor_image?: string | null;
+  mentor_name?: string | null;
+  designation?: string | null;
+  experience?: string | null;
+  about_mentor?: string | null;
   owner?: string;
   creation?: string;
   modified?: string;
   docstatus?: number;
   registration_details?: SeminarRegistrationRow[];
+  /** Per-seminar Q&A. Only a single-doc GET returns it; list queries do not. */
+  faq?: SeminarFaqRow[];
+}
+
+/** One row of the `faq` child table on the Seminar doctype. */
+export interface SeminarFaqRow {
+  name?: string;
+  question?: string;
+  answer?: string;
 }
 
 export interface FormattedSeminar {
@@ -80,7 +99,19 @@ export interface FormattedSeminar {
   cost: string;
   language: string;
   image: string;
+  /** Landscape card banner - falls back to `image` when the doc has none. */
+  websiteImage: string;
   rawImage?: string | null;
+  /** Course detail page copy. Every one of these is optional on the doctype. */
+  aboutCourse: string;
+  learningOutcomes: string[];
+  mentorImage: string;
+  mentorName: string;
+  mentorDesignation: string;
+  mentorExperience: string;
+  aboutMentor: string;
+  /** Empty for seminars from a list query - child tables are not returned there. */
+  faqs: { id: string; question: string; answer: string }[];
 }
 
 export function getFullImageUrl(imagePath?: string | null): string {
@@ -113,6 +144,37 @@ function encodeFilePath(path: string): string {
     .join("/");
 
   return query ? `${encoded}?${query}` : encoded;
+}
+
+/**
+ * Pulls the list items out of a Quill rich-text field, as plain strings.
+ *
+ * Frappe stores those fields as HTML ('<div class="ql-editor"><ol><li>…'), and
+ * the page renders each item as its own numbered card, so what is needed is the
+ * items rather than the markup. Tags are stripped instead of rendered: the
+ * value is editor input, and `set:html` on it would put whatever an author
+ * pasted straight into the page.
+ */
+export function parseListItems(html?: string | null): string[] {
+  if (!html) return [];
+
+  const items = html.match(/<li[^>]*>([\s\S]*?)<\/li>/gi);
+  if (!items) return [];
+
+  return items
+    .map((item) =>
+      item
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/\s+/g, " ")
+        .trim(),
+    )
+    .filter(Boolean);
 }
 
 export function formatSeminar(doc: SeminarDoc): FormattedSeminar {
@@ -159,7 +221,24 @@ export function formatSeminar(doc: SeminarDoc): FormattedSeminar {
     cost: doc.cost || "Free",
     language: doc.language || "Tamil",
     image: getFullImageUrl(doc.image),
+    websiteImage: getFullImageUrl(doc.website_image || doc.image),
     rawImage: doc.image,
+    aboutCourse: (doc.about_this_course || "").trim(),
+    learningOutcomes: parseListItems(doc.learning_outcomes),
+    // No placeholder here: an empty string is what the page tests to decide
+    // whether the mentor block is rendered at all.
+    mentorImage: doc.mentor_image ? getFullImageUrl(doc.mentor_image) : "",
+    mentorName: (doc.mentor_name || "").trim(),
+    mentorDesignation: (doc.designation || "").trim(),
+    mentorExperience: (doc.experience || "").trim(),
+    aboutMentor: (doc.about_mentor || "").trim(),
+    faqs: (doc.faq || [])
+      .filter((row) => row?.question && row?.answer)
+      .map((row, index) => ({
+        id: row.name || `seminar-faq-${index + 1}`,
+        question: (row.question || "").trim(),
+        answer: (row.answer || "").trim(),
+      })),
   };
 }
 
@@ -358,20 +437,86 @@ async function findSeminarByDateTime(dateTime: string): Promise<SeminarDoc | nul
 }
 
 /**
+ * Every Seminar field the detail page reads. Spelled out because a list query
+ * cannot mix "*" with child-table fields ("Field not permitted in query: *"),
+ * and the one-call read below needs both.
+ */
+const SEMINAR_DETAIL_FIELDS = [
+  "name",
+  "tittle",
+  "description",
+  "date_and_time",
+  "type",
+  "cost",
+  "language",
+  "image",
+  "website_image",
+  "about_this_course",
+  "learning_outcomes",
+  "mentor_image",
+  "mentor_name",
+  "designation",
+  "experience",
+  "about_mentor",
+];
+
+/**
+ * Reads one seminar together with its `faq` rows in a single request.
+ *
+ * The obvious call, GET /api/resource/Seminar/<name>, returns child tables but
+ * ignores `fields` entirely - so it also drags down every registration_details
+ * row, which grows without bound as people sign up. A list query with
+ * `tabFaq` fields returns only what the page shows. Frappe joins the child
+ * table on the LEFT, so a seminar with no FAQs still comes back, once, with
+ * nulls in those columns.
+ *
+ * The join flattens: one row per FAQ row, with the parent fields repeated.
+ * They are folded back into a single doc here.
+ */
+async function fetchSeminarDetail(filters: any[]): Promise<SeminarDoc | null> {
+  const params = new URLSearchParams({
+    fields: JSON.stringify([...SEMINAR_DETAIL_FIELDS, "`tabFaq`.question", "`tabFaq`.answer", "`tabFaq`.idx"]),
+    filters: JSON.stringify(filters),
+    limit_page_length: "0",
+  });
+
+  const rows = await frappeResourceGet<(SeminarDoc & SeminarFaqRow & { idx?: number })[]>(
+    `${getFrappeUrl()}/api/resource/Seminar?${params.toString()}`,
+    "fetchSeminarDetail",
+  );
+  if (!rows || rows.length === 0) return null;
+
+  const { question, answer, idx, ...doc } = rows[0];
+  return {
+    ...(doc as SeminarDoc),
+    faq: rows
+      .filter((row) => row.question && row.answer)
+      .sort((a, b) => (a.idx ?? 0) - (b.idx ?? 0))
+      .map((row) => ({ question: row.question, answer: row.answer })),
+  };
+}
+
+/**
  * Resolves /research-learn/<identifier>, where the identifier is either a
  * date-based slug ("20260831-1600") or - for links created before slugs
  * existed - a raw Frappe record id.
  */
 export async function getSeminarBySlugOrId(identifier: string): Promise<FormattedSeminar | null> {
   const value = (identifier || "").trim();
+  const dateTime = value ? seminarSlugToDateTime(value) : null;
   if (!value) return null;
 
-  const dateTime = seminarSlugToDateTime(value);
-  if (dateTime) {
-    const doc = await findSeminarByDateTime(dateTime);
-    return doc ? formatSeminar(doc) : null;
-  }
+  const filters: any[] = dateTime ? [["Seminar", "date_and_time", "=", dateTime]] : [["Seminar", "name", "=", value]];
 
+  const doc = await fetchSeminarDetail(filters);
+  if (doc) return formatSeminar(doc);
+
+  // Transport fallbacks, both of which cost the registration rows: the slug
+  // path's plain list query, then the single-document read.
+  if (dateTime) {
+    const listed = await findSeminarByDateTime(dateTime);
+    return listed ? formatSeminar(listed) : null;
+  }
   return getSeminarById(value);
 }
 

@@ -1,0 +1,86 @@
+---
+/**
+ * Numbered pagination for the /blog listing. Every page is a real link, so
+ * crawlers can walk the whole archive without JavaScript.
+ *
+ * Only the first, last and neighbouring pages are listed; the gaps collapse to
+ * an ellipsis. A gap of a single page shows that page instead, since an
+ * ellipsis standing in for one number saves nothing.
+ */
+import ChevronLeft from "@lucide/astro/icons/chevron-left";
+import ChevronRight from "@lucide/astro/icons/chevron-right";
+import { blogPageHref } from "./blog-pages";
+
+interface Props {
+  current: number;
+  total: number;
+  class?: string;
+}
+
+const { current, total, class: className = "" } = Astro.props;
+
+const anchors = [...new Set([1, current - 1, current, current + 1, total])]
+  .filter((page) => page >= 1 && page <= total)
+  .sort((a, b) => a - b);
+
+const items: (number | "gap")[] = [];
+anchors.forEach((page, i) => {
+  const prev = anchors[i - 1];
+  if (prev !== undefined && page - prev === 2) items.push(prev + 1);
+  else if (prev !== undefined && page - prev > 2) items.push("gap");
+  items.push(page);
+});
+
+const pill =
+  "flex h-11 min-w-11 items-center justify-center rounded-full border px-3 text-base font-semibold transition-colors duration-200";
+const idle = "border-border-light text-dark hover:border-dark bg-white";
+const edge = "gap-1.5 px-4 max-sm:w-11 max-sm:px-0";
+---
+
+{
+  total > 1 && (
+    <nav aria-label="Blog pages" class:list={["flex flex-wrap items-center justify-center gap-2 sm:gap-3", className]}>
+      {current > 1 ? (
+        <a href={blogPageHref(current - 1)} rel="prev" class:list={[pill, idle, edge]}>
+          <ChevronLeft class="h-5 w-5" stroke-width={2} aria-hidden="true" />
+          <span class="max-sm:sr-only">Previous</span>
+        </a>
+      ) : (
+        <span class:list={[pill, edge, "border-border-light text-text-default cursor-not-allowed opacity-50"]}>
+          <ChevronLeft class="h-5 w-5" stroke-width={2} aria-hidden="true" />
+          <span class="max-sm:sr-only">Previous</span>
+        </span>
+      )}
+
+      {items.map((item) =>
+        item === "gap" ? (
+          <span class="text-text-default px-1" aria-hidden="true">
+            …
+          </span>
+        ) : item === current ? (
+          <span aria-current="page" class:list={[pill, "border-primary bg-primary text-white"]}>
+            <span class="sr-only">Page </span>
+            {item}
+          </span>
+        ) : (
+          <a href={blogPageHref(item)} class:list={[pill, idle]}>
+            <span class="sr-only">Page </span>
+            {item}
+          </a>
+        ),
+      )}
+
+      {current < total ? (
+        <a href={blogPageHref(current + 1)} rel="next" class:list={[pill, idle, edge]}>
+          <span class="max-sm:sr-only">Next</span>
+          <ChevronRight class="h-5 w-5" stroke-width={2} aria-hidden="true" />
+        </a>
+      ) : (
+        <span class:list={[pill, edge, "border-border-light text-text-default cursor-not-allowed opacity-50"]}>
+          <span class="max-sm:sr-only">Next</span>
+          <ChevronRight class="h-5 w-5" stroke-width={2} aria-hidden="true" />
+        </span>
+      )}
+    </nav>
+  )
+}

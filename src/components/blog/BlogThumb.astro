@@ -1,6 +1,7 @@
 ---
 /**
- * A post's thumbnail with its category chip pinned top-left, linked to the post.
+ * A post's thumbnail, linked to the post, with an optional category chip
+ * pinned top-left.
  *
  * The card's title and "Read more" already link to the same URL, so this link
  * is taken out of the tab order and the accessibility tree rather than giving
@@ -9,7 +10,8 @@
 interface Props {
   href: string;
   src: string;
-  category: string;
+  /** Chip pinned top-left; omitted where the card shows the category below. */
+  category?: string;
   width: number;
   height: number;
   /** The featured post's image is the LCP element, so it must not be lazy. */
@@ -31,10 +33,12 @@ const { href, src, category, width, height, eager = false, class: className = ""
     fetchpriority={eager ? "high" : undefined}
     class="h-full w-full object-cover transition duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
   />
-  <span
-    class="text-dark absolute top-3 left-3 z-10 rounded-md bg-white px-2.5 py-1 text-xs font-medium shadow-xs md:top-4 md:left-4 md:text-sm"
-  >
-    {category}
-  </span>
+  {
+    category && (
+      <span class="text-dark absolute top-3 left-3 z-10 rounded-md bg-white px-2.5 py-1 text-xs font-medium shadow-xs md:top-4 md:left-4 md:text-sm">
+        {category}
+      </span>
+    )
+  }
   <a href={href} class="absolute inset-0 z-20" tabindex="-1" aria-hidden="true"></a>
 </div>

@@ -1025,9 +1025,10 @@ function formatBlogListItem(doc: BlogDoc): FormattedBlog {
 }
 
 /**
- * Fetches the blog collection, newest first, without post bodies.
+ * Fetches the blog collection, newest first, without post bodies. `start`
+ * skips that many posts, which is how the paginated listing reaches page N.
  */
-export async function getBlogPosts(limit = 20, withReadingTime = false): Promise<FormattedBlog[]> {
+export async function getBlogPosts(limit = 20, withReadingTime = false, start = 0): Promise<FormattedBlog[]> {
   const fields = [
     "name",
     "meta_tittle",
@@ -1050,6 +1051,7 @@ export async function getBlogPosts(limit = 20, withReadingTime = false): Promise
     const docs = await db.getDocList<BlogDoc>("Blog", {
       fields: fields as any,
       limit,
+      limit_start: start,
       orderBy: { field: "creation", order: "desc" },
     });
 
@@ -1064,7 +1066,7 @@ export async function getBlogPosts(limit = 20, withReadingTime = false): Promise
   try {
     const baseUrl = getFrappeUrl();
     const token = getFrappeToken();
-    const url = `${baseUrl}/api/resource/Blog?fields=${encodeURIComponent(JSON.stringify(fields))}&limit_page_length=${limit}&order_by=creation desc`;
+    const url = `${baseUrl}/api/resource/Blog?fields=${encodeURIComponent(JSON.stringify(fields))}&limit_page_length=${limit}&limit_start=${start}&order_by=creation desc`;
 
     const res = await fetch(url, {
       headers: {
@@ -1084,6 +1086,31 @@ export async function getBlogPosts(limit = 20, withReadingTime = false): Promise
   }
 
   return [];
+}
+
+/**
+ * Total number of blog posts, for the listing's page numbers. Null when Frappe
+ * can't be reached, so the caller can hide pagination rather than show wrong
+ * page counts.
+ */
+export async function getBlogCount(): Promise<number | null> {
+  try {
+    const res = await fetch(`${getFrappeUrl()}/api/method/frappe.client.get_count?doctype=Blog`, {
+      headers: {
+        Authorization: `token ${getFrappeToken()}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (!res.ok) {
+      console.warn(`Frappe getBlogCount responded ${res.status}`);
+      return null;
+    }
+    const json = await res.json();
+    return typeof json?.message === "number" ? json.message : null;
+  } catch (error) {
+    console.error("Frappe getBlogCount request failed:", error);
+    return null;
+  }
 }
 
 /**

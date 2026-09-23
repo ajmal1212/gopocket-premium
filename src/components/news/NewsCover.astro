@@ -14,7 +14,8 @@
 interface Props {
   /** Omitted on the article page, where the cover links nowhere. */
   href?: string;
-  category: string;
+  /** Chip pinned top-left; omitted where the card shows the category below. */
+  category?: string;
   /** Picks the palette; same slug always yields the same colours. */
   slug: string;
   /** Scales the mark to the card it sits on. */
@@ -76,11 +77,13 @@ const logoSize = {
     />
   </div>
 
-  <span
-    class="text-dark absolute top-3 left-3 z-10 rounded-md bg-white px-2.5 py-1 text-xs font-medium shadow-xs md:top-4 md:left-4 md:text-sm"
-  >
-    {category}
-  </span>
+  {
+    category && (
+      <span class="text-dark absolute top-3 left-3 z-10 rounded-md bg-white px-2.5 py-1 text-xs font-medium shadow-xs md:top-4 md:left-4 md:text-sm">
+        {category}
+      </span>
+    )
+  }
   {href && <a href={href} class="absolute inset-0 z-20" tabindex="-1" aria-hidden="true" />}
 </div>
 

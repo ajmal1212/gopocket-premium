@@ -1,0 +1,45 @@
+---
+/**
+ * One post in the /blog grid, shared by the first listing page and the
+ * paginated ones. `as` sets the title's heading level: it sits under a section
+ * h2 on /blog, but directly under the page's h1 on /blog/page/N.
+ *
+ * The category sits beside "Read more" rather than as a chip over the image,
+ * so the thumbnail stays clean.
+ */
+import BlogThumb from "@/components/blog/BlogThumb.astro";
+import NewsCover from "@/components/news/NewsCover.astro";
+import BlogMeta from "@/components/blog/BlogMeta.astro";
+import BlogReadMore from "@/components/blog/BlogReadMore.astro";
+import type { FormattedBlog } from "@/lib/frappe";
+
+interface Props {
+  post: FormattedBlog;
+  as?: "h2" | "h3";
+}
+
+const { post, as: Heading = "h3" } = Astro.props;
+const href = `/blog/${post.slug}`;
+---
+
+<article class="flex flex-col">
+  {
+    post.thumbnailImage ? (
+      <BlogThumb href={href} src={post.thumbnailImage} width={640} height={550} class="aspect-[64/55] rounded-2xl" />
+    ) : (
+      <NewsCover href={href} slug={post.slug} class="aspect-[64/55] rounded-2xl" />
+    )
+  }
+  <Heading
+    class="text-black! dark:text-white! mt-4 line-clamp-2 text-[26px]! leading-snug md:text-[32px]! font-bold tracking-tight"
+  >
+    <a href={href} class="text-inherit! hover:text-primary! transition-colors">
+      {post.title}
+    </a>
+  </Heading>
+  <BlogMeta class="mt-3" date={post.formattedDate} datetime={post.publishedISO} readingMinutes={post.readingMinutes} />
+  <div class="mt-5 flex items-center justify-between gap-4">
+    <span class="bg-theme-light text-dark rounded-md px-2.5 py-1 text-sm font-medium">{post.category}</span>
+    <BlogReadMore href={href} title={post.title} />
+  </div>
+</article>

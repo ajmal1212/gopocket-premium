@@ -7,10 +7,15 @@ import BlogThumb from "@/components/blog/BlogThumb.astro";
 import NewsCover from "@/components/news/NewsCover.astro";
 import BlogMeta from "@/components/blog/BlogMeta.astro";
 import BlogReadMore from "@/components/blog/BlogReadMore.astro";
-import { getBlogPosts } from "../lib/frappe";
+import BlogCard from "@/components/blog/BlogCard.astro";
+import BlogPagination from "@/components/blog/BlogPagination.astro";
+import { FIRST_PAGE_SIZE, blogPageCount } from "@/components/blog/blog-pages";
+import { getBlogCount, getBlogPosts } from "../lib/frappe";
 
 // Newest post leads, the next three stack beside it, and the rest fill the grid.
-const posts = await getBlogPosts(20, true);
+// Older posts continue at /blog/page/2 onwards.
+const [posts, totalPosts] = await Promise.all([getBlogPosts(FIRST_PAGE_SIZE, true), getBlogCount()]);
+const pageCount = totalPosts === null ? 1 : blogPageCount(totalPosts);
 const featuredPost = posts[0] ?? null;
 const sidePosts = posts.slice(1, 4);
 const gridPosts = posts.slice(4);
@@ -65,6 +70,7 @@ const blogBreadcrumbSchema = {
   <Fragment slot="head">
     <script type="application/ld+json" set:html={JSON.stringify(blogSchema)} />
     <script type="application/ld+json" set:html={JSON.stringify(blogBreadcrumbSchema)} />
+    {pageCount > 1 && <link rel="next" href={`${SITE}/blog/page/2`} />}
   </Fragment>
   <Header currentPath="/blog" />
   <main class="has-section-spacing-lg pt-8 md:pt-16">
@@ -138,7 +144,7 @@ const blogBreadcrumbSchema = {
                           category={post.category}
                           width={640}
                           height={550}
-                          class="aspect-[4/3] rounded-2xl"
+                          class="aspect-[64/55] rounded-2xl"
                         />
                       ) : (
                         <NewsCover
@@ -146,7 +152,7 @@ const blogBreadcrumbSchema = {
                           category={post.category}
                           slug={post.slug}
                           size="sm"
-                          class="aspect-[4/3] rounded-2xl"
+                          class="aspect-[64/55] rounded-2xl"
                         />
                       )}
                       <div class="flex flex-col">
@@ -180,40 +186,18 @@ const blogBreadcrumbSchema = {
             <h2 class="text-black! dark:text-white! text-h4 font-bold tracking-tight md:text-h3">Featured Blogs</h2>
             <div class="mt-8 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:gap-x-12 lg:gap-y-16 lg:grid-cols-3 md:mt-10">
               {gridPosts.map((post) => (
-                <article class="flex flex-col">
-                  {post.thumbnailImage ? (
-                    <BlogThumb
-                      href={`/blog/${post.slug}`}
-                      src={post.thumbnailImage}
-                      category={post.category}
-                      width={640}
-                      height={550}
-                      class="aspect-[7/5] rounded-2xl"
-                    />
-                  ) : (
-                    <NewsCover
-                      href={`/blog/${post.slug}`}
-                      category={post.category}
-                      slug={post.slug}
-                      class="aspect-[7/5] rounded-2xl"
-                    />
-                  )}
-                  <h3 class="text-black! dark:text-white! mt-4 line-clamp-2 text-[26px]! leading-snug md:text-[32px]! font-bold tracking-tight">
-                    <a href={`/blog/${post.slug}`} class="text-inherit! hover:text-primary! transition-colors">
-                      {post.title}
-                    </a>
-                  </h3>
-                  <BlogMeta
-                    class="mt-3"
-                    date={post.formattedDate}
-                    datetime={post.publishedISO}
-                    readingMinutes={post.readingMinutes}
-                  />
-                  <BlogReadMore class="mt-5 self-start" href={`/blog/${post.slug}`} title={post.title} />
-                </article>
+                <BlogCard post={post} />
               ))}
             </div>
           </div>
+        </section>
+      )
+    }
+
+    {
+      pageCount > 1 && (
+        <section class="container mt-16 md:mt-24">
+          <BlogPagination current={1} total={pageCount} />
         </section>
       )
     }

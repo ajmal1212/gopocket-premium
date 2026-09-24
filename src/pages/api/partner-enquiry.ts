@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
 import { createLead } from "../../lib/frappe";
+import { verifyTurnstile } from "../../lib/turnstile";
 
 /**
  * Partner enquiries from /partner-with-us.
@@ -8,6 +9,9 @@ import { createLead } from "../../lib/frappe";
  * email and state alongside the number, and a partner applicant must NOT be
  * bounced into the retail signup flow afterwards. The reply carries no
  * `redirect`, so the page shows a toast, clears the form and stays put.
+ *
+ * Like every lead endpoint it needs a Cloudflare Turnstile token
+ * (`turnstileToken`), checked after the fields so a typo doesn't burn it.
  *
  * KNOWN GAP: `gopocket.website.create_lead` accepts only mobile, refer, src and
  * tag. The name, email and state are validated here and then dropped, so today
@@ -28,6 +32,7 @@ interface Payload {
   refer?: unknown;
   src?: unknown;
   tag?: unknown;
+  turnstileToken?: unknown;
 }
 
 interface ResponseBody {
@@ -66,7 +71,7 @@ function invalid(message: string): Response {
   return json({ ok: false, title: "Check your details", message }, 400);
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   let payload: Payload;
   try {
     payload = (await request.json()) as Payload;
@@ -93,6 +98,14 @@ export const POST: APIRoute = async ({ request }) => {
   if (!/^[0-9]{10}$/.test(mobile)) return invalid("Please enter a valid 10-digit mobile number.");
   if (!EMAIL_PATTERN.test(email)) return invalid("Please enter a valid email address.");
   if (!state) return invalid("Please select your state.");
+
+  const check = await verifyTurnstile({
+    token: payload.turnstileToken,
+    action: "partner-enquiry",
+    request,
+    env: locals.runtime?.env,
+  });
+  if (!check.ok) return json({ ok: false, title: check.title, message: check.message }, check.status);
 
   const result = await createLead({ mobile, refer, src, tag });
 

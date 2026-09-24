@@ -3,6 +3,7 @@ import IndianRupee from "@lucide/astro/icons/indian-rupee";
 import CalendarDays from "@lucide/astro/icons/calendar-days";
 import Check from "@lucide/astro/icons/check";
 import LeadCapture from "../LeadCapture.astro";
+import TurnstileWidget from "../TurnstileWidget.astro";
 
 /**
  * PartnerEnquiry - the partner application form.
@@ -194,6 +195,9 @@ const STATES = [
             </svg>
           </div>
         </div>
+
+        <!-- Cloudflare Turnstile bot check; /api/partner-enquiry refuses an enquiry without its token -->
+        <TurnstileWidget action="partner-enquiry" />
 
         <button
           data-lead-submit

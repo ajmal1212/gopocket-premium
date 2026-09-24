@@ -8,8 +8,8 @@ import NewsCover from "@/components/news/NewsCover.astro";
 import BlogMeta from "@/components/blog/BlogMeta.astro";
 import BlogReadMore from "@/components/blog/BlogReadMore.astro";
 import BlogCard from "@/components/blog/BlogCard.astro";
-import BlogPagination from "@/components/blog/BlogPagination.astro";
-import { FIRST_PAGE_SIZE, blogPageCount } from "@/components/blog/blog-pages";
+import Pagination from "@/components/Pagination.astro";
+import { FIRST_PAGE_SIZE, blogPageCount, blogPageHref } from "@/components/blog/blog-pages";
 import { getBlogCount, getBlogPosts } from "../lib/frappe";
 
 // Newest post leads, the next three stack beside it, and the rest fill the grid.
@@ -197,7 +197,7 @@ const blogBreadcrumbSchema = {
     {
       pageCount > 1 && (
         <section class="container mt-16 md:mt-24">
-          <BlogPagination current={1} total={pageCount} />
+          <Pagination current={1} total={pageCount} hrefFor={blogPageHref} label="Blog pages" />
         </section>
       )
     }

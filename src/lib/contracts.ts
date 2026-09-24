@@ -490,3 +490,139 @@ async function lookupContract(slug: string): Promise<Contract | null> {
   if (exact.length === 0) return null;
   return exact.sort(byOrderThenSymbol)[0];
 }
+
+/* ---------------------------------------------------------------------------
+   The /stocks list
+   ------------------------------------------------------------------------ */
+
+export interface StockFilters {
+  exchange: "NSE" | "BSE";
+  /** Symbol prefix typed in the search box, upper-cased; "" for none. */
+  query: string;
+  /** A-Z, or "" for every letter. Matched against the symbol - see browseStocks. */
+  letter: string;
+  sectors: string[];
+  industries: string[];
+  capBands: string[];
+  sort: "mcap-desc" | "mcap-asc" | "name-asc";
+}
+
+export interface StockRow extends Contract {
+  sector: string;
+  industry: string;
+  capBand: string;
+  /** ₹ crore, as Contract Master stores it; null when not yet filled in. */
+  marketCap: number | null;
+}
+
+interface StockListRow extends ContractRow {
+  sector?: string;
+  industry?: string;
+  cap_band?: string;
+  market_cap?: number;
+}
+
+const STOCK_FIELDS = JSON.stringify([
+  "token",
+  "symbol",
+  "exchange",
+  "source_exchange",
+  "trading_symbol",
+  "formatted_ins_name",
+  "order",
+  "sector",
+  "industry",
+  "cap_band",
+  "market_cap",
+]);
+
+const STOCK_ORDER: Record<StockFilters["sort"], string> = {
+  "mcap-desc": "market_cap desc, symbol asc",
+  "mcap-asc": "market_cap asc, symbol asc",
+  "name-asc": "symbol asc",
+};
+
+/** A day-old market cap is fine; the doctype is refreshed once a day. */
+const STOCK_LIST_TTL_S = 60 * 60;
+
+/**
+ * One page of listed shares, and how many match in all.
+ *
+ * "Listed share" means a row with a `sector`. That is not a shortcut: of NSE's
+ * 9,790 rows only ~2,500 carry one, and the rest are government securities,
+ * debentures and T-bills (see the series notes above) that have no business in
+ * a stock screener. Each company has an NSE and a BSE row, which is why the
+ * exchange is a single choice rather than a filter that can be widened.
+ *
+ * The search box matches the start of the symbol - a prefix, for the reason
+ * given at searchContracts: a leading wildcard can't use the index.
+ *
+ * The letter matches the symbol, not the company name, because Contract Master
+ * holds no names - they come from the bundled NSE list, which the database
+ * cannot filter on. The two start with the same letter far more often than not.
+ *
+ * Both queries run together and the pair is kept in the edge cache under the
+ * filters that produced it, so paging back and forth costs nothing.
+ */
+export async function browseStocks(
+  filters: StockFilters,
+  page: number,
+  pageSize: number,
+): Promise<{ rows: StockRow[]; total: number } | null> {
+  const cacheKey = `stocks:${JSON.stringify([filters, page, pageSize])}`;
+  const cached = await edgeGet<{ rows: StockRow[]; total: number }>(cacheKey);
+  if (cached) return cached;
+
+  const where: unknown[][] = [
+    ["exchange", "=", filters.exchange],
+    ["sector", "is", "set"],
+  ];
+  if (filters.query) where.push(["symbol", "like", `${escapeLike(filters.query)}%`]);
+  if (filters.letter) where.push(["symbol", "like", `${filters.letter}%`]);
+  if (filters.sectors.length) where.push(["sector", "in", filters.sectors]);
+  if (filters.industries.length) where.push(["industry", "in", filters.industries]);
+  if (filters.capBands.length) where.push(["cap_band", "in", filters.capBands]);
+
+  const headers = { Authorization: `token ${getFrappeToken()}` };
+  const signal = AbortSignal.timeout(TIMEOUT_MS);
+
+  try {
+    const list = new URLSearchParams({
+      fields: STOCK_FIELDS,
+      filters: JSON.stringify(where),
+      order_by: STOCK_ORDER[filters.sort],
+      limit_page_length: String(pageSize),
+      limit_start: String((page - 1) * pageSize),
+    });
+    const count = new URLSearchParams({ doctype: "Contract Master", filters: JSON.stringify(where) });
+
+    const [listRes, countRes] = await Promise.all([
+      fetch(`${getFrappeUrl()}/api/resource/Contract Master?${list}`, { headers, signal }),
+      fetch(`${getFrappeUrl()}/api/method/frappe.client.get_count?${count}`, { headers, signal }),
+    ]);
+    if (!listRes.ok || !countRes.ok) return null;
+
+    const { data = [] } = (await listRes.json()) as { data?: StockListRow[] };
+    const { message } = (await countRes.json()) as { message?: number };
+
+    const rows = data.flatMap((row): StockRow[] => {
+      const contract = toContract(row);
+      if (!contract) return [];
+      return [
+        {
+          ...contract,
+          sector: row.sector || "",
+          industry: row.industry || "",
+          capBand: row.cap_band || "",
+          marketCap: row.market_cap ? row.market_cap : null,
+        },
+      ];
+    });
+
+    const result = { rows, total: typeof message === "number" ? message : rows.length };
+    await edgePut(cacheKey, result, STOCK_LIST_TTL_S);
+    return result;
+  } catch {
+    return null;
+  }
+}

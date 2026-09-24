@@ -1,7 +1,9 @@
 ---
 /**
- * Numbered pagination for the /blog listing. Every page is a real link, so
- * crawlers can walk the whole archive without JavaScript.
+ * Numbered pagination - the /blog archive and the /stocks list. Every page is a
+ * real link, so crawlers can walk the whole set without JavaScript. The caller
+ * says how a page number becomes an address, since one uses /blog/page/N and
+ * the other ?page=N alongside its filters.
  *
  * Only the first, last and neighbouring pages are listed; the gaps collapse to
  * an ellipsis. A gap of a single page shows that page instead, since an
@@ -9,15 +11,17 @@
  */
 import ChevronLeft from "@lucide/astro/icons/chevron-left";
 import ChevronRight from "@lucide/astro/icons/chevron-right";
-import { blogPageHref } from "./blog-pages";
 
 interface Props {
   current: number;
   total: number;
+  hrefFor: (page: number) => string;
+  /** Names the nav landmark, e.g. "Blog pages". */
+  label: string;
   class?: string;
 }
 
-const { current, total, class: className = "" } = Astro.props;
+const { current, total, hrefFor, label, class: className = "" } = Astro.props;
 
 const anchors = [...new Set([1, current - 1, current, current + 1, total])]
   .filter((page) => page >= 1 && page <= total)
@@ -35,18 +39,19 @@ const pill =
   "flex h-11 min-w-11 items-center justify-center rounded-full border px-3 text-base font-semibold transition-colors duration-200";
 const idle = "border-border-light text-dark hover:border-dark bg-white";
 const edge = "gap-1.5 px-4 max-sm:w-11 max-sm:px-0";
+const disabled = "border-border-light text-text-default cursor-not-allowed opacity-50";
 ---
 
 {
   total > 1 && (
-    <nav aria-label="Blog pages" class:list={["flex flex-wrap items-center justify-center gap-2 sm:gap-3", className]}>
+    <nav aria-label={label} class:list={["flex flex-wrap items-center justify-center gap-2 sm:gap-3", className]}>
       {current > 1 ? (
-        <a href={blogPageHref(current - 1)} rel="prev" class:list={[pill, idle, edge]}>
+        <a href={hrefFor(current - 1)} rel="prev" class:list={[pill, idle, edge]}>
           <ChevronLeft class="h-5 w-5" stroke-width={2} aria-hidden="true" />
           <span class="max-sm:sr-only">Previous</span>
         </a>
       ) : (
-        <span class:list={[pill, edge, "border-border-light text-text-default cursor-not-allowed opacity-50"]}>
+        <span class:list={[pill, edge, disabled]}>
           <ChevronLeft class="h-5 w-5" stroke-width={2} aria-hidden="true" />
           <span class="max-sm:sr-only">Previous</span>
         </span>
@@ -63,7 +68,7 @@ const edge = "gap-1.5 px-4 max-sm:w-11 max-sm:px-0";
             {item}
           </span>
         ) : (
-          <a href={blogPageHref(item)} class:list={[pill, idle]}>
+          <a href={hrefFor(item)} class:list={[pill, idle]}>
             <span class="sr-only">Page </span>
             {item}
           </a>
@@ -71,12 +76,12 @@ const edge = "gap-1.5 px-4 max-sm:w-11 max-sm:px-0";
       )}
 
       {current < total ? (
-        <a href={blogPageHref(current + 1)} rel="next" class:list={[pill, idle, edge]}>
+        <a href={hrefFor(current + 1)} rel="next" class:list={[pill, idle, edge]}>
           <span class="max-sm:sr-only">Next</span>
           <ChevronRight class="h-5 w-5" stroke-width={2} aria-hidden="true" />
         </a>
       ) : (
-        <span class:list={[pill, edge, "border-border-light text-text-default cursor-not-allowed opacity-50"]}>
+        <span class:list={[pill, edge, disabled]}>
           <span class="max-sm:sr-only">Next</span>
           <ChevronRight class="h-5 w-5" stroke-width={2} aria-hidden="true" />
         </span>

@@ -1,0 +1,169 @@
+---
+/**
+ * The /stocks filter toolbar, one line above the table: one GET form, so every
+ * filtered view is a real, shareable address and the page works with
+ * JavaScript off (an Apply button appears in <noscript>).
+ *
+ * The symbol search applies on Enter (or when the box loses focus with a new
+ * value). With JavaScript, the exchange, letter and sort apply the moment they
+ * change.
+ * The checkbox dropdowns apply when they close instead - on a click outside,
+ * Escape, or opening another - so ticking three sectors is one reload, not
+ * three. The submit handler drops default values so the URL stays short.
+ */
+import FilterDropdown from "@/components/stocks/FilterDropdown.astro";
+import LetterDropdown from "@/components/stocks/LetterDropdown.astro";
+import SortDropdown from "@/components/stocks/SortDropdown.astro";
+import Search from "@lucide/astro/icons/search";
+import { CAP_BANDS, STOCK_EXCHANGES, STOCK_INDUSTRIES, STOCK_SECTORS } from "./stock-list-data";
+import type { StockFilters as Filters } from "@/lib/contracts";
+
+interface Props {
+  filters: Filters;
+}
+
+const { filters } = Astro.props;
+
+const isFiltered =
+  Boolean(filters.query) ||
+  filters.exchange !== "NSE" ||
+  Boolean(filters.letter) ||
+  filters.sectors.length > 0 ||
+  filters.industries.length > 0 ||
+  filters.capBands.length > 0;
+---
+
+<form
+  id="stock-filters"
+  method="get"
+  action="/stocks"
+  class="flex flex-wrap items-center gap-2 md:gap-3"
+  aria-label="Filter stocks"
+>
+  <label
+    class="border-border-light focus-within:border-primary relative flex h-10 w-full items-center rounded-full border bg-white sm:w-auto sm:min-w-40 sm:flex-1"
+  >
+    <span class="sr-only">Search by symbol</span>
+    <Search
+      class="text-text-default pointer-events-none absolute left-4 h-4 w-4"
+      stroke-width={1.8}
+      aria-hidden="true"
+    />
+    <input
+      type="search"
+      name="q"
+      value={filters.query}
+      placeholder="Search symbol"
+      autocomplete="off"
+      autocapitalize="characters"
+      spellcheck="false"
+      enterkeyhint="search"
+      maxlength="20"
+      class="text-dark h-full w-full rounded-full bg-transparent pr-4 pl-10 text-sm outline-none"
+    />
+  </label>
+
+  <fieldset class="border-border-light flex h-10 items-center rounded-full border bg-white p-1">
+    <legend class="sr-only">Exchange</legend>
+    {
+      STOCK_EXCHANGES.map((exchange) => (
+        <label class="text-text-default hover:text-dark has-[:checked]:bg-primary has-[:focus-visible]:ring-primary flex h-full cursor-pointer items-center rounded-full px-4 text-sm font-medium transition-colors has-[:checked]:text-white has-[:focus-visible]:ring-2">
+          <input
+            type="radio"
+            name="exchange"
+            value={exchange}
+            checked={filters.exchange === exchange}
+            class="sr-only"
+          />
+          {exchange}
+        </label>
+      ))
+    }
+  </fieldset>
+
+  <LetterDropdown selected={filters.letter} />
+
+  <FilterDropdown label="Market cap" name="cap" options={CAP_BANDS} selected={filters.capBands} />
+  <FilterDropdown label="Sector" name="sector" options={STOCK_SECTORS} selected={filters.sectors} searchable />
+  <FilterDropdown
+    label="Industry"
+    name="industry"
+    options={STOCK_INDUSTRIES}
+    selected={filters.industries}
+    searchable
+  />
+
+  {
+    isFiltered && (
+      <a href="/stocks" class="text-primary px-2 text-sm font-medium hover:underline">
+        Clear all
+      </a>
+    )
+  }
+
+  <SortDropdown selected={filters.sort} />
+
+  <noscript>
+    <button type="submit" class="bg-primary h-10 rounded-full px-5 text-sm font-semibold text-white"> Apply </button>
+  </noscript>
+</form>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("#stock-filters");
+
+  if (form) {
+    const dropdowns = [...form.querySelectorAll<HTMLDetailsElement>("[data-filter-dropdown]")];
+    let pending = false;
+
+    form.addEventListener("change", (event) => {
+      const target = event.target as HTMLInputElement | HTMLSelectElement;
+      if (!target.name) return;
+      // A checkbox tick waits for its dropdown to close; anything else - the
+      // letter grid's radios included - applies now.
+      if (target.type === "checkbox") pending = true;
+      else form.requestSubmit();
+    });
+
+    for (const dropdown of dropdowns) {
+      dropdown.addEventListener("toggle", () => {
+        if (dropdown.open) {
+          // One open at a time; closing the other applies its ticks.
+          for (const other of dropdowns) if (other !== dropdown) other.open = false;
+        } else if (pending) {
+          form.requestSubmit();
+        }
+      });
+    }
+
+    const closeAll = () => dropdowns.forEach((dropdown) => (dropdown.open = false));
+    document.addEventListener("click", (event) => {
+      if (!(event.target as Element).closest("[data-filter-dropdown]")) closeAll();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeAll();
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const params = new URLSearchParams();
+      for (const [key, value] of new FormData(form)) {
+        const isDefault =
+          value === "" || (key === "exchange" && value === "NSE") || (key === "sort" && value === "mcap-desc");
+        if (!isDefault) params.append(key, String(value));
+      }
+      // No page number: a new filter always starts from page 1.
+      const query = params.toString();
+      window.location.assign(query ? `/stocks?${query}` : "/stocks");
+    });
+  }
+
+  for (const input of document.querySelectorAll<HTMLInputElement>("[data-filter-search]")) {
+    const list = document.getElementById(input.dataset.filterSearch!);
+    input.addEventListener("input", () => {
+      const term = input.value.trim().toLowerCase();
+      for (const item of list?.querySelectorAll("li") ?? []) {
+        item.hidden = term !== "" && !item.textContent!.toLowerCase().includes(term);
+      }
+    });
+  }
+</script>

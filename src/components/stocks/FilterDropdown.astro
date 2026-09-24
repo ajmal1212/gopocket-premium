@@ -1,0 +1,93 @@
+---
+/**
+ * One multi-select filter in the /stocks toolbar - market cap, sector,
+ * industry - as a <details> dropdown of checkboxes. <details> opens and closes
+ * with no script, and every checkbox is still inside the form when it is shut,
+ * so the selection is submitted either way.
+ *
+ * The button shows how many options are ticked. Long lists get a search box
+ * that narrows them as you type; it has no `name`, so it never reaches the URL.
+ *
+ * On a phone the panel is `fixed` across the screen's width rather than hung
+ * off the button, which may sit at the right edge of a wrapped toolbar. With
+ * no `top` set it still opens directly below the button.
+ */
+import ChevronDown from "@lucide/astro/icons/chevron-down";
+import Search from "@lucide/astro/icons/search";
+
+interface Props {
+  label: string;
+  /** Query-string key, e.g. "sector". */
+  name: string;
+  options: string[];
+  selected: string[];
+  searchable?: boolean;
+}
+
+const { label, name, options, selected, searchable = false } = Astro.props;
+const listId = `filter-${name}`;
+---
+
+<details class="group relative" data-filter-dropdown>
+  <summary
+    class:list={[
+      "flex h-10 cursor-pointer list-none items-center gap-2 rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors [&::-webkit-details-marker]:hidden",
+      selected.length > 0
+        ? "border-primary text-primary bg-white"
+        : "border-border-light text-dark hover:border-dark bg-white",
+    ]}
+  >
+    {label}
+    {
+      selected.length > 0 && (
+        <span class="bg-primary rounded-full px-1.5 text-xs leading-5 text-white">{selected.length}</span>
+      )
+    }
+    <ChevronDown class="h-4 w-4 transition-transform group-open:rotate-180" stroke-width={2} aria-hidden="true" />
+  </summary>
+
+  <fieldset
+    class="border-border-light absolute top-full left-0 z-30 mt-2 flex w-72 flex-col gap-3 rounded-2xl border bg-white p-3 shadow-lg max-sm:fixed max-sm:inset-x-4 max-sm:top-auto max-sm:w-auto"
+  >
+    <legend class="sr-only">{label}</legend>
+
+    {
+      searchable && (
+        <label class="border-border-light focus-within:border-primary relative flex items-center rounded-lg border bg-white">
+          <span class="sr-only">Search {label.toLowerCase()}</span>
+          <Search
+            class="text-text-default pointer-events-none absolute left-3 h-4 w-4"
+            stroke-width={1.8}
+            aria-hidden="true"
+          />
+          <input
+            type="search"
+            placeholder="Search…"
+            autocomplete="off"
+            data-filter-search={listId}
+            class="text-dark w-full bg-transparent py-2 pr-3 pl-9 text-sm outline-none"
+          />
+        </label>
+      )
+    }
+
+    <ul id={listId} class="flex max-h-72 flex-col gap-0.5 overflow-y-auto">
+      {
+        options.map((option) => (
+          <li>
+            <label class="text-dark hover:bg-theme-light flex cursor-pointer items-start gap-2.5 rounded-md px-2 py-1.5 text-sm">
+              <input
+                type="checkbox"
+                name={name}
+                value={option}
+                checked={selected.includes(option)}
+                class="accent-primary mt-0.5 h-4 w-4 shrink-0"
+              />
+              {option}
+            </label>
+          </li>
+        ))
+      }
+    </ul>
+  </fieldset>
+</details>

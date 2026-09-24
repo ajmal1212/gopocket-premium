@@ -1,0 +1,49 @@
+---
+/**
+ * The /stocks sort order, as a pill dropdown matching the filters beside it.
+ * Radios, so a choice applies the moment it's picked (see StockFilters'
+ * script). It ends the toolbar's row, so the panel hangs from its right edge.
+ */
+import ArrowUpDown from "@lucide/astro/icons/arrow-up-down";
+import Check from "@lucide/astro/icons/check";
+import { STOCK_SORTS } from "./stock-list-data";
+import type { StockFilters } from "@/lib/contracts";
+
+interface Props {
+  selected: StockFilters["sort"];
+}
+
+const { selected } = Astro.props;
+const current = STOCK_SORTS.find((option) => option.value === selected) ?? STOCK_SORTS[0];
+---
+
+<details class="group relative" data-filter-dropdown>
+  <summary
+    class="border-border-light text-dark hover:border-dark flex h-10 cursor-pointer list-none items-center gap-2 rounded-full border bg-white px-4 text-sm font-medium whitespace-nowrap transition-colors [&::-webkit-details-marker]:hidden"
+  >
+    <ArrowUpDown class="text-text-default h-4 w-4" stroke-width={2} aria-hidden="true" />
+    <span class="sr-only">Sort by:</span>
+    {current.label}
+  </summary>
+
+  <fieldset
+    class="border-border-light absolute top-full right-0 z-30 mt-2 flex w-52 flex-col gap-0.5 rounded-2xl border bg-white p-2 shadow-lg max-sm:right-auto max-sm:left-0"
+  >
+    <legend class="sr-only">Sort by</legend>
+    {
+      STOCK_SORTS.map((option) => (
+        <label class="text-dark hover:bg-theme-light has-[:checked]:text-primary has-[:focus-visible]:ring-primary flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm font-medium has-[:focus-visible]:ring-2">
+          <input
+            type="radio"
+            name="sort"
+            value={option.value}
+            checked={option.value === selected}
+            class="peer sr-only"
+          />
+          {option.label}
+          <Check class="invisible h-4 w-4 peer-checked:visible" stroke-width={2.2} aria-hidden="true" />
+        </label>
+      ))
+    }
+  </fieldset>
+</details>

@@ -1,8 +1,34 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Products from "../components/products.astro";
+import Header from "../components/Header.astro";
+import Hero2 from "../components/Hero2.astro";
+import FinancialFuture2 from "../components/FinancialFuture2.astro";
+import FinancialJourney2 from "../components/FinancialJourney2.astro";
+import KeyInsights2 from "../components/KeyInsights2.astro";
+import FinancesControl2 from "../components/FinancesControl2.astro";
+import SmartManagement2 from "../components/SmartManagement2.astro";
+import Testimonials2 from "../components/Testimonials2.astro";
+import BlogInsights2 from "../components/BlogInsights2.astro";
+import CallToAction2 from "../components/CallToAction2.astro";
+import Footer from "../components/Footer.astro";
 ---
 
-<Layout title="Products - GoPocket">
-  <Products />
+<Layout
+  title="Products - Trading & Investing App | GoPocket"
+  description="Take your investing anywhere with the GoPocket app. Trade stocks, F&O and commodities on NSE, BSE and MCX from one SEBI-registered platform."
+  canonical="/products"
+>
+  <Header currentPath="/products" />
+  <main class="has-section-spacing-lg">
+    <Hero2 />
+    <FinancialFuture2 />
+    <FinancialJourney2 />
+    <KeyInsights2 />
+    <FinancesControl2 />
+    <SmartManagement2 />
+    <Testimonials2 />
+    <BlogInsights2 />
+    <CallToAction2 />
+  </main>
+  <Footer />
 </Layout>

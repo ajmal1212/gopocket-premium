@@ -1,0 +1,51 @@
+---
+/**
+ * The /stocks "starts with" filter: a pill in the toolbar, styled like the
+ * checkbox dropdowns beside it, that opens a grid of letters. The letters are
+ * radios, so one choice replaces the last - and unlike the checkbox dropdowns
+ * it applies the moment a letter is picked (see StockFilters' script).
+ */
+import ChevronDown from "@lucide/astro/icons/chevron-down";
+import { LETTERS } from "./stock-list-data";
+
+interface Props {
+  selected: string;
+}
+
+const { selected } = Astro.props;
+
+const letterClass =
+  "border-border-light text-dark hover:border-primary hover:text-primary has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-white has-[:focus-visible]:ring-primary flex h-9 cursor-pointer items-center justify-center rounded-lg border bg-white text-sm font-medium transition-colors has-[:focus-visible]:ring-2";
+---
+
+<details class="group relative" data-filter-dropdown>
+  <summary
+    class:list={[
+      "flex h-10 cursor-pointer list-none items-center gap-2 rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors [&::-webkit-details-marker]:hidden",
+      selected ? "border-primary text-primary bg-white" : "border-border-light text-dark hover:border-dark bg-white",
+    ]}
+  >
+    {selected ? `Starts with ${selected}` : "A – Z"}
+    <ChevronDown class="h-4 w-4 transition-transform group-open:rotate-180" stroke-width={2} aria-hidden="true" />
+  </summary>
+
+  <fieldset
+    class="border-border-light absolute top-full left-0 z-30 mt-2 w-72 rounded-2xl border bg-white p-3 shadow-lg max-sm:fixed max-sm:inset-x-4 max-sm:top-auto max-sm:w-auto"
+  >
+    <legend class="sr-only">Company symbol starts with</legend>
+    <div class="grid grid-cols-6 gap-1.5">
+      <label class:list={[letterClass, "col-span-2"]}>
+        <input type="radio" name="letter" value="" checked={!selected} class="sr-only" />
+        All
+      </label>
+      {
+        LETTERS.map((letter) => (
+          <label class={letterClass}>
+            <input type="radio" name="letter" value={letter} checked={selected === letter} class="sr-only" />
+            {letter}
+          </label>
+        ))
+      }
+    </div>
+  </fieldset>
+</details>

@@ -1,5 +1,6 @@
 ---
 import LeadCapture from "./LeadCapture.astro";
+import TurnstileWidget from "./TurnstileWidget.astro";
 
 // Optional query parameters carried through to the CRM lead. `src` and `tag`
 // identify where the lead came from; `refer` is a partner code with no default,
@@ -119,7 +120,7 @@ const referParam = Astro.url.searchParams.get("refer") || "";
           data-aos="fade-up-sm"
           data-aos-delay="1000"
           data-aos-duration="1000"
-          class="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto w-full aos-init aos-animate px-4 sm:px-0"
+          class="relative flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto w-full aos-init aos-animate px-4 sm:px-0"
           novalidate
         >
           <!-- Hidden Tracking Query Parameters -->
@@ -179,6 +180,14 @@ const referParam = Astro.url.searchParams.get("refer") || "";
               </svg>
             </span>
           </button>
+          {
+            /* Invisible unless Cloudflare needs a click; then it opens under the form rather than squeezing into this row. */
+          }
+          <TurnstileWidget
+            action="create-lead"
+            appearance="interaction-only"
+            class="absolute top-full left-1/2 z-10 mt-3 -translate-x-1/2"
+          />
         </form>
       </div>
     </div>

@@ -1,6 +1,7 @@
 ---
 // Hero3 Component - Trading & Investment Hero Section with Dual Side-by-Side Mobile Mockups
 import LeadCapture from "./LeadCapture.astro";
+import TurnstileWidget from "./TurnstileWidget.astro";
 
 // Optional query parameters carried through to the CRM lead. `src` and `tag`
 // identify where the lead came from; `refer` is a partner code with no default,
@@ -110,7 +111,7 @@ const referParam = Astro.url.searchParams.get("refer") || "";
 
         <!-- Phone Input & CTA Form -->
         <div data-aos="fade-up" data-aos-delay="300" class="pt-2">
-          <form data-lead-form class="flex flex-col sm:flex-row items-center gap-3 max-w-lg" novalidate>
+          <form data-lead-form class="relative flex flex-col sm:flex-row items-center gap-3 max-w-lg" novalidate>
             <!-- Hidden Tracking Query Parameters -->
             <input type="hidden" name="src" value={srcParam} />
             <input type="hidden" name="tag" value={tagParam} />
@@ -169,6 +170,14 @@ const referParam = Astro.url.searchParams.get("refer") || "";
                 </svg>
               </span>
             </button>
+            {
+              /* Invisible unless Cloudflare needs a click; then it opens under the form rather than squeezing into this row. */
+            }
+            <TurnstileWidget
+              action="create-lead"
+              appearance="interaction-only"
+              class="absolute top-full left-0 z-10 mt-3"
+            />
           </form>
         </div>
 

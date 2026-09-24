@@ -1,8 +1,15 @@
 import type { APIRoute } from "astro";
 import { createLead } from "../../lib/frappe";
+import { verifyTurnstile } from "../../lib/turnstile";
 
 /**
- * Lead capture for the open-account call-back form.
+ * Lead capture for the open-account call-back form and the homepage hero.
+ *
+ * Every lead must carry a Cloudflare Turnstile token (`turnstileToken`), checked
+ * after the number itself so a typo doesn't burn the visitor's single-use
+ * token. The call-back page shows the widget; the homepage hero runs it in
+ * interaction-only mode (see LeadCapture.astro). Without the check a bot could
+ * skip the pages entirely and fill Frappe with leads.
  *
  * The browser posts here rather than to Frappe directly: the API token is a
  * server-side secret, and a client-side SDK call would ship it to every visitor
@@ -24,6 +31,7 @@ interface Payload {
   refer?: unknown;
   src?: unknown;
   tag?: unknown;
+  turnstileToken?: unknown;
 }
 
 interface ResponseBody {
@@ -64,7 +72,7 @@ function json(body: ResponseBody, status: number): Response {
   });
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   let payload: Payload;
   try {
     payload = (await request.json()) as Payload;
@@ -94,6 +102,14 @@ export const POST: APIRoute = async ({ request }) => {
       400,
     );
   }
+
+  const check = await verifyTurnstile({
+    token: payload.turnstileToken,
+    action: "create-lead",
+    request,
+    env: locals.runtime?.env,
+  });
+  if (!check.ok) return json({ ok: false, title: check.title, message: check.message }, check.status);
 
   const result = await createLead({ mobile, refer, src, tag });
 

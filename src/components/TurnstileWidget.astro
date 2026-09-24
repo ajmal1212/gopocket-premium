@@ -8,16 +8,29 @@
  * The site key is read from the Worker environment per request, so it can be
  * rotated without a rebuild. min-h reserves the widget's 65px before the
  * script renders it, so the form below does not jump.
+ *
+ * `appearance="interaction-only"` keeps the widget invisible unless Cloudflare
+ * wants the visitor to click something - for forms whose design has no room
+ * for it, like the homepage hero. Nothing is reserved then: most visitors never
+ * see it, and the few who do see the form grow to fit it.
  */
 interface Props {
   action: string;
+  appearance?: "always" | "interaction-only";
   class?: string;
 }
 
-const { action, class: className = "" } = Astro.props;
+const { action, appearance = "always", class: className = "" } = Astro.props;
 const siteKey = Astro.locals.runtime?.env?.TURNSTILE_SITE_KEY ?? "";
 
 if (!siteKey) console.error("TURNSTILE_SITE_KEY is not set; the Turnstile widget will not render.");
 ---
 
-<div data-turnstile data-sitekey={siteKey} data-action={action} class:list={["min-h-[65px]", className]}></div>
+<div
+  data-turnstile
+  data-sitekey={siteKey}
+  data-action={action}
+  data-appearance={appearance}
+  class:list={[appearance === "always" && "min-h-[65px]", className]}
+>
+</div>

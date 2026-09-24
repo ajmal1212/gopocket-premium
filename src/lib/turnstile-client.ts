@@ -70,6 +70,9 @@ export function mountTurnstile(root: ParentNode): TurnstileHandle {
           // "auto" would follow the OS, not the site's own theme toggle.
           theme: document.documentElement.classList.contains("dark") ? "dark" : "light",
           size: "flexible",
+          // Set by <TurnstileWidget appearance>: "interaction-only" stays hidden
+          // unless the visitor has to be challenged.
+          appearance: container.dataset.appearance || "always",
           // The token is read through getToken(); no hidden input needed.
           "response-field": false,
           callback: (value: string) => (token = value),

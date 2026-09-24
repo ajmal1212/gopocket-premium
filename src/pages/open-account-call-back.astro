@@ -9,6 +9,7 @@ import PricingSection from "../components/PricingSection.astro";
 import TestimonialsSection from "../components/TestimonialsSection.astro";
 import FinalCTA from "../components/FinalCTA.astro";
 import LeadCapture from "../components/LeadCapture.astro";
+import TurnstileWidget from "../components/TurnstileWidget.astro";
 import Testimonials2 from "@/components/Testimonials2.astro";
 
 // Optional query parameters: src (default 'Website'), tag (default 'Menu').
@@ -120,6 +121,9 @@ const referParam = Astro.url.searchParams.get("refer") || "";
                     />
                   </div>
                 </div>
+
+                <!-- Cloudflare Turnstile bot check; /api/create-lead refuses a lead without its token -->
+                <TurnstileWidget action="create-lead" />
 
                 <!-- Open Account Submit Button with Smooth Micro-Interaction -->
                 <button

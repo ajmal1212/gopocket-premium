@@ -20,6 +20,13 @@
  *
  * Feedback goes through the site toast (Toast.astro, mounted in Layout).
  *
+ * A form holding a <TurnstileWidget /> sends its token as `turnstileToken`, and
+ * the endpoint refuses the lead without one. A visible widget is mounted as the
+ * page loads; an `interaction-only` one (the homepage hero) waits for the first
+ * focus, tap or keystroke in its form, so a visitor who never touches the form never
+ * downloads Cloudflare's ~40 kB script. Typing a mobile number takes longer
+ * than the check does, so the token is ready by the time they submit.
+ *
  * The script is bundled rather than inline, so Astro emits one copy per page
  * even if this component is included more than once.
  */
@@ -27,6 +34,7 @@
 
 <script>
   import { clearToasts, toast } from "@/lib/toast";
+  import { mountTurnstile } from "@/lib/turnstile-client";
 
   function initLeadCapture() {
     const forms = Array.from(document.querySelectorAll("form[data-lead-form]"));
@@ -50,6 +58,19 @@
       // Most forms post to the lead endpoint; the partner enquiry sets its own,
       // because it collects more than a number and must not redirect afterwards.
       const endpoint = form.getAttribute("data-lead-endpoint") || "/api/create-lead";
+
+      const captchaSlot = form.querySelector("[data-turnstile]");
+      const captchaHidden = captchaSlot?.getAttribute("data-appearance") === "interaction-only";
+      let captcha = null;
+      const ensureCaptcha = () => (captcha ??= captchaSlot ? mountTurnstile(form) : null);
+
+      if (captchaSlot && !captchaHidden) ensureCaptcha();
+      if (captchaSlot && captchaHidden) {
+        // "input" too: autofill can fill the number without focusing the field.
+        for (const type of ["focusin", "pointerdown", "input"]) {
+          form.addEventListener(type, ensureCaptcha, { once: true });
+        }
+      }
 
       // The pages are server-rendered, but read `refer` off the live URL too so
       // the code survives a cached HTML response.
@@ -128,6 +149,27 @@
         });
         payload.mobile = mobile;
 
+        if (captchaSlot) {
+          const token = ensureCaptcha()?.getToken() ?? "";
+          if (!token) {
+            toast(
+              captchaHidden
+                ? {
+                    title: "Just a moment",
+                    message: "We're checking you're not a bot. Please try again in a few seconds.",
+                    variant: "error",
+                  }
+                : {
+                    title: "One more step",
+                    message: "Please complete the verification above the button.",
+                    variant: "error",
+                  },
+            );
+            return;
+          }
+          payload.turnstileToken = token;
+        }
+
         setBusy(true);
 
         try {
@@ -136,6 +178,8 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           });
+          // The token is single-use whatever the answer; a retry needs a new one.
+          captcha?.reset();
 
           const result = await res.json().catch(() => ({
             ok: false,

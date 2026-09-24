@@ -1,0 +1,65 @@
+---
+/**
+ * Stand-in for the /stocks table while the next list loads. Every filter,
+ * page and sort change is a full server render, which takes a second or two
+ * to fetch Contract Master and the prices - and until this existed the old
+ * table sat there looking finished, so people kept clicking.
+ *
+ * It ships in the HTML, hidden, and the page's script swaps it in the moment a
+ * new list is asked for - no fetch, no markup built in JavaScript. The rows
+ * mirror the real ones cell for cell, same heights and breakpoints, so the
+ * swap doesn't move anything on the page.
+ */
+import StockTableHead from "./StockTableHead.astro";
+import { STOCKS_PER_PAGE } from "./stock-list-data";
+
+interface Props {
+  class?: string;
+}
+
+const { class: className = "" } = Astro.props;
+
+const bar = "bg-theme-light block rounded-md animate-pulse motion-reduce:animate-none";
+---
+
+<div
+  class:list={["border-border-light overflow-hidden rounded-2xl border bg-white", className]}
+  aria-hidden="true"
+  data-stock-skeleton
+>
+  <table class="w-full text-left text-sm">
+    <StockTableHead />
+    <tbody class="divide-border-light divide-y">
+      {
+        Array.from({ length: STOCKS_PER_PAGE }, () => (
+          <tr>
+            <td class="px-4 py-4 md:px-5">
+              <span class:list={[bar, "h-4 w-40 max-w-full"]} />
+              <span class:list={[bar, "mt-2 h-3 w-24"]} />
+            </td>
+            <td class="hidden px-4 py-4 lg:table-cell">
+              <span class:list={[bar, "h-4 w-36"]} />
+              <span class:list={[bar, "mt-2 h-3 w-24"]} />
+            </td>
+            <td class="hidden px-4 py-4 md:table-cell">
+              <span class:list={[bar, "mx-auto h-9 w-[120px]"]} />
+            </td>
+            <td class="px-4 py-4">
+              <span class:list={[bar, "ml-auto h-4 w-20"]} />
+              <span class:list={[bar, "mt-2 ml-auto h-3 w-24"]} />
+            </td>
+            <td class="hidden px-4 py-4 lg:table-cell">
+              <span class:list={[bar, "h-6 w-20 rounded-full"]} />
+            </td>
+            <td class="hidden px-4 py-4 sm:table-cell">
+              <span class:list={[bar, "ml-auto h-4 w-24"]} />
+            </td>
+            <td class="py-4 pr-4">
+              <span class:list={[bar, "h-5 w-5"]} />
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>

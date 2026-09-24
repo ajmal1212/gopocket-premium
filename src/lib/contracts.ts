@@ -1,5 +1,5 @@
 import NSE_COMPANIES from "@/data/nse-companies.json";
-import { edgeGet, edgePut } from "@/lib/edge-cache";
+import { edgeGet, edgePut, swr } from "@/lib/edge-cache";
 import { getFrappeUrl, getFrappeToken } from "@/lib/frappe";
 
 /**
@@ -542,8 +542,13 @@ const STOCK_ORDER: Record<StockFilters["sort"], string> = {
   "name-asc": "symbol asc",
 };
 
-/** A day-old market cap is fine; the doctype is refreshed once a day. */
-const STOCK_LIST_TTL_S = 60 * 60;
+/**
+ * Contract Master is regenerated once a day, so an hour-old page of it is as
+ * good as a new one, and a day-old one - served while a fresh copy loads, or
+ * while Frappe is down - still beats a spinner.
+ */
+const STOCK_LIST_FRESH_S = 60 * 60;
+const STOCK_LIST_STALE_S = 24 * 60 * 60;
 
 /**
  * One page of listed shares, and how many match in all.
@@ -561,18 +566,29 @@ const STOCK_LIST_TTL_S = 60 * 60;
  * holds no names - they come from the bundled NSE list, which the database
  * cannot filter on. The two start with the same letter far more often than not.
  *
- * Both queries run together and the pair is kept in the edge cache under the
- * filters that produced it, so paging back and forth costs nothing.
+ * Kept stale-while-revalidate (see swr in edge-cache.ts) under the filters that
+ * produced it, so paging back and forth costs nothing and a visitor never waits
+ * on Frappe for a page anyone has asked for in the last day.
  */
 export async function browseStocks(
   filters: StockFilters,
   page: number,
   pageSize: number,
+  waitUntil?: (promise: Promise<unknown>) => void,
 ): Promise<{ rows: StockRow[]; total: number } | null> {
-  const cacheKey = `stocks:${JSON.stringify([filters, page, pageSize])}`;
-  const cached = await edgeGet<{ rows: StockRow[]; total: number }>(cacheKey);
-  if (cached) return cached;
+  return swr(`stocks:${JSON.stringify([filters, page, pageSize])}`, () => loadStockPage(filters, page, pageSize), {
+    freshSeconds: STOCK_LIST_FRESH_S,
+    staleSeconds: STOCK_LIST_STALE_S,
+    waitUntil,
+  });
+}
 
+/** Both queries run together: the page of rows and the count behind "of 2,478". */
+async function loadStockPage(
+  filters: StockFilters,
+  page: number,
+  pageSize: number,
+): Promise<{ rows: StockRow[]; total: number } | null> {
   const where: unknown[][] = [
     ["exchange", "=", filters.exchange],
     ["sector", "is", "set"],
@@ -619,9 +635,7 @@ export async function browseStocks(
       ];
     });
 
-    const result = { rows, total: typeof message === "number" ? message : rows.length };
-    await edgePut(cacheKey, result, STOCK_LIST_TTL_S);
-    return result;
+    return { rows, total: typeof message === "number" ? message : rows.length };
   } catch {
     return null;
   }

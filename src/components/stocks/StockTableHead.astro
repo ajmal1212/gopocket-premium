@@ -1,0 +1,19 @@
+---
+/**
+ * The /stocks table's column headings, shared by the real table and its
+ * loading skeleton so the two can't drift apart. Each column's breakpoint here
+ * must match its cells in both.
+ */
+---
+
+<thead class="bg-theme-light text-text-default text-xs font-medium">
+  <tr>
+    <th scope="col" class="px-4 py-3.5 md:px-5">Company</th>
+    <th scope="col" class="hidden px-4 py-3.5 lg:table-cell">Sector</th>
+    <th scope="col" class="hidden px-4 py-3.5 text-center md:table-cell">Trading graph</th>
+    <th scope="col" class="px-4 py-3.5 text-right">LTP</th>
+    <th scope="col" class="hidden px-4 py-3.5 lg:table-cell">Cap band</th>
+    <th scope="col" class="hidden px-4 py-3.5 text-right sm:table-cell">Market cap</th>
+    <th scope="col" class="w-10 py-3.5 pr-4"><span class="sr-only">Open</span></th>
+  </tr>
+</thead>

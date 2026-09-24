@@ -2,7 +2,7 @@ import { fetchQuotes } from "./quote";
 import { downsample, fetchCandles, fetchLatestSession, type Range } from "./candles";
 import { istMidnightOf } from "./session";
 import { num } from "./format";
-import { edgeGet, edgePut } from "@/lib/edge-cache";
+import { swr } from "@/lib/edge-cache";
 
 export interface ListPrice {
   ltp: number;
@@ -32,8 +32,15 @@ const TREND_POINTS = 60;
  */
 const DEADLINE_MS = 2500;
 
-/** Prices are shared across visitors this long - long enough to absorb a burst, short enough that a reload moves. */
-const PRICES_TTL_S = 30;
+/**
+ * Prices are kept stale-while-revalidate (see swr in edge-cache.ts). Within
+ * PRICES_FRESH_S a page is served as it is; after that, up to PRICES_STALE_S,
+ * the last prices go out at once and the new ones load in the background for
+ * the next view - so a reload moves the prices without anyone waiting on the
+ * hub. Past that a request waits, which bounds how old a price can be shown.
+ */
+const PRICES_FRESH_S = 20;
+const PRICES_STALE_S = 3 * 60;
 
 /**
  * A hub request still unanswered after this long is sent again, and whichever
@@ -86,11 +93,26 @@ const NO_SESSION = { candles: [], previousClose: null };
  * reads as "+0.00" in green. A row with no previous close shows its price
  * without a change.
  */
-export async function fetchListPrices(instruments: ListInstrument[]): Promise<Record<string, ListPrice>> {
-  const cacheKey = `list-prices:${instruments.map(({ key }) => key).join(",")}`;
-  const cached = await edgeGet<Record<string, ListPrice>>(cacheKey);
-  if (cached) return cached;
+export async function fetchListPrices(
+  instruments: ListInstrument[],
+  waitUntil?: (promise: Promise<unknown>) => void,
+): Promise<Record<string, ListPrice>> {
+  const prices = await swr(
+    `list-prices:${instruments.map(({ key }) => key).join(",")}`,
+    () => loadListPrices(instruments),
+    {
+      freshSeconds: PRICES_FRESH_S,
+      staleSeconds: PRICES_STALE_S,
+      // Only a complete answer is kept: one with a stalled row would pin a dash
+      // in place for everyone. It still goes to the visitor who asked.
+      keep: (loaded) => Object.keys(loaded).length === instruments.length,
+      waitUntil,
+    },
+  );
+  return prices ?? {};
+}
 
+async function loadListPrices(instruments: ListInstrument[]): Promise<Record<string, ListPrice>> {
   const [quotes, sessions, dailies] = await Promise.all([
     fetchQuotes(instruments.map(({ key }) => key)),
     Promise.all(
@@ -136,7 +158,5 @@ export async function fetchListPrices(instruments: ListInstrument[]): Promise<Re
     };
   });
 
-  // Only a complete answer is shared; one with a stalled row is retried by the next visitor.
-  if (Object.keys(prices).length === instruments.length) await edgePut(cacheKey, prices, PRICES_TTL_S);
   return prices;
 }

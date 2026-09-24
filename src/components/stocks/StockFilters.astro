@@ -37,7 +37,7 @@ const isFiltered =
   id="stock-filters"
   method="get"
   action="/stocks"
-  class="flex flex-wrap items-center gap-2 md:gap-3"
+  class="flex flex-wrap items-center gap-2 transition-opacity group-data-loading/stocks:pointer-events-none group-data-loading/stocks:opacity-60 md:gap-3"
   aria-label="Filter stocks"
 >
   <label
@@ -151,6 +151,17 @@ const isFiltered =
           value === "" || (key === "exchange" && value === "NSE") || (key === "sort" && value === "mcap-desc");
         if (!isDefault) params.append(key, String(value));
       }
+      // The page swaps its table for a skeleton and locks these controls until
+      // the new list arrives (see the script in pages/stocks/index.astro).
+      const page = document.getElementById("stocks-page");
+      if (page) {
+        page.dataset.loading = "list";
+        page.setAttribute("aria-busy", "true");
+      }
+      // Cleared first: closing a dropdown with ticks pending would submit again.
+      pending = false;
+      closeAll();
+
       // No page number: a new filter always starts from page 1.
       const query = params.toString();
       window.location.assign(query ? `/stocks?${query}` : "/stocks");

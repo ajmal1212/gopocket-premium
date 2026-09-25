@@ -4,4 +4,4 @@ Allow: /
 # Theme kitchen-sink page, not real content
 Disallow: /components
 
-Sitemap: https://gopocket.in/sitemap.xml
+Sitemap: https://www.gopocket.in/sitemap.xml

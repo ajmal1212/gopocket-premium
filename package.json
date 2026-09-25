@@ -17,7 +17,9 @@
     ]
   },
   "scripts": {
+    "predev": "node scripts/page-lastmod.mjs",
     "dev": "astro dev",
+    "prebuild": "node scripts/page-lastmod.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "format": "prettier --write \"src/**/*.{astro,js,ts,jsx,tsx,css,json}\""

@@ -14,7 +14,7 @@ const polyfillCode = `if (typeof globalThis.MessageChannel === 'undefined') {
 }`;
 
 export default defineConfig({
-  site: "https://gopocket.in",
+  site: "https://www.gopocket.in",
   output: "server",
   adapter: cloudflare(),
   trailingSlash: "never",

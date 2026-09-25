@@ -8,12 +8,14 @@
  * is what an index is for - crawlers follow it to the children.
  */
 
+/**
+ * Only <loc> and <lastmod>, the same shape the old Webflow sitemap published.
+ * Google ignores <changefreq> and <priority>, so they are not emitted.
+ */
 export interface SitemapEntry {
   loc: string;
   /** ISO-8601. Omitted where the source has no meaningful modified date. */
   lastmod?: string;
-  changefreq?: string;
-  priority?: string;
 }
 
 export function escapeXml(value: string): string {
@@ -32,18 +34,11 @@ function tag(name: string, value?: string): string {
 /** A <urlset> document: the leaf sitemaps. */
 export function renderUrlset(entries: SitemapEntry[]): string {
   const urls = entries
-    .map(
-      (entry) =>
-        `  <url>\n    <loc>${escapeXml(entry.loc)}</loc>` +
-        tag("lastmod", entry.lastmod) +
-        tag("changefreq", entry.changefreq) +
-        tag("priority", entry.priority) +
-        `\n  </url>`,
-    )
+    .map((entry) => `  <url>\n    <loc>${escapeXml(entry.loc)}</loc>` + tag("lastmod", entry.lastmod) + `\n  </url>`)
     .join("\n");
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${urls}
 </urlset>
 `;

@@ -26,11 +26,7 @@ export const GET: APIRoute = async ({ params, site, url }) => {
 
   // No lastmod: Contract Master carries no per-instrument modified date, and a
   // fabricated one (today, say) would tell a crawler every page changed daily.
-  const entries: SitemapEntry[] = chunk.map((slug) => ({
-    loc: `${SITE}/stocks/${slug}`,
-    changefreq: "daily",
-    priority: "0.5",
-  }));
+  const entries: SitemapEntry[] = chunk.map((slug) => ({ loc: `${SITE}/stocks/${slug}` }));
 
   return xmlResponse(renderUrlset(entries));
 };

@@ -111,7 +111,7 @@ async function recentNews(): Promise<Pooled[]> {
 async function fetchFeed(feed: Feed): Promise<Pooled[]> {
   const response = await fetch(feed.url, {
     headers: {
-      "User-Agent": "Mozilla/5.0 (compatible; GoPocketNews/1.0; +https://gopocket.in)",
+      "User-Agent": "Mozilla/5.0 (compatible; GoPocketNews/1.0; +https://www.gopocket.in)",
       Accept: "application/rss+xml, application/xml;q=0.9, */*;q=0.5",
     },
     signal: AbortSignal.timeout(TIMEOUT_MS),

@@ -1,0 +1,60 @@
+---
+import ChevronDown from "@lucide/astro/icons/chevron-down";
+import DropdownToggle from "./DropdownToggle.astro";
+import { calculatorLinks, pageLinks } from "./header-data";
+
+// The template's own dropdown markup: a plain list, with Calculators opening
+// to the right as a nested menu on desktop and inline on mobile.
+const listClass =
+  "nav-dropdown-list hs-dropdown-menu hs-dropdown-open:mt-2! hs-dropdown-open:pointer-events-auto hs-dropdown-open:opacity-100 pointer-events-none absolute top-0 mt-4 hidden opacity-0 transition-[opacity,margin] max-lg:m-0! max-lg:transform-none!";
+
+// Calculators sits in the middle of the list, half the pages either side.
+const middle = Math.ceil(pageLinks.length / 2);
+const before = pageLinks.slice(0, middle);
+const after = pageLinks.slice(middle);
+---
+
+<li
+  class="hs-dropdown nav-dropdown group [--auto-close:inside] [--offset:0px] nav-item relative lg:[--strategy:absolute]"
+>
+  <DropdownToggle label="Pages" class="max-lg:flex! max-lg:justify-between" />
+  <ul class={`${listClass} lg:top-full lg:mt-2`} role="menu" tabindex="-1">
+    {
+      before.map((link) => (
+        <li class="nav-dropdown-item">
+          <a href={link.href} class="nav-dropdown-link block">
+            {link.title}
+          </a>
+        </li>
+      ))
+    }
+    <li
+      class="hs-dropdown nav-dropdown group [--auto-close:inside] [--offset:0px] nav-dropdown-item [--placement:right-start] relative lg:[--strategy:absolute]"
+    >
+      <span class="nav-dropdown-toggle hs-dropdown-toggle flex items-center nav-dropdown-link justify-between">
+        Calculators
+        <ChevronDown data-icon="" class="hs-dropdown-open:rotate-180 ml-2 h-4 w-4 transition duration-300" />
+      </span>
+      <ul class={listClass} aria-orientation="vertical" role="menu" tabindex="-1">
+        {
+          calculatorLinks.map((link) => (
+            <li class="nav-dropdown-item">
+              <a href={link.href} class="nav-dropdown-link block">
+                {link.title}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </li>
+    {
+      after.map((link) => (
+        <li class="nav-dropdown-item">
+          <a href={link.href} class="nav-dropdown-link block">
+            {link.title}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</li>

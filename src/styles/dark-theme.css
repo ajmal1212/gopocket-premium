@@ -369,7 +369,7 @@ html.dark .navbar .nav-dropdown .nav-dropdown-list .nav-dropdown-item .nav-dropd
 html.dark .nav-dropdown-toggle:hover,
 html.dark .nav-dropdown-toggle:focus {
   background-color: var(--surface-3) !important;
-  color: var(--fg-strong) !important;
+  color: var(--accent-ink) !important;
 }
 
 /* Active / Open States for Dropdown Items & Submenu Toggles */

@@ -480,6 +480,15 @@ export async function findContractBySlug(slug: string): Promise<Contract | null>
  * bare BSE symbol - resolves by name as before, and the page redirects to the
  * contract's canonical `slug`.
  */
+/**
+ * Whether an address is one of a contract's names. A listed share's `name` is
+ * now the company's ("Hero Motors"), so its old "heromotors-eq" address only
+ * matches the exchange's own symbol - checking `name` alone turned every such
+ * address into a 404 instead of the redirect it is meant to be.
+ */
+const answersTo = (contract: Contract, slug: string) =>
+  slugify(contract.name) === slug || slugify(contract.tradingSymbol) === slug;
+
 async function lookupContract(slug: string): Promise<Contract | null> {
   const listing = companyListing(slug);
   if (listing) {
@@ -512,7 +521,7 @@ async function lookupContract(slug: string): Promise<Contract | null> {
 
   // Matched on the name's own slug, not the canonical one: this is how an old
   // address finds the contract it now redirects to.
-  const exactDirect = direct.filter((contract) => slugify(contract.name) === slug);
+  const exactDirect = direct.filter((contract) => answersTo(contract, slug));
   if (exactDirect.length > 0) return exactDirect.sort(byOrderThenSymbol)[0];
 
   const candidates = await query(
@@ -523,7 +532,7 @@ async function lookupContract(slug: string): Promise<Contract | null> {
     }),
   );
 
-  const exact = candidates.filter((contract) => slugify(contract.name) === slug);
+  const exact = candidates.filter((contract) => answersTo(contract, slug));
   if (exact.length === 0) return null;
   return exact.sort(byOrderThenSymbol)[0];
 }

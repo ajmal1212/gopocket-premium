@@ -951,6 +951,33 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
       margin-left: 0.25rem !important;
       transform: none !important; /* see note above - keeps nested glass working */
     }
+
+    /* A nested flyout (Pages > Calculators) also opens on hover, where there
+       is a pointer to hover with; a click still toggles it, for touch laptops
+       and keyboards. */
+    @media (hover: hover) {
+      .nav-dropdown-item.hs-dropdown:hover > .hs-dropdown-menu {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+      }
+
+      .nav-dropdown-item.hs-dropdown:hover > .hs-dropdown-toggle svg {
+        transform: rotate(180deg);
+      }
+
+      /* Bridges the 0.25rem gap to the flyout, so crossing it doesn't count
+         as leaving the item and snap the menu shut. */
+      .nav-dropdown-item.hs-dropdown > .hs-dropdown-menu::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 100%;
+        width: 0.5rem;
+        height: 100%;
+      }
+    }
   }
 
   /* Mobile Layout Dropdowns & Navigation (< 1024px) */
@@ -1438,11 +1465,13 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
     color: #6b1aff;
   }
 }
+/* Dropdown items (and the nested Calculators toggle) show hover and open by
+   text colour alone, with no background. `!important` inside a layer is what
+   outranks the rules above and dark-theme.css's unlayered `!important` ones -
+   important declarations invert layer order. */
 @layer components {
-  @media (hover: hover) {
-    :is(.navbar .nav-dropdown-link, .navbar .nav-link).nav-dropdown-link:hover {
-      background-color: var(--color-slate-50);
-    }
+  .navbar .nav-dropdown-link {
+    background-color: transparent !important;
   }
 }
 @layer components {
@@ -1459,6 +1488,13 @@ body[data-aos-delay="3000"] [data-aos].aos-animate {
    `html.dark .navbar .nav-link-active` is unlayered at (0,3,1). */
 :is(.navbar .nav-dropdown-link, .navbar .nav-link).nav-link-active,
 :is(.header.scroll-down, .header.scroll-up) .nav-item > .nav-link.nav-link-active {
+  color: var(--color-primary);
+}
+/* Unlayered for the same reason: the Pages dropdown's items (and its open
+   Calculators toggle) turn purple on hover like every other menu's. */
+.navbar .nav-dropdown-link:hover,
+.navbar .nav-dropdown-link:focus-visible,
+.navbar .hs-dropdown.open > .nav-dropdown-link {
   color: var(--color-primary);
 }
 @layer components {

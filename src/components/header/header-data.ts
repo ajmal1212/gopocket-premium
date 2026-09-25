@@ -58,6 +58,33 @@ export const learnTopics: MegaMenuEntry[] = [
   },
 ];
 
+export interface NavPageLink {
+  title: string;
+  href: string;
+}
+
+/** Pages dropdown. IPO leads - it had its own top-level link before this menu existed. */
+export const pageLinks: NavPageLink[] = [
+  { title: "IPO", href: "/ipo" },
+  { title: "Market News", href: "/news" },
+  { title: "Courses", href: "/courses" },
+  { title: "GoPocket API", href: "/gopocket-api" },
+  { title: "Downloads", href: "/downloads" },
+  { title: "Refer & Earn", href: "/refer-and-earn" },
+  { title: "About Us", href: "/about-us" },
+];
+
+/** The Pages dropdown's nested Calculators menu. */
+export const calculatorLinks: NavPageLink[] = [
+  { title: "SIP Calculator", href: "/sip-calculator" },
+  { title: "SWP Calculator", href: "/swp-calculator" },
+  { title: "CAGR Calculator", href: "/cagr-calculator" },
+  { title: "XIRR Calculator", href: "/xirr-calculator" },
+  { title: "PPF Calculator", href: "/ppf-calculator" },
+  { title: "EPF Calculator", href: "/epf-calculator" },
+  { title: "EMI Calculator", href: "/emi-calculator" },
+];
+
 /** Sign In mega-menu, top grid: the platforms a customer logs in to. */
 export const signInServices: MegaMenuEntry[] = [
   {
@@ -170,7 +197,6 @@ export const signInRekycServices: MegaMenuEntry[] = [
 
 export const headerLinks = {
   products: { href: "/products", label: "Products" },
-  ipo: { href: "/ipo", label: "IPO" },
   partner: { href: "/partner-with-us", label: "Partner With Us" },
   blog: { href: "/blog", label: "Blogs" },
   openAccount: { href: "/open-account-call-back?src=Website&tag=Menu", label: "Open Account" },

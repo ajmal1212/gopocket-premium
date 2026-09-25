@@ -117,6 +117,18 @@ function companyListing(slug: string): { exchange: "NSE" | "BSE"; symbol: string
   return bse ? { exchange: "BSE", symbol: bse } : null;
 }
 
+/**
+ * The address search engines should index for a stock page. A company listed
+ * on both exchanges has two pages, /stocks/itc and /stocks/itc-bse, that differ
+ * only by a few paise, so the BSE one canonicalises to the NSE one and is left
+ * out of the sitemap. It still renders - someone who picks the BSE listing in
+ * search sees BSE prices. BSE-only companies never get the suffix, so they
+ * keep their own address.
+ */
+export function canonicalStockSlug(slug: string): string {
+  return companyListing(slug)?.exchange === "BSE" ? slug.slice(0, -BSE_SUFFIX.length) : slug;
+}
+
 const toContract = (row: ContractRow): Contract | null => {
   /*
    * Contract Master's `formatted_ins_name` is the trading symbol, not a name:
@@ -369,7 +381,11 @@ export async function listSitemapSlugs(): Promise<string[]> {
   for (const rows of [indices, nseEquity, bseEquity]) {
     // Two rows can resolve to one address - a company's NSE row and a second
     // share class that slugifies the same way - and one address is one page.
-    for (const contract of rows) if (contract.slug) slugs.add(contract.slug);
+    // A dual-listed company's "-bse" page canonicalises to its NSE page, so
+    // only the NSE address is listed.
+    for (const contract of rows) {
+      if (contract.slug && canonicalStockSlug(contract.slug) === contract.slug) slugs.add(contract.slug);
+    }
   }
 
   const sorted = [...slugs].sort();

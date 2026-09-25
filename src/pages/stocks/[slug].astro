@@ -14,7 +14,7 @@ import ShareholdingBreakdown from "@/components/stocks/ShareholdingBreakdown.ast
 import { fetchShareholding } from "@/lib/shareholding";
 import { buildStockOverview } from "@/lib/stock-overview";
 import { stockFor } from "@/data/stocks";
-import { findContractBySlug } from "@/lib/contracts";
+import { canonicalStockSlug, findContractBySlug } from "@/lib/contracts";
 import { fetchQuote } from "@/lib/feed/quote";
 import { fetchCandles, fetchLatestSession, rangeById, sessionWindow } from "@/lib/feed/candles";
 import PriceChart from "@/components/stocks/PriceChart.astro";
@@ -131,7 +131,7 @@ const faqSchema =
     : null;
 ---
 
-<Layout title={title} description={description} canonical={`/stocks/${contract.slug}`}>
+<Layout title={title} description={description} canonical={`/stocks/${canonicalStockSlug(contract.slug)}`}>
   <Header currentPath="/stocks" />
 
   <main class="mx-auto max-w-7xl px-4 py-10 md:px-8 lg:py-14">

@@ -228,7 +228,7 @@ export const SEARCH_SEGMENTS = [
     exchanges: ["INDICES", "NSE", "BSE", "NFO", "BFO", "MCX"],
     hint: "stocks, F&O, commodities",
   },
-  { id: "stocks", label: "Stocks", exchanges: ["NSE", "BSE"], hint: "NSE and BSE stocks, e.g. SBIN" },
+  { id: "stocks", label: "Stocks", exchanges: ["NSE", "BSE"], hint: "NSE and BSE stocks, e.g. SBIN or State Bank" },
   { id: "nfo", label: "NFO", exchanges: ["NFO"], hint: "NSE futures & options, e.g. NIFTY" },
   { id: "bfo", label: "BFO", exchanges: ["BFO"], hint: "BSE futures & options, e.g. SENSEX" },
   { id: "mcx", label: "MCX", exchanges: ["MCX"], hint: "commodities, e.g. GOLD, CRUDEOIL" },
@@ -241,23 +241,23 @@ export type SearchSegment = (typeof SEARCH_SEGMENTS)[number];
 const SEARCH_WINDOW = 30;
 
 /**
- * Search instruments by symbol prefix, within one of the popup's segments.
+ * Search instruments by symbol or company-name prefix, within one of the
+ * popup's segments - "sbin" and "state bank" both find SBIN, and a company's
+ * derivatives carry its name too, so "infosys" reaches INFY's futures.
  *
  * Prefix rather than contains, and this is not a detail: `symbol like "%sbin%"`
  * OR'd across three columns takes 11 seconds against the full contract master,
- * because a leading wildcard cannot use an index. `symbol like "sbin%"` answers
- * the same query in under half a second, which is the difference between a
- * search box that works while you type and one that times out.
+ * and `company_name like "%bank%"` alone near 5, because a leading wildcard
+ * cannot use an index. The two prefix matches answer in under half a second,
+ * which is the difference between a search box that works while you type and
+ * one that times out. The cost: a word inside the name ("bank" for State Bank
+ * of India) finds nothing.
  *
  * Contract Master's `order` puts indices and the cash market ahead of
  * derivatives, so under "All" typing "sbin" finds SBIN-EQ before the first
  * strike of its options chain. Within a derivatives exchange every row shares
  * one `order`, so they're sorted the way a trader scans a chain: futures before
  * options, nearest expiry first, strikes in order.
- *
- * The cost is that only the trading symbol is matched - typing a company name
- * finds nothing. Contract Master has no company names to match anyway; that
- * belongs to whatever eventually owns the editorial data.
  */
 export async function searchContracts(
   term: string,
@@ -267,9 +267,10 @@ export async function searchContracts(
   const results = await query(
     new URLSearchParams({
       fields: FIELDS,
-      filters: JSON.stringify([
+      filters: JSON.stringify([["exchange", "in", segment.exchanges]]),
+      or_filters: JSON.stringify([
         ["symbol", "like", `${escapeLike(term)}%`],
-        ["exchange", "in", segment.exchanges],
+        ["company_name", "like", `${escapeLike(term)}%`],
       ]),
       // A wider window than is returned, so the sort below can bring the
       // exact symbol forward: "gold" wants GOLD's futures, and the database

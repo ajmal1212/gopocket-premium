@@ -138,7 +138,7 @@ import { SEARCH_SEGMENTS } from "@/lib/contracts";
    * because the Frappe token must not reach a browser - within the active tab,
    * which the server turns into a filter on the `exchange` field. With nothing
    * typed the popup shows the visitor's recent picks and the trending list,
-   * narrowed to the tab.
+   * narrowed to the tab; once a search runs, its matches replace both.
    *
    * Every row on screen subscribes to the feed, so a name always arrives with a
    * price beside it. Rows are ordinary links to /stocks/<slug>; clicking one
@@ -334,7 +334,7 @@ import { SEARCH_SEGMENTS } from "@/lib/contracts";
     // Arrow functions from here: a hoisted function declaration doesn't keep
     // the null checks above, an arrow created after them does.
 
-    /** Recent picks in the active tab, which head the popup whether or not anything is typed. */
+    /** Recent picks in the active tab, which head the popup until something is typed. */
     const showRecent = () => {
       const recent = loadRecent().filter((scrip) => inTab(scrip.exchange));
       recentList.replaceChildren(...recent.map(row));
@@ -362,9 +362,9 @@ import { SEARCH_SEGMENTS } from "@/lib/contracts";
       empty.hidden = recent + trending > 0;
     };
 
-    /** Something typed: recent picks, then the best few matches in place of the trending list. */
+    /** Something typed: the best few matches alone, recent and trending both give way to them. */
     const showResults = () => {
-      showRecent();
+      recentSection.hidden = true;
       trendingSection.hidden = true;
 
       marketList.replaceChildren(...results.slice(0, LIST_LIMIT).map(row));
@@ -446,6 +446,9 @@ import { SEARCH_SEGMENTS } from "@/lib/contracts";
     }
 
     input.addEventListener("input", () => {
+      // Recent steps aside on the keystroke rather than when results land, so
+      // the debounce doesn't leave old picks sitting above what is being typed.
+      if (input.value.trim().length >= MIN_QUERY) recentSection.hidden = true;
       if (debounce) clearTimeout(debounce);
       debounce = setTimeout(search, DEBOUNCE_MS);
     });

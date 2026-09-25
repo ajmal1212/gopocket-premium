@@ -1,0 +1,12 @@
+# Pages removed on purpose. Every URL here answers 410 Gone, which tells
+# Google the page is permanently deleted, so it drops from the index faster
+# than a 404 would. Visitors still see the normal "page not found" screen.
+#
+# One per line. A full URL or just the path both work; query strings and
+# letter case are ignored. End a line with /* to retire
+# everything under a folder (e.g. /market-analyses/*).
+# Lines starting with # are notes and are ignored.
+
+# Old Webflow market-analysis posts, all retired.
+/market-analyses
+/market-analyses/*

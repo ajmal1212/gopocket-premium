@@ -2,6 +2,9 @@
 /**
  * The sidebar conversion card on the market pages - a stock page and the
  * top gainers / losers lists. The default slot is the card's large line.
+ *
+ * `tag` is required, not defaulted: it is how the CRM tells which page a lead
+ * came from, and a card that forgot it sent every sign-up in untagged.
  */
 import Button from "@/components/Button.astro";
 import TrendingUp from "@lucide/astro/icons/trending-up";
@@ -10,9 +13,11 @@ interface Props {
   /** The card's <h2>, kept for the document outline and visually hidden. */
   heading: string;
   description: string;
+  /** Lead source passed to the sign-up form, e.g. "Stock". */
+  tag: string;
 }
 
-const { heading, description } = Astro.props;
+const { heading, description, tag } = Astro.props;
 ---
 
 <div
@@ -39,7 +44,11 @@ const { heading, description } = Astro.props;
     <p class="text-text-default text-sm leading-relaxed">{description}</p>
   </div>
 
-  <Button label="Open free account" href="/open-account-call-back" class="w-full" />
+  <Button
+    label="Open free account"
+    href={`/open-account-call-back?src=Website&tag=${encodeURIComponent(tag)}`}
+    class="w-full"
+  />
 
   <p class="text-text-default/75 text-xs">Flat ₹20 per order. No hidden charges.</p>
 </div>

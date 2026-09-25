@@ -1,0 +1,408 @@
+---
+/**
+ * A sector, industry or market-cap landing page - /stocks/sector/construction,
+ * /stocks/industry/banks, /stocks/market-cap/large-cap - written to rank for
+ * the search people make ("construction stocks", "banking stocks").
+ *
+ * /stocks?sector=... can't: every filtered view there canonicalises to bare
+ * /stocks, so a search engine treats it as a copy. These pages are the
+ * indexable ones - their own address, title, h1 and copy, listed in the
+ * sitemap and linked from /stocks.
+ *
+ * The copy is part hand-written - the category's `about` (stock-categories.ts)
+ * and, below the table, a beginner's guide (stock-guides.ts) - and part live: how many stocks, the largest by market cap, how they split by
+ * industry and cap band. The FAQ answers are built from the same figures, so
+ * they stay true as listings change. Every read is the same cached,
+ * stale-while-revalidate call /stocks makes, so a landing page costs no more.
+ *
+ * Page 2 onwards of the list canonicalises to itself (?page=2): those pages
+ * list different stocks, and pointing them at page 1 would hide the stocks
+ * further down from crawlers.
+ */
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import FAQSection from "@/components/FAQSection.astro";
+import CallToAction2 from "@/components/CallToAction2.astro";
+import Pagination from "@/components/Pagination.astro";
+import StockTable from "@/components/stocks/StockTable.astro";
+import StockGuide from "@/components/stocks/StockGuide.astro";
+import { guideFor } from "@/components/stocks/stock-guides";
+import LoaderCircle from "@lucide/astro/icons/loader-circle";
+import { browseStocks, countStocks } from "@/lib/contracts";
+import { fetchListPrices } from "@/lib/feed/list-prices";
+import { STOCKS_PER_PAGE, CAP_BANDS, parsePage, stockListHref } from "@/components/stocks/stock-list-data";
+import {
+  MARKET_CAP_CATEGORIES,
+  SECTOR_CATEGORIES,
+  categoryForIndustry,
+  categoryHref,
+  filtersFor,
+  industriesOf,
+  sectorCategory,
+  type StockCategory,
+} from "@/components/stocks/stock-categories";
+
+interface Props {
+  category: StockCategory;
+}
+
+const { category } = Astro.props;
+const waitUntil = Astro.locals.runtime?.ctx?.waitUntil?.bind(Astro.locals.runtime.ctx);
+
+const filters = filtersFor(category);
+const page = parsePage(Astro.url.searchParams);
+const basePath = categoryHref(category);
+const pageHref = (n: number) => (n > 1 ? `${basePath}?page=${n}` : basePath);
+
+// The split shown beside the cap bands: industries within a sector, sectors
+// within a market-cap band. An industry is already one slice, so it has none.
+const splitBy = category.kind === "sector" ? "industry" : category.kind === "market-cap" ? "sector" : null;
+
+const [result, capCounts, splitCounts] = await Promise.all([
+  browseStocks(filters, page, STOCKS_PER_PAGE, waitUntil),
+  category.kind === "market-cap" ? null : countStocks(filters, "cap_band", waitUntil),
+  splitBy ? countStocks(filters, splitBy, waitUntil) : null,
+]);
+
+const rows = result?.rows ?? [];
+const total = result?.total ?? 0;
+const pageCount = Math.max(1, Math.ceil(total / STOCKS_PER_PAGE));
+
+if (result && total > 0 && page > pageCount) {
+  return Astro.redirect(pageHref(pageCount));
+}
+
+// See /stocks: `no-cache` keeps the page eligible for the back/forward cache.
+Astro.response.headers.set("Cache-Control", "private, no-cache");
+
+const prices = await fetchListPrices(rows, waitUntil);
+
+/* ---- Copy --------------------------------------------------------------- */
+
+const SITE = Astro.site?.origin ?? Astro.url.origin;
+const year = new Intl.DateTimeFormat("en-IN", { year: "numeric", timeZone: "Asia/Kolkata" }).format(new Date());
+const count = (value: number) => value.toLocaleString("en-IN");
+const crore = (value: number) => `₹${value.toLocaleString("en-IN", { maximumFractionDigits: 0 })} crore`;
+// "Banking Stocks" -> "banking stocks" mid-sentence, but acronyms keep their case: "IT stocks", "FMCG stocks".
+const lower = category.name
+  .split(" ")
+  .map((word) => (/^[A-Z]{2,}$/.test(word) ? word : word.toLowerCase()))
+  .join(" ");
+const list = (items: string[]) =>
+  items.length <= 1 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+
+// Page 1 is sorted largest first, so its rows are the category's leaders.
+const leaders = page === 1 ? rows.filter((stock) => stock.marketCap !== null).slice(0, 5) : [];
+const leaderNames = leaders.map((stock) => stock.name);
+
+const capSummary = capCounts
+  ? list(
+      CAP_BANDS.filter((band) => band !== "Unknown" && capCounts[band]).map(
+        (band) => `${count(capCounts[band])} ${band.toLowerCase()}`,
+      ),
+    )
+  : "";
+
+/** Industries of a sector, or sectors of a market-cap band, biggest share first. */
+const split = splitCounts
+  ? Object.entries(splitCounts)
+      .filter(([value]) => value !== "Unclassified")
+      .sort((a, b) => b[1] - a[1])
+      .map(([value, n]) => {
+        const target = category.kind === "sector" ? categoryForIndustry(value) : null;
+        const href =
+          category.kind === "market-cap"
+            ? stockListHref({ ...filters, sectors: [value], capBands: [category.value] })
+            : target && target.kind === "industry"
+              ? categoryHref(target)
+              : null;
+        const label = category.kind === "market-cap" ? (sectorCategory(value)?.name ?? value) : (target?.name ?? value);
+        return { value, label, n, href };
+      })
+  : [];
+
+const parentSector = category.kind === "industry" ? sectorCategory(category.sector ?? "") : null;
+/** An industry's fellow industries; for a sector or cap band, the market-cap pages. */
+const siblings =
+  category.kind === "industry"
+    ? industriesOf(category.sector ?? "").filter((other) => other.slug !== category.slug)
+    : MARKET_CAP_CATEGORIES.filter((other) => other.slug !== category.slug);
+
+const kindLabel = category.kind === "sector" ? "Sector" : category.kind === "industry" ? "Industry" : "Market cap";
+
+const title =
+  page > 1
+    ? `${category.name} in India - Page ${page} | GoPocket`
+    : `${category.name} in India ${year}: List by Market Cap | GoPocket`;
+const description =
+  total > 0
+    ? `List of ${count(total)} ${lower} in India on NSE, ranked by market cap${
+        leaderNames.length ? ` - ${list(leaderNames.slice(0, 3))} and more` : ""
+      }. Share prices, 1-day charts, market cap and cap band.`
+    : `${category.name} in India on NSE, ranked by market cap, with share prices and 1-day charts.`;
+
+// One string rather than JSX fragments, so no stray space lands before the punctuation.
+const overview =
+  `${count(total)} ${lower} are listed on NSE` +
+  (leaderNames.length > 0 ? `; the largest by market capitalisation are ${list(leaderNames.slice(0, 3))}` : "") +
+  "." +
+  (capSummary ? ` By size: ${capSummary}.` : "");
+
+/* ---- FAQ ------------------------------------------------------------------ */
+
+const guide = guideFor(category.kind, category.slug);
+
+const faqs = [
+  leaders.length > 0 && {
+    question: `Which are the top ${lower} in India?`,
+    answer: `By market capitalisation, the largest ${lower} listed on NSE are ${list(
+      leaders.map((stock) => `${stock.name} (${crore(stock.marketCap!)})`),
+    )}. The table on this page lists all ${count(total)}, largest first.`,
+  },
+  total > 0 && {
+    question: `How many ${lower} are listed on NSE?`,
+    answer: `${count(total)} companies on NSE are classified as ${lower}${capSummary ? `: ${capSummary}` : ""}.`,
+  },
+  category.kind === "sector" &&
+    split.length > 1 && {
+      question: `Which industries are part of the ${category.value} sector?`,
+      answer: `The ${category.value} sector covers ${list(split.map((item) => `${item.value} (${count(item.n)} stocks)`))}.`,
+    },
+  category.kind === "market-cap" && {
+    question: `What are ${lower}?`,
+    answer: category.about,
+  },
+  ...(guide?.faqs ?? []),
+  {
+    question: `How can I invest in ${lower}?`,
+    answer: `Open a free GoPocket demat and trading account, search for any of these companies by name or symbol, and buy the shares directly on NSE. Look at each company's business, financials and valuation before you invest - a sector or market-cap label on its own is not a reason to buy.`,
+  },
+].filter((faq): faq is { question: string; answer: string } => Boolean(faq));
+
+/* ---- Structured data ---------------------------------------------------- */
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
+    { "@type": "ListItem", position: 2, name: "Stocks", item: `${SITE}/stocks` },
+    ...(parentSector
+      ? [{ "@type": "ListItem", position: 3, name: parentSector.name, item: `${SITE}${categoryHref(parentSector)}` }]
+      : []),
+    {
+      "@type": "ListItem",
+      position: parentSector ? 4 : 3,
+      name: category.name,
+      item: `${SITE}${basePath}`,
+    },
+  ],
+};
+
+const itemListSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: `${category.name} in India`,
+  numberOfItems: total,
+  itemListElement: rows.map((stock, index) => ({
+    "@type": "ListItem",
+    position: (page - 1) * STOCKS_PER_PAGE + index + 1,
+    name: stock.name,
+    url: `${SITE}/stocks/${stock.slug}`,
+  })),
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: { "@type": "Answer", text: faq.answer },
+  })),
+};
+
+const chip =
+  "border-border-light text-dark hover:border-primary hover:text-primary inline-flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-medium transition-colors";
+---
+
+<Layout title={title} description={description} canonical={pageHref(page)}>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+    {rows.length > 0 && <script type="application/ld+json" set:html={JSON.stringify(itemListSchema)} />}
+    {faqs.length > 0 && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />}
+    {page > 1 && <link rel="prev" href={`${SITE}${pageHref(page - 1)}`} />}
+    {page < pageCount && <link rel="next" href={`${SITE}${pageHref(page + 1)}`} />}
+  </Fragment>
+  <Header currentPath="/stocks" />
+
+  <main id="stocks-page" class="group/stocks mx-auto w-full max-w-[1440px] px-4 py-10 md:px-8 lg:py-14">
+    <nav aria-label="Breadcrumb" class="text-text-default text-sm">
+      <ol class="flex flex-wrap items-center gap-1.5">
+        <li><a href="/stocks" class="hover:text-primary">Stocks</a></li>
+        {
+          parentSector && (
+            <li class="flex items-center gap-1.5">
+              <span aria-hidden="true">/</span>
+              <a href={categoryHref(parentSector)} class="hover:text-primary">
+                {parentSector.name}
+              </a>
+            </li>
+          )
+        }
+        <li class="flex items-center gap-1.5">
+          <span aria-hidden="true">/</span>
+          <span class="text-dark" aria-current="page">{category.name}</span>
+        </li>
+      </ol>
+    </nav>
+
+    <header class="mt-4 max-w-4xl">
+      <p class="text-primary text-sm font-semibold tracking-wide uppercase">{kindLabel}</p>
+      <h1 class="text-h3 text-dark mt-2 font-semibold tracking-tight lg:text-h2">{category.name} in India</h1>
+      <div class="text-text-default mt-4 space-y-3 text-base leading-relaxed md:text-lg">
+        <p>{category.about}</p>
+        {total > 0 && <p>{overview}</p>}
+      </div>
+    </header>
+
+    {
+      split.length > 1 && (
+        <section class="mt-8" aria-labelledby="split-heading">
+          <h2 id="split-heading" class="text-dark text-lg! font-semibold">
+            {category.kind === "sector" ? `${category.name} by industry` : `${category.name} by sector`}
+          </h2>
+          <ul class="mt-3 flex flex-wrap gap-2">
+            {split.map((item) => (
+              <li>
+                {item.href ? (
+                  <a href={item.href} class={chip}>
+                    {item.label}
+                    <span class="text-text-default text-xs">{count(item.n)}</span>
+                  </a>
+                ) : (
+                  <span class:list={[chip, "hover:border-border-light hover:text-dark"]}>
+                    {item.label}
+                    <span class="text-text-default text-xs">{count(item.n)}</span>
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <section
+      class="mt-10 flex min-w-0 flex-col gap-5 group-data-loading/stocks:pointer-events-none"
+      aria-labelledby="stock-results"
+    >
+      {/* The loading label sits outside the heading, so it never reads as part of the h2. */}
+      <div aria-live="polite">
+        <h2 id="stock-results" class="text-dark text-lg! font-semibold group-data-[loading=list]/stocks:hidden">
+          {
+            total > 0
+              ? `${category.name} list: ${count((page - 1) * STOCKS_PER_PAGE + 1)} – ${count(
+                  (page - 1) * STOCKS_PER_PAGE + rows.length,
+                )} of ${count(total)}, by market cap`
+              : `${category.name}`
+          }
+        </h2>
+        <p
+          class="text-text-default hidden items-center gap-2 text-lg font-semibold group-data-[loading=list]/stocks:flex"
+        >
+          <LoaderCircle class="h-4 w-4 animate-spin motion-reduce:animate-none" stroke-width={2} aria-hidden="true" />
+          Loading stocks…
+        </p>
+      </div>
+
+      <StockTable rows={rows} prices={prices} caption={`${category.name} in India, page ${page} of ${pageCount}`}>
+        <Fragment slot="empty">
+          {
+            result
+              ? `No ${lower} are listed right now.`
+              : "The stock list is unavailable right now. Please try again in a minute."
+          }
+        </Fragment>
+      </StockTable>
+
+      <Pagination
+        class="mt-4 transition-opacity group-data-loading/stocks:opacity-50"
+        current={page}
+        total={pageCount}
+        hrefFor={pageHref}
+        label={`${category.name} pages`}
+      />
+    </section>
+
+    {guide && <StockGuide guide={guide} lowerName={lower} />}
+
+    <section class="mt-14 space-y-8" aria-label="Related lists">
+      {
+        (parentSector || siblings.length > 0) && (
+          <div>
+            <h2 class="text-dark text-lg! font-semibold">
+              {category.kind === "industry"
+                ? `More from the ${parentSector?.value ?? ""} sector`
+                : "Stocks by market cap"}
+            </h2>
+            <ul class="mt-3 flex flex-wrap gap-2">
+              {parentSector && (
+                <li>
+                  <a href={categoryHref(parentSector)} class={chip}>
+                    All {parentSector.name.toLowerCase()}
+                  </a>
+                </li>
+              )}
+              {siblings.map((other) => (
+                <li>
+                  <a href={categoryHref(other)} class={chip}>
+                    {other.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+
+      <div>
+        <h2 class="text-dark text-lg! font-semibold">Stocks by sector</h2>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          {
+            SECTOR_CATEGORIES.filter((other) => other.slug !== category.slug || category.kind !== "sector").map(
+              (other) => (
+                <li>
+                  <a href={categoryHref(other)} class={chip}>
+                    {other.name}
+                  </a>
+                </li>
+              ),
+            )
+          }
+        </ul>
+      </div>
+
+      <p class="text-text-default/75 text-xs leading-relaxed">
+        Sector, industry and market-cap classifications follow NSE and are updated periodically. Prices are a snapshot
+        taken when the page loads and may be delayed. This list is for information only and is not a recommendation to
+        buy or sell any security. Investments in securities markets are subject to market risks; read all related
+        documents carefully before investing.
+      </p>
+    </section>
+  </main>
+
+  {
+    faqs.length > 0 && (
+      <FAQSection
+        faqs={faqs}
+        eyebrow="Questions?"
+        title={`${category.name}: frequently asked questions`}
+        description={`Quick answers about ${lower} in India.`}
+      />
+    )
+  }
+  <CallToAction2 />
+  <Footer />
+</Layout>

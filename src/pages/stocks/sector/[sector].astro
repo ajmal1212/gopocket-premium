@@ -1,0 +1,12 @@
+---
+/** /stocks/sector/<slug> - see StockCategoryPage for what these landing pages are for. */
+import StockCategoryPage from "@/components/stocks/StockCategoryPage.astro";
+import { findCategory } from "@/components/stocks/stock-categories";
+
+const category = findCategory("sector", Astro.params.sector ?? "");
+if (!category) {
+  return new Response(null, { status: 404, statusText: "Not found" });
+}
+---
+
+<StockCategoryPage category={category} />

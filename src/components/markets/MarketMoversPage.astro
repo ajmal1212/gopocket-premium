@@ -205,6 +205,7 @@ const faqSchema = {
 
       <aside class="lg:sticky lg:top-28 lg:self-start">
         <OpenAccountCard
+          tag={kind === "gainers" ? "TopGainers" : "TopLosers"}
           heading="Start investing with GoPocket"
           description="Open a free demat account in minutes and trade today's movers the moment you spot them."
         >

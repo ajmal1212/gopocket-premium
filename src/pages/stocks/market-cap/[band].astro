@@ -1,0 +1,12 @@
+---
+/** /stocks/market-cap/<slug> - see StockCategoryPage for what these landing pages are for. */
+import StockCategoryPage from "@/components/stocks/StockCategoryPage.astro";
+import { findCategory } from "@/components/stocks/stock-categories";
+
+const category = findCategory("market-cap", Astro.params.band ?? "");
+if (!category) {
+  return new Response(null, { status: 404, statusText: "Not found" });
+}
+---
+
+<StockCategoryPage category={category} />

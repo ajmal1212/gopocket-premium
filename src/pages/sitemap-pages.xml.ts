@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { getBlogPosts, getNewsList } from "@/lib/frappe";
 import { originFor, renderUrlset, xmlResponse, type SitemapEntry } from "@/lib/sitemap";
+import { allCategoryHrefs } from "@/components/stocks/stock-categories";
 
 /**
  * Editorial sitemap: every static page plus the blog.
@@ -52,6 +53,14 @@ export const GET: APIRoute = async ({ site, url }) => {
       changefreq: isHome || isIndex ? "daily" : "monthly",
       priority: isHome ? "1.0" : isIndex ? "0.9" : "0.7",
     });
+  }
+
+  // The sector, industry and market-cap landing pages under /stocks. Their
+  // routes are dynamic, so the filesystem walk above skips them; the list is
+  // static (stock-categories.ts), so no fetch is needed. Daily, like /stocks:
+  // the prices and rankings on them move every session.
+  for (const href of allCategoryHrefs()) {
+    entries.push({ loc: `${SITE}${href}`, changefreq: "daily", priority: "0.8" });
   }
 
   // Blog articles are served by SSR routes, so they have to be enumerated from

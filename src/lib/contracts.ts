@@ -583,12 +583,8 @@ export async function browseStocks(
   });
 }
 
-/** Both queries run together: the page of rows and the count behind "of 2,478". */
-async function loadStockPage(
-  filters: StockFilters,
-  page: number,
-  pageSize: number,
-): Promise<{ rows: StockRow[]; total: number } | null> {
+/** The Contract Master filters for a set of list filters - shared by the rows and the counts. */
+function whereFor(filters: StockFilters): unknown[][] {
   const where: unknown[][] = [
     ["exchange", "=", filters.exchange],
     ["sector", "is", "set"],
@@ -598,6 +594,16 @@ async function loadStockPage(
   if (filters.sectors.length) where.push(["sector", "in", filters.sectors]);
   if (filters.industries.length) where.push(["industry", "in", filters.industries]);
   if (filters.capBands.length) where.push(["cap_band", "in", filters.capBands]);
+  return where;
+}
+
+/** Both queries run together: the page of rows and the count behind "of 2,478". */
+async function loadStockPage(
+  filters: StockFilters,
+  page: number,
+  pageSize: number,
+): Promise<{ rows: StockRow[]; total: number } | null> {
+  const where = whereFor(filters);
 
   const headers = { Authorization: `token ${getFrappeToken()}` };
   const signal = AbortSignal.timeout(TIMEOUT_MS);
@@ -639,4 +645,53 @@ async function loadStockPage(
   } catch {
     return null;
   }
+}
+
+export type StockCountField = "sector" | "industry" | "cap_band";
+
+/**
+ * How many listed shares match the filters, split by one field - the figures
+ * on the sector, industry and market-cap landing pages ("41 banking stocks: 12
+ * large cap, ...") and the counts beside /stocks' sector links.
+ *
+ * One grouped query, not one count per value: Frappe runs the GROUP BY, so the
+ * 23 sector totals cost a single round trip. Kept for a day like the list
+ * itself - the classification changes when Contract Master is regenerated, not
+ * during it. Null when Frappe can't answer; the pages then leave the figures out.
+ */
+export async function countStocks(
+  filters: StockFilters,
+  by: StockCountField,
+  waitUntil?: (promise: Promise<unknown>) => void,
+): Promise<Record<string, number> | null> {
+  return swr(
+    `stock-counts:${by}:${JSON.stringify(filters)}`,
+    async () => {
+      try {
+        const params = new URLSearchParams({
+          // Frappe refuses SQL function strings in `fields`; its dict form is allowed.
+          fields: JSON.stringify([by, { COUNT: "*" }]),
+          filters: JSON.stringify(whereFor(filters)),
+          group_by: by,
+          limit_page_length: "0",
+        });
+        const response = await fetch(`${getFrappeUrl()}/api/resource/Contract Master?${params}`, {
+          headers: { Authorization: `token ${getFrappeToken()}` },
+          signal: AbortSignal.timeout(TIMEOUT_MS),
+        });
+        if (!response.ok) return null;
+        const { data = [] } = (await response.json()) as { data?: Record<string, unknown>[] };
+        const counts: Record<string, number> = {};
+        for (const row of data) {
+          const key = row[by];
+          const count = row["COUNT(*)"];
+          if (typeof key === "string" && key && typeof count === "number") counts[key] = count;
+        }
+        return counts;
+      } catch {
+        return null;
+      }
+    },
+    { freshSeconds: STOCK_LIST_FRESH_S, staleSeconds: STOCK_LIST_STALE_S, waitUntil },
+  );
 }

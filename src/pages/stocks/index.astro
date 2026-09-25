@@ -9,23 +9,29 @@
  * time, not a live feed, so they move when the page is reloaded.
  *
  * Every filtered view canonicalises to the bare /stocks. The combinations are
- * endless and all of them are the same page narrowed; the individual stock
- * pages are what the sitemap advertises.
+ * endless and all of them are the same page narrowed. The views worth ranking -
+ * a sector, an industry, a market-cap band - have landing pages of their own
+ * (StockCategoryPage), and the "Browse" links at the foot of this page are how
+ * crawlers and visitors find them.
  */
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Pagination from "@/components/Pagination.astro";
 import StockFilters from "@/components/stocks/StockFilters.astro";
-import Sparkline from "@/components/stocks/Sparkline.astro";
-import StockTableHead from "@/components/stocks/StockTableHead.astro";
-import StockTableSkeleton from "@/components/stocks/StockTableSkeleton.astro";
+import StockTable from "@/components/stocks/StockTable.astro";
 import LoaderCircle from "@lucide/astro/icons/loader-circle";
-import ChevronRight from "@lucide/astro/icons/chevron-right";
-import { browseStocks } from "@/lib/contracts";
+import { browseStocks, countStocks } from "@/lib/contracts";
 import { fetchListPrices } from "@/lib/feed/list-prices";
-import { price } from "@/lib/feed/format";
 import { STOCKS_PER_PAGE, parsePage, parseStockFilters, stockListHref } from "@/components/stocks/stock-list-data";
+import {
+  INDUSTRY_CATEGORIES,
+  MARKET_CAP_CATEGORIES,
+  SECTOR_CATEGORIES,
+  categoryHref,
+} from "@/components/stocks/stock-categories";
+import Testimonials2 from "@/components/Testimonials2.astro";
+import CallToAction2 from "@/components/CallToAction2.astro";
 
 // Both reads are stale-while-revalidate; waitUntil lets their background
 // refreshes finish after this response has gone.
@@ -34,7 +40,14 @@ const waitUntil = Astro.locals.runtime?.ctx?.waitUntil?.bind(Astro.locals.runtim
 const filters = parseStockFilters(Astro.url.searchParams);
 const page = parsePage(Astro.url.searchParams);
 
-const result = await browseStocks(filters, page, STOCKS_PER_PAGE, waitUntil);
+// The Browse links' counts are NSE-wide, whatever the filters above - the same
+// totals the landing pages they point to open with.
+const nseFilters = parseStockFilters(new URLSearchParams());
+const [result, sectorCounts, capCounts] = await Promise.all([
+  browseStocks(filters, page, STOCKS_PER_PAGE, waitUntil),
+  countStocks(nseFilters, "sector", waitUntil),
+  countStocks(nseFilters, "cap_band", waitUntil),
+]);
 const rows = result?.rows ?? [];
 const total = result?.total ?? 0;
 const pageCount = Math.max(1, Math.ceil(total / STOCKS_PER_PAGE));
@@ -61,14 +74,14 @@ const prices = await fetchListPrices(rows, waitUntil);
 const first = (page - 1) * STOCKS_PER_PAGE + 1;
 const last = first + rows.length - 1;
 const count = (value: number) => value.toLocaleString("en-IN");
-const marketCap = (crore: number) => `₹${crore.toLocaleString("en-IN", { maximumFractionDigits: 0 })} Cr`;
-const signed = (value: number) => `${value >= 0 ? "+" : ""}${price(value)}`;
-const signedPercent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+
+const chip =
+  "border-border-light text-dark hover:border-primary hover:text-primary inline-flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-medium transition-colors";
 ---
 
 <Layout
-  title="All Stocks - NSE & BSE Share List by Sector & Market Cap | GoPocket"
-  description="Browse every stock listed on NSE and BSE. Filter by sector, industry and market cap - large, mid, small and micro cap - and open any company's share price page."
+  title="All Stocks in India - NSE & BSE Share List by Sector & Market Cap | GoPocket"
+  description="Browse every stock listed on NSE and BSE with live prices. Find banking, IT, pharma, auto, FMCG, defence and other sector stocks, or large, mid and small cap stocks, ranked by market cap."
   canonical="/stocks"
 >
   <Header currentPath="/stocks" />
@@ -83,6 +96,10 @@ const signedPercent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixe
   }
   <main id="stocks-page" class="group/stocks mx-auto w-full max-w-[1440px] px-4 py-10 md:px-8 lg:py-14">
     <h1 class="text-h3 text-dark font-semibold tracking-tight lg:text-h2">All Stocks</h1>
+    <p class="text-text-default mt-3 max-w-3xl text-base leading-relaxed">
+      Every share listed on NSE and BSE, ranked by market capitalisation. Search by symbol, filter by sector, industry
+      or market cap, or browse the sector and industry lists below.
+    </p>
 
     <div class="mt-8 flex flex-col gap-5 lg:mt-10">
       <StockFilters filters={filters} />
@@ -91,111 +108,27 @@ const signedPercent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixe
         class="flex min-w-0 flex-col gap-5 group-data-loading/stocks:pointer-events-none"
         aria-labelledby="stock-results"
       >
-        <h2 id="stock-results" class="text-dark text-base! font-semibold" aria-live="polite">
-          <span class="group-data-[loading=list]/stocks:hidden">
+        {/* The loading label sits outside the heading, so it never reads as part of the h2. */}
+        <div aria-live="polite">
+          <h2 id="stock-results" class="text-dark text-base! font-semibold group-data-[loading=list]/stocks:hidden">
             {
               total > 0
                 ? `Showing ${count(first)} – ${count(last)} of ${count(total)} ${filters.exchange} stocks`
                 : `No ${filters.exchange} stocks found`
             }
-          </span>
-          <span class="text-text-default hidden items-center gap-2 group-data-[loading=list]/stocks:inline-flex">
+          </h2>
+          <p
+            class="text-text-default hidden items-center gap-2 text-base font-semibold group-data-[loading=list]/stocks:flex"
+          >
             <LoaderCircle class="h-4 w-4 animate-spin motion-reduce:animate-none" stroke-width={2} aria-hidden="true" />
             Loading stocks…
-          </span>
-        </h2>
+          </p>
+        </div>
 
-        <StockTableSkeleton class="hidden group-data-[loading=list]/stocks:block" />
-
-        {
-          rows.length > 0 ? (
-            <div class="border-border-light overflow-hidden rounded-2xl border bg-white group-data-[loading=list]/stocks:hidden">
-              <table class="w-full text-left text-sm">
-                <caption class="sr-only">
-                  {filters.exchange} stocks, page {page} of {pageCount}
-                </caption>
-                <StockTableHead />
-                <tbody class="divide-border-light divide-y">
-                  {rows.map((stock) => {
-                    const quote = prices[stock.key];
-                    const up = (quote?.change ?? 0) >= 0;
-                    const tone = up ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400";
-                    return (
-                      <tr class="group hover:bg-theme-light relative transition group-data-[loading=row]/stocks:opacity-40 data-pending:opacity-100">
-                        <td class="px-4 py-4 md:px-5">
-                          <a
-                            href={`/stocks/${stock.slug}`}
-                            class="text-dark group-hover:text-primary font-semibold transition-colors after:absolute after:inset-0"
-                          >
-                            {stock.name}
-                          </a>
-                          <p class="text-text-default mt-0.5 text-xs">
-                            {stock.symbol}
-                            {/* The Sector column carries the industry from lg up. */}
-                            {stock.industry && <span class="lg:hidden"> · {stock.industry}</span>}
-                          </p>
-                        </td>
-                        <td class="hidden px-4 py-4 lg:table-cell">
-                          <p class="text-dark">{stock.sector}</p>
-                          {stock.industry && stock.industry !== stock.sector && (
-                            <p class="text-text-default mt-0.5 text-xs">{stock.industry}</p>
-                          )}
-                        </td>
-                        <td class="hidden px-4 py-4 md:table-cell">
-                          {quote && <Sparkline points={quote.trend} up={up} class="mx-auto" />}
-                        </td>
-                        <td class="px-4 py-4 text-right whitespace-nowrap tabular-nums">
-                          {quote ? (
-                            <>
-                              <p class:list={["font-semibold", tone]}>
-                                ₹{price(quote.ltp)}
-                                {quote.change !== null && (
-                                  <span class="ml-0.5 text-[10px]" aria-hidden="true">
-                                    {up ? "▲" : "▼"}
-                                  </span>
-                                )}
-                              </p>
-                              {quote.change !== null && quote.percent !== null && (
-                                <p class="text-text-default mt-0.5 text-xs">
-                                  {`${signed(quote.change)} (${signedPercent(quote.percent)})`}
-                                </p>
-                              )}
-                            </>
-                          ) : (
-                            <span class="text-text-default">—</span>
-                          )}
-                        </td>
-                        <td class="hidden px-4 py-4 lg:table-cell">
-                          {stock.capBand && (
-                            <span class="bg-theme-light text-dark rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap">
-                              {stock.capBand}
-                            </span>
-                          )}
-                        </td>
-                        <td class="text-dark hidden px-4 py-4 text-right whitespace-nowrap tabular-nums sm:table-cell">
-                          {stock.marketCap !== null ? marketCap(stock.marketCap) : "—"}
-                        </td>
-                        <td class="text-text-default py-4 pr-4">
-                          <ChevronRight
-                            class="group-hover:text-primary h-5 w-5 transition-transform group-hover:translate-x-0.5 group-data-pending:hidden motion-reduce:transition-none"
-                            stroke-width={1.8}
-                            aria-hidden="true"
-                          />
-                          <LoaderCircle
-                            class="text-primary hidden h-5 w-5 animate-spin group-data-pending:block motion-reduce:animate-none"
-                            stroke-width={2}
-                            aria-hidden="true"
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div class="border-border-light text-text-default rounded-2xl border px-6 py-12 text-center text-sm group-data-[loading=list]/stocks:hidden">
-              {result ? (
+        <StockTable rows={rows} prices={prices} caption={`${filters.exchange} stocks, page ${page} of ${pageCount}`}>
+          <Fragment slot="empty">
+            {
+              result ? (
                 <>
                   No stocks match these filters.{" "}
                   <a href="/stocks" class="text-primary font-medium hover:underline">
@@ -204,10 +137,10 @@ const signedPercent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixe
                 </>
               ) : (
                 "The stock list is unavailable right now. Please try again in a minute."
-              )}
-            </div>
-          )
-        }
+              )
+            }
+          </Fragment>
+        </StockTable>
 
         <Pagination
           class="mt-4 transition-opacity group-data-loading/stocks:opacity-50"
@@ -218,64 +151,64 @@ const signedPercent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixe
         />
       </section>
     </div>
+
+    <section class="mt-16 space-y-10" aria-labelledby="browse-heading">
+      <h2 id="browse-heading" class="text-h4 text-dark font-semibold tracking-tight">Browse stocks in India</h2>
+
+      <div>
+        <h3 class="text-dark text-lg! font-semibold">Stocks by sector</h3>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          {
+            SECTOR_CATEGORIES.map((category) => (
+              <li>
+                <a href={categoryHref(category)} class={chip}>
+                  {category.name}
+                  {sectorCounts?.[category.value] && (
+                    <span class="text-text-default text-xs">{count(sectorCounts[category.value])}</span>
+                  )}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="text-dark text-lg! font-semibold">Stocks by market cap</h3>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          {
+            MARKET_CAP_CATEGORIES.map((category) => (
+              <li>
+                <a href={categoryHref(category)} class={chip}>
+                  {category.name}
+                  {capCounts?.[category.value] && (
+                    <span class="text-text-default text-xs">{count(capCounts[category.value])}</span>
+                  )}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="text-dark text-lg! font-semibold">Stocks by industry</h3>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          {
+            INDUSTRY_CATEGORIES.map((category) => (
+              <li>
+                <a href={categoryHref(category)} class={chip}>
+                  {category.name}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
   </main>
+  <Testimonials2 />
+  <CallToAction2 />
 
   <Footer />
 </Layout>
-
-<script>
-  /*
-   * Shows that a click has been taken while the next page renders on the
-   * server. Links to another view of this list (pagination, "Clear filters")
-   * swap in the skeleton; a stock row puts a spinner on that row. The filter
-   * form does the same from its own submit handler (StockFilters.astro).
-   *
-   * Only plain left clicks: a ctrl/cmd/middle click opens a new tab, and this
-   * page carries on as it was.
-   */
-  const page = document.getElementById("stocks-page");
-
-  document.addEventListener("click", (event) => {
-    if (!page || event.defaultPrevented || event.button !== 0) return;
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-
-    const link = (event.target as Element).closest<HTMLAnchorElement>("a[href]");
-    if (!link || link.target === "_blank" || !page.contains(link)) return;
-
-    const url = new URL(link.href, location.href);
-    if (url.origin !== location.origin) return;
-
-    if (url.pathname === "/stocks") {
-      page.dataset.loading = "list";
-    } else if (url.pathname.startsWith("/stocks/")) {
-      page.dataset.loading = "row";
-      link.closest("tr")?.setAttribute("data-pending", "");
-    } else {
-      return;
-    }
-    page.setAttribute("aria-busy", "true");
-  });
-
-  /*
-   * Back from a stock restores this page from the back/forward cache: instant,
-   * and exactly as it was left - mid-load, spinner and all, so that is cleared.
-   * Its prices are as old as the visit. Within a few minutes that's what any
-   * broker's list shows; past that the page reloads itself, skeleton first.
-   * Timed from the browser's own clock, so server clock skew can't trip it.
-   */
-  const loadedAt = Date.now();
-  const MAX_RESTORED_AGE_MS = 3 * 60 * 1000;
-
-  window.addEventListener("pageshow", (event) => {
-    if (!event.persisted || !page) return;
-    page.querySelectorAll("[data-pending]").forEach((row) => row.removeAttribute("data-pending"));
-
-    if (Date.now() - loadedAt > MAX_RESTORED_AGE_MS) {
-      page.dataset.loading = "list";
-      location.reload();
-      return;
-    }
-    page.removeAttribute("data-loading");
-    page.removeAttribute("aria-busy");
-  });
-</script>

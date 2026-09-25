@@ -1,32 +1,58 @@
 ---
 /**
  * A small trend line drawn as inline SVG on the server - no chart library and
- * no script, so ten of them cost a few hundred bytes of path each. Points are
- * spaced evenly rather than by clock time: at this size the shape is what
- * reads, not when each minute fell.
+ * no script, so ten of them cost a few hundred bytes of path each.
  *
- * `vector-effect` keeps the stroke 1.5px wide however the viewBox is stretched.
+ * Given the session, the x-axis is the clock: 9:15 at the left edge, 15:30 at
+ * the right, each point at its own minute. So an hour after the open the line
+ * covers the first sixth and stops, as the stock page's chart does - spacing
+ * the points evenly instead stretched that hour across the full width, which
+ * read as a whole day's move. Without a session the points are spaced evenly.
+ *
+ * The previous close runs across as a dashed line, as on the stock page, and
+ * is kept inside the vertical range: early in the day, when the line is a
+ * short stroke at the left, it is what shows how far the price has moved and
+ * how much of the session is still to come.
+ *
+ * `vector-effect` keeps the strokes their width however the viewBox is stretched.
  */
+import type { Session } from "@/lib/feed/session";
+
 interface Props {
-  points: number[];
+  points: { t: number; c: number }[];
+  session?: Session | null;
+  /** Drawn as a dashed baseline when given. */
+  previousClose?: number | null;
   up: boolean;
   class?: string;
 }
 
-const { points, up, class: className = "" } = Astro.props;
+const { points, session = null, previousClose = null, up, class: className = "" } = Astro.props;
 
 const WIDTH = 120;
 const HEIGHT = 36;
 const PAD = 2;
 
-const min = Math.min(...points);
-const max = Math.max(...points);
+const closes = [...points.map((point) => point.c), ...(previousClose !== null ? [previousClose] : [])];
+const min = Math.min(...closes);
+const max = Math.max(...closes);
 const span = max - min || 1;
+
+const xOf = (t: number, index: number) => {
+  if (session && session.end > session.start) {
+    const fraction = (t - session.start) / (session.end - session.start);
+    return Math.min(1, Math.max(0, fraction)) * WIDTH;
+  }
+  return points.length > 1 ? (index / (points.length - 1)) * WIDTH : WIDTH / 2;
+};
+
+const yOf = (value: number) => PAD + (1 - (value - min) / span) * (HEIGHT - PAD * 2);
+
 const d = points
-  .map((value, i) => {
-    const x = points.length > 1 ? (i / (points.length - 1)) * WIDTH : WIDTH / 2;
-    const y = PAD + (1 - (value - min) / span) * (HEIGHT - PAD * 2);
-    return `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
+  .map(({ t, c }, index) => {
+    const x = xOf(t, index);
+    const y = yOf(c);
+    return `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
   })
   .join("");
 ---
@@ -41,6 +67,19 @@ const d = points
       aria-hidden="true"
       class:list={[up ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400", className]}
     >
+      {previousClose !== null && (
+        <line
+          x1="0"
+          x2={WIDTH}
+          y1={yOf(previousClose)}
+          y2={yOf(previousClose)}
+          stroke="currentColor"
+          stroke-opacity="0.35"
+          stroke-width="1"
+          stroke-dasharray="3 3"
+          vector-effect="non-scaling-stroke"
+        />
+      )}
       <path
         d={d}
         fill="none"

@@ -1,0 +1,146 @@
+---
+/**
+ * The beginner's guide below a landing page's stock table: the category's own
+ * sections (stock-guides.ts), then two parts every page shares - how to buy
+ * these stocks, and the terms used in the table above.
+ *
+ * Headings are h2s under the page's h1 and phrased the way people search
+ * ("What are construction stocks?"), which is most of what this section is for;
+ * the rest is being genuinely useful to someone opening their first account.
+ *
+ * Laid out like a blog article: the guide in nine columns, and the blog's
+ * sticky "Open Account" panel (ArticleCtaSidebar) in the other three - tagged
+ * StockGuide so these sign-ups are told apart from the blog's in the CRM. On a
+ * phone the panel follows the guide.
+ */
+import Button from "@/components/Button.astro";
+import ArticleCtaSidebar from "@/components/blog/ArticleCtaSidebar.astro";
+import type { StockGuide } from "./stock-guides";
+
+interface Props {
+  guide: StockGuide;
+  /** The category's name mid-sentence, e.g. "construction stocks". */
+  lowerName: string;
+}
+
+const { guide, lowerName } = Astro.props;
+
+const steps = [
+  {
+    title: "Open a demat and trading account",
+    detail:
+      "A demat account holds your shares electronically; a trading account lets you buy and sell them. With GoPocket you can open both online in a few minutes with your PAN, Aadhaar and bank details.",
+  },
+  {
+    title: "Add money",
+    detail: "Transfer funds to your trading account by UPI or net banking.",
+  },
+  {
+    title: "Research the company",
+    detail: `Pick a company from the list above and open its page to see its share price chart, financial performance and shareholding before you decide. Compare it with other ${lowerName} on business quality, debt, growth and valuation.`,
+  },
+  {
+    title: "Place your order",
+    detail:
+      "Search for the stock in the GoPocket app or web platform, choose the quantity, and place a delivery order to hold the shares in your demat account. A limit order lets you set the most you are willing to pay.",
+  },
+  {
+    title: "Track and review",
+    detail:
+      "Follow the company's quarterly results and news. Spreading your money across several companies and sectors reduces the damage if one investment goes wrong.",
+  },
+];
+
+const glossary = [
+  {
+    term: "LTP",
+    detail:
+      "Last traded price - the price at which the stock last changed hands. The figure below it is the change from the previous day's close.",
+  },
+  {
+    term: "Market cap",
+    detail:
+      "Market capitalisation: share price multiplied by the number of shares issued. It measures a company's size in the market and is shown here in rupees crore (1 crore = 1,00,00,000).",
+  },
+  {
+    term: "Cap band",
+    detail:
+      "Whether a company is large, mid, small or micro cap, based on its market capitalisation. Larger companies tend to be less volatile.",
+  },
+  {
+    term: "Sector and industry",
+    detail:
+      "The NSE groups companies into broad sectors (such as Financial Services) and narrower industries within them (such as Banks), based on what they mainly do.",
+  },
+  {
+    term: "Trading graph",
+    detail:
+      "How the share price has moved during the latest trading session, from the 9:15 open to the 3:30 close. The dashed line is the previous day's closing price.",
+  },
+];
+---
+
+<div class="mt-16 grid grid-cols-1 items-start gap-10 lg:grid-cols-12">
+  <section class="min-w-0 space-y-12 lg:col-span-9" aria-label={`Guide to ${lowerName}`}>
+    {
+      guide.sections.map((section) => (
+        <div>
+          <h2 class="text-h5! text-dark font-semibold tracking-tight md:text-h4!">{section.heading}</h2>
+          {section.paragraphs?.map((paragraph) => (
+            <p class="text-text-default mt-4 text-base leading-relaxed md:text-lg">{paragraph}</p>
+          ))}
+          {section.points && (
+            <dl class="mt-5 grid gap-4 sm:grid-cols-2">
+              {section.points.map((point) => (
+                <div class="border-border-light rounded-2xl border bg-white p-5">
+                  <dt class="text-dark font-semibold">{point.term}</dt>
+                  <dd class="text-text-default mt-1.5 text-sm leading-relaxed">{point.detail}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
+      ))
+    }
+
+    <div>
+      <h2 class="text-h5! text-dark font-semibold tracking-tight md:text-h4!">How to invest in {lowerName}</h2>
+      <ol class="mt-5 space-y-4">
+        {
+          steps.map((step, index) => (
+            <li class="flex gap-4">
+              <span class="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
+                {index + 1}
+              </span>
+              <div>
+                <h3 class="text-dark text-base! font-semibold">{step.title}</h3>
+                <p class="text-text-default mt-1 text-sm leading-relaxed md:text-base">{step.detail}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+      <Button
+        class="mt-6"
+        label="Open a free demat account"
+        href="/open-account-call-back?src=Website&tag=StockGuide"
+      />
+    </div>
+
+    <div>
+      <h2 class="text-h5! text-dark font-semibold tracking-tight md:text-h4!">Terms used on this page</h2>
+      <dl class="mt-5 grid gap-4 sm:grid-cols-2">
+        {
+          glossary.map((item) => (
+            <div class="border-border-light rounded-2xl border bg-white p-5">
+              <dt class="text-dark font-semibold">{item.term}</dt>
+              <dd class="text-text-default mt-1.5 text-sm leading-relaxed">{item.detail}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <ArticleCtaSidebar tag="StockGuide" />
+</div>

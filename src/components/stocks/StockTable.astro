@@ -1,0 +1,197 @@
+---
+/**
+ * The stock table shared by /stocks and the sector, industry and market-cap
+ * landing pages: rows, their prices and trend lines, the loading skeleton, and
+ * the script that shows a click has been taken.
+ *
+ * The page supplies the loading state's anchor: a `<main id="stocks-page"
+ * class="group/stocks">`. The script below sets `data-loading` on it - "list"
+ * for another page of this list (skeleton in, controls off), "row" for a click
+ * through to a stock (spinner on that row) - and everything here reacts through
+ * group-data variants, with no styles in JS. StockFilters sets the same flag
+ * when it submits.
+ *
+ * What to say when there are no rows is the page's business, via the "empty"
+ * slot: /stocks offers to clear its filters, a landing page has none to clear.
+ */
+import Sparkline from "@/components/stocks/Sparkline.astro";
+import StockTableHead from "@/components/stocks/StockTableHead.astro";
+import StockTableSkeleton from "@/components/stocks/StockTableSkeleton.astro";
+import LoaderCircle from "@lucide/astro/icons/loader-circle";
+import ChevronRight from "@lucide/astro/icons/chevron-right";
+import type { StockRow } from "@/lib/contracts";
+import type { ListPrice } from "@/lib/feed/list-prices";
+import { price } from "@/lib/feed/format";
+
+interface Props {
+  rows: StockRow[];
+  prices: Record<string, ListPrice>;
+  /** Read out by screen readers in place of a visible title. */
+  caption: string;
+}
+
+const { rows, prices, caption } = Astro.props;
+
+const marketCap = (crore: number) => `₹${crore.toLocaleString("en-IN", { maximumFractionDigits: 0 })} Cr`;
+const signed = (value: number) => `${value >= 0 ? "+" : ""}${price(value)}`;
+const signedPercent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+---
+
+<StockTableSkeleton class="hidden group-data-[loading=list]/stocks:block" />
+
+{
+  rows.length > 0 ? (
+    <div class="border-border-light overflow-hidden rounded-2xl border bg-white group-data-[loading=list]/stocks:hidden">
+      <table class="w-full text-left text-sm">
+        <caption class="sr-only">{caption}</caption>
+        <StockTableHead />
+        <tbody class="divide-border-light divide-y">
+          {rows.map((stock) => {
+            const quote = prices[stock.key];
+            const up = (quote?.change ?? 0) >= 0;
+            const tone = up ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400";
+            return (
+              <tr class="group hover:bg-theme-light relative transition group-data-[loading=row]/stocks:opacity-40 data-pending:opacity-100">
+                <td class="px-4 py-4 md:px-5">
+                  <a
+                    href={`/stocks/${stock.slug}`}
+                    class="text-dark group-hover:text-primary font-semibold transition-colors after:absolute after:inset-0"
+                  >
+                    {stock.name}
+                  </a>
+                  <p class="text-text-default mt-0.5 text-xs">
+                    {stock.symbol}
+                    {/* The Sector column carries the industry from lg up. */}
+                    {stock.industry && <span class="lg:hidden"> · {stock.industry}</span>}
+                  </p>
+                </td>
+                <td class="hidden px-4 py-4 lg:table-cell">
+                  <p class="text-dark">{stock.sector}</p>
+                  {stock.industry && stock.industry !== stock.sector && (
+                    <p class="text-text-default mt-0.5 text-xs">{stock.industry}</p>
+                  )}
+                </td>
+                <td class="hidden px-4 py-4 md:table-cell">
+                  {quote && (
+                    <Sparkline
+                      points={quote.trend}
+                      session={quote.session}
+                      previousClose={quote.previousClose}
+                      up={up}
+                      class="mx-auto"
+                    />
+                  )}
+                </td>
+                <td class="px-4 py-4 text-right whitespace-nowrap tabular-nums">
+                  {quote ? (
+                    <>
+                      <p class:list={["font-semibold", tone]}>
+                        ₹{price(quote.ltp)}
+                        {quote.change !== null && (
+                          <span class="ml-0.5 text-[10px]" aria-hidden="true">
+                            {up ? "▲" : "▼"}
+                          </span>
+                        )}
+                      </p>
+                      {quote.change !== null && quote.percent !== null && (
+                        <p class="text-text-default mt-0.5 text-xs">
+                          {`${signed(quote.change)} (${signedPercent(quote.percent)})`}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <span class="text-text-default">—</span>
+                  )}
+                </td>
+                <td class="hidden px-4 py-4 lg:table-cell">
+                  {stock.capBand && (
+                    <span class="bg-theme-light text-dark rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap">
+                      {stock.capBand}
+                    </span>
+                  )}
+                </td>
+                <td class="text-dark hidden px-4 py-4 text-right whitespace-nowrap tabular-nums sm:table-cell">
+                  {stock.marketCap !== null ? marketCap(stock.marketCap) : "—"}
+                </td>
+                <td class="text-text-default py-4 pr-4">
+                  <ChevronRight
+                    class="group-hover:text-primary h-5 w-5 transition-transform group-hover:translate-x-0.5 group-data-pending:hidden motion-reduce:transition-none"
+                    stroke-width={1.8}
+                    aria-hidden="true"
+                  />
+                  <LoaderCircle
+                    class="text-primary hidden h-5 w-5 animate-spin group-data-pending:block motion-reduce:animate-none"
+                    stroke-width={2}
+                    aria-hidden="true"
+                  />
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  ) : (
+    <div class="border-border-light text-text-default rounded-2xl border px-6 py-12 text-center text-sm group-data-[loading=list]/stocks:hidden">
+      <slot name="empty" />
+    </div>
+  )
+}
+
+<script>
+  /*
+   * Shows that a click has been taken while the next page renders on the
+   * server. A link to another view of this same list (its pagination, "Clear
+   * filters") swaps in the skeleton; a stock's row puts a spinner on that row.
+   * Any other link - a sector landing page, say - is left to navigate as normal.
+   *
+   * Only plain left clicks: a ctrl/cmd/middle click opens a new tab, and this
+   * page carries on as it was.
+   */
+  const page = document.getElementById("stocks-page");
+
+  document.addEventListener("click", (event) => {
+    if (!page || event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    const link = (event.target as Element).closest<HTMLAnchorElement>("a[href]");
+    if (!link || link.target === "_blank" || !page.contains(link)) return;
+
+    const url = new URL(link.href, location.href);
+    if (url.origin !== location.origin) return;
+
+    const row = link.closest("tr");
+    if (url.pathname === location.pathname) {
+      page.dataset.loading = "list";
+    } else if (row && url.pathname.startsWith("/stocks/")) {
+      page.dataset.loading = "row";
+      row.setAttribute("data-pending", "");
+    } else {
+      return;
+    }
+    page.setAttribute("aria-busy", "true");
+  });
+
+  /*
+   * Back from a stock restores this page from the back/forward cache: instant,
+   * and exactly as it was left - mid-load, spinner and all, so that is cleared.
+   * Its prices are as old as the visit. Within a few minutes that's what any
+   * broker's list shows; past that the page reloads itself, skeleton first.
+   * Timed from the browser's own clock, so server clock skew can't trip it.
+   */
+  const loadedAt = Date.now();
+  const MAX_RESTORED_AGE_MS = 3 * 60 * 1000;
+
+  window.addEventListener("pageshow", (event) => {
+    if (!event.persisted || !page) return;
+    page.querySelectorAll("[data-pending]").forEach((row) => row.removeAttribute("data-pending"));
+
+    if (Date.now() - loadedAt > MAX_RESTORED_AGE_MS) {
+      page.dataset.loading = "list";
+      location.reload();
+      return;
+    }
+    page.removeAttribute("data-loading");
+    page.removeAttribute("aria-busy");
+  });
+</script>

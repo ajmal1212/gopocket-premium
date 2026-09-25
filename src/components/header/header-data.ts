@@ -3,6 +3,7 @@ import Activity from "@lucide/astro/icons/activity";
 import Banknote from "@lucide/astro/icons/banknote";
 import BookOpen from "@lucide/astro/icons/book-open";
 import Briefcase from "@lucide/astro/icons/briefcase";
+import ChartCandlestick from "@lucide/astro/icons/chart-candlestick";
 import ChartPie from "@lucide/astro/icons/chart-pie";
 import CreditCard from "@lucide/astro/icons/credit-card";
 import DollarSign from "@lucide/astro/icons/dollar-sign";
@@ -26,8 +27,17 @@ export interface MegaMenuEntry {
   href: string;
 }
 
-/** Learn mega-menu topics. All three point at the research hub for now. */
+/**
+ * Research mega-menu entries. The stock directory leads; the three learning
+ * topics after it all point at the research hub for now.
+ */
 export const learnTopics: MegaMenuEntry[] = [
+  {
+    icon: ChartCandlestick,
+    title: "Explore Stocks",
+    description: "Browse NSE & BSE stocks by sector, industry & market cap.",
+    href: "/stocks",
+  },
   {
     icon: TrendingUp,
     title: "Equity",

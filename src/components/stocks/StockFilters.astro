@@ -5,11 +5,9 @@
  * JavaScript off (an Apply button appears in <noscript>).
  *
  * The symbol search applies on Enter (or when the box loses focus with a new
- * value). With JavaScript, the exchange, letter and sort apply the moment they
- * change.
- * The checkbox dropdowns apply when they close instead - on a click outside,
- * Escape, or opening another - so ticking three sectors is one reload, not
- * three. The submit handler drops default values so the URL stays short.
+ * value). With JavaScript, everything else applies the moment it changes -
+ * every tick in a checkbox dropdown included - and the menu closes as the new
+ * list loads. The submit handler drops default values so the URL stays short.
  */
 import FilterDropdown from "@/components/stocks/FilterDropdown.astro";
 import LetterDropdown from "@/components/stocks/LetterDropdown.astro";
@@ -113,25 +111,15 @@ const isFiltered =
 
   if (form) {
     const dropdowns = [...form.querySelectorAll<HTMLDetailsElement>("[data-filter-dropdown]")];
-    let pending = false;
-
     form.addEventListener("change", (event) => {
       const target = event.target as HTMLInputElement | HTMLSelectElement;
-      if (!target.name) return;
-      // A checkbox tick waits for its dropdown to close; anything else - the
-      // letter grid's radios included - applies now.
-      if (target.type === "checkbox") pending = true;
-      else form.requestSubmit();
+      if (target.name) form.requestSubmit();
     });
 
     for (const dropdown of dropdowns) {
       dropdown.addEventListener("toggle", () => {
-        if (dropdown.open) {
-          // One open at a time; closing the other applies its ticks.
-          for (const other of dropdowns) if (other !== dropdown) other.open = false;
-        } else if (pending) {
-          form.requestSubmit();
-        }
+        // One open at a time.
+        if (dropdown.open) for (const other of dropdowns) if (other !== dropdown) other.open = false;
       });
     }
 
@@ -158,8 +146,6 @@ const isFiltered =
         page.dataset.loading = "list";
         page.setAttribute("aria-busy", "true");
       }
-      // Cleared first: closing a dropdown with ticks pending would submit again.
-      pending = false;
       closeAll();
 
       // No page number: a new filter always starts from page 1.

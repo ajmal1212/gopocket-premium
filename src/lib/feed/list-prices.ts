@@ -1,6 +1,6 @@
 import { fetchQuotes } from "./quote";
-import { downsample, fetchCandles, fetchLatestSession, type Range } from "./candles";
-import { istMidnightOf } from "./session";
+import { downsample, fetchCandles, fetchLatestSession, sessionWindow, type Range } from "./candles";
+import { istMidnightOf, type Session } from "./session";
 import { num } from "./format";
 import { swr } from "@/lib/edge-cache";
 
@@ -8,8 +8,16 @@ export interface ListPrice {
   ltp: number;
   change: number | null;
   percent: number | null;
-  /** Closes across the latest session, oldest first, thinned for a sparkline. */
-  trend: number[];
+  /** The latest session's closes with their times, oldest first, thinned for a sparkline. */
+  trend: { t: number; c: number }[];
+  /**
+   * That session's open and close, which the sparkline spans - so at 10:00 the
+   * line covers the first eighth and stops, as on the stock page's own chart,
+   * rather than stretching an hour of trading across a day's width.
+   */
+  session: Session | null;
+  /** The close the change is measured from - drawn as the sparkline's dashed baseline. */
+  previousClose: number | null;
 }
 
 /** A row to price: its feed key and the trading symbol daily history is keyed by. */
@@ -98,7 +106,9 @@ export async function fetchListPrices(
   waitUntil?: (promise: Promise<unknown>) => void,
 ): Promise<Record<string, ListPrice>> {
   const prices = await swr(
-    `list-prices:${instruments.map(({ key }) => key).join(",")}`,
+    // Versioned: v2 gave `trend` times and added `session`, v3 `previousClose`.
+    // A new key per shape, so an entry cached in an old one can't reach the page.
+    `list-prices:v3:${instruments.map(({ key }) => key).join(",")}`,
     () => loadListPrices(instruments),
     {
       freshSeconds: PRICES_FRESH_S,
@@ -154,7 +164,9 @@ async function loadListPrices(instruments: ListInstrument[]): Promise<Record<str
       ltp,
       change,
       percent: change !== null && previousClose ? (change / previousClose) * 100 : null,
-      trend: downsample(candles, TREND_POINTS).map((candle) => candle.c),
+      trend: downsample(candles, TREND_POINTS).map(({ t, c }) => ({ t, c })),
+      session: sessionWindow(candles),
+      previousClose,
     };
   });
 

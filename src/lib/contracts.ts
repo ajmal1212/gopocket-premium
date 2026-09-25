@@ -1,4 +1,5 @@
 import NSE_COMPANIES from "@/data/nse-companies.json";
+import BSE_COMPANIES from "@/data/bse-companies.json";
 import { edgeGet, edgePut, swr } from "@/lib/edge-cache";
 import { getFrappeUrl, getFrappeToken } from "@/lib/frappe";
 
@@ -55,10 +56,17 @@ export function slugify(name: string): string {
  * and its BSE listing by the same name with "-bse" on the end, so the two
  * never meet: ITC's BSE row is plain "ITC", which would otherwise slugify to
  * the NSE page's address. Names come from nse-companies.json, the NSE list
- * (scripts/update-nse-companies.mjs); anything not on it - indices, ETFs,
+ * (scripts/update-nse-companies.mjs).
+ *
+ * Companies listed only on BSE come from bse-companies.json, taken from
+ * Contract Master's `company_name`. They have one listing, so they take the
+ * plain name with no suffix. Anything on neither list - indices, ETFs,
  * derivatives - keeps its contract-name slug.
  */
 const BSE_SUFFIX = "-bse";
+
+const NSE_NAMES = NSE_COMPANIES as Record<string, string>;
+const BSE_ONLY_NAMES = BSE_COMPANIES as Record<string, string>;
 
 let companyIndex: { slugBySymbol: Map<string, string>; symbolBySlug: Map<string, string> } | null = null;
 
@@ -66,8 +74,10 @@ function companies() {
   if (companyIndex) return companyIndex;
 
   const bySlug = new Map<string, string[]>();
-  for (const [symbol, name] of Object.entries(NSE_COMPANIES as Record<string, string>)) {
-    const slug = slugify(name);
+  for (const [symbol, name] of [...Object.entries(NSE_NAMES), ...Object.entries(BSE_ONLY_NAMES)]) {
+    // bse-companies.json keeps the legal name ("Andhra Petrochemicals Ltd") for
+    // display; the address drops the suffix, matching the NSE pages.
+    const slug = slugify(name).replace(/-(ltd|limited)$/, "");
     if (slug) bySlug.set(slug, [...(bySlug.get(slug) ?? []), symbol]);
   }
 
@@ -92,8 +102,11 @@ function companies() {
 
 function slugFor(exchange: string, symbol: string, name: string): string {
   const company = companies().slugBySymbol.get(symbol);
-  if (company && exchange === "NSE") return company;
-  if (company && exchange === "BSE") return company + BSE_SUFFIX;
+  if (company && symbol in NSE_NAMES) {
+    if (exchange === "NSE") return company;
+    if (exchange === "BSE") return company + BSE_SUFFIX;
+  }
+  if (company && exchange === "BSE" && symbol in BSE_ONLY_NAMES) return company;
   return slugify(name);
 }
 
@@ -104,17 +117,23 @@ function slugFor(exchange: string, symbol: string, name: string): string {
  */
 export function nseCompany(symbol: string): { slug: string; name: string } | null {
   const slug = companies().slugBySymbol.get(symbol);
-  const name = (NSE_COMPANIES as Record<string, string>)[symbol];
+  const name = NSE_NAMES[symbol];
   return slug && name ? { slug, name } : null;
 }
 
 /** The listing a company-name address stands for, or null for any other address. */
 function companyListing(slug: string): { exchange: "NSE" | "BSE"; symbol: string } | null {
-  const { symbolBySlug } = companies();
-  const nse = symbolBySlug.get(slug);
-  if (nse) return { exchange: "NSE", symbol: nse };
-  const bse = slug.endsWith(BSE_SUFFIX) ? symbolBySlug.get(slug.slice(0, -BSE_SUFFIX.length)) : undefined;
-  return bse ? { exchange: "BSE", symbol: bse } : null;
+  const own = companies().symbolBySlug.get(slug);
+  if (own) return { exchange: own in NSE_NAMES ? "NSE" : "BSE", symbol: own };
+  const dual = dualListedBseSymbol(slug);
+  return dual ? { exchange: "BSE", symbol: dual } : null;
+}
+
+/** For "itc-bse", the NSE-listed symbol it is the BSE page of; otherwise undefined. */
+function dualListedBseSymbol(slug: string): string | undefined {
+  if (!slug.endsWith(BSE_SUFFIX)) return undefined;
+  const symbol = companies().symbolBySlug.get(slug.slice(0, -BSE_SUFFIX.length));
+  return symbol && symbol in NSE_NAMES ? symbol : undefined;
 }
 
 /**
@@ -126,19 +145,20 @@ function companyListing(slug: string): { exchange: "NSE" | "BSE"; symbol: string
  * keep their own address.
  */
 export function canonicalStockSlug(slug: string): string {
-  return companyListing(slug)?.exchange === "BSE" ? slug.slice(0, -BSE_SUFFIX.length) : slug;
+  return dualListedBseSymbol(slug) ? slug.slice(0, -BSE_SUFFIX.length) : slug;
 }
 
 const toContract = (row: ContractRow): Contract | null => {
   /*
    * Contract Master's `formatted_ins_name` is the trading symbol, not a name:
-   * Abbott India arrives as "ABBOTINDIA-EQ". nse-companies.json already holds
-   * the real name for 2,568 symbols - it is what builds the page's address -
-   * so it is preferred here too. Without this the company's own page was
-   * titled "ABBOTINDIA-EQ (ABBOTINDIA) Share Price Today", and the <h1>,
-   * meta description and search results all read the same way.
+   * Abbott India arrives as "ABBOTINDIA-EQ". The company lists already hold
+   * the real name - nse-companies.json, then bse-companies.json for BSE-only
+   * shares - and it is what builds the page's address, so it is preferred here
+   * too. Without this the company's own page was titled "ABBOTINDIA-EQ
+   * (ABBOTINDIA) Share Price Today", and the <h1>, meta description and search
+   * results all read the same way.
    */
-  const listed = (NSE_COMPANIES as Record<string, string>)[row.symbol || ""];
+  const listed = NSE_NAMES[row.symbol || ""] ?? BSE_ONLY_NAMES[row.symbol || ""];
   const name = listed || row.formatted_ins_name || row.trading_symbol || row.symbol || "";
   if (!row.token || !row.exchange || !name) return null;
 

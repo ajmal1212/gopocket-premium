@@ -73,8 +73,16 @@ import { highlights } from "./webapp-data";
 </script>
 
 <style>
+  /* Surface tokens, not #fff: dark-theme.css only re-skins what goes through
+     its variables, so a literal white stayed white under light dark-mode text.
+     In dark the open card steps up to --surface-3 so it still reads as raised
+     against the closed ones on --surface-2. */
   .webapp-acc-card {
-    background: #fff;
+    background: var(--surface-1, #fff);
+  }
+
+  :global(html.dark) .webapp-acc-card[data-open="true"] {
+    background: var(--surface-3);
   }
 
   @media (min-width: 1024px) {

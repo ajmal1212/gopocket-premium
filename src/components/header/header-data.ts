@@ -99,7 +99,7 @@ export interface NavPageLink {
   href: string;
 }
 
-/** Pages dropdown. IPO leads - it had its own top-level link before this menu existed. */
+/** Explore dropdown (PagesMenu.astro). IPO leads - it had its own top-level link before this menu existed. */
 export const pageLinks: NavPageLink[] = [
   { title: "IPO", href: "/ipo" },
   { title: "Market News", href: "/news" },
@@ -109,7 +109,7 @@ export const pageLinks: NavPageLink[] = [
   { title: "About Us", href: "/about-us" },
 ];
 
-/** The Pages dropdown's nested Calculators menu. */
+/** The Explore dropdown's nested Calculators menu. */
 export const calculatorLinks: NavPageLink[] = [
   { title: "SIP Calculator", href: "/sip-calculator" },
   { title: "SWP Calculator", href: "/swp-calculator" },

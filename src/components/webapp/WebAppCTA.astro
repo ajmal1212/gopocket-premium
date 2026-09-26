@@ -1,0 +1,54 @@
+---
+/**
+ * Closing call to action, sitting just above the site footer. The blurred
+ * "clouds" and floating shapes echo the hero so the page opens and closes on
+ * the same note.
+ */
+import Button from "@/components/Button.astro";
+import { WEB_TRADE_URL } from "./webapp-data";
+---
+
+<section class="webapp-cta pb-20 md:pb-32">
+  <div class="container">
+    <div
+      data-aos="fade-up-sm"
+      class="relative isolate overflow-hidden rounded-[2rem] bg-linear-to-br from-purple-100 via-white to-sky-100 px-6 py-20 text-center md:py-28 dark:from-purple-500/20 dark:via-transparent dark:to-sky-500/15"
+    >
+      <div
+        aria-hidden="true"
+        class="absolute -bottom-24 -left-16 -z-10 h-64 w-96 rounded-full bg-white blur-3xl dark:bg-purple-500/10"
+      >
+      </div>
+      <div
+        aria-hidden="true"
+        class="absolute -top-20 -right-16 -z-10 h-56 w-80 rounded-full bg-purple-200/70 blur-3xl dark:bg-purple-500/15"
+      >
+      </div>
+      <div
+        aria-hidden="true"
+        class="absolute top-10 left-[10%] hidden h-14 w-14 rotate-45 rounded-xl bg-purple-300/60 md:block dark:bg-purple-400/25"
+      >
+      </div>
+      <div
+        aria-hidden="true"
+        class="absolute right-[12%] bottom-12 hidden h-16 w-16 rounded-full bg-emerald-200/80 md:block dark:bg-emerald-500/20"
+      >
+      </div>
+      <div
+        aria-hidden="true"
+        class="absolute top-16 right-[22%] hidden h-6 w-6 rounded-full bg-sky-300/80 md:block dark:bg-sky-500/30"
+      >
+      </div>
+
+      <h2 class="has-italic-text text-dark text-h4 mx-auto max-w-2xl font-medium tracking-tight md:text-h3 lg:text-h2">
+        Start trading in your <strong>browser</strong> today
+      </h2>
+      <p class="text-text-default mx-auto mt-5 max-w-lg text-base md:text-lg">
+        Log in to GoPocket Web Trade with your existing account and take your trading to the next level.
+      </p>
+      <div class="mt-8 flex justify-center">
+        <Button label="Let's get started" href={WEB_TRADE_URL} target="_blank" rel="noopener" />
+      </div>
+    </div>
+  </div>
+</section>

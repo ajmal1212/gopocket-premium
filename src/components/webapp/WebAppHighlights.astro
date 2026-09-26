@@ -1,0 +1,121 @@
+---
+/**
+ * Three highlight cards in a hover accordion, matching the reference design.
+ *
+ * Desktop: one card is "open" (white, flex 1.7, image showing) and the others
+ * are "closed" (tinted, flex 1, image collapsed). Hovering a card opens it and it
+ * STAYS open when the pointer leaves, so this is a little state in a script
+ * rather than `:hover`, which would snap back to the first card on mouse-out.
+ *
+ * It listens for `pointermove`, not `mouseenter`: while the row animates, a
+ * card edge can slide under a still cursor, and `mouseenter` would then open
+ * the neighbour and the two cards would flip back and forth. The text column
+ * is a fixed width for the same reason - if it tracked the card, the copy would
+ * re-wrap every frame of the resize.
+ * Keyboard focus opens a card too. The spring is the reference's
+ * (bounce 0.2, 0.4s) approximated as an overshooting cubic-bezier.
+ *
+ * Below lg every card is shown open, stacked, with the image underneath.
+ */
+import { highlights } from "./webapp-data";
+---
+
+<section class="webapp-highlights" style="padding-top: 1.5rem">
+  <div class="container" data-aos="fade-up-sm">
+    <h2 class="sr-only">Why trade on GoPocket Web</h2>
+    <div class="webapp-accordion bg-border-light flex flex-col gap-2 rounded-[2rem] p-2 lg:flex-row">
+      {
+        highlights.map((card, index) => (
+          <article
+            tabindex="0"
+            data-open={index === 0 ? "true" : "false"}
+            class="webapp-acc-card flex flex-col overflow-hidden rounded-3xl p-2 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] lg:h-[418px] lg:flex-row"
+          >
+            <div class="flex flex-col gap-4 p-4 lg:h-full lg:w-[15rem] lg:shrink-0 lg:gap-0 lg:p-6">
+              <span class="bg-primary flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-white">
+                <card.icon class="h-7 w-7" stroke-width={1.8} aria-hidden="true" />
+              </span>
+              <div class="flex flex-col gap-1.5 lg:mt-auto">
+                <h3 class="text-dark text-h5 font-medium">{card.title}</h3>
+                <p class="text-text-default text-base">{card.description}</p>
+              </div>
+            </div>
+            <div class="webapp-acc-media h-[350px] overflow-hidden rounded-2xl bg-[#111318] lg:h-full">
+              <img
+                src={card.image}
+                alt={card.imageAlt}
+                width={card.width}
+                height={card.height}
+                loading="lazy"
+                decoding="async"
+                class="h-full w-full object-cover"
+                style={`object-position: ${card.focus}`}
+              />
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  const cards = Array.from(document.querySelectorAll<HTMLElement>(".webapp-acc-card"));
+
+  const open = (target: HTMLElement) => {
+    for (const card of cards) card.dataset.open = String(card === target);
+  };
+
+  for (const card of cards) {
+    card.addEventListener("pointermove", () => card.dataset.open !== "true" && open(card));
+    card.addEventListener("focusin", () => open(card));
+  }
+</script>
+
+<style>
+  .webapp-acc-card {
+    background: #fff;
+  }
+
+  @media (min-width: 1024px) {
+    .webapp-acc-card {
+      --spring: cubic-bezier(0.34, 1.3, 0.64, 1);
+      flex: 1 0 0px;
+      min-width: 0;
+      transition:
+        flex-grow 0.45s var(--spring),
+        background-color 0.3s;
+    }
+
+    .webapp-acc-card[data-open="false"] {
+      background: var(--color-theme-light);
+    }
+
+    .webapp-acc-card[data-open="true"] {
+      flex-grow: 1.7;
+    }
+
+    /* The image column is 1.3 : 1 against the text, capped at 350px, and
+       collapses to nothing on a closed card. */
+    .webapp-acc-media {
+      flex: 1.3 0 0px;
+      max-width: 350px;
+      transition:
+        max-width 0.45s var(--spring),
+        opacity 0.3s;
+    }
+
+    .webapp-acc-card[data-open="false"] .webapp-acc-media {
+      flex-grow: 0;
+      max-width: 0;
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .webapp-acc-card,
+    .webapp-acc-media {
+      transition: none;
+    }
+  }
+</style>

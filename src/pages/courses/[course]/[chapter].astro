@@ -37,11 +37,15 @@ const next = course.chapters.find((entry) => entry.number === chapter.number + 1
 // formatCourse already ran the body through formatPostBody, which unwraps the
 // CMS's own .ql-editor div - the markup below re-adds it so the prose styles,
 // tables and images render as they do on a blog post.
-const description = chapter.content
+//
+// The meta description written for the chapter in the CMS wins; the opening
+// of the chapter text only stands in where none has been written yet.
+const excerpt = chapter.content
   .replace(/<[^>]+>/g, " ")
   .replace(/\s+/g, " ")
   .trim()
   .slice(0, 155);
+const description = chapter.metaDescription || excerpt;
 ---
 
 <Layout

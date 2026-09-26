@@ -600,6 +600,8 @@ export interface CourseChapterRow {
   idx?: number;
   /** Spelled "tittle" on the doctype, as on Seminar. */
   tittle?: string;
+  /** Written per chapter for search results; optional. */
+  meta_description?: string;
   /** Quill HTML, already wrapped in its own .ql-editor div. */
   content?: string;
 }
@@ -618,6 +620,8 @@ export interface CourseChapter {
   /** URL segment from the chapter title, e.g. "are-options-for-you". */
   slug: string;
   title: string;
+  /** The chapter's own meta description from the CMS; "" when none was written. */
+  metaDescription: string;
   content: string;
   /** Rounded reading time in minutes, from the chapter's own word count. */
   minutes: number;
@@ -680,6 +684,7 @@ function formatCourse(doc: CourseDoc): FormattedCourse {
         number: index + 1,
         slug: seen === 1 ? base : `${base}-${seen}`,
         title,
+        metaDescription: (row.meta_description || "").trim(),
         content,
         minutes: chapterMinutes(content),
       };
@@ -698,13 +703,14 @@ function formatCourse(doc: CourseDoc): FormattedCourse {
 }
 
 /**
- * Courses for the listing page, with each one's chapter count and the slug of
- * its first chapter, which is where "Start course" points.
+ * Every course with its chapter list - titles, numbers and slugs, but no
+ * bodies. The listing page reads the count and the first chapter's slug, where
+ * "Start course" points; the sitemap reads every chapter's address.
  *
- * Both come from joining the `course` child table into the list query - one row
- * per chapter, folded up here - so the listing never downloads chapter bodies
- * just to count them. The join returns the rows in no particular order, hence
- * `idx` being read to find which chapter is first.
+ * The chapters come from joining the `course` child table into the list query -
+ * one row per chapter - folded back into their course and run through
+ * formatCourse, so each slug is built by the same code as the chapter page's
+ * own, a repeated title's "-2" included. Chapter bodies are never downloaded.
  */
 export async function getCourses(): Promise<FormattedCourse[]> {
   const params = new URLSearchParams({
@@ -718,30 +724,14 @@ export async function getCourses(): Promise<FormattedCourse[]> {
   );
   if (!rows) return [];
 
-  const byId = new Map<string, FormattedCourse>();
-  const firstChapter = new Map<string, { idx: number; title: string }>();
-
-  for (const row of rows) {
-    if (!byId.has(row.name)) {
-      const course = formatCourse(row);
-      course.chapterCount = 0;
-      byId.set(row.name, course);
-    }
-
-    if (!row.tittle) continue;
-    byId.get(row.name)!.chapterCount += 1;
-
-    const idx = Number(row.idx ?? 0);
-    const first = firstChapter.get(row.name);
-    if (!first || idx < first.idx) firstChapter.set(row.name, { idx, title: row.tittle });
+  const byId = new Map<string, CourseDoc & { course: CourseChapterRow[] }>();
+  for (const { tittle, idx, ...course } of rows) {
+    const doc = byId.get(course.name) ?? { ...course, course: [] };
+    byId.set(course.name, doc);
+    if (tittle) doc.course.push({ tittle, idx });
   }
 
-  for (const [id, course] of byId) {
-    const first = firstChapter.get(id);
-    course.firstChapterSlug = first ? courseSlug(first.title) : "";
-  }
-
-  return [...byId.values()];
+  return [...byId.values()].map(formatCourse);
 }
 
 /**

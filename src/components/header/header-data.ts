@@ -5,9 +5,11 @@ import BookOpen from "@lucide/astro/icons/book-open";
 import Briefcase from "@lucide/astro/icons/briefcase";
 import ChartCandlestick from "@lucide/astro/icons/chart-candlestick";
 import ChartPie from "@lucide/astro/icons/chart-pie";
+import Code from "@lucide/astro/icons/code";
 import CreditCard from "@lucide/astro/icons/credit-card";
 import DollarSign from "@lucide/astro/icons/dollar-sign";
 import FileCheck from "@lucide/astro/icons/file-check";
+import Gauge from "@lucide/astro/icons/gauge";
 import Globe from "@lucide/astro/icons/globe";
 import Landmark from "@lucide/astro/icons/landmark";
 import Mail from "@lucide/astro/icons/mail";
@@ -58,6 +60,40 @@ export const learnTopics: MegaMenuEntry[] = [
   },
 ];
 
+/**
+ * Products mega-menu. Every entry is an on-site page, so the menu renders them
+ * with `external={false}` (same tab, no rel).
+ *
+ * Scalper has no page of its own yet - it is a panel inside the web app - so it
+ * points at the web app page until one exists.
+ */
+export const productLinks: MegaMenuEntry[] = [
+  {
+    icon: Smartphone,
+    title: "Mobile App",
+    description: "Trade and invest on the go with the GoPocket app.",
+    href: "/products",
+  },
+  {
+    icon: Globe,
+    title: "Web App",
+    description: "Trade from your browser, with nothing to install.",
+    href: "/webapplication",
+  },
+  {
+    icon: Code,
+    title: "GoPocket API",
+    description: "Automate your strategies with our trading APIs.",
+    href: "/gopocket-api",
+  },
+  {
+    icon: Gauge,
+    title: "Scalper",
+    description: "Fast option charts and one-click orders for scalping.",
+    href: "/webapplication",
+  },
+];
+
 export interface NavPageLink {
   title: string;
   href: string;
@@ -68,7 +104,6 @@ export const pageLinks: NavPageLink[] = [
   { title: "IPO", href: "/ipo" },
   { title: "Market News", href: "/news" },
   { title: "Courses", href: "/courses" },
-  { title: "GoPocket API", href: "/gopocket-api" },
   { title: "Downloads", href: "/downloads" },
   { title: "Refer & Earn", href: "/refer-and-earn" },
   { title: "About Us", href: "/about-us" },
@@ -196,7 +231,6 @@ export const signInRekycServices: MegaMenuEntry[] = [
 ];
 
 export const headerLinks = {
-  products: { href: "/products", label: "Products" },
   partner: { href: "/partner-with-us", label: "Partner With Us" },
   blog: { href: "/blog", label: "Blogs" },
   openAccount: { href: "/open-account-call-back?src=Website&tag=Menu", label: "Open Account" },

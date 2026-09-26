@@ -1,11 +1,10 @@
 ---
 import ThemeToggle from "../ThemeToggle.astro";
-import NavLink from "./NavLink.astro";
 import LearnMenu from "./LearnMenu.astro";
+import ProductsMenu from "./ProductsMenu.astro";
 import PagesMenu from "./PagesMenu.astro";
 import SignInMenu from "./SignInMenu.astro";
 import MobileHeaderActions from "./MobileHeaderActions.astro";
-import { headerLinks } from "./header-data";
 
 interface Props {
   currentPath: string;
@@ -20,9 +19,7 @@ const { currentPath } = Astro.props;
   class="navbar hs-dropdown-menu hs-dropdown-open:flex hs-dropdown-open:mt-2! max-lg:absolute max-lg:transform-none! lg:transform-none!"
   tabindex="-1"
 >
-  <li class="nav-item">
-    <NavLink {...headerLinks.products} {currentPath} />
-  </li><PagesMenu /><LearnMenu />
+  <ProductsMenu {currentPath} /><PagesMenu /><LearnMenu />
   <li class="nav-item">
     <a
       href="/partner-with-us"

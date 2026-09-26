@@ -1,0 +1,102 @@
+---
+/**
+ * Stacked feature cards, matching the reference design's scroll effect.
+ *
+ * Each card is `position: sticky` with its top offset 15px lower than the one
+ * before (90 / 105 / 120px in the reference, shifted here to clear our taller
+ * header), so they pile up like a deck. As each later card is scrolled half into
+ * view, every card beneath it steps back by 5% (1 -> 0.95 -> 0.9). The
+ * reference drives that with a spring; an ease-out transition on `scale` is
+ * visually the same and costs a few lines instead of a motion library.
+ */
+import Button from "@/components/Button.astro";
+import { features, WEB_TRADE_URL } from "./webapp-data";
+---
+
+<section class="webapp-features">
+  <div class="container">
+    <h2
+      data-aos="fade-up-sm"
+      class="has-italic-text text-dark text-h4 mx-auto mb-12 max-w-2xl text-center font-medium tracking-tight md:text-h3 lg:mb-16 lg:text-h2"
+    >
+      Manage your trades with <strong>clarity</strong> and control
+    </h2>
+
+    <div class="mx-auto flex max-w-[1200px] flex-col gap-10">
+      {
+        features.map((feature, index) => (
+          <article
+            class="webapp-stack-card bg-border-light sticky z-[1] grid gap-2 rounded-[2rem] p-2 lg:min-h-[580px] lg:grid-cols-2"
+            style={`top: calc(6.5rem + ${index * 15}px)`}
+          >
+            <div class="flex flex-col items-start justify-between gap-8 rounded-3xl bg-white p-6 md:p-10">
+              <div class="flex flex-col gap-4">
+                <h3 class="text-dark text-h4 font-medium lg:text-h3">{feature.title}</h3>
+                <p class="text-text-default text-base md:text-lg">{feature.description}</p>
+                <ul class="flex flex-wrap gap-2 pt-2">
+                  {feature.tags.map((tag) => (
+                    <li class="border-border-light text-dark rounded-full border bg-white px-3 py-1 text-sm">{tag}</li>
+                  ))}
+                </ul>
+              </div>
+              <Button label="Start trading" href={WEB_TRADE_URL} target="_blank" rel="noopener" />
+            </div>
+            <div class="overflow-hidden rounded-[20px] bg-[#111318]">
+              <img
+                src={feature.image}
+                alt={feature.imageAlt}
+                width="1440"
+                height="812"
+                loading="lazy"
+                decoding="async"
+                class="aspect-[4/3] h-full w-full object-cover lg:aspect-auto"
+                style={`object-position: ${feature.focus}`}
+              />
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  const cards = Array.from(document.querySelectorAll<HTMLElement>(".webapp-stack-card"));
+  // "Arrived" = at least half visible, or already scrolled past the top. A card
+  // that has scrolled away upwards must still count, or the ones beneath would
+  // spring back to full size mid-stack.
+  const arrived = cards.map(() => false);
+
+  const render = () => {
+    cards.forEach((card, index) => {
+      const covering = arrived.slice(index + 1).filter(Boolean).length;
+      card.style.scale = String(1 - covering * 0.05);
+    });
+  };
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        const index = cards.indexOf(entry.target as HTMLElement);
+        arrived[index] = entry.isIntersecting || entry.boundingClientRect.top < 0;
+      }
+      render();
+    },
+    { threshold: 0.5 },
+  );
+
+  cards.forEach((card) => observer.observe(card));
+</script>
+
+<style>
+  .webapp-stack-card {
+    transition: scale 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: scale;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .webapp-stack-card {
+      transition: none;
+    }
+  }
+</style>

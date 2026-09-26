@@ -1,0 +1,111 @@
+---
+/**
+ * "Everything in one place": two concentric rings of product icons slowly
+ * orbiting a centre mark. Each ring rotates as a whole and each chip spins the
+ * opposite way at the same speed, so the icons stay upright.
+ */
+import Button from "@/components/Button.astro";
+import { orbitOuter, orbitInner, WEB_TRADE_URL } from "./webapp-data";
+
+// Chips are placed round the ring with a rotate / translate / un-rotate transform.
+const place = (index: number, count: number, radius: string) =>
+  `transform: rotate(${(360 / count) * index}deg) translateX(${radius}) rotate(-${(360 / count) * index}deg)`;
+---
+
+<section class="webapp-everything overflow-hidden">
+  <div class="container">
+    <div class="grid items-center gap-12 lg:grid-cols-2">
+      <div data-aos="fade-up-sm" class="flex flex-col items-center gap-8 text-center lg:items-start lg:text-left">
+        <h2 class="has-italic-text text-dark text-h4 max-w-lg font-medium tracking-tight md:text-h3 lg:text-h2">
+          Trade smarter by keeping <strong>everything</strong> in one place
+        </h2>
+        <p class="text-text-default max-w-md text-base md:text-lg">
+          Stocks, derivatives, mutual funds, IPOs, bonds and commodities live side by side in one account, one login and
+          one screen.
+        </p>
+        <Button label="Launch Web Trade" href={WEB_TRADE_URL} target="_blank" rel="noopener" />
+      </div>
+
+      <div
+        class="relative mx-auto aspect-square w-full max-w-[30rem] [--inner:6.5rem] [--outer:11.5rem] sm:[--inner:8rem] sm:[--outer:13.5rem]"
+        aria-hidden="true"
+      >
+        <div
+          class="border-border-light absolute inset-0 m-auto h-[calc(var(--outer)*2)] w-[calc(var(--outer)*2)] rounded-full border border-dashed"
+        >
+        </div>
+        <div
+          class="border-border-light absolute inset-0 m-auto h-[calc(var(--inner)*2)] w-[calc(var(--inner)*2)] rounded-full border border-dashed"
+        >
+        </div>
+
+        <img
+          src="/assets/center.webp"
+          alt=""
+          width="182"
+          height="183"
+          loading="lazy"
+          decoding="async"
+          class="absolute inset-0 m-auto h-16 w-16 drop-shadow-[0_10px_20px_rgba(107,26,255,0.3)] sm:h-20 sm:w-20"
+        />
+
+        <div class="webapp-orbit absolute top-1/2 left-1/2 h-0 w-0">
+          {
+            orbitOuter.map((item, index) => (
+              <div class="absolute -top-7 -left-7" style={place(index, orbitOuter.length, "var(--outer)")}>
+                <div class="webapp-orbit-chip border-border-light text-primary flex h-14 w-14 items-center justify-center rounded-2xl border bg-white shadow-sm">
+                  <item.icon class="h-6 w-6" stroke-width={1.6} />
+                </div>
+              </div>
+            ))
+          }
+        </div>
+
+        <div class="webapp-orbit webapp-orbit-reverse absolute top-1/2 left-1/2 h-0 w-0">
+          {
+            orbitInner.map((item, index) => (
+              <div class="absolute -top-6 -left-6" style={place(index, orbitInner.length, "var(--inner)")}>
+                <div class="webapp-orbit-chip border-border-light flex h-12 w-12 items-center justify-center rounded-2xl border bg-white text-slate-700 shadow-sm dark:text-slate-200">
+                  <item.icon class="h-5 w-5" stroke-width={1.6} />
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .webapp-orbit {
+    animation: webapp-spin 60s linear infinite;
+  }
+
+  .webapp-orbit-reverse {
+    animation-direction: reverse;
+    animation-duration: 45s;
+  }
+
+  .webapp-orbit .webapp-orbit-chip {
+    animation: webapp-spin 60s linear infinite reverse;
+  }
+
+  .webapp-orbit-reverse .webapp-orbit-chip {
+    animation-direction: normal;
+    animation-duration: 45s;
+  }
+
+  @keyframes webapp-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .webapp-orbit,
+    .webapp-orbit .webapp-orbit-chip {
+      animation: none;
+    }
+  }
+</style>

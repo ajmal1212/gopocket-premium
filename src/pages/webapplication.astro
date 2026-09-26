@@ -1,0 +1,52 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import WebAppHero from "@/components/webapp/WebAppHero.astro";
+import WebAppShowcase from "@/components/webapp/WebAppShowcase.astro";
+import WebAppHighlights from "@/components/webapp/WebAppHighlights.astro";
+import WebAppExchanges from "@/components/webapp/WebAppExchanges.astro";
+import WebAppFeatures from "@/components/webapp/WebAppFeatures.astro";
+import WebAppTestimonials from "@/components/webapp/WebAppTestimonials.astro";
+import WebAppEverything from "@/components/webapp/WebAppEverything.astro";
+import WebAppExplore from "@/components/webapp/WebAppExplore.astro";
+import WebAppCTA from "@/components/webapp/WebAppCTA.astro";
+import Testimonials2 from "@/components/Testimonials2.astro";
+import LatestInsights from "@/components/LatestInsights.astro";
+
+const softwareSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "GoPocket Web Trade",
+  applicationCategory: "FinanceApplication",
+  operatingSystem: "Web browser",
+  url: "https://web.gopocket.in",
+  description:
+    "Browser-based trading web app for stocks, F&O, commodities, mutual funds and IPOs, with live watchlists, charts and portfolio tracking.",
+  publisher: { "@type": "Organization", name: "GoPocket" },
+};
+---
+
+<Layout
+  title="GoPocket Web Trade | Trade Stocks & F&O From Your Browser"
+  description="GoPocket Web Trade is a fast, browser-based trading web app. Trade stocks, F&O and commodities, track holdings and funds, with nothing to install."
+  keywords="gopocket web trade, web trading platform, trading web app, browser trading, trade stocks online, gopocket web"
+  canonical="/webapplication"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(softwareSchema)} />
+  <Header currentPath="/webapplication" />
+
+  <main class="has-section-spacing-lg">
+    <WebAppHero />
+    <WebAppShowcase />
+    <WebAppHighlights />
+    <WebAppExchanges />
+    <WebAppFeatures />
+    <Testimonials2 />
+    <WebAppEverything />
+    <LatestInsights />
+    <WebAppCTA />
+  </main>
+
+  <Footer />
+</Layout>

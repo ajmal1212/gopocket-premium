@@ -1,0 +1,64 @@
+---
+/**
+ * Scrolling strip of the exchanges and regulators GoPocket is connected to.
+ * The list is rendered twice so the track can loop at -50% without a seam; the
+ * copy is hidden from assistive tech.
+ */
+import { partners } from "./webapp-data";
+---
+
+<section class="webapp-exchanges">
+  <div class="container" data-aos="fade-up-sm">
+    <p class="text-text-default mb-8 text-center text-sm font-medium tracking-wide uppercase">
+      Connected to India's leading exchanges and depositories
+    </p>
+    <div class="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)]">
+      <div class="webapp-marquee flex w-max">
+        {
+          [0, 1].map((copy) => (
+            <ul
+              class="flex shrink-0 items-center gap-16 pr-16 md:gap-24 md:pr-24"
+              aria-hidden={copy === 1 ? "true" : undefined}
+            >
+              {partners.map((partner) => (
+                <li class="shrink-0">
+                  <img
+                    src={partner.logo}
+                    alt={copy === 0 ? partner.name : ""}
+                    width={partner.width}
+                    height={partner.height}
+                    loading="lazy"
+                    decoding="async"
+                    class="h-9 w-auto object-contain opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0 md:h-10"
+                  />
+                </li>
+              ))}
+            </ul>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .webapp-marquee {
+    animation: webapp-marquee 30s linear infinite;
+  }
+
+  .webapp-marquee:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes webapp-marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .webapp-marquee {
+      animation: none;
+    }
+  }
+</style>

@@ -1,0 +1,52 @@
+---
+import Button from "@/components/Button.astro";
+import Quote from "@lucide/astro/icons/quote";
+import { testimonials } from "./webapp-data";
+---
+
+<section class="webapp-testimonials">
+  <div class="container">
+    <h2
+      data-aos="fade-up-sm"
+      class="has-italic-text text-dark text-h4 mx-auto mb-12 max-w-2xl text-center font-medium tracking-tight md:text-h3 lg:mb-16 lg:text-h2"
+    >
+      Real feedback from traders using <strong>GoPocket</strong>
+    </h2>
+
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {
+        testimonials.map((item, index) => (
+          <figure
+            data-aos="fade-up-sm"
+            data-aos-delay={(index % 3) * 100}
+            class="border-border-light flex flex-col justify-between gap-8 rounded-3xl border bg-white p-6 md:p-8"
+          >
+            <div class="flex flex-col gap-4">
+              <Quote class="text-primary h-8 w-8 fill-current" stroke-width={0} aria-hidden="true" />
+              <blockquote class="text-dark text-base md:text-lg">{item.quote}</blockquote>
+            </div>
+            <figcaption class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-dark font-medium">{item.name}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">{item.location}</p>
+              </div>
+              <img
+                src={item.image}
+                alt={`Photo of ${item.name}`}
+                width="56"
+                height="56"
+                loading="lazy"
+                decoding="async"
+                class="h-14 w-14 rounded-xl object-cover"
+              />
+            </figcaption>
+          </figure>
+        ))
+      }
+    </div>
+
+    <div class="mt-10 flex justify-center">
+      <Button label="See customer stories" href="/testimonial" variant="outline" glow={false} />
+    </div>
+  </div>
+</section>

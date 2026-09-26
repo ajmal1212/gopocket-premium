@@ -1,0 +1,381 @@
+---
+/**
+ * Tabbed product preview under the hero, driven by scroll on md+.
+ *
+ * The section is a tall "track" with a sticky stage inside it. While the stage
+ * is pinned, scrolling through the track steps through the tabs in order; once
+ * the last tab has had its share of the scroll, the track ends and
+ * the stage scrolls away with the rest of the page. Clicking a tab scrolls to
+ * that tab's slice of the track, so the scroll position and the selected tab
+ * never disagree. Below md the track collapses and the tabs are plain clicks -
+ * pinning a tall block on a phone screen just traps the reader.
+ *
+ * Screen change is a direction-aware wipe. The incoming screen is revealed by
+ * a clip-path edge sweeping across it - right-to-left going forward, the other
+ * way going back, so it follows the tab pill - with a glowing line riding that
+ * edge, while its image settles from a slight zoom. The outgoing screen stays
+ * underneath and sinks back and dims, so the reveal reads as a new layer
+ * sliding over the old one rather than a dissolve.
+ *
+ * All panels are rendered server-side and stacked in one grid cell; the script
+ * only sets `data-state` (active / leaving / idle), `data-dir`, and `inert`,
+ * which also drops inactive panels from the accessibility tree. Staying in
+ * layout means the lazy images load as the section nears the viewport rather
+ * than mid-wipe. The first image is eager because it is the page's LCP element
+ * on desktop, and it carries no `data-dir`, so nothing animates on load.
+ */
+import { showcaseTabs } from "./webapp-data";
+---
+
+<section class="webapp-showcase" style="padding-top: 3.5rem">
+  <div class="webapp-track" style={`--steps: ${showcaseTabs.length}`}>
+    <div class="webapp-stage container">
+      <div data-aos="fade-up-sm" class="webapp-stage-inner mx-auto">
+        <div
+          role="tablist"
+          aria-label="Web Trade screens"
+          class="webapp-tablist border-border-light relative mx-auto mb-6 flex w-fit max-w-full gap-1 overflow-x-auto rounded-full border bg-white p-1.5 [scrollbar-width:none]"
+        >
+          <span aria-hidden="true" class="webapp-tab-pill bg-primary absolute top-1.5 bottom-1.5 left-0 rounded-full"
+          ></span>
+          {
+            showcaseTabs.map((tab, index) => (
+              <button
+                type="button"
+                role="tab"
+                id={`webapp-tab-${tab.id}`}
+                aria-controls={`webapp-panel-${tab.id}`}
+                aria-selected={index === 0 ? "true" : "false"}
+                tabindex={index === 0 ? 0 : -1}
+                class="webapp-tab text-text-default flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+              >
+                <tab.icon class="h-4 w-4" stroke-width={1.8} aria-hidden="true" />
+                {tab.label}
+              </button>
+            ))
+          }
+        </div>
+
+        <div
+          class="relative overflow-hidden rounded-3xl bg-linear-to-br from-purple-200 via-purple-100 to-sky-100 px-3 pt-3 sm:px-6 sm:pt-6 lg:px-12 lg:pt-12 dark:from-purple-500/25 dark:via-purple-500/10 dark:to-sky-500/15"
+        >
+          <div
+            aria-hidden="true"
+            class="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-white/50 blur-3xl dark:bg-purple-400/10"
+          >
+          </div>
+          <div class="grid">
+            {
+              showcaseTabs.map((tab, index) => (
+                <div
+                  role="tabpanel"
+                  id={`webapp-panel-${tab.id}`}
+                  aria-labelledby={`webapp-tab-${tab.id}`}
+                  data-state={index === 0 ? "active" : "idle"}
+                  inert={index !== 0}
+                  class="webapp-panel relative [grid-area:1/1] aspect-[1440/812] w-full overflow-hidden rounded-t-xl shadow-2xl shadow-purple-900/15"
+                >
+                  <img
+                    src={tab.image}
+                    alt={tab.alt}
+                    width="1440"
+                    height="812"
+                    loading={index === 0 ? "eager" : "lazy"}
+                    fetchpriority={index === 0 ? "high" : "auto"}
+                    decoding="async"
+                    class="h-full w-full object-cover object-bottom"
+                  />
+                  <div
+                    aria-hidden="true"
+                    class="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-b from-transparent to-black/80"
+                  />
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const track = document.querySelector<HTMLElement>(".webapp-track");
+  const stage = document.querySelector<HTMLElement>(".webapp-stage");
+  const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>(".webapp-tab"));
+  const desktop = window.matchMedia("(min-width: 768px)");
+  let current = 0;
+
+  const tablist = document.querySelector<HTMLElement>(".webapp-tablist");
+  const pill = document.querySelector<HTMLElement>(".webapp-tab-pill");
+
+  // The active background is one pill that slides between tabs. Until this
+  // runs, the tab paints its own background (see the CSS), so no-JS still shows
+  // which tab is selected.
+  const movePill = () => {
+    const tab = tabs[current];
+    if (!pill || !tab) return;
+    pill.style.width = `${tab.offsetWidth}px`;
+    pill.style.transform = `translateX(${tab.offsetLeft}px)`;
+  };
+
+  const select = (index: number) => {
+    if (index === current) return;
+    const previous = current;
+    const dir = index > previous ? "next" : "prev";
+    current = index;
+    tabs.forEach((tab, i) => {
+      const active = i === index;
+      tab.setAttribute("aria-selected", String(active));
+      tab.tabIndex = active ? 0 : -1;
+      const panel = document.getElementById(tab.getAttribute("aria-controls") ?? "");
+      if (!panel) return;
+      panel.dataset.state = active ? "active" : i === previous ? "leaving" : "idle";
+      if (active) panel.dataset.dir = dir;
+      panel.inert = !active;
+    });
+    movePill();
+    // On a narrow screen the bar scrolls sideways; keep the active tab in view.
+    // This scrolls the bar itself rather than using scrollIntoView, which would
+    // also move the page and cancel the smooth scroll a tab click starts.
+    if (tablist) {
+      const tab = tabs[index];
+      const left = tab.offsetLeft - (tablist.clientWidth - tab.offsetWidth) / 2;
+      tablist.scrollTo({ left, behavior: "smooth" });
+    }
+  };
+
+  movePill();
+  // Place the pill before enabling its transition, so it doesn't slide in
+  // from the left edge on load.
+  requestAnimationFrame(() => tablist?.classList.add("is-ready"));
+  window.addEventListener("resize", movePill);
+  document.fonts?.ready.then(movePill);
+
+  // How far the stage has travelled through the track, 0 -> 1, measured from
+  // the moment it pins to the moment it lets go.
+  const progress = () => {
+    if (!track || !stage) return 0;
+    const pinTop = parseFloat(getComputedStyle(stage).top) || 0;
+    const travel = track.offsetHeight - stage.offsetHeight;
+    if (travel <= 0) return 0;
+    return Math.min(1, Math.max(0, (pinTop - track.getBoundingClientRect().top) / travel));
+  };
+
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking || !desktop.matches) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      select(Math.min(tabs.length - 1, Math.floor(progress() * tabs.length)));
+    });
+  };
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  // On desktop a click scrolls to the middle of that tab's slice and lets the
+  // scroll handler do the selecting; on mobile it just selects.
+  const goTo = (index: number) => {
+    if (!desktop.matches || !track || !stage) return select(index);
+    const pinTop = parseFloat(getComputedStyle(stage).top) || 0;
+    const travel = track.offsetHeight - stage.offsetHeight;
+    const trackTop = window.scrollY + track.getBoundingClientRect().top;
+    window.scrollTo({ top: trackTop - pinTop + ((index + 0.5) / tabs.length) * travel, behavior: "smooth" });
+  };
+
+  tabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => goTo(index));
+    // Arrow keys move between tabs, per the WAI-ARIA tabs pattern.
+    tab.addEventListener("keydown", (event) => {
+      const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+      if (!step) return;
+      const next = (index + step + tabs.length) % tabs.length;
+      goTo(next);
+      tabs[next].focus();
+    });
+  });
+</script>
+
+<style>
+  /* Above the pill, which is positioned and would otherwise paint over them. */
+  .webapp-tab {
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s;
+  }
+
+  .webapp-tab[aria-selected="true"] {
+    color: #fff;
+  }
+
+  /* Before the script has placed the pill, each tab paints its own. */
+  .webapp-tablist:not(.is-ready) .webapp-tab[aria-selected="true"] {
+    background: var(--color-primary);
+  }
+
+  .webapp-tab-pill {
+    opacity: 0;
+  }
+
+  .webapp-tablist.is-ready .webapp-tab-pill {
+    opacity: 1;
+    transition:
+      transform 0.45s cubic-bezier(0.34, 1.2, 0.64, 1),
+      width 0.45s cubic-bezier(0.34, 1.2, 0.64, 1);
+  }
+
+  .webapp-tab[aria-selected="false"]:hover {
+    color: var(--color-primary);
+  }
+
+  .webapp-panel {
+    --wipe-ease: cubic-bezier(0.77, 0, 0.18, 1);
+    --wipe-time: 0.9s;
+  }
+
+  .webapp-panel[data-state="active"] {
+    z-index: 3;
+  }
+
+  .webapp-panel[data-state="leaving"] {
+    z-index: 2;
+    animation: webapp-recede var(--wipe-time) var(--wipe-ease) forwards;
+  }
+
+  .webapp-panel[data-state="idle"] {
+    z-index: 1;
+    opacity: 0;
+  }
+
+  /* The reveal. The panel is clipped to nothing on the side the wipe starts
+     from and opened to full width; the image inside settles from 108%. */
+  .webapp-panel[data-state="active"][data-dir="next"] {
+    animation: webapp-wipe-next var(--wipe-time) var(--wipe-ease);
+  }
+
+  .webapp-panel[data-state="active"][data-dir="prev"] {
+    animation: webapp-wipe-prev var(--wipe-time) var(--wipe-ease);
+  }
+
+  .webapp-panel[data-state="active"][data-dir] img {
+    animation: webapp-settle calc(var(--wipe-time) * 1.3) cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* The light riding the wipe edge. It travels with the same curve and time
+     as the clip, so it stays locked to the edge, and fades as the edge lands. */
+  .webapp-panel[data-state="active"][data-dir]::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 2;
+    width: 2px;
+    background: linear-gradient(to bottom, transparent, #c4a3ff 20%, #fff 50%, #c4a3ff 80%, transparent);
+    box-shadow:
+      0 0 12px 2px rgb(107 26 255 / 0.9),
+      0 0 40px 8px rgb(107 26 255 / 0.45);
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .webapp-panel[data-state="active"][data-dir="next"]::after {
+    animation: webapp-edge-next var(--wipe-time) var(--wipe-ease);
+  }
+
+  .webapp-panel[data-state="active"][data-dir="prev"]::after {
+    animation: webapp-edge-prev var(--wipe-time) var(--wipe-ease);
+  }
+
+  @keyframes webapp-wipe-next {
+    from {
+      clip-path: inset(0 0 0 100%);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @keyframes webapp-wipe-prev {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @keyframes webapp-settle {
+    from {
+      transform: scale(1.08);
+    }
+  }
+
+  @keyframes webapp-recede {
+    to {
+      transform: scale(0.94);
+      filter: brightness(0.45);
+    }
+  }
+
+  @keyframes webapp-edge-next {
+    0% {
+      left: 100%;
+      opacity: 1;
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      left: 0%;
+      opacity: 0;
+    }
+  }
+
+  @keyframes webapp-edge-prev {
+    0% {
+      left: 0%;
+      opacity: 1;
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      left: calc(100% - 2px);
+      opacity: 0;
+    }
+  }
+
+  @media (min-width: 768px) {
+    /* One viewport of pinned travel per tab, on top of the stage's own height. */
+    .webapp-track {
+      height: calc(100svh + (var(--steps) - 1) * 60svh);
+    }
+
+    /* Pinned just under the sticky site header. */
+    .webapp-stage {
+      position: sticky;
+      top: 6rem;
+    }
+
+    /* The whole stage has to fit on screen while pinned, so its width is capped
+       by the viewport height: what is left under the header and the tab bar,
+       times the screenshot's aspect ratio. */
+    .webapp-stage-inner {
+      max-width: calc((100svh - 6rem - 6.5rem) * 1.773);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .webapp-panel,
+    .webapp-panel img,
+    .webapp-panel::after {
+      animation: none !important;
+    }
+
+    .webapp-tablist.is-ready .webapp-tab-pill {
+      transition: none;
+    }
+  }
+</style>

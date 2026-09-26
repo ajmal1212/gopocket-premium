@@ -1,0 +1,35 @@
+---
+/**
+ * Products mega-menu: the same Preline dropdown shell as SignInMenu, laid out
+ * as a two-column grid of on-site product pages. The toggle is marked active
+ * when the current page is one of them, as NavLink does for plain links.
+ */
+import DropdownToggle from "./DropdownToggle.astro";
+import MegaMenuItem from "./MegaMenuItem.astro";
+import { productLinks, isActivePath } from "./header-data";
+
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+const isActive = productLinks.some((item) => isActivePath(currentPath, item.href));
+---
+
+<li
+  class="hs-dropdown nav-dropdown group [--auto-close:inside] [--offset:0px] nav-item relative lg:[--strategy:absolute]"
+>
+  <DropdownToggle
+    label="Products"
+    class={`whitespace-nowrap max-lg:flex! max-lg:justify-between ${isActive ? "nav-link-active" : ""}`}
+  />
+  <div
+    class="hs-dropdown-menu mega-menu hs-dropdown-open:pointer-events-auto hs-dropdown-open:opacity-100 hs-dropdown-open:mt-2! pointer-events-none lg:top-full lg:mt-2 top-0 mt-4 hidden max-h-[90vh] overflow-auto overflow-x-hidden rounded-xl border bg-white opacity-0 transition-[opacity,margin] max-lg:static! max-lg:transform-none! lg:absolute lg:left-0 lg:h-fit lg:w-[620px]"
+    role="menu"
+    tabindex="-1"
+  >
+    <div class="grid grid-cols-1 gap-2 p-4 md:grid-cols-2 md:p-6">
+      {productLinks.map((item) => <MegaMenuItem {...item} external={false} />)}
+    </div>
+  </div>
+</li>

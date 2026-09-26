@@ -1,0 +1,114 @@
+---
+/**
+ * Hero for the web application page: social-proof pill, headline, two CTAs and
+ * a scatter of soft geometric shapes standing in for the reference design's
+ * mascots. The shapes are pure CSS so the hero ships no extra image bytes.
+ */
+import Button from "@/components/Button.astro";
+import Star from "@lucide/astro/icons/star";
+import { WEB_TRADE_URL, testimonials } from "./webapp-data";
+
+const avatars = testimonials.slice(0, 3);
+---
+
+<section class="home-hero relative overflow-hidden">
+  <div
+    aria-hidden="true"
+    class="webapp-float pointer-events-none absolute top-24 left-[6%] hidden h-24 w-24 rounded-full bg-purple-200/70 lg:block dark:bg-purple-500/20"
+  >
+  </div>
+  <div
+    aria-hidden="true"
+    class="webapp-float pointer-events-none absolute top-64 left-[14%] hidden h-10 w-10 rounded-full bg-sky-200/80 [animation-delay:-2s] lg:block dark:bg-sky-500/20"
+  >
+  </div>
+  <div
+    aria-hidden="true"
+    class="webapp-float pointer-events-none absolute top-20 right-[8%] hidden h-20 w-20 rotate-12 rounded-3xl bg-emerald-200/70 [animation-delay:-4s] lg:block dark:bg-emerald-500/20"
+  >
+  </div>
+  <div
+    aria-hidden="true"
+    class="webapp-float pointer-events-none absolute top-60 right-[16%] hidden h-12 w-12 rotate-45 rounded-xl bg-purple-300/60 [animation-delay:-1s] lg:block dark:bg-purple-400/20"
+  >
+  </div>
+
+  <div class="container relative z-10">
+    <div class="mx-auto flex max-w-3xl flex-col items-center text-center">
+      <div
+        data-aos="fade-up-sm"
+        class="border-border-light mb-6 flex items-center gap-3 rounded-full border bg-white py-1.5 pr-4 pl-1.5"
+      >
+        <div class="flex -space-x-2">
+          {
+            avatars.map((person) => (
+              <img
+                src={person.image}
+                alt=""
+                aria-hidden="true"
+                width="32"
+                height="32"
+                loading="eager"
+                decoding="async"
+                class="h-8 w-8 rounded-full border-2 border-white object-cover"
+              />
+            ))
+          }
+        </div>
+        <div class="flex items-center gap-0.5 text-amber-400" aria-hidden="true">
+          <Star class="h-4 w-4 fill-current" stroke-width={0} />
+          <Star class="h-4 w-4 fill-current" stroke-width={0} />
+          <Star class="h-4 w-4 fill-current" stroke-width={0} />
+          <Star class="h-4 w-4 fill-current" stroke-width={0} />
+          <Star class="h-4 w-4 fill-current" stroke-width={0} />
+        </div>
+        <p class="text-text-default text-sm font-medium">Loved by GoPocket traders</p>
+      </div>
+
+      <h1
+        data-aos="fade-up-sm"
+        data-aos-delay="100"
+        class="has-italic-text text-dark text-h3 leading-[1.1] font-medium tracking-tight md:text-h2 lg:text-h1"
+      >
+        Make trading from your browser <strong>simple</strong> again
+      </h1>
+
+      <p
+        data-aos="fade-up-sm"
+        data-aos-delay="200"
+        class="text-text-default mt-6 text-base md:text-lg lg:whitespace-nowrap"
+      >
+        Trade stocks, F&amp;O and commodities in one fast web app, with nothing to install.
+      </p>
+
+      <div data-aos="fade-up-sm" data-aos-delay="300" class="mt-8 flex flex-col items-center gap-4 sm:flex-row">
+        <Button
+          label="Launch Web Trade"
+          href={WEB_TRADE_URL}
+          variant="outline"
+          glow={false}
+          target="_blank"
+          rel="noopener"
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .webapp-float {
+    animation: webapp-float 8s ease-in-out infinite;
+  }
+
+  @keyframes webapp-float {
+    50% {
+      transform: translateY(-14px) rotate(8deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .webapp-float {
+      animation: none;
+    }
+  }
+</style>

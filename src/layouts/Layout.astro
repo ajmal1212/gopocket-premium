@@ -252,11 +252,49 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
       gtag("config", "G-B29DRPPSRM");
     </script>
 
+    {
+      /*
+      Meta Pixel. The snippet injects fbevents.js as an async script, so like
+      gtag it never blocks rendering. Its <noscript> fallback lives at the top of
+      <body>: an <img> is invalid inside <head>, and the parser would close the
+      head early on reaching it.
+    */
+    }
+    <script is:inline>
+      !(function (f, b, e, v, n, t, s) {
+        if (f.fbq) return;
+        n = f.fbq = function () {
+          n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+        };
+        if (!f._fbq) f._fbq = n;
+        n.push = n;
+        n.loaded = !0;
+        n.version = "2.0";
+        n.queue = [];
+        t = b.createElement(e);
+        t.async = !0;
+        t.src = v;
+        s = b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t, s);
+      })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+      fbq("init", "1821596408552361");
+      fbq("track", "PageView");
+    </script>
+
     <!-- Per-page head extras (article meta, JSON-LD, etc.) -->
     <slot name="head" />
   </head>
 
   <body>
+    <noscript>
+      <img
+        height="1"
+        width="1"
+        style="display:none"
+        alt=""
+        src="https://www.facebook.com/tr?id=1821596408552361&ev=PageView&noscript=1"
+      />
+    </noscript>
     <slot />
     <GlobalSearch />
     <GlobalScripts />

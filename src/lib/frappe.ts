@@ -499,7 +499,7 @@ async function fetchSeminarDetail(filters: any[]): Promise<SeminarDoc | null> {
 }
 
 /**
- * Resolves /research-learn/<identifier>, where the identifier is either a
+ * Resolves /learn/<identifier> (formerly /research-learn/<identifier>), where the identifier is either a
  * date-based slug ("20260831-1600") or - for links created before slugs
  * existed - a raw Frappe record id.
  */

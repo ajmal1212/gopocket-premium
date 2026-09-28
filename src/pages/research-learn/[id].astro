@@ -1,0 +1,14 @@
+---
+/**
+ * Seminar pages moved from /research-learn/<id> to /learn/<id>. This keeps
+ * every old address working - links already shared on WhatsApp and Instagram,
+ * and anything a search engine indexed - with a permanent redirect.
+ *
+ * The query string is carried across: referral links look like
+ * ?refer=SKY1101&mode=Instagram, and dropping it would lose the attribution
+ * the registration form posts to Frappe.
+ */
+const { id } = Astro.params;
+
+return Astro.redirect(`/learn/${encodeURIComponent(id ?? "")}${Astro.url.search}`, 301);
+---

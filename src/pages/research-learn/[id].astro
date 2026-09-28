@@ -318,7 +318,12 @@ const tabs = [
                 type="submit"
                 class="btn btn-primary text-flip-hover-anim w-full py-4 text-base font-semibold justify-center shadow-lg cursor-pointer mt-2"
               >
-                <span class="text-flip-inner" data-content="Submit">Submit</span>
+                <span class="text-flip-inner" data-content="Submit">Submit</span><span
+                  data-submit-spinner
+                  hidden
+                  aria-hidden="true"
+                  class="ms-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent align-[-2px] motion-reduce:[animation-duration:3s]"
+                ></span>
                 <span
                   class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
                 >
@@ -501,6 +506,7 @@ const tabs = [
     const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
     const buttonLabel = submitButton ? submitButton.querySelector(".text-flip-inner") : null;
     const originalLabel = buttonLabel ? buttonLabel.textContent : "";
+    const buttonSpinner = submitButton?.querySelector<HTMLElement>("[data-submit-spinner]");
 
     // type="tel" still accepts letters and symbols, and maxlength caps length
     // without filtering characters - so strip anything non-numeric as it is
@@ -514,9 +520,14 @@ const tabs = [
     }
 
     function setBusy(busy: boolean) {
-      if (submitButton) submitButton.disabled = busy;
+      if (submitButton) {
+        submitButton.disabled = busy;
+        submitButton.setAttribute("aria-busy", String(busy));
+      }
+      if (buttonSpinner) buttonSpinner.hidden = !busy;
       if (!buttonLabel) return;
-      const label = busy ? "Submitting..." : originalLabel;
+      // No trailing dots - the spinner after the label shows it is working.
+      const label = busy ? "Submitting" : originalLabel;
       buttonLabel.textContent = label;
       buttonLabel.setAttribute("data-content", label);
     }
@@ -548,6 +559,7 @@ const tabs = [
       };
 
       setBusy(true);
+      let redirecting = false;
 
       try {
         const res = await fetch("/api/seminar-register", {
@@ -562,9 +574,44 @@ const tabs = [
           message: "Unexpected response from the server. Please try again.",
         }));
 
+        const classLink =
+          result.ok && typeof result.classLink === "string" && /^https?:\/\//i.test(result.classLink)
+            ? result.classLink
+            : "";
+
+        // Registered and the attendee's class link is ready: send the new tab
+        // to it. If the browser blocked the tab anyway, go there in this one -
+        // `replace` so Back does not land on a filled-in form that would
+        // register them a second time - and keep the button busy meanwhile.
+        // Registered and the attendee's class link is ready: open it in a new
+        // tab and take them there. The tab is only opened now, once the link
+        // exists, so there is no placeholder tab while the request runs. The
+        // catch: browsers allow window.open only for a few seconds after the
+        // click (Safari not at all after a network round trip), so it can come
+        // back null as a blocked pop-up. Then the class opens in this tab
+        // instead - `replace`, so Back does not land on a filled-in form that
+        // would register them a second time - with the button kept busy.
+        if (classLink) {
+          form.reset();
+          const classTab = window.open(classLink, "_blank");
+          if (classTab) {
+            // Still about:blank (same origin) at this instant, so the opener can
+            // be cut before the class page loads. Once it commits, the property
+            // is cross-origin and would throw - hence the try.
+            try {
+              classTab.opener = null;
+            } catch {}
+            classTab.focus();
+          } else {
+            redirecting = true;
+            window.location.replace(classLink);
+            return;
+          }
+        }
+
         toast({
           title: result.title || (result.ok ? "Registration Successful!" : "Registration Failed"),
-          message: result.message || "",
+          message: classLink ? "Your class has opened in a new tab." : result.message || "",
           variant: result.ok ? "success" : "error",
         });
 
@@ -574,7 +621,7 @@ const tabs = [
       } finally {
         // The token is spent whether or not the registration went through.
         captcha.reset();
-        setBusy(false);
+        if (!redirecting) setBusy(false);
       }
     });
 

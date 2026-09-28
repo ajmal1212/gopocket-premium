@@ -8,7 +8,8 @@ import { verifyTurnstile } from "../../lib/turnstile";
  * SDK call would ship it to every visitor in the page bundle.
  *
  * Every response carries a `title` and `message`, which the page renders as the
- * two lines of a toast.
+ * two lines of a toast. A successful one may also carry `classLink`, the
+ * attendee's own joining link, in which case the page redirects there instead.
  */
 
 interface Payload {
@@ -24,7 +25,7 @@ interface Payload {
 
 const asText = (value: unknown): string => (typeof value === "string" ? value.trim() : "");
 
-function json(body: { ok: boolean; title: string; message: string }, status: number): Response {
+function json(body: { ok: boolean; title: string; message: string; classLink?: string }, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { "Content-Type": "application/json" },
@@ -101,15 +102,32 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   switch (result.status) {
     case "ok":
+      // With a class link the page forwards the visitor straight to it; the
+      // title and message are only shown when the link was not ready in time.
       return json(
         {
           ok: true,
           title: "Registration Successful!",
           message: "Thank you for registering. We have sent the webinar joining link to your registered mobile number.",
+          ...(result.classLink && { classLink: result.classLink }),
         },
         200,
       );
     case "duplicate":
+      // Already registered for this seminar: treat it as a success and send
+      // them to the link from their first registration. `ok: true` is what
+      // makes the page open it.
+      if (result.classLink) {
+        return json(
+          {
+            ok: true,
+            title: "Already registered",
+            message: "You are already registered for this session.",
+            classLink: result.classLink,
+          },
+          200,
+        );
+      }
       return json(
         {
           ok: false,

@@ -74,14 +74,38 @@ const paragraphs = (text: string) =>
     .filter(Boolean);
 
 const aboutParagraphs = paragraphs(webinar.aboutCourse || webinar.description || "");
-const mentorParagraphs = paragraphs(webinar.aboutMentor);
-const hasMentor = Boolean(webinar.mentorName || webinar.aboutMentor);
+
+// Shown when the seminar's mentor fields are empty in Frappe. It stands in as a
+// whole set rather than field by field: a seminar with only a mentor name filled
+// in must not end up with that name beside this photo and bio.
+const DEFAULT_MENTOR = {
+  name: "Mr. B. Kesavamoorthy",
+  image: "/assets/images/kesavamoorthy-144.webp",
+  designation: "Chief Research Officer",
+  experience: "15+ years of experience",
+  about: [
+    "With 15 years of hands-on research and market experience across equities, commodities, and currencies, Mr. Kesavamoorthy has guided learners through some of the most dynamic and volatile phases of both domestic and global markets.",
+    "He blends fundamental depth with technical precision, decoding chart patterns, market trends, price action, and investor behavior into practical lessons you can apply immediately. His approach focuses on simplifying complex market concepts and turning them into actionable insights, whether you're placing your first trade, building confidence in the markets, or refining your fiftieth strategy.",
+    "Through real-world examples and market-driven learning, he helps participants understand not just what is happening in the market, but also why price movements occur and how different factors can influence trading decisions.",
+  ],
+};
+
+const mentor =
+  webinar.mentorName || webinar.aboutMentor
+    ? {
+        name: webinar.mentorName,
+        image: webinar.mentorImage,
+        designation: webinar.mentorDesignation,
+        experience: webinar.mentorExperience,
+        about: paragraphs(webinar.aboutMentor),
+      }
+    : DEFAULT_MENTOR;
 
 // The in-page tab strip only lists sections this seminar actually filled in.
 const tabs = [
   ...(aboutParagraphs.length ? [{ id: "about", label: "About" }] : []),
   ...(webinar.learningOutcomes.length ? [{ id: "outcomes", label: "Learning Outcome" }] : []),
-  ...(hasMentor ? [{ id: "mentor", label: "Meet the Mentor" }] : []),
+  { id: "mentor", label: "Meet the Mentor" },
 ];
 ---
 
@@ -110,7 +134,7 @@ const tabs = [
         <!-- Heading and fact chips -->
         <div class="min-w-0 space-y-4 lg:col-start-1 lg:row-start-1">
           <h1 class="text-3xl font-bold leading-tight tracking-tight text-dark sm:text-4xl">{webinar.title}</h1>
-          {webinar.mentorName && <p class="text-lg font-semibold text-primary">{webinar.mentorName}</p>}
+          {mentor.name && <p class="text-lg font-semibold text-primary">{mentor.name}</p>}
 
           <!-- Fact chips: the four facts the Seminar doctype actually carries. -->
           <dl class="grid grid-cols-2 gap-3 pt-2 sm:grid-cols-4">
@@ -435,38 +459,34 @@ const tabs = [
             )
           }
 
-          {
-            hasMentor && (
-              <section id="mentor" class="scroll-mt-28 space-y-4">
-                <h2 class="text-xl font-bold text-dark md:text-2xl">Meet your mentor</h2>
-                <div class="flex items-center gap-4">
-                  {webinar.mentorImage && (
-                    <img
-                      src={webinar.mentorImage}
-                      alt={webinar.mentorName || "Mentor"}
-                      width="72"
-                      height="72"
-                      loading="lazy"
-                      decoding="async"
-                      class="h-18 w-18 shrink-0 rounded-full border border-border-light object-cover"
-                    />
-                  )}
-                  <div class="space-y-0.5">
-                    {webinar.mentorName && <p class="text-lg font-bold text-dark">{webinar.mentorName}</p>}
-                    {webinar.mentorDesignation && (
-                      <p class="text-sm font-medium text-primary">{webinar.mentorDesignation}</p>
-                    )}
-                    {webinar.mentorExperience && (
-                      <p class="text-xs font-medium text-text-default opacity-70">{webinar.mentorExperience}</p>
-                    )}
-                  </div>
-                </div>
-                {mentorParagraphs.map((para) => (
-                  <p class="text-base leading-relaxed text-text-default opacity-85">{para}</p>
-                ))}
-              </section>
-            )
-          }
+          <section id="mentor" class="scroll-mt-28 space-y-4">
+            <h2 class="text-xl font-bold text-dark md:text-2xl">Meet your mentor</h2>
+            <div class="flex items-center gap-4">
+              {
+                mentor.image && (
+                  <img
+                    src={mentor.image}
+                    alt={mentor.name || "Mentor"}
+                    width="72"
+                    height="72"
+                    loading="lazy"
+                    decoding="async"
+                    class="h-18 w-18 shrink-0 rounded-full border border-border-light object-cover"
+                  />
+                )
+              }
+              <div class="space-y-0.5">
+                {mentor.name && <p class="text-lg font-bold text-dark">{mentor.name}</p>}
+                {mentor.designation && <p class="text-sm font-medium text-primary">{mentor.designation}</p>}
+                {
+                  mentor.experience && (
+                    <p class="text-xs font-medium text-text-default opacity-70">{mentor.experience}</p>
+                  )
+                }
+              </div>
+            </div>
+            {mentor.about.map((para) => <p class="text-base leading-relaxed text-text-default opacity-85">{para}</p>)}
+          </section>
         </div>
       </div>
     </div>

@@ -19,7 +19,7 @@ import pageLastmod from "@/lib/page-lastmod.json";
  * near-duplicate of the homepage that would compete with "/" for the same
  * content. Add or remove entries here as pages come and go.
  */
-const EXCLUDED = new Set(["/404", "/components", "/index2"]);
+const EXCLUDED = new Set(["/404", "/components", "/index2", "/brokerage-calculator"]);
 
 /**
  * Frappe reads a page length of 0 as "every row", so the blog and news lists

@@ -2,6 +2,10 @@
  * Every calculator on the site, in display order. Read by the calculator
  * sidebar (Popular Calculators) and the footer's Calculators column, so a new
  * calculator page is added here once and shows up in both.
+ *
+ * /brokerage-calculator is deliberately not listed: the page stays live but is
+ * unlinked and noindexed. Its id remains in CalculatorId so the page can still
+ * render the shared sidebar, where it simply shows the other calculators.
  */
 
 export type CalculatorId =
@@ -30,5 +34,4 @@ export const calculators: CalculatorLink[] = [
   { id: "car-loan", label: "Car Loan EMI Calculator", href: "/car-loan-emi-calculator", ownPage: true },
   { id: "ppf", label: "PPF Calculator", href: "/ppf-calculator", ownPage: true },
   { id: "epf", label: "EPF Calculator", href: "/epf-calculator", ownPage: true },
-  { id: "brokerage", label: "Brokerage Calculator", href: "/brokerage-calculator", ownPage: true },
 ];

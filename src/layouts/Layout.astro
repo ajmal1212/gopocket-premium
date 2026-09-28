@@ -23,6 +23,8 @@ interface Props {
   ogImage?: string;
   ogImageAlt?: string;
   ogType?: string;
+  /** Keep the page out of search results. Links on it are still followed. */
+  noindex?: boolean;
 }
 
 // Site-wide share card. 512x512 - square rather than the 1200x630 that Facebook
@@ -39,6 +41,7 @@ const {
   ogImage = DEFAULT_OG_IMAGE,
   ogImageAlt = "GoPocket - online trading and demat account app",
   ogType = "website",
+  noindex = false,
 } = Astro.props;
 
 /**
@@ -101,7 +104,7 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
     <meta name="description" content={description} />
     <meta name="keywords" content={keywords} />
     <meta name="author" content="GoPocket" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content={noindex ? "noindex, follow" : "index, follow"} />
     <link rel="canonical" href={canonicalUrl} item-prop="url" />
     <link rel="alternate" hreflang="en" href={canonicalUrl} />
     {/* Replaced by the theme script below once the resolved theme is known. */}

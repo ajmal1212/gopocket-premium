@@ -22,7 +22,6 @@ import Landmark from "@lucide/astro/icons/landmark";
 import Gem from "@lucide/astro/icons/gem";
 import Coins from "@lucide/astro/icons/coins";
 import Bell from "@lucide/astro/icons/bell";
-import Calculator from "@lucide/astro/icons/calculator";
 import Download from "@lucide/astro/icons/download";
 import Code from "@lucide/astro/icons/code";
 import GraduationCap from "@lucide/astro/icons/graduation-cap";
@@ -288,13 +287,6 @@ export const exploreCards: ExploreCard[] = [
     title: "New to the markets? Learn step by step with free courses",
     href: "/courses",
     image: "/assets/images/integration-card-4-2.webp",
-    imageAlt: "",
-  },
-  {
-    icon: Calculator,
-    title: "Plan every trade with the brokerage and margin calculators",
-    href: "/brokerage-calculator",
-    image: "/assets/images/ai-automation-4.webp",
     imageAlt: "",
   },
 ];

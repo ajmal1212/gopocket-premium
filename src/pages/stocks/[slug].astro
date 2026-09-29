@@ -41,7 +41,6 @@ if (contract.slug !== slug) {
 // Curated copy where it exists; otherwise the page stands on the live data.
 const editorial = stockFor(contract.exchange, contract.symbol);
 const displayName = editorial?.name ?? contract.name;
-const sector = editorial?.sector ?? contract.symbol;
 const token = contract.key;
 
 // Rendered server-side so the price is in the HTML the crawler and the browser
@@ -92,11 +91,30 @@ const rangeStart = range.id === "1D" ? null : (rangeCandles?.[0]?.c ?? null);
 // many sessions, where evenly spaced points read better than real gaps.
 const session = range.id === "1D" ? sessionWindow(candles, contract.exchange) : null;
 
+/*
+ * A share page targets two searches: the company name ("Reliance Industries
+ * share price") and the ticker ("RELIANCE share price"). Each appears as an
+ * exact phrase in the title, description and keywords; the h1 carries the
+ * name one and the overview copy the ticker one. When the curated
+ * or contract name is just the ticker again, the second phrase is dropped
+ * rather than repeated. An index has no shares, so it keeps a plain "price".
+ */
 const priceText = quote?.lp ? `₹${Number.parseFloat(quote.lp).toFixed(2)}` : null;
-const title = `${displayName} (${contract.symbol}) Share Price Today | GoPocket`;
+const nameKeyword = hasDepth ? `${displayName} Share Price` : `${displayName} Price`;
+const symbolKeyword =
+  displayName.toLowerCase() === contract.symbol.toLowerCase()
+    ? null
+    : hasDepth
+      ? `${contract.symbol} Share Price`
+      : `${contract.symbol} Price`;
+const title = symbolKeyword ? `${nameKeyword} Today | ${symbolKeyword} | GoPocket` : `${nameKeyword} Today | GoPocket`;
 const description = priceText
-  ? `${displayName} share price is ${priceText} on the ${contract.exchange}. Live ${contract.symbol} price, market depth, day high and low, 52-week range and volume.`
-  : `Live ${displayName} (${contract.symbol}) share price on the ${contract.exchange}, with market depth, day high and low, 52-week range and volume.`;
+  ? `${nameKeyword} today is ${priceText} on the ${contract.exchange}. Track the live ${symbolKeyword ?? nameKeyword} with market depth, day high and low, 52-week range and volume.`
+  : `Live ${nameKeyword} on the ${contract.exchange}. Track the ${symbolKeyword ?? nameKeyword} with market depth, day high and low, 52-week range and volume.`;
+const keywords = [nameKeyword, symbolKeyword, `${displayName} stock`, `${contract.symbol} stock`, "GoPocket"]
+  .filter(Boolean)
+  .join(", ")
+  .toLowerCase();
 
 /*
  * The page's written content, built from the data already fetched above - no
@@ -139,17 +157,21 @@ const faqSchema =
     : null;
 ---
 
-<Layout title={title} description={description} canonical={`/stocks/${canonicalStockSlug(contract.slug)}`}>
+<Layout
+  title={title}
+  description={description}
+  keywords={keywords}
+  canonical={`/stocks/${canonicalStockSlug(contract.slug)}`}
+>
   <Header currentPath="/stocks" />
 
   <main class="mx-auto max-w-7xl px-4 py-10 md:px-8 lg:py-14">
     <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10">
       <div class="flex min-w-0 flex-col gap-8">
         <PriceHeader
-          name={displayName}
+          heading={nameKeyword}
           symbol={contract.symbol}
           exchange={contract.exchange}
-          sector={sector}
           token={token}
           quote={quote}
           heldClose={heldClose}

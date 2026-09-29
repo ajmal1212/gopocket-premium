@@ -2,10 +2,10 @@
 import type { Tick } from "@/lib/feed/types";
 
 interface Props {
-  name: string;
+  /** The h1, e.g. "Reliance Industries Share Price" - the page's main search phrase. */
+  heading: string;
   symbol: string;
   exchange: string;
-  sector: string;
   token: string;
   quote: Tick | null;
   /** Set between sessions: the previous close `quote` was measured from, for the live feed to keep to. */
@@ -16,17 +16,7 @@ interface Props {
   rangeLabel?: string;
 }
 
-const {
-  name,
-  symbol,
-  exchange,
-  sector,
-  token,
-  quote,
-  heldClose = null,
-  rangeStart = null,
-  rangeLabel = "",
-} = Astro.props;
+const { heading, symbol, exchange, token, quote, heldClose = null, rangeStart = null, rangeLabel = "" } = Astro.props;
 
 /**
  * `pc` is the percent change and `c` the previous close, so the rupee change is
@@ -62,10 +52,9 @@ const signed = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
     <span class="border-border-light rounded border px-1.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase">
       {exchange}
     </span>
-    <span class="text-text-default/70">{sector}</span>
   </p>
 
-  <h1 class="text-h3 lg:text-h2 text-dark font-semibold tracking-tight">{name}</h1>
+  <h1 class="text-h4! lg:text-h3! text-dark font-semibold tracking-tight">{heading}</h1>
 
   <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
     <span class="text-h4 text-dark font-semibold tabular-nums" data-field="lp">

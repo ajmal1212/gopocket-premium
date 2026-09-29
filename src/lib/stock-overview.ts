@@ -151,7 +151,7 @@ export function buildStockOverview(input: StockOverviewInput): StockOverview {
 
     paragraphs.push(
       `${displayName}${sectorClause} trades on ${where} under the symbol ${contract.symbol}. ` +
-        `The price below is live during market hours, alongside the order book, the day's range and the ` +
+        `The ${contract.symbol} share price on this page is live during market hours, alongside the order book, the day's range and the ` +
         `company's latest disclosed shareholding.`,
     );
   }
@@ -254,8 +254,8 @@ export function buildStockOverview(input: StockOverviewInput): StockOverview {
       question: `What is the share price of ${displayName} today?`,
       answer:
         `${displayName} (${contract.symbol}) last traded at ${rupees(last)} on ` +
-        `${contract.exchange === "BSE" ? "the BSE" : "the NSE"}. The price on this page updates live during ` +
-        `market hours.`,
+        `${contract.exchange === "BSE" ? "the BSE" : "the NSE"}. ` +
+        `The ${isIndex ? "level" : `${contract.symbol} share price`} on this page updates live during market hours.`,
     });
   }
 

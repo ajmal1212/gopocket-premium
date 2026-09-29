@@ -80,6 +80,14 @@ const quote =
     : feedQuote;
 const previousClose = quote?.c ? Number.parseFloat(quote.c) : null;
 
+/*
+ * Past 1D the change is the range's, not the day's: a 5Y chart that climbed
+ * sevenfold read "-1.06%" in red because the header and the chart's reference
+ * line were both measured from yesterday's close. Every broker measures a range
+ * from its first close, so the header, the line and its colour do the same.
+ */
+const rangeStart = range.id === "1D" ? null : (rangeCandles?.[0]?.c ?? null);
+
 // Only the intraday view is plotted against clock time; the longer ranges span
 // many sessions, where evenly spaced points read better than real gaps.
 const session = range.id === "1D" ? sessionWindow(candles, contract.exchange) : null;
@@ -145,11 +153,13 @@ const faqSchema =
           token={token}
           quote={quote}
           heldClose={heldClose}
+          rangeStart={rangeStart}
+          rangeLabel={range.label}
         />
 
         <PriceChart
           candles={candles}
-          previousClose={previousClose}
+          previousClose={rangeStart ?? previousClose}
           token={token}
           exchange={contract.exchange}
           activeRange={range.id}
@@ -312,17 +322,19 @@ const faqSchema =
     };
 
     let isLive = false;
+    // Set past 1D: the change is then measured from the range's first close.
+    const rangeStart = num(header.dataset.rangeStart);
 
     const render = (tick: Tick) => {
       const last = num(tick.lp);
-      const percent = num(tick.pc);
-      const previousClose = num(tick.c);
+      const reference = rangeStart ?? num(tick.c);
+      const percent = rangeStart !== null && last !== null ? ((last - rangeStart) / rangeStart) * 100 : num(tick.pc);
 
       if (last !== null) setText("lp", money(last));
 
       const changeEl = fields.get("change");
-      if (changeEl && last !== null && percent !== null && previousClose !== null) {
-        const change = last - previousClose;
+      if (changeEl && last !== null && percent !== null && reference !== null) {
+        const change = last - reference;
         setText("change", `${signed(change)} (${signed(percent)}%)`);
         const up = percent >= 0;
         changeEl.classList.toggle("text-emerald-600", up);

@@ -4,7 +4,10 @@ import { RANGES, isDaily, downsample } from "@/lib/feed/candles";
 
 interface Props {
   candles: Candle[];
-  /** Previous close, drawn as the reference line and used to colour the series. */
+  /**
+   * The reference line, also used to colour the series: the previous close on
+   * 1D, the range's first close on anything longer.
+   */
   previousClose: number | null;
   token: string;
   /** Contract Master's exchange - decides the session hours the live chart grows within. */
@@ -377,9 +380,10 @@ const intraday = activeRange === "1D";
     const render = (tick: Tick) => {
       const price = num(tick.lp);
       if (price === null) return;
-      // The header measures the change from the feed's previous close, so the
-      // reference line follows the same number.
-      baseline = num(tick.c) ?? baseline;
+      // The header measures the day's change from the feed's previous close, so
+      // the intraday reference line follows the same number. A longer range is
+      // measured from its own first close, which a tick never changes.
+      if (intraday) baseline = num(tick.c) ?? baseline;
 
       if (intraday) extend(price, tick);
       else if (closes.length > 0) closes[closes.length - 1] = price;

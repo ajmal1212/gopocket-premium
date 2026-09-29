@@ -157,8 +157,15 @@ const toContract = (row: ContractRow): Contract | null => {
    * too. Without this the company's own page was titled "ABBOTINDIA-EQ
    * (ABBOTINDIA) Share Price Today", and the <h1>, meta description and search
    * results all read the same way.
+   *
+   * Cash-market rows only. A company's futures and options share its `symbol`,
+   * and taking the company name gave every SUZLON contract the name "Suzlon
+   * Energy" - and so the slug "suzlon-energy", the NSE page's own address. A
+   * search then cached each contract under that slug in turn, and the share
+   * page opened on whichever futures contract was remembered last.
    */
-  const listed = NSE_NAMES[row.symbol || ""] ?? BSE_ONLY_NAMES[row.symbol || ""];
+  const cash = row.exchange === "NSE" || row.exchange === "BSE";
+  const listed = cash ? (NSE_NAMES[row.symbol || ""] ?? BSE_ONLY_NAMES[row.symbol || ""]) : undefined;
   const name = listed || row.formatted_ins_name || row.trading_symbol || row.symbol || "";
   if (!row.token || !row.exchange || !name) return null;
 

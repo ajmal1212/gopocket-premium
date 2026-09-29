@@ -10,9 +10,23 @@ interface Props {
   quote: Tick | null;
   /** Set between sessions: the previous close `quote` was measured from, for the live feed to keep to. */
   heldClose?: number | null;
+  /** Past 1D: the range's first close, which the change is measured from instead of the previous close. */
+  rangeStart?: number | null;
+  /** The chart range's label ("5Y"), shown beside a range change so it isn't read as the day's. */
+  rangeLabel?: string;
 }
 
-const { name, symbol, exchange, sector, token, quote, heldClose = null } = Astro.props;
+const {
+  name,
+  symbol,
+  exchange,
+  sector,
+  token,
+  quote,
+  heldClose = null,
+  rangeStart = null,
+  rangeLabel = "",
+} = Astro.props;
 
 /**
  * `pc` is the percent change and `c` the previous close, so the rupee change is
@@ -25,9 +39,9 @@ const num = (value: string | undefined): number | null => {
 };
 
 const last = num(quote?.lp);
-const percent = num(quote?.pc);
-const previousClose = num(quote?.c);
-const change = last !== null && previousClose !== null ? last - previousClose : null;
+const reference = rangeStart ?? num(quote?.c);
+const percent = rangeStart !== null && last !== null ? ((last - rangeStart) / rangeStart) * 100 : num(quote?.pc);
+const change = last !== null && reference !== null ? last - reference : null;
 const isUp = (percent ?? 0) >= 0;
 
 const money = (value: number) =>
@@ -41,6 +55,7 @@ const signed = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
   data-token={token}
   data-held-close={heldClose ?? undefined}
   data-held-price={heldClose !== null ? quote?.lp : undefined}
+  data-range-start={rangeStart ?? undefined}
 >
   <p class="text-text-default flex items-center gap-2 text-sm">
     <span class="font-semibold">{symbol}</span>
@@ -67,6 +82,8 @@ const signed = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
     >
       {change !== null && percent !== null ? `${signed(change)} (${signed(percent)}%)` : ""}
     </span>
+
+    {rangeStart !== null && <span class="text-text-default/75 text-xs font-semibold">{rangeLabel}</span>}
 
     <span class="text-text-default/75 text-xs" data-field="state">
       <span data-live hidden>Live</span>

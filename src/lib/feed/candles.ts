@@ -1,6 +1,6 @@
 import { FEED_HUB_URL } from "./config";
 import { edgeGet, edgePut } from "@/lib/edge-cache";
-import { istMidnightOf, istWeekday, sessionAt, type Session } from "./session";
+import { istMidnightOf, istMonthsBefore, istWeekday, sessionAt, type Session } from "./session";
 
 export interface Candle {
   /** Epoch seconds at the start of the candle. */
@@ -22,6 +22,11 @@ export interface Range {
   interval: Interval;
   /** How far back to ask for, in seconds. */
   lookback: number;
+  /**
+   * Calendar months back, for the daily ranges, which then start at IST
+   * midnight on the same date - see `fetchCandles`. Takes over from `lookback`.
+   */
+  months?: number;
 }
 
 /**
@@ -38,9 +43,9 @@ export const RANGES: Range[] = [
   { id: "1D", label: "1D", interval: 1, lookback: DAY },
   { id: "1W", label: "1W", interval: 30, lookback: 7 * DAY },
   { id: "1M", label: "1M", interval: 60, lookback: 30 * DAY },
-  { id: "6M", label: "6M", interval: "day", lookback: 183 * DAY },
-  { id: "1Y", label: "1Y", interval: "day", lookback: 365 * DAY },
-  { id: "5Y", label: "5Y", interval: "day", lookback: 5 * 365 * DAY },
+  { id: "6M", label: "6M", interval: "day", lookback: 183 * DAY, months: 6 },
+  { id: "1Y", label: "1Y", interval: "day", lookback: 365 * DAY, months: 12 },
+  { id: "5Y", label: "5Y", interval: "day", lookback: 5 * 365 * DAY, months: 60 },
 ];
 
 /**
@@ -85,10 +90,19 @@ async function requestCandles(token: string, interval: Interval, from: number, t
   }
 }
 
-/** Candles for one of the chart's ranges, reaching back its `lookback` from now. */
+/**
+ * Candles for one of the chart's ranges, reaching back from now.
+ *
+ * The daily ranges count back in calendar months from IST midnight. A fixed
+ * `5 * 365` days from the current time missed on both counts: it skipped the
+ * leap day, and a daily candle is stamped at the start of its day, so the one
+ * on the boundary fell just before a window that opened mid-morning. On 29 Sep
+ * 2026 the 5Y chart started on 1 Oct 2021 rather than 29 Sep.
+ */
 export async function fetchCandles(token: string, range: Range, tradingSymbol = ""): Promise<Candle[]> {
   const to = Math.floor(Date.now() / 1000);
-  return requestCandles(token, range.interval, to - range.lookback, to, tradingSymbol);
+  const from = range.months ? istMonthsBefore(to, range.months) : to - range.lookback;
+  return requestCandles(token, range.interval, from, to, tradingSymbol);
 }
 
 /**

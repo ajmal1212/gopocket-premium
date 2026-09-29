@@ -48,6 +48,20 @@ function usSummerTime(year: number, month: number, day: number): boolean {
 /** Epoch seconds at the start of the IST calendar day that `epoch` falls on. */
 export const istMidnightOf = (epoch: number): number => Math.floor((epoch + IST_OFFSET) / DAY) * DAY - IST_OFFSET;
 
+/**
+ * IST midnight on the same calendar date `months` earlier - 29 Sep 2026 back
+ * 60 months is 29 Sep 2021 - with the day clamped to the shorter month, so 31
+ * Mar back one month is 28 or 29 Feb rather than rolling into March.
+ */
+export function istMonthsBefore(epoch: number, months: number): number {
+  const date = new Date((istMidnightOf(epoch) + IST_OFFSET) * 1000);
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth() - months;
+  // Day 0 of the following month is the last day of this one.
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  return Date.UTC(year, month, Math.min(date.getUTCDate(), lastDay)) / 1000 - IST_OFFSET;
+}
+
 /** Day of the week in India for `epoch`: 0 Sunday to 6 Saturday. */
 export const istWeekday = (epoch: number): number => new Date((istMidnightOf(epoch) + IST_OFFSET) * 1000).getUTCDay();
 

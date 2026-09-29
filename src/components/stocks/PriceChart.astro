@@ -1,6 +1,8 @@
 ---
+import ChartArea from "@lucide/astro/icons/chart-area";
+import ChartCandlestick from "@lucide/astro/icons/chart-candlestick";
 import type { Candle } from "@/lib/feed/candles";
-import { RANGES, isDaily, downsample } from "@/lib/feed/candles";
+import { RANGES, INTRADAY_CANDLE_SECONDS, isDaily, downsample, toCandlesticks } from "@/lib/feed/candles";
 
 interface Props {
   candles: Candle[];
@@ -20,6 +22,8 @@ interface Props {
   session?: { start: number; end: number } | null;
   /** Live last price. Decides the colour, so the chart agrees with the header. */
   lastPrice?: number | null;
+  /** Which chart to show first. The area chart is the default; `?chart=candles` asks for candlesticks. */
+  view?: "area" | "candles";
 }
 
 const {
@@ -32,6 +36,7 @@ const {
   dailyAvailable = true,
   session = null,
   lastPrice = null,
+  view = "area",
 } = Astro.props;
 
 const ranges = RANGES.filter((range) => dailyAvailable || !isDaily(range));
@@ -101,6 +106,44 @@ const hasChart = points.length > 1;
  * line from them and swaps it in for the empty message.
  */
 const intraday = activeRange === "1D";
+
+/*
+ * The candlestick view. Both views are in the HTML and the switch only toggles
+ * which is shown, so changing it is instant and a `?chart=candles` link comes
+ * back already drawn. The candles get their own vertical scale - they reach to
+ * each high and low, which the closes never do - so the reference line, which
+ * belongs to the area chart's scale, is not drawn over them.
+ *
+ * The same geometry is repeated in the script below, which redraws the last
+ * candle as ticks arrive.
+ */
+const sticks = toCandlesticks(candles, intraday);
+const stickLow = Math.min(...sticks.map((stick) => stick.l));
+const stickSpan = Math.max(...sticks.map((stick) => stick.h)) - stickLow || 1;
+const stickY = (value: number) => PAD_Y + (1 - (value - stickLow) / stickSpan) * (HEIGHT - PAD_Y * 2);
+// On the intraday chart a candle is five minutes of the session's time axis;
+// otherwise the candles share the width evenly.
+const slot = session
+  ? (INTRADAY_CANDLE_SECONDS / (session.end - session.start)) * WIDTH
+  : WIDTH / Math.max(sticks.length, 1);
+const stickX = (stick: Candle, index: number) =>
+  session ? ((stick.t - session.start) / (session.end - session.start)) * WIDTH + slot / 2 : (index + 0.5) * slot;
+
+const stickPaths = { up: { body: "", wick: "" }, down: { body: "", wick: "" } };
+sticks.forEach((stick, index) => {
+  const x = stickX(stick, index);
+  const half = slot * 0.35;
+  const top = stickY(Math.max(stick.o, stick.c));
+  // A flat candle still gets a hairline body, or it would vanish.
+  const height = Math.max(stickY(Math.min(stick.o, stick.c)) - top, 0.8);
+  const paths = stick.c >= stick.o ? stickPaths.up : stickPaths.down;
+  paths.body += `M${(x - half).toFixed(2)},${top.toFixed(2)}h${(half * 2).toFixed(2)}v${height.toFixed(2)}h${(-half * 2).toFixed(2)}Z`;
+  paths.wick += `M${x.toFixed(2)},${stickY(stick.h).toFixed(2)}V${stickY(stick.l).toFixed(2)}`;
+});
+
+const candleView = view === "candles";
+const chartHref = (range: string, chart: "area" | "candles") =>
+  `/stocks/${slug}?range=${range}${chart === "candles" ? "&chart=candles" : ""}`;
 ---
 
 <section
@@ -119,6 +162,9 @@ const intraday = activeRange === "1D";
   data-closes={closes.join(",")}
   data-xs={xs.map((value) => value.toFixed(2)).join(",")}
   data-times={points.map((candle) => candle.t).join(",")}
+  data-view={view}
+  data-bucket={INTRADAY_CANDLE_SECONDS}
+  data-sticks={sticks.map((stick) => [stick.t, stick.o, stick.h, stick.l, stick.c].join(",")).join(";")}
 >
   <h2 class="sr-only">Price chart</h2>
 
@@ -132,7 +178,19 @@ const intraday = activeRange === "1D";
           role="img"
           aria-label="Price movement"
         >
-          <g class={isUp ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}>
+          {/*
+            The views are shown and hidden with the `hidden` class rather than
+            the attribute: SVG elements have no `hidden` property to script, and
+            Astro's SVG types don't accept the attribute either.
+          */}
+          <g
+            class:list={[
+              isUp ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400",
+              "origin-bottom [transform-box:fill-box]",
+              candleView && "hidden",
+            ]}
+            data-area-view
+          >
             {/*
               The gradient lives inside this group on purpose: `currentColor` in
               a stop resolves against the stop's own inherited colour, so a
@@ -169,6 +227,25 @@ const intraday = activeRange === "1D";
               data-chart-line
             />
           </g>
+
+          <g class:list={["origin-bottom [transform-box:fill-box]", !candleView && "hidden"]} data-candle-view>
+            {(["up", "down"] as const).map((side) => (
+              <g
+                class={side === "up" ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}
+                data-candles={side}
+              >
+                <path
+                  d={stickPaths[side].wick}
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1"
+                  vector-effect="non-scaling-stroke"
+                  data-candle-wick
+                />
+                <path d={stickPaths[side].body} fill="currentColor" data-candle-body />
+              </g>
+            ))}
+          </g>
         </svg>
 
         {/*
@@ -189,6 +266,11 @@ const intraday = activeRange === "1D";
             data-hover-card
           >
             <span class="text-dark block text-sm font-semibold tabular-nums" data-hover-price />
+            <span
+              class="text-text-default/80 block text-[11px] whitespace-nowrap tabular-nums"
+              data-hover-ohlc
+              hidden
+            />
             <span class="text-text-default/70 block text-[11px] whitespace-nowrap" data-hover-time />
           </div>
         </div>
@@ -204,23 +286,73 @@ const intraday = activeRange === "1D";
     No chart data available for this instrument.
   </p>
 
-  <div class="flex flex-wrap gap-2" role="group" aria-label="Chart range">
+  <div class="flex flex-wrap items-center gap-2">
+    <div class="flex flex-wrap gap-2" role="group" aria-label="Chart range">
+      {
+        ranges.map((range) => (
+          <a
+            href={chartHref(range.id, view)}
+            data-range-link={range.id}
+            class:list={[
+              "rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+              range.id === activeRange
+                ? "border-primary text-primary"
+                : "border-border-light text-text-default/70 hover:text-text-default",
+            ]}
+            aria-current={range.id === activeRange ? "true" : undefined}
+          >
+            {range.label}
+          </a>
+        ))
+      }
+    </div>
+
     {
-      ranges.map((range) => (
-        <a
-          href={`/stocks/${slug}?range=${range.id}`}
-          class:list={[
-            "rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
-            range.id === activeRange
-              ? "border-primary text-primary"
-              : "border-border-light text-text-default/70 hover:text-text-default",
-          ]}
-          aria-current={range.id === activeRange ? "true" : undefined}
-        >
-          {range.label}
-        </a>
-      ))
+      /*
+      Links rather than buttons, so the choice works without the script and
+      survives into the range links. With the script the switch is instant and
+      the address is updated in place instead of reloading the page.
+    */
     }
+    <span class="bg-border-light mx-1 h-5 w-px" aria-hidden="true"></span>
+    <div class="border-border-light relative flex rounded-full border p-0.5" role="group" aria-label="Chart type">
+      {
+        /*
+        The active fill is one pill that slides between the two icons, rather
+        than each link painting its own background - the movement is what
+        makes the switch read as a switch.
+      */
+      }
+      <span
+        class:list={[
+          "bg-primary shadow-primary/30 absolute top-0.5 left-0.5 h-8 w-[104px] rounded-full shadow-md",
+          "transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+          view === "candles" && "translate-x-full",
+        ]}
+        aria-hidden="true"
+        data-view-thumb></span>
+      {
+        (
+          [
+            { id: "area", label: "Area", Icon: ChartArea },
+            { id: "candles", label: "Candles", Icon: ChartCandlestick },
+          ] as const
+        ).map(({ id, label, Icon }) => (
+          <a
+            href={chartHref(activeRange, id)}
+            class:list={[
+              "relative z-10 flex h-8 w-[104px] items-center justify-center gap-1.5 rounded-full text-xs font-semibold transition-colors duration-300",
+              id === view ? "text-white!" : "text-text-default/70 hover:text-text-default",
+            ]}
+            aria-current={id === view ? "true" : undefined}
+            data-view-link={id}
+          >
+            <Icon class="h-4 w-4" stroke-width={1.8} aria-hidden="true" />
+            {label}
+          </a>
+        ))
+      }
+    </div>
   </div>
 </section>
 
@@ -251,8 +383,9 @@ const intraday = activeRange === "1D";
   const base = chart?.querySelector<SVGLineElement>("[data-chart-baseline]");
   const empty = chart?.querySelector<HTMLElement>("[data-chart-empty]");
   const group = line?.parentElement;
+  const candleView = chart?.querySelector<SVGGElement>("[data-candle-view]");
 
-  if (chart && token && surface && line && area && base && empty && group) {
+  if (chart && token && surface && line && area && base && empty && group && candleView) {
     const width = Number(chart.dataset.width);
     const height = Number(chart.dataset.height);
     const pad = Number(chart.dataset.pad);
@@ -278,6 +411,14 @@ const intraday = activeRange === "1D";
     const start = num(chart.dataset.sessionStart);
     const end = num(chart.dataset.sessionEnd);
     let session: Session | null = start !== null && end !== null ? { start, end } : null;
+
+    type Stick = { t: number; o: number; h: number; l: number; c: number };
+    const toStick = ([t, o, h, l, c]: number[]): Stick => ({ t, o, h, l, c });
+    let sticks: Stick[] = (chart.dataset.sticks ? chart.dataset.sticks.split(";") : []).map((row) =>
+      toStick(row.split(",").map(Number)),
+    );
+    const bucket = Number(chart.dataset.bucket);
+    let view = chart.dataset.view === "candles" ? "candles" : "area";
 
     // The vertical scale changes whenever a tick moves the price outside the
     // plotted range, and the hover marker has to sit on the line as drawn - so
@@ -323,6 +464,74 @@ const intraday = activeRange === "1D";
 
       surface.hidden = false;
       empty.hidden = true;
+    };
+
+    // The candles' own scale, read by the hover as well as the drawing.
+    let stickLow = 0;
+    let stickHigh = 0;
+    const stickY = (value: number) => {
+      const span = stickHigh - stickLow || 1;
+      return pad + (1 - (value - stickLow) / span) * (height - pad * 2);
+    };
+    const slot = () =>
+      session ? (bucket / (session.end - session.start)) * width : width / Math.max(sticks.length, 1);
+    const stickX = (index: number) =>
+      session
+        ? ((sticks[index].t - session.start) / (session.end - session.start)) * width + slot() / 2
+        : (index + 0.5) * slot();
+
+    // Same geometry as the server render.
+    const drawCandles = () => {
+      if (sticks.length === 0) return;
+      stickLow = Math.min(...sticks.map((stick) => stick.l));
+      stickHigh = Math.max(...sticks.map((stick) => stick.h));
+      const half = slot() * 0.35;
+      const paths = { up: { body: "", wick: "" }, down: { body: "", wick: "" } };
+      sticks.forEach((stick, index) => {
+        const x = stickX(index);
+        const top = stickY(Math.max(stick.o, stick.c));
+        const tall = Math.max(stickY(Math.min(stick.o, stick.c)) - top, 0.8);
+        const side = stick.c >= stick.o ? paths.up : paths.down;
+        side.body += `M${(x - half).toFixed(2)},${top.toFixed(2)}h${(half * 2).toFixed(2)}v${tall.toFixed(2)}h${(-half * 2).toFixed(2)}Z`;
+        side.wick += `M${x.toFixed(2)},${stickY(stick.h).toFixed(2)}V${stickY(stick.l).toFixed(2)}`;
+      });
+      for (const side of ["up", "down"] as const) {
+        const node = candleView.querySelector(`[data-candles="${side}"]`);
+        node?.querySelector("[data-candle-body]")?.setAttribute("d", paths[side].body);
+        node?.querySelector("[data-candle-wick]")?.setAttribute("d", paths[side].wick);
+      }
+    };
+    if (sticks.length > 0) {
+      stickLow = Math.min(...sticks.map((stick) => stick.l));
+      stickHigh = Math.max(...sticks.map((stick) => stick.h));
+    }
+
+    /**
+     * Fold a price into the candles. The longer ranges only move their last
+     * candle; the intraday chart opens a new one every five minutes of trading,
+     * and starts over when a new session does - the same rules as `extend`.
+     */
+    const foldCandle = (price: number, time: number, open: number | null = null) => {
+      let last: Stick | undefined = sticks[sticks.length - 1];
+      if (intraday) {
+        if (!session) return;
+        if (last && last.t < session.start) {
+          sticks = [];
+          last = undefined;
+        }
+        if (sessionOf(time).start !== session.start) return;
+        const trading = time >= session.start && time <= session.end;
+        const at = Math.floor(time / bucket) * bucket;
+        if (trading && (!last || at > last.t)) {
+          const o = last ? price : (open ?? price);
+          sticks.push({ t: at, o, h: Math.max(o, price), l: Math.min(o, price), c: price });
+          return;
+        }
+      }
+      if (!last) return;
+      last.c = price;
+      last.h = Math.max(last.h, price);
+      last.l = Math.min(last.l, price);
     };
 
     /**
@@ -375,7 +584,8 @@ const intraday = activeRange === "1D";
     // costs no repaint. The forming point's time is left out on purpose; it
     // drifts under two pixels a minute and catches up on the next price change.
     let drawn = "";
-    const drawnFrom = () => `${closes.length}|${closes[closes.length - 1]}|${baseline}|${session?.start}`;
+    const drawnFrom = () =>
+      `${closes.length}|${closes[closes.length - 1]}|${baseline}|${session?.start}|${sticks.length}`;
 
     const render = (tick: Tick) => {
       const price = num(tick.lp);
@@ -387,6 +597,7 @@ const intraday = activeRange === "1D";
 
       if (intraday) extend(price, tick);
       else if (closes.length > 0) closes[closes.length - 1] = price;
+      foldCandle(price, num(tick.ft) ?? Math.floor(Date.now() / 1000), num(tick.o));
 
       /*
        * Most ticks don't move the line: the feed prints a new volume or bid
@@ -398,6 +609,7 @@ const intraday = activeRange === "1D";
       if (state === drawn) return;
       drawn = state;
       draw();
+      drawCandles();
     };
 
     /**
@@ -424,7 +636,7 @@ const intraday = activeRange === "1D";
       const quiet = sessionOf(since).start === day.start && (since >= day.end || now <= day.start);
       if (now - since < 60 || quiet) return;
 
-      let fetched: { t?: unknown; c?: unknown };
+      let fetched: { t?: unknown; c?: unknown; k?: unknown };
       try {
         const response = await fetch(`/api/intraday-candles?token=${encodeURIComponent(token)}`);
         if (!response.ok) return;
@@ -432,7 +644,7 @@ const intraday = activeRange === "1D";
       } catch {
         return;
       }
-      const { t, c } = fetched;
+      const { t, c, k } = fetched;
       if (!Array.isArray(t) || !Array.isArray(c) || t.length < 2 || t.length !== c.length) return;
 
       const lastCandle = t[t.length - 1] as number;
@@ -456,8 +668,17 @@ const intraday = activeRange === "1D";
         closes[closes.length - 1] = latest[1];
       }
 
+      // The candles are rebuilt from the same answer, then the live points
+      // newer than it are folded back in.
+      if (Array.isArray(k) && k.length > 0) {
+        sticks = (k as number[][]).map(toStick);
+        for (const [time, close] of newer) foldCandle(close, time);
+        if (newer.length === 0 && latest && Math.floor(latest[0] / 60) === minute) foldCandle(latest[1], latest[0]);
+      }
+
       drawn = drawnFrom();
       draw();
+      drawCandles();
     };
 
     if (intraday) {
@@ -485,8 +706,9 @@ const intraday = activeRange === "1D";
       const card = chart.querySelector<HTMLElement>("[data-hover-card]");
       const priceEl = chart.querySelector<HTMLElement>("[data-hover-price]");
       const timeEl = chart.querySelector<HTMLElement>("[data-hover-time]");
+      const ohlcEl = chart.querySelector<HTMLElement>("[data-hover-ohlc]");
 
-      if (!layer || !rule || !dot || !card || !priceEl || !timeEl) return;
+      if (!layer || !rule || !dot || !card || !priceEl || !timeEl || !ohlcEl) return;
 
       const money = (value: number) =>
         "₹" + value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -509,9 +731,32 @@ const intraday = activeRange === "1D";
         // stretched to the box, never letterboxed.
         const cursorX = ((event.clientX - box.left) / box.width) * width;
 
+        // Over candles the card reads the whole candle, and the dot - which
+        // marks a point on the line - is left out.
+        const candles = view === "candles";
+        dot.hidden = candles;
+        ohlcEl.hidden = !candles;
+        if (candles) {
+          let nearest = 0;
+          let gap = Infinity;
+          for (let i = 0; i < sticks.length; i++) {
+            const distance = Math.abs(stickX(i) - cursorX);
+            if (distance < gap) {
+              gap = distance;
+              nearest = i;
+            }
+          }
+          const stick = sticks[nearest];
+          if (!stick) return;
+          rule.style.left = (Math.min(stickX(nearest), width) / width) * 100 + "%";
+          priceEl.textContent = money(stick.c);
+          ohlcEl.textContent = `O ${stick.o.toFixed(2)}  H ${stick.h.toFixed(2)}  L ${stick.l.toFixed(2)}`;
+          timeEl.textContent = label(stick.t);
+        }
+
         let index = 0;
         let best = Infinity;
-        for (let i = 0; i < closes.length; i++) {
+        for (let i = 0; !candles && i < closes.length; i++) {
           const distance = Math.abs(xAt(i) - cursorX);
           if (distance < best) {
             best = distance;
@@ -519,21 +764,23 @@ const intraday = activeRange === "1D";
           }
         }
 
-        const value = closes[index];
-        if (value === undefined) return;
+        if (!candles) {
+          const value = closes[index];
+          if (value === undefined) return;
 
-        const xPercent = (xAt(index) / width) * 100;
-        const yPercent = (yOf(value) / height) * 100;
-        const up = value >= reference();
+          const xPercent = (xAt(index) / width) * 100;
+          const yPercent = (yOf(value) / height) * 100;
+          const up = value >= reference();
 
-        rule.style.left = xPercent + "%";
-        dot.style.left = xPercent + "%";
-        dot.style.top = yPercent + "%";
-        dot.classList.toggle("bg-emerald-600", up);
-        dot.classList.toggle("bg-red-600", !up);
+          rule.style.left = xPercent + "%";
+          dot.style.left = xPercent + "%";
+          dot.style.top = yPercent + "%";
+          dot.classList.toggle("bg-emerald-600", up);
+          dot.classList.toggle("bg-red-600", !up);
 
-        priceEl.textContent = money(value);
-        timeEl.textContent = label(times[index] ?? 0);
+          priceEl.textContent = money(value);
+          timeEl.textContent = label(times[index] ?? 0);
+        }
 
         /*
          * The card rides just above and to the right of the cursor, the way a
@@ -567,6 +814,88 @@ const intraday = activeRange === "1D";
       surface.addEventListener("pointerleave", leave);
       surface.addEventListener("pointercancel", leave);
     };
+
+    /**
+     * Area / candlestick switch. Both views are already drawn, so this only
+     * swaps which is shown, then carries the choice into the address and the
+     * range links - a reload or a new range keeps it.
+     */
+    const viewLinks = chart.querySelectorAll<HTMLAnchorElement>("[data-view-link]");
+    const areaView = chart.querySelector<SVGGElement>("[data-area-view]");
+    const thumb = chart.querySelector<HTMLElement>("[data-view-thumb]");
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    /*
+     * A crossfade: the outgoing view fades while the incoming one fades in and
+     * rises a little from the baseline. Opacity and transform only, so it runs
+     * on the compositor, and a second click mid-animation cancels the first
+     * rather than queueing behind it.
+     */
+    const swap = (show: SVGGElement, hide: SVGGElement) => {
+      for (const el of [show, hide]) for (const running of el.getAnimations()) running.cancel();
+      show.classList.remove("hidden");
+      if (calm.matches) {
+        hide.classList.add("hidden");
+        return;
+      }
+      show.animate(
+        [
+          { opacity: 0, transform: "scaleY(0.9)" },
+          { opacity: 1, transform: "scaleY(1)" },
+        ],
+        { duration: 450, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+      );
+      const fade = hide.animate([{ opacity: 1 }, { opacity: 0 }], {
+        duration: 200,
+        easing: "ease-out",
+        fill: "forwards",
+      });
+      // Hidden once faded, then the held opacity is dropped so the view is
+      // whole again the next time it is shown.
+      fade.onfinish = () => {
+        hide.classList.add("hidden");
+        fade.cancel();
+      };
+    };
+
+    const setView = (next: string) => {
+      if (next === view) return;
+      view = next;
+      if (areaView) {
+        if (next === "candles") swap(candleView, areaView);
+        else swap(areaView, candleView);
+      }
+      thumb?.classList.toggle("translate-x-full", next === "candles");
+
+      for (const link of viewLinks) {
+        const active = link.dataset.viewLink === next;
+        link.classList.toggle("text-white!", active);
+        link.classList.toggle("text-text-default/70", !active);
+        link.classList.toggle("hover:text-text-default", !active);
+        if (active) link.setAttribute("aria-current", "true");
+        else link.removeAttribute("aria-current");
+      }
+
+      const withView = (href: string) => {
+        const url = new URL(href, location.href);
+        if (next === "candles") url.searchParams.set("chart", "candles");
+        else url.searchParams.delete("chart");
+        return url.pathname + url.search;
+      };
+      for (const link of chart.querySelectorAll<HTMLAnchorElement>("[data-range-link]")) {
+        link.href = withView(link.href);
+      }
+      history.replaceState(history.state, "", withView(location.href));
+    };
+
+    for (const link of viewLinks) {
+      link.addEventListener("click", (event) => {
+        // A modified click still opens the link as a link.
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+        event.preventDefault();
+        setView(link.dataset.viewLink ?? "area");
+      });
+    }
 
     hover();
     register("stock-chart", [token]);

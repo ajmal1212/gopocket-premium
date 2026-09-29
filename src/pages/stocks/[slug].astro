@@ -189,6 +189,7 @@ const faqSchema =
           dailyAvailable={contract.exchange !== "INDICES"}
           session={session}
           lastPrice={quote?.lp ? Number.parseFloat(quote.lp) : null}
+          view={Astro.url.searchParams.get("chart") === "candles" ? "candles" : "area"}
         />
 
         {hasDepth && <MarketDepth token={token} quote={quote} />}

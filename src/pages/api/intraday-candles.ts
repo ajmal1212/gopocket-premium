@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { downsample, fetchLatestSession } from "@/lib/feed/candles";
+import { downsample, fetchLatestSession, toCandlesticks } from "@/lib/feed/candles";
 
 /**
  * Today's one-minute series for a stock page's 1D chart, for the browser.
@@ -23,10 +23,17 @@ export const GET: APIRoute = async ({ url }) => {
     });
   }
 
-  const candles = downsample((await fetchLatestSession(token)).candles);
+  const session = (await fetchLatestSession(token)).candles;
+  const candles = downsample(session);
 
-  // Only what the chart plots: times and closes, as two flat lists.
-  return new Response(JSON.stringify({ t: candles.map((c) => c.t), c: candles.map((c) => c.c) }), {
+  // Only what the chart plots: times and closes, as two flat lists, and the
+  // five-minute candles as [t, o, h, l, c] rows for the candlestick view.
+  const body = {
+    t: candles.map((c) => c.t),
+    c: candles.map((c) => c.c),
+    k: toCandlesticks(session, true).map((c) => [c.t, c.o, c.h, c.l, c.c]),
+  };
+  return new Response(JSON.stringify(body), {
     status: 200,
     headers: {
       "Content-Type": "application/json",

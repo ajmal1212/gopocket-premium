@@ -223,6 +223,52 @@ export function downsample(candles: Candle[], max = 400): Candle[] {
   return thinned;
 }
 
+/** A 1D candlestick spans five minutes: one-minute bodies are too thin to read. */
+export const INTRADAY_CANDLE_SECONDS = 300;
+
+/**
+ * The series a candlestick chart draws, oldest first.
+ *
+ * `downsample` keeps every nth candle, which is fine for a line but wrong for
+ * candles - it would drop the highs and lows between the ones it keeps. So the
+ * candles are merged instead: the 1D chart into five-minute candles, anything
+ * longer into at most `max` equal groups (a 5Y chart becomes roughly
+ * fortnightly candles). Past that count the bodies are too thin to read.
+ */
+export function toCandlesticks(candles: Candle[], intraday: boolean, max = 150): Candle[] {
+  const groups: Candle[][] = [];
+  const bucketOf = (t: number) => Math.floor(t / INTRADAY_CANDLE_SECONDS) * INTRADAY_CANDLE_SECONDS;
+
+  if (intraday) {
+    for (const candle of candles) {
+      const current = groups[groups.length - 1];
+      if (current && bucketOf(current[0].t) === bucketOf(candle.t)) current.push(candle);
+      else groups.push([candle]);
+    }
+  } else {
+    const stride = Math.max(1, Math.ceil(candles.length / max));
+    for (let i = 0; i < candles.length; i += stride) groups.push(candles.slice(i, i + stride));
+  }
+
+  return groups.map((group) => {
+    const first = group[0];
+    const last = group[group.length - 1];
+    // A missing open, high or low comes through as 0, which would stretch the
+    // wick to the bottom of the chart; the close stands in for it.
+    const openOf = (candle: Candle) => (candle.o > 0 ? candle.o : candle.c);
+    const highs = group.map((candle) => Math.max(candle.h, openOf(candle), candle.c));
+    const lows = group.map((candle) => Math.min(candle.l > 0 ? candle.l : Infinity, openOf(candle), candle.c));
+    return {
+      t: intraday ? bucketOf(first.t) : first.t,
+      o: openOf(first),
+      h: Math.max(...highs),
+      l: Math.min(...lows),
+      c: last.c,
+      v: group.reduce((sum, candle) => sum + candle.v, 0),
+    };
+  });
+}
+
 /**
  * Trim to the latest trading session.
  *

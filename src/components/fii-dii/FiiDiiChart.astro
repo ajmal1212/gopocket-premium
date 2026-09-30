@@ -1,0 +1,332 @@
+---
+/**
+ * FII and DII net flows as paired bars, with their sum as a smoothed line.
+ *
+ * An inline SVG rendered on the server, like the stock page's price chart: the
+ * bars are in the HTML before any script runs, and there is no charting
+ * library to ship. The viewBox is stretched to the box (preserveAspectRatio
+ * none), so everything that must not distort - axis labels, the tooltip - is
+ * HTML positioned by percentage over it, and strokes are non-scaling.
+ */
+
+export interface FlowPoint {
+  /** Tooltip heading: "29 Sep 2026", "22 – 26 Sep 2026", "Sep 2026". */
+  label: string;
+  /** Axis label: "29 Sep", "22 Sep", "Sep 26". */
+  short: string;
+  fii: number;
+  dii: number;
+}
+
+interface Props {
+  /** Oldest first, as the chart reads left to right. */
+  points: FlowPoint[];
+}
+
+const { points } = Astro.props;
+
+const WIDTH = 1000;
+const HEIGHT = 320;
+const PAD_Y = 10;
+
+const overall = points.map((point) => point.fii + point.dii);
+const values = points.flatMap((point, index) => [point.fii, point.dii, overall[index]]);
+const maxUp = Math.max(0, ...values);
+const maxDown = Math.max(0, ...values.map((value) => -value));
+
+/**
+ * Gridlines on round numbers: the step is the smallest of 1, 2, 2.5 or 5 x a
+ * power of ten that splits the larger side in two, and each side is extended
+ * to a whole number of steps. A month of heavy FII selling therefore reads
+ * -10k / -5k / 0 / +5k rather than -9,980 / -4,990.
+ */
+function niceStep(raw: number): number {
+  const power = 10 ** Math.floor(Math.log10(raw));
+  return ([1, 2, 2.5, 5, 10].find((m) => m * power >= raw) ?? 10) * power;
+}
+const step = niceStep(Math.max(maxUp, maxDown) / 2 || 1);
+let top = Math.ceil(maxUp / step) * step;
+const bottom = Math.ceil(maxDown / step) * step;
+if (top + bottom === 0) top = step;
+
+const ticks: number[] = [];
+for (let value = -bottom; value <= top + step / 2; value += step) ticks.push(value);
+
+const y = (value: number) => PAD_Y + ((top - value) / (top + bottom)) * (HEIGHT - PAD_Y * 2);
+const pct = (value: number) => `${((y(value) / HEIGHT) * 100).toFixed(3)}%`;
+const zeroY = y(0);
+
+const axisLabel = (value: number) => {
+  if (value === 0) return "0";
+  const size = Math.abs(value);
+  const text = size >= 1000 ? `${+(size / 1000).toFixed(1)}k` : `${+size.toFixed(0)}`;
+  return `${value > 0 ? "+" : "-"}${text}`;
+};
+
+// Each period gets an equal slot; its two bars sit either side of the centre.
+const slot = WIDTH / Math.max(points.length, 1);
+const barWidth = Math.min(slot * 0.3, 28);
+const gap = Math.min(slot * 0.06, 4);
+const centre = (index: number) => (index + 0.5) * slot;
+
+const bar = (value: number, x: number) => {
+  const top = Math.min(y(value), zeroY);
+  // A day with no flow still shows a sliver on the zero line.
+  const height = Math.max(Math.abs(y(value) - zeroY), 0.75);
+  return { x: x.toFixed(2), y: top.toFixed(2), width: barWidth.toFixed(2), height: height.toFixed(2) };
+};
+
+/*
+ * The net line is a Catmull-Rom spline through the centres, converted to
+ * cubic Béziers - a smooth curve that still passes through every day's value.
+ */
+const linePoints = overall.map((value, index) => [centre(index), y(value)] as const);
+let linePath = linePoints.length > 0 ? `M${linePoints[0][0].toFixed(2)},${linePoints[0][1].toFixed(2)}` : "";
+for (let i = 0; i < linePoints.length - 1; i++) {
+  const [x0, y0] = linePoints[i - 1] ?? linePoints[i];
+  const [x1, y1] = linePoints[i];
+  const [x2, y2] = linePoints[i + 1];
+  const [x3, y3] = linePoints[i + 2] ?? linePoints[i + 1];
+  const c1 = [x1 + (x2 - x0) / 6, y1 + (y2 - y0) / 6];
+  const c2 = [x2 - (x3 - x1) / 6, y2 - (y3 - y1) / 6];
+  linePath += ` C${c1.map((v) => v.toFixed(2)).join(",")} ${c2.map((v) => v.toFixed(2)).join(",")} ${x2.toFixed(2)},${y2.toFixed(2)}`;
+}
+
+/** `count` axis dates, evenly spread and always including the first and latest. */
+const spread = (count: number) => {
+  const n = Math.min(points.length, count);
+  return n <= 1
+    ? [points.length - 1]
+    : Array.from({ length: n }, (_, i) => Math.round((i * (points.length - 1)) / (n - 1)));
+};
+// Six dates fit a desktop axis; a phone has room for three before they collide.
+const wideLabels = new Set(spread(6));
+const narrowLabels = new Set(spread(3));
+const labelIndexes = [...new Set([...wideLabels, ...narrowLabels])].sort((a, b) => a - b);
+---
+
+<figure
+  class="border-border-light flex flex-col gap-5 rounded-2xl border bg-white p-4 md:p-6 dark:bg-transparent"
+  data-flow-chart
+>
+  <figcaption class="sr-only">Net FII and DII activity per period, in ₹ crore.</figcaption>
+
+  <div class="grid grid-cols-[40px_minmax(0,1fr)] gap-2">
+    <div class="relative h-64 lg:h-80" aria-hidden="true">
+      {
+        ticks.map((tick) => (
+          <span
+            class="text-text-default/70 absolute right-0 -translate-y-1/2 text-[11px] tabular-nums"
+            style={`top:${pct(tick)}`}
+          >
+            {axisLabel(tick)}
+          </span>
+        ))
+      }
+    </div>
+
+    <div class="flex min-w-0 flex-col gap-2">
+      <div class="relative h-64 touch-pan-y lg:h-80" data-flow-surface>
+        <svg
+          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+          preserveAspectRatio="none"
+          class="absolute inset-0 h-full w-full overflow-visible"
+          role="img"
+          aria-label="Bar chart of net FII and DII activity"
+        >
+          <g class="text-border-light">
+            {
+              ticks.map((tick) => (
+                <line
+                  x1="0"
+                  x2={WIDTH}
+                  y1={y(tick).toFixed(2)}
+                  y2={y(tick).toFixed(2)}
+                  stroke="currentColor"
+                  stroke-width="1"
+                  stroke-dasharray={tick === 0 ? undefined : "3 4"}
+                  vector-effect="non-scaling-stroke"
+                />
+              ))
+            }
+          </g>
+
+          {
+            /*
+            Grouped with the origin on the zero line, so the page can grow the
+            bars out from it when a new period is swapped in.
+          */
+          }
+          <g style={`transform-origin:0 ${zeroY.toFixed(2)}px`} data-flow-bars>
+            <g class="text-primary" fill="currentColor">
+              {points.map((point, index) => <rect {...bar(point.fii, centre(index) - gap / 2 - barWidth)} />)}
+            </g>
+            <g class="text-amber-400" fill="currentColor">
+              {points.map((point, index) => <rect {...bar(point.dii, centre(index) + gap / 2)} />)}
+            </g>
+          </g>
+
+          <path
+            d={linePath}
+            class="text-slate-400 dark:text-slate-500"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            vector-effect="non-scaling-stroke"
+            data-net-line></path>
+        </svg>
+
+        {/* Hover band and card: HTML, so neither is stretched with the viewBox. */}
+        <div class="pointer-events-none absolute inset-0 hidden" data-flow-hover>
+          <div class="bg-dark/5 absolute top-0 bottom-0 rounded-md dark:bg-white/5" data-flow-band></div>
+          <div
+            class="border-border-light absolute min-w-[180px] rounded-xl border bg-white px-3 py-2.5 shadow-lg dark:bg-[#1c202e]"
+            data-flow-card
+          >
+            <p class="text-dark mb-1.5 text-xs font-semibold" data-flow-label></p>
+            <dl class="grid grid-cols-[auto_auto] gap-x-4 gap-y-1 text-xs">
+              <dt class="text-text-default flex items-center gap-1.5">
+                <span class="bg-primary h-2 w-2 rounded-sm"></span>FII net
+              </dt>
+              <dd class="text-right font-semibold tabular-nums" data-flow-fii></dd>
+              <dt class="text-text-default flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-sm bg-amber-400"></span>DII net
+              </dt>
+              <dd class="text-right font-semibold tabular-nums" data-flow-dii></dd>
+              <dt class="text-text-default flex items-center gap-1.5">
+                <span class="h-0.5 w-2 rounded-full bg-slate-400"></span>Net overall
+              </dt>
+              <dd class="text-right font-semibold tabular-nums" data-flow-net></dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative h-4" aria-hidden="true">
+        {
+          labelIndexes.map((index) => (
+            <span
+              class:list={[
+                "text-text-default/70 absolute -translate-x-1/2 text-[11px] whitespace-nowrap first:translate-x-0 last:-translate-x-full",
+                !narrowLabels.has(index) && "max-md:hidden",
+                !wideLabels.has(index) && "md:hidden",
+              ]}
+              style={`left:${((centre(index) / WIDTH) * 100).toFixed(3)}%`}
+            >
+              {points[index].short}
+            </span>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs">
+    <span class="text-text-default flex items-center gap-2">
+      <span class="bg-primary h-3 w-3 rounded-sm"></span>Net FII activity
+    </span>
+    <span class="text-text-default flex items-center gap-2">
+      <span class="h-3 w-3 rounded-sm bg-amber-400"></span>Net DII activity
+    </span>
+    <button
+      type="button"
+      role="switch"
+      aria-checked="true"
+      class="group text-text-default flex items-center gap-2"
+      data-net-toggle
+    >
+      <span
+        class="relative h-4 w-7 rounded-full bg-slate-800 transition-colors duration-200 group-aria-[checked=false]:bg-slate-300 dark:bg-slate-300 dark:group-aria-[checked=false]:bg-slate-600"
+      >
+        <span
+          class="absolute top-0.5 left-0.5 h-3 w-3 translate-x-3 rounded-full bg-white shadow-sm transition-transform dark:bg-slate-900 duration-200 group-aria-[checked=false]:translate-x-0 motion-reduce:transition-none"
+        ></span>
+      </span>
+      Net overall activity
+    </button>
+  </div>
+
+  <script
+    type="application/json"
+    data-flow-points
+    set:html={JSON.stringify(points.map((point) => [point.label, point.fii, point.dii]))}
+  />
+</figure>
+
+<script>
+  /**
+   * Tooltip and the net-line switch. The chart itself is complete without this;
+   * the script only reads the rows it was drawn from and positions HTML over it.
+   *
+   * Run again on "fii-dii:swap": the page replaces the chart in place when the
+   * period changes, and the new one has no listeners yet. A chart that was
+   * kept across the swap is skipped.
+   */
+  const wired = new WeakSet<Element>();
+
+  function wire() {
+    const chart = document.querySelector<HTMLElement>("[data-flow-chart]");
+    const surface = chart?.querySelector<HTMLElement>("[data-flow-surface]");
+    const layer = chart?.querySelector<HTMLElement>("[data-flow-hover]");
+    const band = chart?.querySelector<HTMLElement>("[data-flow-band]");
+    const card = chart?.querySelector<HTMLElement>("[data-flow-card]");
+    const source = chart?.querySelector<HTMLScriptElement>("[data-flow-points]");
+
+    if (chart && surface && layer && band && card && source && !wired.has(chart)) {
+      wired.add(chart);
+      const points = JSON.parse(source.textContent || "[]") as [string, number, number][];
+
+      const crore = (value: number) =>
+        `${value >= 0 ? "+" : "-"}₹${Math.abs(value).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Cr`;
+
+      const fill = (field: string, value: number) => {
+        const el = card.querySelector<HTMLElement>(`[data-flow-${field}]`);
+        if (!el) return;
+        el.textContent = crore(value);
+        el.classList.toggle("text-emerald-600", value >= 0);
+        el.classList.toggle("text-red-600", value < 0);
+      };
+
+      const label = card.querySelector<HTMLElement>("[data-flow-label]");
+
+      surface.addEventListener("pointermove", (event) => {
+        const box = surface.getBoundingClientRect();
+        if (box.width === 0 || points.length === 0) return;
+        const x = event.clientX - box.left;
+        const slot = box.width / points.length;
+        const index = Math.min(points.length - 1, Math.max(0, Math.floor(x / slot)));
+        const [name, fii, dii] = points[index];
+
+        band.style.left = `${index * slot}px`;
+        band.style.width = `${slot}px`;
+        if (label) label.textContent = name;
+        fill("fii", fii);
+        fill("dii", dii);
+        fill("net", fii + dii);
+
+        // Beside the hovered period, on whichever side has room.
+        layer.classList.remove("hidden");
+        const width = card.offsetWidth;
+        const right = (index + 1) * slot + 8;
+        const left = right + width <= box.width ? right : index * slot - width - 8;
+        card.style.left = `${Math.max(0, left)}px`;
+        card.style.top = `${Math.max(0, Math.min(event.clientY - box.top - card.offsetHeight / 2, box.height - card.offsetHeight))}px`;
+      });
+      for (const type of ["pointerleave", "pointercancel"]) {
+        surface.addEventListener(type, () => layer.classList.add("hidden"));
+      }
+
+      const toggle = chart.querySelector<HTMLButtonElement>("[data-net-toggle]");
+      const line = chart.querySelector<SVGPathElement>("[data-net-line]");
+      toggle?.addEventListener("click", () => {
+        const on = toggle.getAttribute("aria-checked") !== "true";
+        toggle.setAttribute("aria-checked", String(on));
+        line?.classList.toggle("hidden", !on);
+      });
+    }
+  }
+
+  wire();
+  document.addEventListener("fii-dii:swap", wire);
+</script>

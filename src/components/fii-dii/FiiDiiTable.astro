@@ -1,0 +1,69 @@
+---
+import type { FiiDiiRow } from "@/lib/fii-dii";
+
+interface Props {
+  /** The rows for this page of the table, newest first. */
+  rows: FiiDiiRow[];
+  /** Each row's period as the first column shows it. */
+  labelFor: (row: FiiDiiRow) => string;
+  /** Weekly and monthly rows note how many sessions they cover; a daily row is always one. */
+  showSessions: boolean;
+  caption: string;
+}
+
+const { rows, labelFor, showSessions, caption } = Astro.props;
+
+const amount = (value: number) => value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const net = (value: number) => `${value > 0 ? "+" : value < 0 ? "-" : ""}${amount(Math.abs(value))}`;
+const tone = (value: number) =>
+  value > 0 ? "text-emerald-600 dark:text-emerald-400" : value < 0 ? "text-red-600 dark:text-red-400" : "";
+
+const cell = "px-4 py-4 text-center tabular-nums whitespace-nowrap";
+const head = "text-text-default px-4 py-3 text-center text-xs font-semibold whitespace-nowrap";
+---
+
+{/* Scrolls sideways on a phone; seven numeric columns can't reflow into one. */}
+<div class="border-border-light overflow-x-auto rounded-2xl border bg-white dark:bg-transparent">
+  <table class="w-full min-w-[760px] border-collapse text-sm">
+    <caption class="sr-only">{caption}</caption>
+    <thead class="bg-theme-light">
+      <tr class="border-border-light border-b">
+        <th scope="col" rowspan="2" class:list={[head, "border-border-light border-r"]}>Date</th>
+        <th scope="colgroup" colspan="3" class:list={[head, "border-border-light border-r border-b"]}>FII activity</th>
+        <th scope="colgroup" colspan="3" class:list={[head, "border-border-light border-b"]}>DII activity</th>
+      </tr>
+      <tr class="border-border-light border-b">
+        <th scope="col" class={head}>Gross buy (₹ Cr)</th>
+        <th scope="col" class={head}>Gross sell (₹ Cr)</th>
+        <th scope="col" class:list={[head, "border-border-light border-r"]}>Net buy/sell (₹ Cr)</th>
+        <th scope="col" class={head}>Gross buy (₹ Cr)</th>
+        <th scope="col" class={head}>Gross sell (₹ Cr)</th>
+        <th scope="col" class={head}>Net buy/sell (₹ Cr)</th>
+      </tr>
+    </thead>
+    <tbody class="divide-border-light divide-y">
+      {
+        rows.map((row) => (
+          <tr class="hover:bg-theme-light/60 transition-colors">
+            <th scope="row" class:list={[cell, "text-text-default border-border-light border-r font-normal"]}>
+              {labelFor(row)}
+              {showSessions && (
+                <span class="text-text-default/60 block text-[11px]">
+                  {row.tradingDays} {row.tradingDays === 1 ? "session" : "sessions"}
+                </span>
+              )}
+            </th>
+            <td class:list={[cell, "text-dark"]}>{amount(row.fiiBuy)}</td>
+            <td class:list={[cell, "text-dark"]}>{amount(row.fiiSell)}</td>
+            <td class:list={[cell, "border-border-light border-r font-semibold", tone(row.fiiNet)]}>
+              {net(row.fiiNet)}
+            </td>
+            <td class:list={[cell, "text-dark"]}>{amount(row.diiBuy)}</td>
+            <td class:list={[cell, "text-dark"]}>{amount(row.diiSell)}</td>
+            <td class:list={[cell, "font-semibold", tone(row.diiNet)]}>{net(row.diiNet)}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>

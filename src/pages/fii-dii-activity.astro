@@ -1,0 +1,484 @@
+---
+/**
+ * /fii-dii-activity - institutional cash-market flows from Frappe's
+ * gopocket.api.get_fii_dii.
+ *
+ * The period tabs, the custom range and the table's pages are all query
+ * parameters on this one address, each a full server render, so the page
+ * works without JS and every view is a real link. They all canonicalise to the
+ * bare path: one page viewed several ways, not several pages competing for
+ * "FII DII data".
+ *
+ * With JS the same links are followed in place: the script at the bottom
+ * fetches the address and swaps the data into the page, so switching a tab
+ * doesn't reload the page and throw the reader back to the top.
+ */
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import FAQSection from "@/components/FAQSection.astro";
+import Pagination from "@/components/Pagination.astro";
+import FiiDiiChart, { type FlowPoint } from "@/components/fii-dii/FiiDiiChart.astro";
+import FiiDiiTable from "@/components/fii-dii/FiiDiiTable.astro";
+import { FII_DII_COPY as copy } from "@/components/fii-dii/fii-dii-data";
+import { PERIODS, fetchFiiDii, istToday, resolveQuery, type FiiDiiPeriod, type FiiDiiRow } from "@/lib/fii-dii";
+import Landmark from "@lucide/astro/icons/landmark";
+
+const query = resolveQuery(Astro.url.searchParams);
+const waitUntil = Astro.locals.runtime?.ctx?.waitUntil?.bind(Astro.locals.runtime.ctx);
+const rows = (await fetchFiiDii(query, waitUntil)) ?? null;
+const data = rows ?? [];
+
+/* --- Labels ------------------------------------------------------------- */
+
+// Dates arrive as "YYYY-MM-DD" in IST; read and printed in UTC so no
+// timezone offset can move them a day.
+const format = (iso: string, options: Intl.DateTimeFormatOptions) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-IN", { timeZone: "UTC", ...options });
+const dayMonthYear = (iso: string) => format(iso, { day: "numeric", month: "short", year: "numeric" });
+const dayMonth = (iso: string) => format(iso, { day: "numeric", month: "short" });
+
+/** "29 Sep – 3 Oct 2026", or "22 – 26 Sep 2026" within one month. */
+function span(from: string, to: string): string {
+  if (from === to) return dayMonthYear(from);
+  if (from.slice(0, 4) !== to.slice(0, 4)) return `${dayMonthYear(from)} – ${dayMonthYear(to)}`;
+  if (from.slice(0, 7) !== to.slice(0, 7)) return `${dayMonth(from)} – ${dayMonthYear(to)}`;
+  return `${format(from, { day: "numeric" })} – ${dayMonthYear(to)}`;
+}
+
+const labelFor = (row: FiiDiiRow): string =>
+  query.period === "monthly"
+    ? format(row.from, { month: "short", year: "numeric" })
+    : query.period === "weekly"
+      ? span(row.from, row.to)
+      : dayMonthYear(row.from);
+
+const shortFor = (row: FiiDiiRow): string =>
+  query.period === "monthly" ? format(row.from, { month: "short", year: "2-digit" }) : dayMonth(row.from);
+
+/* --- Summary ------------------------------------------------------------ */
+
+/*
+ * The daily view's tiles are the latest session on its own - "what did FIIs do
+ * today" is the question that view answers, and a month's running total hides
+ * it. The other views total the range shown, which is what their bars add up to.
+ */
+const latestOnly = query.period === "daily";
+const counted = latestOnly ? data.slice(0, 1) : data;
+const fiiTotal = counted.reduce((sum, row) => sum + row.fiiNet, 0);
+const diiTotal = counted.reduce((sum, row) => sum + row.diiNet, 0);
+const sessions = data.reduce((sum, row) => sum + row.tradingDays, 0);
+const covered = data.length > 0 ? span(data[data.length - 1].from, data[0].to) : null;
+
+// One day is shown to the paisa, as the table has it; a total is rounded.
+const digits = latestOnly ? 2 : 0;
+const crore = (value: number) =>
+  `${value > 0 ? "+" : value < 0 ? "-" : ""}₹${Math.abs(value).toLocaleString("en-IN", { minimumFractionDigits: digits, maximumFractionDigits: digits })} Cr`;
+const tone = (value: number) =>
+  value >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400";
+
+const stance = (value: number) => (value >= 0 ? "Net buyers" : "Net sellers");
+const on = latestOnly && data[0] ? ` · ${dayMonthYear(data[0].from)}` : "";
+const tiles = [
+  { label: "FII net", value: fiiTotal, note: `${stance(fiiTotal)}${on}` },
+  { label: "DII net", value: diiTotal, note: `${stance(diiTotal)}${on}` },
+  { label: "Net overall", value: fiiTotal + diiTotal, note: `FII + DII${on}` },
+];
+
+const points: FlowPoint[] = [...data]
+  .reverse()
+  .map((row) => ({ label: labelFor(row), short: shortFor(row), fii: row.fiiNet, dii: row.diiNet }));
+
+/* --- Addresses ---------------------------------------------------------- */
+
+const PER_PAGE = 10;
+const pageCount = Math.max(1, Math.ceil(data.length / PER_PAGE));
+const requestedPage = Number.parseInt(Astro.url.searchParams.get("page") ?? "1", 10);
+const page = Number.isInteger(requestedPage) ? Math.min(Math.max(requestedPage, 1), pageCount) : 1;
+const pageRows = data.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+function hrefFor(period: FiiDiiPeriod, pageNumber = 1): string {
+  const params = new URLSearchParams();
+  if (period !== "daily") params.set("period", period);
+  if (period === "custom" && query.period === "custom") {
+    params.set("from", query.from);
+    params.set("to", query.to);
+  }
+  if (pageNumber > 1) params.set("page", String(pageNumber));
+  const search = params.toString();
+  return search ? `${copy.path}?${search}` : copy.path;
+}
+
+const today = istToday();
+const activeTab = PERIODS.findIndex((option) => option.id === query.period);
+const periodLabel = PERIODS.find((option) => option.id === query.period)?.label ?? "Daily";
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: copy.faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: { "@type": "Answer", text: faq.answer },
+  })),
+};
+---
+
+<Layout title={copy.title} description={copy.description} canonical={copy.path}>
+  <Header currentPath={copy.path} />
+
+  <main class="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-10 px-4 py-10 md:px-8 lg:gap-12 lg:py-16">
+    <header class="mx-auto flex max-w-4xl flex-col items-center gap-4 text-center">
+      <h1 class="text-h3 text-dark lg:text-h1 font-semibold tracking-tight">{copy.heading}</h1>
+      <p class="text-text-default text-base leading-relaxed lg:text-lg">{copy.intro}</p>
+    </header>
+
+    <section class="flex flex-col gap-6" aria-labelledby="fii-dii-summary" data-fii-root>
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div class="flex flex-wrap items-center gap-3">
+          <span
+            class="border-border-light text-dark inline-flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-sm font-semibold dark:bg-transparent"
+          >
+            <Landmark class="text-primary h-4 w-4" stroke-width={1.8} aria-hidden="true" />
+            Cash market
+          </span>
+          <span class="text-text-default text-sm" data-fii-meta>
+            {covered && `${covered} · ${sessions} ${sessions === 1 ? "session" : "sessions"}`}
+          </span>
+        </div>
+
+        {
+          /*
+          Equal-width tabs, so the active fill can be one pill that slides
+          between them - its offset is just the tab's index, known on the
+          server, and the script only has to change that index.
+        */
+        }
+        <nav aria-label="Period">
+          <ul
+            class="border-border-light relative flex w-max gap-1 rounded-full border bg-white p-1 dark:bg-transparent"
+          >
+            <li
+              class="bg-primary shadow-primary/30 absolute top-1 left-1 h-9 w-[78px] rounded-full shadow-md transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:w-24"
+              style={`transform:translateX(calc(${activeTab} * (100% + 4px)))`}
+              aria-hidden="true"
+              data-fii-thumb
+            >
+            </li>
+            {
+              PERIODS.map((option) => (
+                <li>
+                  <a
+                    href={hrefFor(option.id)}
+                    aria-current={option.id === query.period ? "page" : undefined}
+                    class="text-text-default hover:text-dark relative z-10 flex h-9 w-[78px] items-center justify-center rounded-full text-sm font-semibold transition-colors duration-300 aria-[current=page]:text-white! md:w-24"
+                    data-fii-tab
+                  >
+                    {option.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </div>
+
+      {
+        /*
+        Everything a tab, a date range or a table page changes. The script
+        below swaps these parts in place; each is keyed so that one which comes
+        back identical (the chart, when only the table's page changed) is left
+        alone rather than redrawn.
+      */
+      }
+      <div class="flex flex-col gap-6 transition-opacity duration-200" data-fii-view>
+        <h2 id="fii-dii-summary" class="sr-only" data-fii-part="heading">{periodLabel} FII and DII activity</h2>
+
+        {
+          query.period === "custom" && (
+            <form
+              method="get"
+              action={copy.path}
+              class="border-border-light flex flex-wrap items-end gap-3 rounded-2xl border bg-white p-4 dark:bg-transparent"
+              data-fii-part="form"
+            >
+              <input type="hidden" name="period" value="custom" />
+              <label class="text-text-default flex flex-col gap-1.5 text-xs font-semibold">
+                From
+                <input
+                  type="date"
+                  name="from"
+                  value={query.from}
+                  max={today}
+                  required
+                  class="border-border-light text-dark focus:border-primary rounded-lg border bg-transparent px-3 py-2 text-sm font-normal outline-none"
+                />
+              </label>
+              <label class="text-text-default flex flex-col gap-1.5 text-xs font-semibold">
+                To
+                <input
+                  type="date"
+                  name="to"
+                  value={query.to}
+                  max={today}
+                  required
+                  class="border-border-light text-dark focus:border-primary rounded-lg border bg-transparent px-3 py-2 text-sm font-normal outline-none"
+                />
+              </label>
+              <button
+                type="submit"
+                class="bg-primary rounded-lg px-5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              >
+                Apply
+              </button>
+              <p class="text-text-default/75 w-full text-xs">
+                Custom ranges show one bar per trading day, up to a year.
+              </p>
+            </form>
+          )
+        }
+
+        {
+          data.length > 0 ? (
+            <>
+              <ul class="grid gap-3 sm:grid-cols-3" data-fii-part="tiles">
+                {tiles.map((tile) => (
+                  <li class="border-border-light flex flex-col gap-1 rounded-2xl border bg-white p-4 dark:bg-transparent">
+                    <span class="text-text-default text-xs font-semibold">{tile.label}</span>
+                    <span class:list={["text-h5! font-semibold tabular-nums", tone(tile.value)]}>
+                      {crore(tile.value)}
+                    </span>
+                    <span class="text-text-default/70 text-xs">{tile.note}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div data-fii-part="chart">
+                <FiiDiiChart points={points} />
+              </div>
+
+              <section class="flex flex-col gap-5 pt-4 lg:pt-6" aria-labelledby="fii-dii-table" data-fii-part="table">
+                <h3 id="fii-dii-table" class="text-h5! text-dark font-semibold">
+                  {periodLabel} FII and DII data
+                </h3>
+                <FiiDiiTable
+                  rows={pageRows}
+                  labelFor={labelFor}
+                  showSessions={query.period === "weekly" || query.period === "monthly"}
+                  caption={`${periodLabel} FII and DII gross buy, gross sell and net activity in the cash market, in ₹ crore`}
+                />
+                <Pagination
+                  current={page}
+                  total={pageCount}
+                  hrefFor={(n) => hrefFor(query.period, n)}
+                  label="FII and DII data pages"
+                />
+              </section>
+            </>
+          ) : (
+            <div
+              class="border-border-light text-text-default rounded-2xl border px-6 py-16 text-center text-sm"
+              data-fii-part="empty"
+            >
+              {rows
+                ? "No FII or DII figures were published for this period."
+                : "FII and DII data is unavailable right now. Please try again in a few minutes."}
+            </div>
+          )
+        }
+      </div>
+    </section>
+
+    <section class="grid gap-6 md:grid-cols-3" aria-label="About FII and DII data">
+      {
+        copy.about.map((block) => (
+          <div class="flex flex-col gap-2">
+            <h2 class="text-h6! text-dark font-semibold">{block.heading}</h2>
+            <p class="text-text-default text-sm leading-relaxed">{block.body}</p>
+          </div>
+        ))
+      }
+    </section>
+
+    <p class="text-text-default/75 text-xs leading-relaxed">
+      Figures are the exchanges' provisional FII and DII data for the cash segment, in ₹ crore, and are shown for
+      information only. Investments in securities are subject to market risk; read all related documents carefully
+      before investing.
+    </p>
+  </main>
+
+  <FAQSection
+    eyebrow="FII & DII FAQs"
+    title="FII and DII FAQs"
+    description="Common questions about FII and DII trading activity in the Indian stock market."
+    faqs={copy.faqs}
+  />
+
+  <Footer />
+
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+</Layout>
+
+<script>
+  /**
+   * In-place navigation for the tabs, the date range and the table's pages.
+   *
+   * Each of those is a real address that renders the whole page, so the swap
+   * needs no second data path: the address is fetched as HTML and the parts
+   * that changed are lifted out of it. Anything that goes wrong - a failed
+   * fetch, markup that isn't what was expected - falls back to following the
+   * link normally.
+   */
+  const root = document.querySelector<HTMLElement>("[data-fii-root]");
+  const view = root?.querySelector<HTMLElement>("[data-fii-view]");
+
+  if (root && view) {
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+    const tabs = [...root.querySelectorAll<HTMLAnchorElement>("[data-fii-tab]")];
+    const thumb = root.querySelector<HTMLElement>("[data-fii-thumb]");
+    const meta = root.querySelector<HTMLElement>("[data-fii-meta]");
+
+    const partsOf = (parent: Element) =>
+      [...parent.children].filter(
+        (child): child is HTMLElement => child instanceof HTMLElement && !!child.dataset.fiiPart,
+      );
+
+    // Each part's markup as the server sent it, to tell a changed part from one
+    // that came back the same. Not read from the live node, which the chart's
+    // own script alters as it is used.
+    const sent = new Map(partsOf(view).map((part) => [part.dataset.fiiPart!, part.outerHTML]));
+
+    const selectTab = (index: number) => {
+      if (index < 0) return;
+      tabs.forEach((tab, i) => {
+        if (i === index) tab.setAttribute("aria-current", "page");
+        else tab.removeAttribute("aria-current");
+      });
+      if (thumb) thumb.style.transform = `translateX(calc(${index} * (100% + 4px)))`;
+    };
+
+    let request: AbortController | null = null;
+
+    const load = async (url: string, push: boolean) => {
+      // A second click before the first has answered replaces it.
+      request?.abort();
+      const current = (request = new AbortController());
+      view.style.opacity = "0.5";
+      view.setAttribute("aria-busy", "true");
+
+      let fresh: Document | null = null;
+      try {
+        const response = await fetch(url, { signal: current.signal });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        fresh = new DOMParser().parseFromString(await response.text(), "text/html");
+      } catch {
+        // Handled below: a superseded request is dropped, a failed one reloads.
+      }
+      if (current.signal.aborted) return;
+      const next = fresh?.querySelector("[data-fii-view]");
+      if (!fresh || !next) {
+        location.href = url;
+        return;
+      }
+      if (push) history.pushState(null, "", url);
+
+      const before = view.offsetHeight;
+      const live = new Map(partsOf(view).map((part) => [part.dataset.fiiPart!, part]));
+      const entering: HTMLElement[] = [];
+      const parts = partsOf(next).map((part) => {
+        const key = part.dataset.fiiPart!;
+        const kept = live.get(key);
+        if (kept && sent.get(key) === part.outerHTML) return kept;
+        sent.set(key, part.outerHTML);
+        entering.push(part);
+        return part;
+      });
+      for (const key of [...sent.keys()]) {
+        if (!parts.some((part) => part.dataset.fiiPart === key)) sent.delete(key);
+      }
+
+      view.replaceChildren(...parts);
+      view.style.opacity = "";
+      view.removeAttribute("aria-busy");
+
+      // The tabs sit outside the view; their addresses can change (Custom
+      // carries its dates) and Back/Forward moves the selection.
+      const freshTabs = [...fresh.querySelectorAll<HTMLAnchorElement>("[data-fii-tab]")];
+      freshTabs.forEach((tab, i) => tabs[i]?.setAttribute("href", tab.getAttribute("href") ?? ""));
+      selectTab(freshTabs.findIndex((tab) => tab.hasAttribute("aria-current")));
+      if (meta) meta.textContent = fresh.querySelector("[data-fii-meta]")?.textContent ?? "";
+
+      // The new chart needs its tooltip and switch wired up.
+      document.dispatchEvent(new Event("fii-dii:swap"));
+
+      if (calm.matches) return;
+
+      /*
+       * The views differ in height - five weekly rows against ten daily ones -
+       * so the container glides to its new height instead of snapping, which
+       * would jolt everything below it. The changed parts then rise in one
+       * after another, the bars grow out from the zero line and the rows
+       * follow.
+       */
+      const after = view.offsetHeight;
+      if (after !== before) {
+        view.style.overflow = "clip";
+        const glide = view.animate([{ height: `${before}px` }, { height: `${after}px` }], {
+          duration: 450,
+          easing: EASE,
+        });
+        glide.onfinish = glide.oncancel = () => {
+          view.style.overflow = "";
+        };
+      }
+      entering.forEach((part, i) => {
+        const delay = i * 70;
+        part.animate(
+          [
+            { opacity: 0, transform: "translateY(16px)" },
+            { opacity: 1, transform: "none" },
+          ],
+          { duration: 500, delay, easing: EASE, fill: "backwards" },
+        );
+        part.querySelector("[data-flow-bars]")?.animate([{ transform: "scaleY(0)" }, { transform: "scaleY(1)" }], {
+          duration: 700,
+          delay: delay + 100,
+          easing: EASE,
+          fill: "backwards",
+        });
+        part.querySelectorAll("tbody tr").forEach((row, r) => {
+          row.animate([{ opacity: 0 }, { opacity: 1 }], {
+            duration: 300,
+            delay: delay + 120 + r * 30,
+            easing: "ease-out",
+            fill: "backwards",
+          });
+        });
+      });
+    };
+
+    root.addEventListener("click", (event) => {
+      // A modified click still opens the link as a link.
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const link = (event.target as Element).closest<HTMLAnchorElement>("a[href]");
+      if (!link || link.origin !== location.origin || link.pathname !== location.pathname) return;
+      event.preventDefault();
+
+      // The pill moves on the click, not when the data arrives.
+      selectTab(tabs.indexOf(link));
+      void load(link.pathname + link.search, true);
+    });
+
+    root.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const params = new URLSearchParams();
+      for (const [name, value] of new FormData(event.target as HTMLFormElement)) {
+        if (typeof value === "string") params.set(name, value);
+      }
+      void load(`${location.pathname}?${params}`, true);
+    });
+
+    window.addEventListener("popstate", () => void load(location.pathname + location.search, false));
+  }
+</script>

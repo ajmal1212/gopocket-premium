@@ -17,7 +17,8 @@ import {
 
 const MAX_POSITIONS = 10;
 const MAX_QUANTITY = 1_000_000;
-const SYMBOL = /^[A-Z0-9&_-]{1,40}$/i;
+// "." for half-point strikes, e.g. WIPRO27OCT26C107.5.
+const SYMBOL = /^[A-Z0-9&_.-]{1,40}$/i;
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {

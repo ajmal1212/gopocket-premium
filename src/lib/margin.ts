@@ -1,5 +1,4 @@
 import { getFrappeUrl, getFrappeToken } from "@/lib/frappe";
-import { commodityLotSizes } from "@/lib/brokerage";
 
 /**
  * Margin calculator backend: derivative lookups in Contract Master and the
@@ -118,6 +117,47 @@ export async function searchUnderlyings(
     .map((row) => ({ symbol: row.symbol!, expiry: row.expiry_date! }));
 }
 
+/**
+ * One MCX lot, in the quantity unit the SPAN margin API expects.
+ *
+ * Deliberately separate from `commodityLotSizes` in brokerage.ts. That table
+ * turns a quoted price into a contract value (gold is quoted per 10 g, so
+ * GOLDM is 10); this one is what the margin API counts (GOLDM is 100). The
+ * units differ by commodity - tonnes for base metals, grams for GOLDM - so
+ * neither can be derived from the other.
+ */
+const MCX_MARGIN_LOT_SIZES: Record<string, number> = {
+  ALUMINI: 1,
+  ALUMINIUM: 5,
+  CARDAMOM: 100,
+  COPPER: 2500,
+  COTTON: 25,
+  COTTONOIL: 5,
+  CRUDEOIL: 100,
+  CRUDEOILM: 10,
+  ELECDMBL: 50,
+  GOLD: 1,
+  GOLDGUINEA: 8,
+  GOLDM: 100,
+  GOLDPETAL: 1,
+  GOLDTEN: 10,
+  KAPAS: 4,
+  LEAD: 5,
+  LEADMINI: 1,
+  MCXBULLDEX: 30,
+  MCXMETLDEX: 40,
+  MENTHAOIL: 360,
+  NATGASMINI: 250,
+  NATURALGAS: 1250,
+  NICKEL: 250,
+  SILVER: 30,
+  SILVER100: 100,
+  SILVERM: 5,
+  SILVERMIC: 1,
+  ZINC: 5,
+  ZINCMINI: 1,
+};
+
 /** Upper bound on one expiry's contracts - a busy index chain runs to a few hundred strikes a side. */
 const CHAIN_LIMIT = 3000;
 
@@ -126,11 +166,9 @@ const CHAIN_LIMIT = 3000;
  * option chain, both sides, strikes ascending. The page fills its Option type
  * and Strike fields from this one response.
  *
- * MCX lot sizes come from the brokerage calculator's table, not Contract
- * Master: Contract Master lists every MCX contract with a lot size of 1, and
- * the margin API prices exactly the quantity it is sent, so a lot sent as 1
- * was priced as a single unit. A commodity missing from the table falls back
- * to Contract Master's figure.
+ * MCX lot sizes come from MCX_MARGIN_LOT_SIZES below, not Contract Master,
+ * which lists every MCX contract with a lot size of 1. A commodity missing
+ * from the table falls back to Contract Master's figure.
  */
 export async function listContracts(
   exchange: MarginExchange,
@@ -151,7 +189,7 @@ export async function listContracts(
     }),
   );
 
-  const lotSize = (row: ContractRow) => (exchange === "MCX" && commodityLotSizes[symbol]) || Number(row.lot_size);
+  const lotSize = (row: ContractRow) => (exchange === "MCX" && MCX_MARGIN_LOT_SIZES[symbol]) || Number(row.lot_size);
 
   return (
     rows

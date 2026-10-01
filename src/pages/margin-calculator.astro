@@ -9,6 +9,7 @@ import Search from "@lucide/astro/icons/search";
 import X from "@lucide/astro/icons/x";
 import Layers from "@lucide/astro/icons/layers";
 import ChevronDown from "@lucide/astro/icons/chevron-down";
+import { components, faqItems, guides, steps } from "@/components/margin/margin-content";
 
 /*
  * F&O margin calculator. The visitor builds a basket of futures and options
@@ -37,34 +38,6 @@ const kinds = [
   { value: "OPT", label: "Options" },
 ];
 
-const faqItems = [
-  {
-    question: "What is a margin calculator?",
-    answer:
-      "A margin calculator tells you how much money you need in your trading account to take a futures or options position. GoPocket's calculator uses the exchange SPAN files, so the figure is the SPAN plus exposure margin the exchange blocks for your trade.",
-  },
-  {
-    question: "What is SPAN margin?",
-    answer:
-      "SPAN (Standard Portfolio Analysis of Risk) margin is the minimum margin the exchange requires for a derivatives position. It is the worst loss the position could make in a day across a set of price and volatility scenarios.",
-  },
-  {
-    question: "What is exposure margin?",
-    answer:
-      "Exposure margin is charged on top of SPAN margin as an extra buffer against moves the SPAN scenarios do not cover. It is a fixed percentage of the contract value set by the exchange.",
-  },
-  {
-    question: "Why is the margin lower when I add a hedge?",
-    answer:
-      "SPAN looks at the whole basket, not each position alone. When one position offsets the risk of another - a long future with a long put, or a sold option with a bought option further out - the worst-case loss of the basket falls, and so does the margin. The calculator shows this saving as the margin benefit.",
-  },
-  {
-    question: "Do I need margin to buy options?",
-    answer:
-      "Buying an option needs the full premium rather than SPAN margin, because your loss is limited to what you pay. Selling an option or trading futures needs SPAN and exposure margin.",
-  },
-];
-
 const faqCategories = [{ id: "margin-faqs", label: "FAQs for Margin", items: faqItems }];
 
 const structuredData = [
@@ -76,7 +49,7 @@ const structuredData = [
     applicationCategory: "FinanceApplication",
     operatingSystem: "Any",
     description:
-      "Calculate SPAN and exposure margin for futures and options on NSE, BSE and MCX, including the margin benefit on hedged positions.",
+      "Free F&O margin calculator for SPAN and exposure margin on NSE, BSE and MCX futures and options, with the margin benefit on hedged positions.",
     offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
     provider: { "@type": "Organization", name: "GoPocket", url: "https://www.gopocket.in" },
   },
@@ -88,32 +61,6 @@ const structuredData = [
       name: item.question,
       acceptedAnswer: { "@type": "Answer", text: item.answer },
     })),
-  },
-];
-
-const steps = [
-  "Choose the exchange - NFO for NSE futures and options, BFO for BSE, MCX for commodities.",
-  "Pick Futures or Options, then search the symbol and choose its expiry, e.g. NIFTY - 27 Oct 2026.",
-  "For an option, choose CE or PE and the strike price.",
-  "Enter the number of lots, pick Buy or Sell and add it to the basket.",
-  "Add more legs to see how a hedge lowers the total margin.",
-];
-
-const components = [
-  {
-    title: "SPAN margin",
-    description:
-      "The exchange's estimate of the worst one-day loss on your basket, worked out over 16 price and volatility scenarios.",
-  },
-  {
-    title: "Exposure margin",
-    description:
-      "An extra buffer on top of SPAN, charged as a percentage of the contract value, for moves beyond those scenarios.",
-  },
-  {
-    title: "Margin benefit",
-    description:
-      "What you save by holding positions that offset each other, compared with taking every leg on its own.",
   },
 ];
 
@@ -136,9 +83,9 @@ const fieldInputClass =
 ---
 
 <Layout
-  title="F&O Margin Calculator | SPAN & Exposure Margin | GoPocket"
-  description="Calculate SPAN and exposure margin for futures and options on NSE, BSE and MCX. See the margin benefit on hedged positions with GoPocket's free margin calculator."
-  keywords="margin calculator, span margin calculator, f&o margin calculator, option margin calculator, futures margin calculator, exposure margin, nifty margin calculator, mcx margin calculator, hedge margin benefit, gopocket margin"
+  title="Margin Calculator - F&O, SPAN & MCX Margin Calculator | GoPocket"
+  description="Free F&O margin calculator: check SPAN and exposure margin for Nifty, Bank Nifty, Sensex, stock futures, option selling and MCX commodities, with hedge benefit."
+  keywords="margin calculator, f&o margin calculator, span margin calculator, span calculator, option margin calculator, futures margin calculator, nifty margin calculator, bank nifty margin calculator, sensex margin calculator, option selling margin, margin required for nifty futures, mcx margin calculator, commodity margin calculator, crude oil margin calculator, gold margin calculator, exposure margin, hedge margin benefit, gopocket margin calculator"
   canonical="/margin-calculator"
 >
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(structuredData)} />
@@ -150,8 +97,8 @@ const fieldInputClass =
       <div class="mb-8 space-y-2">
         <h1 class="h3 font-bold tracking-tight text-dark">Margin Calculator</h1>
         <p class="max-w-3xl text-base text-text-default opacity-80 sm:text-lg">
-          Calculate the SPAN and exposure margin for futures and options before you trade, and see how much a hedge
-          saves.
+          Calculate the SPAN and exposure margin for Nifty, Bank Nifty, Sensex, stock futures and options, and MCX
+          commodities before you trade - and see how much a hedge saves.
         </p>
       </div>
 
@@ -390,6 +337,44 @@ const fieldInputClass =
             {/* Form validation and API errors; the figures themselves live in the sidebar card. */}
             <p data-status aria-live="polite" class="min-h-5 text-sm text-text-default opacity-70"></p>
           </div>
+
+          <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <div
+              class="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 dark:border-[#262938] dark:bg-[#14161f]"
+            >
+              <h2 class="h4 text-lg font-bold text-dark">How to use the margin calculator</h2>
+              <ol class="space-y-3">
+                {
+                  steps.map((step, index) => (
+                    <li class="flex gap-3 text-sm leading-relaxed text-text-default sm:text-base">
+                      <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-dark dark:bg-[#181b25]">
+                        {index + 1}
+                      </span>
+                      <span class="opacity-85">{step}</span>
+                    </li>
+                  ))
+                }
+              </ol>
+            </div>
+
+            <div
+              class="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 dark:border-[#262938] dark:bg-[#14161f]"
+            >
+              <h2 class="h4 text-lg font-bold text-dark">What makes up your F&amp;O margin?</h2>
+              <dl class="space-y-4">
+                {
+                  components.map((item) => (
+                    <div class="space-y-1">
+                      <dt class="font-bold text-dark">{item.title}</dt>
+                      <dd class="text-sm leading-relaxed text-text-default opacity-80 sm:text-base">
+                        {item.description}
+                      </dd>
+                    </div>
+                  ))
+                }
+              </dl>
+            </div>
+          </div>
         </div>
 
         <CalculatorSidebar current="margin" tag="Margin Calculator">
@@ -430,42 +415,28 @@ const fieldInputClass =
       </div>
 
       <section class="mt-16 space-y-12 border-t border-gray-200 pt-12 dark:border-[#262938]">
-        <div class="max-w-4xl space-y-4">
-          <h2 class="h3 font-bold tracking-tight text-dark">What is a Margin Calculator?</h2>
-          <p class="text-lg leading-relaxed font-normal text-text-default opacity-85 sm:text-xl">
-            Futures and options are traded on margin: instead of paying the full contract value, you keep a deposit with
-            your broker that the exchange blocks against the position. A margin calculator tells you that deposit before
-            you place the order, so you know whether your account can carry the trade.
-          </p>
-        </div>
-
-        <div class="space-y-5">
-          <h2 class="h3 font-bold tracking-tight text-dark">What makes up your F&amp;O margin?</h2>
-          <div class="grid grid-cols-1 gap-5 text-sm sm:text-base md:grid-cols-3">
-            {
-              components.map((item) => (
-                <div class="space-y-2 rounded-2xl border border-gray-200 bg-white p-5 dark:border-[#262938] dark:bg-[#14161f]">
-                  <h3 class="h4 text-base font-bold text-primary sm:text-lg">{item.title}</h3>
-                  <p class="opacity-80">{item.description}</p>
-                </div>
-              ))
-            }
-          </div>
-        </div>
-
-        <div class="max-w-4xl space-y-4">
-          <h2 class="h3 font-bold tracking-tight text-dark">How to use the GoPocket Margin Calculator</h2>
-          <ol class="space-y-3">
-            {
-              steps.map((step, index) => (
-                <li class="flex gap-3 text-lg leading-relaxed text-text-default sm:text-xl">
-                  <span class="font-bold text-primary">{index + 1}.</span>
-                  <span class="opacity-85">{step}</span>
-                </li>
-              ))
-            }
-          </ol>
-        </div>
+        {
+          guides.map((guide) => (
+            <div id={guide.id} class="max-w-4xl scroll-mt-24 space-y-4">
+              <h2 class="h3 font-bold tracking-tight text-dark">{guide.title}</h2>
+              {guide.paragraphs.map((paragraph) => (
+                <p class="text-lg leading-relaxed font-normal text-text-default opacity-85 sm:text-xl">{paragraph}</p>
+              ))}
+              {guide.points && (
+                <ul class="space-y-2">
+                  {guide.points.map((point) => (
+                    <li class="flex gap-3 text-lg leading-relaxed text-text-default sm:text-xl">
+                      <span class="font-bold text-emerald-600 dark:text-emerald-400" aria-hidden="true">
+                        ✓
+                      </span>
+                      <span class="opacity-85">{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))
+        }
       </section>
 
       <FAQSection2 title="for Margin" titleBold="FAQs" categories={faqCategories} />

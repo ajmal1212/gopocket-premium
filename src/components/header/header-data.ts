@@ -114,6 +114,7 @@ export const pageLinks: NavPageLink[] = [
 
 /** The Explore dropdown's nested Calculators menu. */
 export const calculatorLinks: NavPageLink[] = [
+  { title: "Margin Calculator", href: "/margin-calculator" },
   { title: "SIP Calculator", href: "/sip-calculator" },
   { title: "SWP Calculator", href: "/swp-calculator" },
   { title: "CAGR Calculator", href: "/cagr-calculator" },
@@ -121,7 +122,6 @@ export const calculatorLinks: NavPageLink[] = [
   { title: "PPF Calculator", href: "/ppf-calculator" },
   { title: "EPF Calculator", href: "/epf-calculator" },
   { title: "EMI Calculator", href: "/emi-calculator" },
-  { title: "Margin Calculator", href: "/margin-calculator" },
 ];
 
 /** Sign In mega-menu, top grid: the platforms a customer logs in to. */

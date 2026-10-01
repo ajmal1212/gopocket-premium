@@ -35,6 +35,7 @@ export interface CalculatorLink {
 }
 
 export const calculators: CalculatorLink[] = [
+  { id: "margin", label: "Margin Calculator", href: "/margin-calculator", ownPage: true },
   { id: "sip", label: "SIP Calculator", href: "/sip-calculator", ownPage: true },
   { id: "lumpsum", label: "Lumpsum Calculator", href: "/sip-calculator", ownPage: false },
   { id: "swp", label: "SWP Calculator", href: "/swp-calculator", ownPage: true },
@@ -45,5 +46,4 @@ export const calculators: CalculatorLink[] = [
   { id: "car-loan", label: "Car Loan EMI Calculator", href: "/car-loan-emi-calculator", ownPage: true },
   { id: "ppf", label: "PPF Calculator", href: "/ppf-calculator", ownPage: true },
   { id: "epf", label: "EPF Calculator", href: "/epf-calculator", ownPage: true },
-  { id: "margin", label: "Margin Calculator", href: "/margin-calculator", ownPage: true },
 ];

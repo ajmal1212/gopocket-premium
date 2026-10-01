@@ -1,10 +1,11 @@
 import { swr } from "@/lib/edge-cache";
 import { getFrappeToken, getFrappeUrl } from "@/lib/frappe";
-import { indexMembers, nseCompany, type StockRow } from "@/lib/contracts";
+import { countStocks, industryMembers, indexMembers, nseCompany, type StockRow } from "@/lib/contracts";
 
 /**
- * The /markets/heatmap data: an index's members from Contract Master, priced
- * by Frappe's gopocket.api.get_stock_charts, and laid out as a treemap.
+ * The /markets/heatmap data: an index's members - or every NSE share in one
+ * industry - from Contract Master, priced by Frappe's
+ * gopocket.api.get_stock_charts, and laid out as a treemap.
  *
  * The prices method takes trading symbols ("RELIANCE-EQ") and answers each
  * with the last price, the previous close and the session so far in five-
@@ -72,7 +73,10 @@ interface RawMessage {
 
 const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 
-async function readQuotes(tradingSymbols: string[]): Promise<IndexQuotes | null> {
+/** The prices method refuses a request for more than this many symbols. */
+const BATCH = 200;
+
+async function readBatch(tradingSymbols: string[]): Promise<IndexQuotes | null> {
   try {
     const response = await fetch(`${getFrappeUrl()}/api/method/${METHOD}`, {
       method: "POST",
@@ -113,17 +117,35 @@ async function readQuotes(tradingSymbols: string[]): Promise<IndexQuotes | null>
 }
 
 /**
- * Prices for an index's members. Fresh for fifteen seconds, so a page load
- * during the session is close to live, and served stale for up to an hour
- * while a new copy loads, so a visitor only waits on Frappe when nobody has
- * asked lately.
+ * Prices for any number of symbols: split into batches the method accepts and
+ * asked for together, so the largest industry (~200 shares) costs one round
+ * trip of time. A batch that fails leaves its tiles unpriced rather than
+ * failing the map; only all of them failing counts as no prices.
+ */
+async function readQuotes(tradingSymbols: string[]): Promise<IndexQuotes | null> {
+  const batches: string[][] = [];
+  for (let i = 0; i < tradingSymbols.length; i += BATCH) batches.push(tradingSymbols.slice(i, i + BATCH));
+  const answers = (await Promise.all(batches.map(readBatch))).filter((answer) => answer !== null);
+  if (answers.length === 0) return null;
+  return {
+    marketOpen: answers.some((answer) => answer.marketOpen),
+    sessionDate: answers.find((answer) => answer.sessionDate)?.sessionDate ?? null,
+    step: answers[0].step,
+    quotes: Object.assign({}, ...answers.map((answer) => answer.quotes)),
+  };
+}
+
+/**
+ * Prices for one map. Fresh for fifteen seconds, so a page load during the
+ * session is close to live, and served stale for up to an hour while a new
+ * copy loads, so a visitor only waits on Frappe when nobody has asked lately.
  */
 function fetchQuotes(
-  index: HeatmapIndex,
+  key: string,
   tradingSymbols: string[],
   waitUntil?: (promise: Promise<unknown>) => void,
 ): Promise<IndexQuotes | null> {
-  return swr(`heatmap:${index.param}`, () => readQuotes(tradingSymbols), {
+  return swr(`heatmap:${key}`, () => readQuotes(tradingSymbols), {
     freshSeconds: 15,
     staleSeconds: 60 * 60,
     keep: (value) => Object.keys(value.quotes).length > 0,
@@ -137,14 +159,20 @@ export interface HeatTile {
   symbol: string;
   name: string;
   sector: string;
+  industry: string;
+  /** "Large cap" ... "Micro cap" - an industry map's groups. */
+  capBand: string;
   href: string;
   /** ₹ crore - the tile's area. */
   weight: number;
   quote: StockQuote | null;
 }
 
+/** What a map shows: one index's members, or every NSE share in one industry. */
+export type HeatmapSelection = { kind: "index"; index: HeatmapIndex } | { kind: "industry"; industry: string };
+
 export interface Heatmap {
-  index: HeatmapIndex;
+  selection: HeatmapSelection;
   tiles: HeatTile[];
   marketOpen: boolean;
   sessionDate: string | null;
@@ -156,14 +184,18 @@ export interface Heatmap {
 const OTHERS = "Others";
 
 export async function loadHeatmap(
-  index: HeatmapIndex,
+  selection: HeatmapSelection,
   waitUntil?: (promise: Promise<unknown>) => void,
 ): Promise<Heatmap> {
-  const members = (await indexMembers(index.name, waitUntil)) ?? [];
+  const members =
+    (selection.kind === "index"
+      ? await indexMembers(selection.index.name, waitUntil)
+      : await industryMembers(selection.industry, waitUntil)) ?? [];
+  const key = selection.kind === "index" ? `index:${selection.index.param}` : `industry:${selection.industry}`;
   const prices =
     members.length > 0
       ? await fetchQuotes(
-          index,
+          key,
           members.map((row) => row.tradingSymbol),
           waitUntil,
         )
@@ -182,6 +214,8 @@ export async function loadHeatmap(
       symbol: row.symbol,
       name: company?.name ?? row.symbol,
       sector: row.sector || OTHERS,
+      industry: row.industry || OTHERS,
+      capBand: row.capBand || OTHERS,
       href: `/stocks/${row.slug}`,
       weight: row.marketCap ?? median,
       quote: prices?.quotes[row.tradingSymbol] ?? null,
@@ -189,13 +223,31 @@ export async function loadHeatmap(
   });
 
   return {
-    index,
+    selection,
     tiles,
     marketOpen: prices?.marketOpen ?? false,
     sessionDate: prices?.sessionDate ?? null,
     step: prices?.step ?? 300,
     ok: members.length > 0 && prices !== null,
   };
+}
+
+/**
+ * Every NSE industry with how many listed shares it holds - the filter's
+ * options. One grouped count, kept a day like the stock list's own (see
+ * countStocks). Alphabetical: with 58 options, a reader scans for a name.
+ */
+export async function nseIndustries(
+  waitUntil?: (promise: Promise<unknown>) => void,
+): Promise<{ name: string; count: number }[]> {
+  const counts = await countStocks(
+    { exchange: "NSE", query: "", letter: "", sectors: [], industries: [], capBands: [], sort: "mcap-desc" },
+    "industry",
+    waitUntil,
+  );
+  return Object.entries(counts ?? {})
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /* --- Treemap ------------------------------------------------------------ */
@@ -308,14 +360,23 @@ export interface PlacedSector {
 const HEADER_PX = 20;
 
 /**
- * Two-level layout: sectors by their combined market cap, then each sector's
+ * Two-level layout: groups by their combined market cap, then each group's
  * shares inside it. Computed in pixels at a reference size - the map is drawn
  * at a fixed aspect ratio, so its real size only scales these - and returned
  * as percentages for the markup to position with.
+ *
+ * Grouped by sector for an index. An industry's shares mostly share one
+ * sector, so its map is grouped by market-cap band instead - large caps apart
+ * from the long tail of small ones.
  */
-export function layoutHeatmap(tiles: HeatTile[], width: number, height: number): PlacedSector[] {
+export function layoutHeatmap(
+  tiles: HeatTile[],
+  width: number,
+  height: number,
+  groupBy: "sector" | "capBand" = "sector",
+): PlacedSector[] {
   const bySector = new Map<string, HeatTile[]>();
-  for (const tile of tiles) bySector.set(tile.sector, [...(bySector.get(tile.sector) ?? []), tile]);
+  for (const tile of tiles) bySector.set(tile[groupBy], [...(bySector.get(tile[groupBy]) ?? []), tile]);
 
   const sectors = squarify(
     [...bySector].map(([name, members]) => ({

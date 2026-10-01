@@ -41,7 +41,7 @@ export const HEATMAP_COPY = {
     {
       question: "Which indices can I view on the heatmap?",
       answer:
-        "You can switch between Nifty 50, Nifty Bank, Nifty Financial Services, Nifty Next 50, Nifty Midcap Select and Nifty FPI 150.",
+        "You can switch between Nifty 50, Nifty Bank, Nifty Financial Services, Nifty Next 50, Nifty Midcap Select and Nifty FPI 150. You can also pick an industry, such as Finance or IT - Software, to see every NSE-listed stock in it grouped by market cap.",
     },
     {
       question: "What does the colour of a tile mean?",

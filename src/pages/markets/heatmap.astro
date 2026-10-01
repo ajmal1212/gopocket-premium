@@ -7,6 +7,11 @@
  * all canonicalise to the bare path: one page filtered six ways. With JS the
  * chips swap the map in place. The prices are those of the request - the map
  * doesn't poll; a reload or another index brings the latest.
+ *
+ * ?industry= is a view of its own rather than a filter on the index: every
+ * listed NSE share in that industry, grouped by market-cap band, with no index
+ * involved. A value that isn't one of NSE's industries - a hand-edited address
+ * - is ignored and the index view shown.
  */
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
@@ -14,13 +19,33 @@ import Footer from "@/components/Footer.astro";
 import FAQSection from "@/components/FAQSection.astro";
 import HeatmapTreemap from "@/components/heatmap/HeatmapTreemap.astro";
 import { HEATMAP_COPY as copy } from "@/components/heatmap/heatmap-data";
-import { HEAT_STEPS, HEATMAP_INDICES, indexByParam, loadHeatmap } from "@/lib/heatmap";
+import {
+  HEAT_STEPS,
+  HEATMAP_INDICES,
+  indexByParam,
+  loadHeatmap,
+  nseIndustries,
+  type HeatmapSelection,
+} from "@/lib/heatmap";
+import Factory from "@lucide/astro/icons/factory";
+import ChevronDown from "@lucide/astro/icons/chevron-down";
+import Search from "@lucide/astro/icons/search";
+import LoaderCircle from "@lucide/astro/icons/loader-circle";
 
-const index = indexByParam(Astro.url.searchParams.get("index"));
 const waitUntil = Astro.locals.runtime?.ctx?.waitUntil?.bind(Astro.locals.runtime.ctx);
-const map = await loadHeatmap(index, waitUntil);
+const index = indexByParam(Astro.url.searchParams.get("index"));
 
-const priced = map.tiles.filter((tile) => tile.quote !== null);
+// The list is one cached grouped count, so validating against it costs nothing.
+const industries = await nseIndustries(waitUntil);
+const requested = Astro.url.searchParams.get("industry");
+const industry = industries.find((option) => option.name === requested)?.name ?? null;
+
+const selection: HeatmapSelection = industry ? { kind: "industry", industry } : { kind: "index", index };
+const map = await loadHeatmap(selection, waitUntil);
+const tiles = map.tiles;
+const viewLabel = industry ? `${industry} · NSE` : index.label;
+
+const priced = tiles.filter((tile) => tile.quote !== null);
 // A move inside a paisa's rounding either way counts as unchanged.
 const advancing = priced.filter((tile) => tile.quote!.pct > 0.005).length;
 const declining = priced.filter((tile) => tile.quote!.pct < -0.005).length;
@@ -44,8 +69,10 @@ const updated = new Date().toLocaleTimeString("en-IN", {
 
 /*
  * What the hover card needs, once per share rather than on each tile: the two
- * layouts would otherwise carry every chart twice. [name, sector, ltp, change,
- * pct, previous close, first close's time, closes].
+ * layouts would otherwise carry every chart twice. [name, detail, ltp, change,
+ * pct, previous close, first close's time, closes]. The detail is what the
+ * tile's group strip doesn't already say: the industry on an index map (grouped
+ * by sector), the market-cap band on an industry map.
  */
 const cardData = Object.fromEntries(
   priced.map((tile) => {
@@ -54,7 +81,7 @@ const cardData = Object.fromEntries(
       tile.symbol,
       [
         tile.name,
-        tile.sector,
+        industry ? tile.capBand : tile.industry,
         quote.ltp,
         quote.change,
         quote.pct,
@@ -86,86 +113,226 @@ const faqSchema = {
       <p class="text-text-default text-base leading-relaxed">{copy.intro}</p>
     </header>
 
-    <section class="flex flex-col gap-5" aria-labelledby="heatmap-heading" data-heat-root>
-      <h2 id="heatmap-heading" class="sr-only">{index.label} heatmap</h2>
+    <section class="group/heat flex flex-col gap-5" aria-labelledby="heatmap-heading" data-heat-root>
+      <h2 id="heatmap-heading" class="sr-only">{viewLabel} heatmap</h2>
 
-      {/* Scrolls sideways on a phone rather than wrapping, like the movers' index tabs. */}
-      <nav aria-label="Index" class="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-        <ul class="flex w-max gap-2">
-          {
-            HEATMAP_INDICES.map((option) => (
-              <li>
-                <a
-                  href={hrefFor(option.param)}
-                  aria-current={option.param === index.param ? "page" : undefined}
-                  class="border-border-light text-text-default hover:border-primary hover:text-primary aria-[current=page]:border-primary aria-[current=page]:bg-primary inline-block rounded-full border px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-300 aria-[current=page]:text-white!"
-                  data-heat-index={option.param}
-                >
-                  {option.label}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        {/* Scrolls sideways on a phone rather than wrapping, like the movers' index tabs. */}
+        <nav aria-label="Index" class="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
+          <ul class="flex w-max gap-2">
+            {
+              HEATMAP_INDICES.map((option) => (
+                <li>
+                  <a
+                    href={hrefFor(option.param)}
+                    aria-current={!industry && option.param === index.param ? "page" : undefined}
+                    class="border-border-light text-text-default hover:border-primary hover:text-primary aria-[current=page]:border-primary aria-[current=page]:bg-primary inline-block rounded-full border px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,opacity] duration-300 group-data-busy/heat:cursor-wait group-data-busy/heat:not-aria-[current=page]:opacity-50 aria-[current=page]:text-white!"
+                    data-heat-index={option.param}
+                  >
+                    {option.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+
+        {
+          /*
+        A plain GET form, so the filter works without the script; with it,
+        a change swaps the map in place (below). Picking an industry leaves the
+        index behind; "All industries" returns to the index view.
+      */
+        }
+        <form method="get" action={copy.path} data-heat-filter>
+          <details class="group relative" data-heat-dropdown>
+            <summary
+              class:list={[
+                "flex h-10 cursor-pointer list-none items-center gap-2 rounded-full border bg-white px-4 text-sm font-medium whitespace-nowrap transition-[color,border-color,opacity] group-data-busy/heat:cursor-wait group-data-busy/heat:opacity-60 [&::-webkit-details-marker]:hidden",
+                industry ? "border-primary text-primary" : "border-border-light text-dark hover:border-dark",
+              ]}
+            >
+              <Factory class="h-4 w-4 shrink-0" stroke-width={1.8} aria-hidden="true" />
+              <span class="sr-only">Industry:</span>
+              <span class="max-w-56 truncate">{industry ?? "All industries"}</span>
+              <ChevronDown
+                class="h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
+                stroke-width={2}
+                aria-hidden="true"
+              />
+            </summary>
+
+            {
+              /*
+              Hangs from the right edge on desktop, where the filter ends the
+              row; from the left once it wraps under the chips; and across the
+              screen on a phone, as the /stocks filters do.
+            */
+            }
+            <fieldset
+              class="border-border-light absolute top-full left-0 z-30 mt-2 flex w-80 flex-col gap-3 rounded-2xl border bg-white p-3 shadow-lg max-sm:fixed max-sm:inset-x-4 max-sm:top-auto max-sm:w-auto lg:right-0 lg:left-auto"
+            >
+              <legend class="sr-only">Industry</legend>
+
+              <label
+                class="border-border-light focus-within:border-primary relative flex items-center rounded-lg border bg-white"
+              >
+                <span class="sr-only">Search industries</span>
+                <Search
+                  class="text-text-default pointer-events-none absolute left-3 h-4 w-4"
+                  stroke-width={1.8}
+                  aria-hidden="true"
+                />
+                <input
+                  type="search"
+                  placeholder="Search industries…"
+                  autocomplete="off"
+                  data-heat-search
+                  class="text-dark w-full bg-transparent py-2 pr-3 pl-9 text-sm outline-none"
+                />
+              </label>
+
+              {
+                /*
+                Hidden radios, not checkboxes: one choice, applied the moment it
+                is picked. The picked row is shown by colour alone.
+              */
+              }
+              <ul class="flex max-h-72 flex-col gap-0.5 overflow-y-auto" data-heat-options>
+                {
+                  [
+                    { name: "", label: "All industries", count: null },
+                    ...industries.map((option) => ({ ...option, label: option.name })),
+                  ].map((option) => (
+                    <li>
+                      <label class="text-dark hover:bg-theme-light has-[:checked]:bg-theme-light has-[:checked]:text-primary has-[:focus-visible]:ring-primary flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm font-medium has-[:focus-visible]:ring-2">
+                        <input
+                          type="radio"
+                          name="industry"
+                          value={option.name}
+                          checked={option.name === (industry ?? "")}
+                          class="sr-only"
+                        />
+                        <span>{option.label}</span>
+                        {option.count !== null && (
+                          <span class="text-text-default/70 text-xs font-normal tabular-nums">{option.count}</span>
+                        )}
+                      </label>
+                    </li>
+                  ))
+                }
+              </ul>
+              <p class="text-text-default/70 hidden px-3 py-2 text-sm" data-heat-none>No industry matches.</p>
+            </fieldset>
+          </details>
+          <button
+            type="submit"
+            class="bg-primary sr-only rounded-full px-4 py-2 text-sm font-semibold text-white focus:not-sr-only"
+            data-heat-apply
+          >
+            Apply
+          </button>
+        </form>
+      </div>
 
       {
         /*
-        Everything the index changes. The script swaps it in
+        Everything the index or the industry changes. The script swaps it in
         place; the chips and the hover card sit outside it and stay put.
       */
       }
-      <div class="flex flex-col gap-4 transition-opacity duration-200" data-heat-view data-index={index.param}>
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <p class="text-text-default flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-            <span class="text-dark font-semibold">{index.label}</span>
-            {
-              map.marketOpen ? (
-                <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                  <span class="relative flex h-2 w-2" aria-hidden="true">
-                    <span class="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 motion-safe:animate-ping" />
-                    <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+      <div class="relative">
+        <div
+          class="flex flex-col gap-4 transition-opacity duration-200"
+          data-heat-view
+          data-index={industry ? "" : index.param}
+        >
+          <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <p class="text-text-default flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+              <span class="text-dark font-semibold">
+                {industry ?? index.label}
+                {
+                  industry && (
+                    <span class="text-text-default font-normal">
+                      {" "}
+                      · NSE{tiles.length > 0 && ` · ${tiles.length} stocks`}
+                    </span>
+                  )
+                }
+              </span>
+              {
+                map.marketOpen ? (
+                  <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                    <span class="relative flex h-2 w-2" aria-hidden="true">
+                      <span class="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 motion-safe:animate-ping" />
+                      <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                    </span>
+                    Market open · prices as of {updated}
                   </span>
-                  Market open · prices as of {updated}
-                </span>
-              ) : (
-                sessionLabel && <span>Market closed · {sessionLabel} close</span>
+                ) : (
+                  sessionLabel && <span>Market closed · {sessionLabel} close</span>
+                )
+              }
+            </p>
+
+            {
+              priced.length > 0 && (
+                <div class="flex items-center gap-3 text-xs">
+                  <span class="font-semibold text-emerald-600 tabular-nums dark:text-emerald-400">
+                    {advancing} advancing
+                  </span>
+                  {/* Breadth as a split bar: the share of the index up, flat and down. */}
+                  <span class="bg-theme-light flex h-1.5 w-28 overflow-hidden rounded-full sm:w-40" aria-hidden="true">
+                    <span class="bg-emerald-500" style={`width:${(advancing / priced.length) * 100}%`} />
+                    <span class="bg-slate-400" style={`width:${(unchanged / priced.length) * 100}%`} />
+                    <span class="bg-red-500" style={`width:${(declining / priced.length) * 100}%`} />
+                  </span>
+                  <span class="font-semibold text-red-600 tabular-nums dark:text-red-400">{declining} declining</span>
+                </div>
               )
             }
-          </p>
+          </div>
 
           {
-            priced.length > 0 && (
-              <div class="flex items-center gap-3 text-xs">
-                <span class="font-semibold text-emerald-600 tabular-nums dark:text-emerald-400">
-                  {advancing} advancing
-                </span>
-                {/* Breadth as a split bar: the share of the index up, flat and down. */}
-                <span class="bg-theme-light flex h-1.5 w-28 overflow-hidden rounded-full sm:w-40" aria-hidden="true">
-                  <span class="bg-emerald-500" style={`width:${(advancing / priced.length) * 100}%`} />
-                  <span class="bg-slate-400" style={`width:${(unchanged / priced.length) * 100}%`} />
-                  <span class="bg-red-500" style={`width:${(declining / priced.length) * 100}%`} />
-                </span>
-                <span class="font-semibold text-red-600 tabular-nums dark:text-red-400">{declining} declining</span>
+            tiles.length > 0 ? (
+              <>
+                <HeatmapTreemap
+                  tiles={tiles}
+                  width={1200}
+                  height={660}
+                  step={map.step}
+                  groupBy={industry ? "capBand" : "sector"}
+                  class="hidden md:block"
+                />
+                <HeatmapTreemap
+                  tiles={tiles}
+                  width={360}
+                  height={600}
+                  step={map.step}
+                  groupBy={industry ? "capBand" : "sector"}
+                  class="md:hidden"
+                />
+              </>
+            ) : (
+              <div class="border-border-light text-text-default rounded-2xl border px-6 py-20 text-center text-sm">
+                The heatmap is unavailable right now. Please try again in a minute.
               </div>
             )
           }
+
+          <script type="application/json" data-heat-data set:html={JSON.stringify(cardData)} />
         </div>
-
-        {
-          map.tiles.length > 0 ? (
-            <>
-              <HeatmapTreemap tiles={map.tiles} width={1200} height={660} step={map.step} class="hidden md:block" />
-              <HeatmapTreemap tiles={map.tiles} width={360} height={600} step={map.step} class="md:hidden" />
-            </>
-          ) : (
-            <div class="border-border-light text-text-default rounded-2xl border px-6 py-20 text-center text-sm">
-              The heatmap is unavailable right now. Please try again in a minute.
-            </div>
-          )
-        }
-
-        <script type="application/json" data-heat-data set:html={JSON.stringify(cardData)} />
+        <div
+          class="pointer-events-none absolute inset-0 hidden items-center justify-center group-data-busy/heat:flex"
+          aria-hidden="true"
+        >
+          <span
+            class="border-border-light flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-sm font-medium shadow-lg"
+          >
+            <LoaderCircle class="text-primary h-4 w-4 motion-safe:animate-spin" stroke-width={2} />
+            <span class="text-dark">Loading heatmap…</span>
+          </span>
+        </div>
       </div>
 
       <div class="flex flex-wrap items-center justify-between gap-3">
@@ -339,6 +506,29 @@ const faqSchema = {
     const chips = [...root.querySelectorAll<HTMLAnchorElement>("[data-heat-index]")];
     let request: AbortController | null = null;
 
+    /*
+     * One request at a time from the controls: while a map loads, the chips
+     * and the industry select are locked, so a second pick can't race the
+     * first and land the page on a view the reader no longer expects. Back and
+     * Forward still go through - they are the browser's, and the page has to
+     * follow the address - and simply replace the request in flight.
+     */
+    let busy = false;
+    const setBusy = (on: boolean) => {
+      busy = on;
+      root.toggleAttribute("data-busy", on);
+      root.setAttribute("aria-busy", String(on));
+      for (const chip of chips) {
+        if (on) chip.setAttribute("aria-disabled", "true");
+        else chip.removeAttribute("aria-disabled");
+      }
+      // Looked up each time: the form is replaced on every swap.
+      const panel = root.querySelector<HTMLFieldSetElement>("[data-heat-dropdown] fieldset");
+      if (panel) panel.disabled = on;
+      const dropdown = root.querySelector<HTMLDetailsElement>("[data-heat-dropdown]");
+      if (on && dropdown) dropdown.open = false;
+    };
+
     /**
      * Fetch the page at `url` and swap its view in: the map dims, then its
      * sectors settle in one after another. Prices are as fresh as that fetch -
@@ -350,16 +540,20 @@ const faqSchema = {
       request?.abort();
       const controller = (request = new AbortController());
       current.style.opacity = "0.45";
+      setBusy(true);
 
       let next: HTMLElement | null = null;
+      let filter: HTMLElement | null = null;
       try {
         const response = await fetch(url, { signal: controller.signal });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const fresh = new DOMParser().parseFromString(await response.text(), "text/html");
         next = fresh.querySelector<HTMLElement>("[data-heat-view]");
+        filter = fresh.querySelector<HTMLElement>("[data-heat-filter]");
       } catch {
         // Handled below.
       }
+      // A newer request (Back or Forward) owns the busy state now.
       if (controller.signal.aborted) return;
       request = null;
       if (!next) {
@@ -369,8 +563,14 @@ const faqSchema = {
 
       if (push) history.pushState(null, "", url);
       current.replaceWith(next);
+      // The industry list belongs to the index, and its selection to the address.
+      if (filter) {
+        filter.querySelector("[data-heat-apply]")?.remove();
+        root.querySelector("[data-heat-filter]")?.replaceWith(filter);
+      }
       shown = "";
       card.classList.add("hidden");
+      setBusy(false);
 
       // Back and Forward change the index without a click, so the chips follow the view.
       for (const chip of chips) {
@@ -381,7 +581,11 @@ const faqSchema = {
       if (calm.matches) return;
       next.querySelectorAll<HTMLElement>("[data-heat-map]").forEach((map) => {
         if (map.offsetParent === null) return;
-        map.querySelectorAll<HTMLElement>("[data-heat-sector]").forEach((sector, i) => {
+        // A map of one group - a small industry, all one cap band - has its
+        // tiles settle in instead, or it would just fade as a single block.
+        const groups = map.querySelectorAll<HTMLElement>("[data-heat-sector]");
+        const pieces = groups.length > 1 ? groups : map.querySelectorAll<HTMLElement>("[data-heat-tile]");
+        pieces.forEach((sector, i) => {
           sector.animate(
             [
               { opacity: 0, transform: "scale(0.94)" },
@@ -398,10 +602,75 @@ const faqSchema = {
       const chip = (event.target as Element).closest<HTMLAnchorElement>("[data-heat-index]");
       if (!chip) return;
       event.preventDefault();
-      if (chip.getAttribute("aria-current") === "page") return;
+      if (busy || chip.getAttribute("aria-current") === "page") return;
       for (const other of chips) other.removeAttribute("aria-current");
       chip.setAttribute("aria-current", "page");
       void load(chip.pathname + chip.search, true);
+    });
+
+    // The industry filter: the address is built here rather than by submitting
+    // the form, which would add an empty "industry=" for "All industries".
+    root.addEventListener("change", (event) => {
+      const choice = event.target as HTMLInputElement;
+      if (busy || choice.name !== "industry" || !choice.form) return;
+      const params = new URLSearchParams();
+      for (const [name, value] of new FormData(choice.form)) {
+        if (typeof value === "string" && value) params.set(name, value);
+      }
+      const search = params.toString();
+      void load(search ? `${location.pathname}?${search}` : location.pathname, true);
+    });
+    // With the script running, the change does the applying.
+    root.querySelector<HTMLElement>("[data-heat-apply]")?.remove();
+
+    /*
+     * The dropdown's own behaviour, as on /stocks: shut by Escape or a click
+     * outside it, never opened while a map loads, and its list narrowed by the
+     * search box. All delegated from the root or the document, because the
+     * form is replaced on every swap.
+     */
+    const dropdown = () => root.querySelector<HTMLDetailsElement>("[data-heat-dropdown]");
+    document.addEventListener("click", (event) => {
+      const open = dropdown();
+      if (open?.open && !(event.target as Element).closest("[data-heat-dropdown]")) open.open = false;
+    });
+    document.addEventListener("keydown", (event) => {
+      const open = dropdown();
+      if (event.key === "Escape" && open?.open) {
+        open.open = false;
+        open.querySelector("summary")?.focus();
+      }
+    });
+    root.addEventListener(
+      "toggle",
+      (event) => {
+        const details = event.target as HTMLDetailsElement;
+        if (!details.matches("[data-heat-dropdown]") || !details.open) return;
+        if (busy) {
+          details.open = false;
+          return;
+        }
+        // A fresh search each time, focused so typing narrows straight away.
+        const search = details.querySelector<HTMLInputElement>("[data-heat-search]");
+        if (search) {
+          search.value = "";
+          search.dispatchEvent(new Event("input", { bubbles: true }));
+          search.focus();
+        }
+      },
+      true,
+    );
+    root.addEventListener("input", (event) => {
+      const search = event.target as HTMLInputElement;
+      if (!search.matches("[data-heat-search]")) return;
+      const term = search.value.trim().toLowerCase();
+      const panel = search.closest("fieldset");
+      let shownCount = 0;
+      for (const item of panel?.querySelectorAll<HTMLLIElement>("[data-heat-options] li") ?? []) {
+        item.hidden = term !== "" && !item.textContent!.toLowerCase().includes(term);
+        if (!item.hidden) shownCount++;
+      }
+      panel?.querySelector("[data-heat-none]")?.classList.toggle("hidden", shownCount > 0);
     });
 
     window.addEventListener("popstate", () => void load(location.pathname + location.search, false));

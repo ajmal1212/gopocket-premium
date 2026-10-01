@@ -19,11 +19,13 @@ interface Props {
   height: number;
   /** Seconds between the chart's closes. */
   step: number;
+  /** What the labelled groups are: sectors for an index, market-cap bands for an industry. */
+  groupBy?: "sector" | "capBand";
   class?: string;
 }
 
-const { tiles, width, height, step, class: className = "" } = Astro.props;
-const sectors = layoutHeatmap(tiles, width, height);
+const { tiles, width, height, step, groupBy = "sector", class: className = "" } = Astro.props;
+const sectors = layoutHeatmap(tiles, width, height, groupBy);
 
 const pos = (box: { x: number; y: number; w: number; h: number }) =>
   `left:${box.x.toFixed(3)}%;top:${box.y.toFixed(3)}%;width:${box.w.toFixed(3)}%;height:${box.h.toFixed(3)}%`;

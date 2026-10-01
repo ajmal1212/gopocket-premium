@@ -713,23 +713,46 @@ export async function indexMembers(
   index: string,
   waitUntil?: (promise: Promise<unknown>) => void,
 ): Promise<StockRow[] | null> {
-  return swr(`index-members:${index}`, () => loadIndexMembers(index), {
-    freshSeconds: STOCK_LIST_FRESH_S,
-    staleSeconds: STOCK_LIST_STALE_S,
-    keep: (rows) => rows.length > 0,
-    waitUntil,
-  });
+  return swr(
+    // v2: lists cached before the one-row-per-company rule below held duplicates.
+    `index-members:v2:${index}`,
+    () =>
+      loadMembers([
+        ["exchange", "=", "NSE"],
+        ["Stock Index Item", "index", "=", index],
+      ]),
+    { freshSeconds: STOCK_LIST_FRESH_S, staleSeconds: STOCK_LIST_STALE_S, keep: (rows) => rows.length > 0, waitUntil },
+  );
 }
 
-async function loadIndexMembers(index: string): Promise<StockRow[] | null> {
+/**
+ * Every listed NSE share in one industry - the heatmap's industry view. "Listed"
+ * as in the stock list: a row with a sector, which leaves out the debt
+ * instruments that share the exchange (see browseStocks). The largest industry
+ * holds a little over 200 shares.
+ */
+export async function industryMembers(
+  industry: string,
+  waitUntil?: (promise: Promise<unknown>) => void,
+): Promise<StockRow[] | null> {
+  return swr(
+    `industry-members:v2:${industry}`,
+    () =>
+      loadMembers([
+        ["exchange", "=", "NSE"],
+        ["sector", "is", "set"],
+        ["industry", "=", industry],
+      ]),
+    { freshSeconds: STOCK_LIST_FRESH_S, staleSeconds: STOCK_LIST_STALE_S, keep: (rows) => rows.length > 0, waitUntil },
+  );
+}
+
+async function loadMembers(where: unknown[][]): Promise<StockRow[] | null> {
   const params = new URLSearchParams({
     fields: STOCK_FIELDS,
-    filters: JSON.stringify([
-      ["exchange", "=", "NSE"],
-      ["Stock Index Item", "index", "=", index],
-    ]),
+    filters: JSON.stringify(where),
     order_by: "market_cap desc, symbol asc",
-    // The widest of the heatmap's indices has 150 members.
+    // Comfortably above the largest set the heatmap asks for (~200).
     limit_page_length: "500",
   });
 
@@ -741,19 +764,35 @@ async function loadIndexMembers(index: string): Promise<StockRow[] | null> {
     if (!response.ok) return null;
     const { data = [] } = (await response.json()) as { data?: StockListRow[] };
 
-    return data.flatMap((row): StockRow[] => {
+    /*
+     * One tile per company. A few companies carry a second row for another
+     * series - MOTHERSON-D1, ELECTCAST-W1 - with the same sector, industry and
+     * market cap copied in. Kept, it drew a second, unpriced tile the size of
+     * the company (the prices method has no data for that series). So a
+     * company's EQ row is used whenever it has one; only a company without an
+     * EQ line (an InvIT, a REIT, a BE-segment share) falls back to its other
+     * equity series, and non-equity series are never shown.
+     */
+    const bySymbol = new Map<string, { contract: Contract; row: StockListRow }>();
+    for (const row of data) {
       const contract = toContract(row);
-      if (!contract) return [];
-      return [
-        {
-          ...contract,
-          sector: row.sector || "",
-          industry: row.industry || "",
-          capBand: row.cap_band || "",
-          marketCap: row.market_cap ? row.market_cap : null,
-        },
-      ];
-    });
+      if (!contract) continue;
+      const series = seriesOf(contract.tradingSymbol);
+      if (!NSE_EQUITY_SERIES.has(series)) continue;
+      const kept = bySymbol.get(contract.symbol);
+      if (!kept || (series === "EQ" && seriesOf(kept.contract.tradingSymbol) !== "EQ")) {
+        bySymbol.set(contract.symbol, { contract, row });
+      }
+    }
+
+    // Map order is first-seen order, which keeps the market-cap ordering.
+    return [...bySymbol.values()].map(({ contract, row }) => ({
+      ...contract,
+      sector: row.sector || "",
+      industry: row.industry || "",
+      capBand: row.cap_band || "",
+      marketCap: row.market_cap ? row.market_cap : null,
+    }));
   } catch {
     return null;
   }

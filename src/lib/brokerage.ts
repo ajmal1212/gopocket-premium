@@ -256,6 +256,9 @@ export const commodityLotSizes: Record<string, number> = {
   LEADMINI: 1000,
   CRUDEOILM: 10,
   NATGASMINI: 250,
+  ELECDMBL: 50,
+  GOLDTEN: 1,
+  SILVER100: 10,
 };
 
 /**

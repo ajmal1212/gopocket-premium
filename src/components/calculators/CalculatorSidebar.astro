@@ -3,6 +3,9 @@
  * The right-hand column shared by the calculator pages: the open-account card
  * and the Popular Calculators list. The current calculator is lifted to the
  * top of the list and marked, the rest follow in a fixed order.
+ *
+ * Anything passed as children renders above the open-account card - the margin
+ * calculator puts its results there, beside the form that drives them.
  */
 import { calculators, type CalculatorId } from "./calculators-data";
 
@@ -24,6 +27,7 @@ const openAccountHref = `/open-account-call-back?src=Website&tag=${encodeURIComp
 ---
 
 <aside class="lg:col-span-4 space-y-6 w-full">
+  <slot />
   <div
     class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 text-center space-y-5"
   >

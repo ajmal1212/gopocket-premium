@@ -1,0 +1,1047 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import FAQSection2 from "@/components/FAQSection2.astro";
+import CalculatorSidebar from "@/components/calculators/CalculatorSidebar.astro";
+import Button from "@/components/Button.astro";
+import Search from "@lucide/astro/icons/search";
+import X from "@lucide/astro/icons/x";
+import Layers from "@lucide/astro/icons/layers";
+import ChevronDown from "@lucide/astro/icons/chevron-down";
+
+/*
+ * F&O margin calculator. The visitor builds a basket of futures and options
+ * and the page prices it with GoPocket's SPAN margin API (/api/span-margin)
+ * after every change.
+ *
+ * Each contract is picked by narrowing Contract Master one field at a time
+ * (/api/margin-contracts): exchange, futures or options, symbol and expiry,
+ * then - for an option - CE / PE and the strike. Every field offers only what
+ * exists under the choices before it, so the visitor can never ask for a
+ * contract that is not listed.
+ *
+ * Nothing is priced on the server render: margin depends on live SPAN files
+ * and on contracts that expire weekly, so there is no sensible default basket
+ * to show. The page renders an empty basket and the script fills it in.
+ */
+
+const exchanges = [
+  { value: "NFO", label: "NFO", title: "NSE futures & options" },
+  { value: "BFO", label: "BFO", title: "BSE futures & options" },
+  { value: "MCX", label: "MCX", title: "Commodity futures & options" },
+];
+
+const kinds = [
+  { value: "FUT", label: "Futures" },
+  { value: "OPT", label: "Options" },
+];
+
+const faqItems = [
+  {
+    question: "What is a margin calculator?",
+    answer:
+      "A margin calculator tells you how much money you need in your trading account to take a futures or options position. GoPocket's calculator uses the exchange SPAN files, so the figure is the SPAN plus exposure margin the exchange blocks for your trade.",
+  },
+  {
+    question: "What is SPAN margin?",
+    answer:
+      "SPAN (Standard Portfolio Analysis of Risk) margin is the minimum margin the exchange requires for a derivatives position. It is the worst loss the position could make in a day across a set of price and volatility scenarios.",
+  },
+  {
+    question: "What is exposure margin?",
+    answer:
+      "Exposure margin is charged on top of SPAN margin as an extra buffer against moves the SPAN scenarios do not cover. It is a fixed percentage of the contract value set by the exchange.",
+  },
+  {
+    question: "Why is the margin lower when I add a hedge?",
+    answer:
+      "SPAN looks at the whole basket, not each position alone. When one position offsets the risk of another - a long future with a long put, or a sold option with a bought option further out - the worst-case loss of the basket falls, and so does the margin. The calculator shows this saving as the margin benefit.",
+  },
+  {
+    question: "Do I need margin to buy options?",
+    answer:
+      "Buying an option needs the full premium rather than SPAN margin, because your loss is limited to what you pay. Selling an option or trading futures needs SPAN and exposure margin.",
+  },
+];
+
+const faqCategories = [{ id: "margin-faqs", label: "FAQs for Margin", items: faqItems }];
+
+const structuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "GoPocket F&O Margin Calculator",
+    url: "https://www.gopocket.in/margin-calculator",
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Any",
+    description:
+      "Calculate SPAN and exposure margin for futures and options on NSE, BSE and MCX, including the margin benefit on hedged positions.",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+    provider: { "@type": "Organization", name: "GoPocket", url: "https://www.gopocket.in" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  },
+];
+
+const steps = [
+  "Choose the exchange - NFO for NSE futures and options, BFO for BSE, MCX for commodities.",
+  "Pick Futures or Options, then search the symbol and choose its expiry, e.g. NIFTY - 27 Oct 2026.",
+  "For an option, choose CE or PE and the strike price.",
+  "Enter the number of lots, pick Buy or Sell and add it to the basket.",
+  "Add more legs to see how a hedge lowers the total margin.",
+];
+
+const components = [
+  {
+    title: "SPAN margin",
+    description:
+      "The exchange's estimate of the worst one-day loss on your basket, worked out over 16 price and volatility scenarios.",
+  },
+  {
+    title: "Exposure margin",
+    description:
+      "An extra buffer on top of SPAN, charged as a percentage of the contract value, for moves beyond those scenarios.",
+  },
+  {
+    title: "Margin benefit",
+    description:
+      "What you save by holding positions that offset each other, compared with taking every leg on its own.",
+  },
+];
+
+const sideActive = {
+  buy: "flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition-all",
+  sell: "flex-1 rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition-all",
+};
+const sideIdle =
+  "flex-1 rounded-lg px-4 py-2 text-sm font-semibold text-text-default opacity-70 transition-all hover:opacity-100";
+// Neutral fields: purple is kept for the focus border and the Add button, so the
+// one action on the form is the one thing in brand colour.
+const toggleActive = "flex-1 rounded-lg bg-white px-3 py-2 text-sm font-bold text-dark shadow-sm transition-all";
+const toggleIdle =
+  "flex-1 rounded-lg px-3 py-2 text-sm font-semibold text-text-default opacity-70 transition-all hover:opacity-100";
+const toggleGroupClass = "flex h-[46px] gap-1 rounded-xl bg-gray-100 p-1 dark:bg-[#181b25]";
+const fieldBoxClass =
+  "flex h-[46px] items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 focus-within:border-primary dark:border-[#262938]";
+const fieldInputClass =
+  "w-full min-w-0 bg-transparent text-base font-semibold text-dark placeholder:font-normal placeholder:text-text-default placeholder:opacity-50 focus:outline-none";
+---
+
+<Layout
+  title="F&O Margin Calculator | SPAN & Exposure Margin | GoPocket"
+  description="Calculate SPAN and exposure margin for futures and options on NSE, BSE and MCX. See the margin benefit on hedged positions with GoPocket's free margin calculator."
+  keywords="margin calculator, span margin calculator, f&o margin calculator, option margin calculator, futures margin calculator, exposure margin, nifty margin calculator, mcx margin calculator, hedge margin benefit, gopocket margin"
+  canonical="/margin-calculator"
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+
+  <Header currentPath="/margin-calculator" />
+
+  <main class="pt-8 pb-16 md:pt-14">
+    <div class="container max-w-[1400px] space-y-12 px-4 sm:px-6">
+      <div class="mb-8 space-y-2">
+        <h1 class="h3 font-bold tracking-tight text-dark">Margin Calculator</h1>
+        <p class="max-w-3xl text-base text-text-default opacity-80 sm:text-lg">
+          Calculate the SPAN and exposure margin for futures and options before you trade, and see how much a hedge
+          saves.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+        <div class="space-y-8 lg:col-span-8">
+          <div
+            class="space-y-8 rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 md:p-10 dark:border-[#262938] dark:bg-[#14161f]"
+            data-margin-calculator
+            data-side-buy={sideActive.buy}
+            data-side-sell={sideActive.sell}
+            data-side-idle={sideIdle}
+            data-toggle-active={toggleActive}
+            data-toggle-idle={toggleIdle}
+          >
+            <form class="space-y-5" data-margin-form novalidate>
+              <h2 class="h4 text-base font-bold text-dark sm:text-lg">Add positions to your basket</h2>
+
+              {/* Row 1 narrows Contract Master step by step: exchange, futures or options, then symbol and expiry. */}
+              <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 md:grid-cols-[auto_auto_1fr]">
+                <div class="space-y-2">
+                  <span id="margin-exchange-label" class="text-sm font-semibold text-dark sm:text-base">Exchange</span>
+                  <div class={toggleGroupClass} role="group" aria-labelledby="margin-exchange-label">
+                    {
+                      exchanges.map((exchange, index) => (
+                        <button
+                          type="button"
+                          data-exchange={exchange.value}
+                          title={exchange.title}
+                          aria-pressed={index === 0 ? "true" : "false"}
+                          class={index === 0 ? toggleActive : toggleIdle}
+                        >
+                          {exchange.label}
+                        </button>
+                      ))
+                    }
+                  </div>
+                </div>
+
+                <div class="space-y-2">
+                  <span id="margin-kind-label" class="text-sm font-semibold text-dark sm:text-base">Product</span>
+                  <div class={toggleGroupClass} role="group" aria-labelledby="margin-kind-label">
+                    {
+                      kinds.map((kind, index) => (
+                        <button
+                          type="button"
+                          data-kind={kind.value}
+                          aria-pressed={index === 0 ? "true" : "false"}
+                          class={index === 0 ? toggleActive : toggleIdle}
+                        >
+                          {kind.label}
+                        </button>
+                      ))
+                    }
+                  </div>
+                </div>
+
+                <div class="relative space-y-2 sm:col-span-2 md:col-span-1">
+                  <label for="margin-underlying" class="text-sm font-semibold text-dark sm:text-base">
+                    Symbol - Expiry
+                  </label>
+                  <div class={fieldBoxClass}>
+                    <Search class="h-4 w-4 shrink-0 text-text-default opacity-60" stroke-width={2} aria-hidden="true" />
+                    <input
+                      type="text"
+                      id="margin-underlying"
+                      data-underlying-input
+                      role="combobox"
+                      aria-autocomplete="list"
+                      aria-expanded="false"
+                      aria-controls="margin-underlying-list"
+                      autocomplete="off"
+                      spellcheck="false"
+                      placeholder="Search e.g. NIFTY, RELIANCE"
+                      class={fieldInputClass}
+                    />
+                  </div>
+                  <ul
+                    id="margin-underlying-list"
+                    role="listbox"
+                    aria-label="Symbols and expiries"
+                    data-underlying-list
+                    class="absolute right-0 left-0 z-40 mt-2 hidden max-h-80 overflow-y-auto rounded-xl border border-border-light bg-white p-1 shadow-xl"
+                  >
+                  </ul>
+                </div>
+              </div>
+
+              {/* Row 2: the option's side and strike (options only), then size and direction. */}
+              <div class="flex flex-wrap items-end gap-4">
+                <div
+                  data-option-fields
+                  class="hidden w-full flex-wrap items-end gap-4 sm:flex-nowrap md:w-auto md:flex-1"
+                >
+                  <div class="w-full space-y-2 sm:w-36">
+                    <span id="margin-option-type-label" class="text-sm font-semibold text-dark sm:text-base">
+                      Option type
+                    </span>
+                    <div class={toggleGroupClass} role="group" aria-labelledby="margin-option-type-label">
+                      <button type="button" data-option-type="CE" aria-pressed="true" class={toggleActive}>CE</button>
+                      <button type="button" data-option-type="PE" aria-pressed="false" class={toggleIdle}>PE</button>
+                    </div>
+                  </div>
+                  {
+                    /* A custom listbox, not a <select>: a native list opens wherever the
+                      OS puts it, at any height. This one always drops below the
+                      field and scrolls inside a fixed height. */
+                  }
+                  <div class="relative w-full min-w-40 flex-1 space-y-2" data-strike>
+                    <label for="margin-strike" class="text-sm font-semibold text-dark sm:text-base">Strike price</label>
+                    <button
+                      type="button"
+                      id="margin-strike"
+                      data-strike-toggle
+                      aria-haspopup="listbox"
+                      aria-expanded="false"
+                      aria-controls="margin-strike-list"
+                      disabled
+                      class={`${fieldBoxClass} w-full justify-between text-left disabled:cursor-not-allowed disabled:opacity-60`}
+                    >
+                      <span data-strike-value class="truncate text-base font-semibold text-dark">
+                        Select symbol first
+                      </span>
+                      <ChevronDown
+                        class="h-4 w-4 shrink-0 text-text-default opacity-60"
+                        stroke-width={2}
+                        aria-hidden="true"
+                      />
+                    </button>
+                    <ul
+                      id="margin-strike-list"
+                      role="listbox"
+                      tabindex="-1"
+                      aria-label="Strike prices"
+                      data-strike-list
+                      class="absolute top-full right-0 left-0 z-40 mt-2 hidden max-h-64 overflow-y-auto rounded-xl border border-border-light bg-white p-1 shadow-xl focus:outline-none"
+                    >
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="w-28 space-y-2">
+                  <label for="margin-lots" class="text-sm font-semibold text-dark sm:text-base">Lots</label>
+                  <div class={fieldBoxClass}>
+                    <input
+                      type="number"
+                      id="margin-lots"
+                      data-lots-input
+                      value="1"
+                      min="1"
+                      step="1"
+                      inputmode="numeric"
+                      aria-describedby="margin-lot-hint"
+                      class={`${fieldInputClass} text-right`}
+                    />
+                  </div>
+                </div>
+
+                <div class="min-w-48 flex-1 space-y-2 md:flex-none">
+                  <span id="margin-side-label" class="text-sm font-semibold text-dark sm:text-base">Buy / Sell</span>
+                  <div class={toggleGroupClass} role="group" aria-labelledby="margin-side-label">
+                    <button type="button" data-side="buy" aria-pressed="true" class={sideActive.buy}>Buy</button>
+                    <button type="button" data-side="sell" aria-pressed="false" class={sideIdle}>Sell</button>
+                  </div>
+                </div>
+
+                <Button label="Add" type="submit" glow={false} data-add-button class="w-full sm:w-auto" />
+              </div>
+              <p id="margin-lot-hint" data-lot-hint class="text-xs text-text-default opacity-70 sm:text-sm">
+                Choose a symbol and expiry to see the lot size.
+              </p>
+            </form>
+
+            <div class="space-y-3">
+              <div class="flex items-center justify-between gap-4">
+                <h2 class="h4 text-base font-bold text-dark sm:text-lg">Your basket</h2>
+                <button
+                  type="button"
+                  data-clear
+                  class="hidden text-sm font-semibold text-primary hover:underline"
+                  aria-label="Remove all positions"
+                >
+                  Clear all
+                </button>
+              </div>
+
+              <div
+                data-empty
+                class="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-gray-300 px-6 py-10 text-center dark:border-[#262938]"
+              >
+                <Layers class="h-8 w-8 text-primary opacity-70" stroke-width={1.6} aria-hidden="true" />
+                <p class="text-sm text-text-default opacity-80 sm:text-base">
+                  No positions yet. Add a future or option above to see the margin.
+                </p>
+              </div>
+
+              <div data-basket class="hidden overflow-x-auto rounded-2xl border border-gray-200 dark:border-[#262938]">
+                <table class="w-full min-w-[560px] text-left text-sm sm:text-base">
+                  <thead class="bg-gray-50 text-xs font-semibold text-text-default uppercase dark:bg-[#181b25]">
+                    <tr>
+                      <th scope="col" class="px-4 py-3">Contract</th>
+                      <th scope="col" class="px-4 py-3">Side</th>
+                      <th scope="col" class="px-4 py-3 text-right">Lots (Qty)</th>
+                      <th scope="col" class="px-4 py-3 text-right">Margin</th>
+                      <th scope="col" class="px-4 py-3"><span class="sr-only">Remove</span></th>
+                    </tr>
+                  </thead>
+                  <tbody data-legs class="divide-y divide-gray-100 dark:divide-[#262938]"></tbody>
+                </table>
+              </div>
+
+              {/* Cloned per leg by the script, so the remove icon stays a Lucide component. */}
+              <template data-leg-template>
+                <tr>
+                  <td class="px-4 py-3">
+                    <span data-cell="name" class="block font-bold text-dark"></span>
+                    <span data-cell="exchange" class="block text-xs text-text-default opacity-60"></span>
+                  </td>
+                  <td class="px-4 py-3"
+                    ><span data-cell="side" class="rounded-md px-2 py-0.5 text-xs font-bold"></span></td
+                  >
+                  <td data-cell="qty" class="px-4 py-3 text-right font-semibold text-dark"></td>
+                  <td data-cell="margin" class="px-4 py-3 text-right font-semibold text-dark">—</td>
+                  <td class="px-4 py-3 text-right">
+                    <button
+                      type="button"
+                      data-remove
+                      class="rounded-lg p-1.5 text-text-default opacity-60 transition hover:bg-red-50 hover:text-red-600 hover:opacity-100 dark:hover:bg-red-950/40"
+                    >
+                      <X class="h-4 w-4" stroke-width={2} aria-hidden="true" />
+                    </button>
+                  </td>
+                </tr>
+              </template>
+            </div>
+
+            {/* Form validation and API errors; the figures themselves live in the sidebar card. */}
+            <p data-status aria-live="polite" class="min-h-5 text-sm text-text-default opacity-70"></p>
+          </div>
+        </div>
+
+        <CalculatorSidebar current="margin" tag="Margin Calculator">
+          {/* Same card chrome as the sidebar's open-account card, which follows it. */}
+          <div
+            class="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 dark:border-[#262938] dark:bg-[#14161f]"
+            aria-live="polite"
+            data-results
+          >
+            <div class="space-y-1.5 text-center">
+              <h2 class="h3 text-lg font-bold text-dark">Total margin required</h2>
+              <span data-out="total" class="block text-3xl font-black text-primary">₹0.00</span>
+            </div>
+
+            <dl
+              class="divide-y divide-gray-100 rounded-xl border border-gray-200 text-sm dark:divide-[#262938] dark:border-[#262938]"
+            >
+              <div class="flex items-center justify-between gap-4 px-4 py-3">
+                <dt class="font-semibold text-text-default opacity-80">SPAN margin</dt>
+                <dd data-out="span" class="font-bold text-dark">₹0.00</dd>
+              </div>
+              <div class="flex items-center justify-between gap-4 px-4 py-3">
+                <dt class="font-semibold text-text-default opacity-80">Exposure margin</dt>
+                <dd data-out="exposure" class="font-bold text-dark">₹0.00</dd>
+              </div>
+              <div class="flex items-center justify-between gap-4 px-4 py-3">
+                <dt class="font-semibold text-text-default opacity-80">Margin benefit</dt>
+                <dd data-out="benefit" class="font-bold text-emerald-600 dark:text-emerald-400">₹0.00</dd>
+              </div>
+            </dl>
+
+            <p class="text-xs text-text-default opacity-60">
+              Margins are calculated from the latest exchange SPAN files and can change during the day. Option buying
+              needs the full premium in place of margin.
+            </p>
+          </div>
+        </CalculatorSidebar>
+      </div>
+
+      <section class="mt-16 space-y-12 border-t border-gray-200 pt-12 dark:border-[#262938]">
+        <div class="max-w-4xl space-y-4">
+          <h2 class="h3 font-bold tracking-tight text-dark">What is a Margin Calculator?</h2>
+          <p class="text-lg leading-relaxed font-normal text-text-default opacity-85 sm:text-xl">
+            Futures and options are traded on margin: instead of paying the full contract value, you keep a deposit with
+            your broker that the exchange blocks against the position. A margin calculator tells you that deposit before
+            you place the order, so you know whether your account can carry the trade.
+          </p>
+        </div>
+
+        <div class="space-y-5">
+          <h2 class="h3 font-bold tracking-tight text-dark">What makes up your F&amp;O margin?</h2>
+          <div class="grid grid-cols-1 gap-5 text-sm sm:text-base md:grid-cols-3">
+            {
+              components.map((item) => (
+                <div class="space-y-2 rounded-2xl border border-gray-200 bg-white p-5 dark:border-[#262938] dark:bg-[#14161f]">
+                  <h3 class="h4 text-base font-bold text-primary sm:text-lg">{item.title}</h3>
+                  <p class="opacity-80">{item.description}</p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+
+        <div class="max-w-4xl space-y-4">
+          <h2 class="h3 font-bold tracking-tight text-dark">How to use the GoPocket Margin Calculator</h2>
+          <ol class="space-y-3">
+            {
+              steps.map((step, index) => (
+                <li class="flex gap-3 text-lg leading-relaxed text-text-default sm:text-xl">
+                  <span class="font-bold text-primary">{index + 1}.</span>
+                  <span class="opacity-85">{step}</span>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </section>
+
+      <FAQSection2 title="for Margin" titleBold="FAQs" categories={faqCategories} />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<script>
+  interface Contract {
+    tradingSymbol: string;
+    name: string;
+    exchange: string;
+    lotSize: number;
+    optionType: "CE" | "PE" | null;
+    strike: number | null;
+  }
+
+  interface UnderlyingExpiry {
+    symbol: string;
+    expiry: string;
+  }
+
+  interface Leg extends Contract {
+    side: "buy" | "sell";
+    lots: number;
+  }
+
+  interface Figures {
+    span: number;
+    exposure: number;
+    total: number;
+  }
+
+  interface MarginResponse extends Figures {
+    legs: Figures[];
+    benefit: number;
+    error?: string;
+  }
+
+  /** Mirrors MAX_POSITIONS in /api/span-margin. */
+  const MAX_LEGS = 10;
+
+  const rupees = new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  /** "2026-10-06" -> "06 Oct 2026". Read as UTC so no timezone shifts the day. */
+  const expiryLabel = (iso: string) =>
+    new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+
+  const root = document.querySelector<HTMLElement>("[data-margin-calculator]");
+
+  if (root) {
+    const $ = <T extends Element>(selector: string) => root.querySelector<T>(selector)!;
+
+    const form = $<HTMLFormElement>("[data-margin-form]");
+    const exchangeButtons = root.querySelectorAll<HTMLButtonElement>("[data-exchange]");
+    const kindButtons = root.querySelectorAll<HTMLButtonElement>("[data-kind]");
+    const optionTypeButtons = root.querySelectorAll<HTMLButtonElement>("[data-option-type]");
+    const sideButtons = root.querySelectorAll<HTMLButtonElement>("[data-side]");
+    const input = $<HTMLInputElement>("[data-underlying-input]");
+    const list = $<HTMLUListElement>("[data-underlying-list]");
+    const optionFields = $<HTMLElement>("[data-option-fields]");
+    const strikeBox = $<HTMLElement>("[data-strike]");
+    const strikeToggle = $<HTMLButtonElement>("[data-strike-toggle]");
+    const strikeValue = $<HTMLElement>("[data-strike-value]");
+    const strikeList = $<HTMLUListElement>("[data-strike-list]");
+    const lotsInput = $<HTMLInputElement>("[data-lots-input]");
+    const lotHint = $<HTMLElement>("[data-lot-hint]");
+    const legsBody = $<HTMLTableSectionElement>("[data-legs]");
+    const template = $<HTMLTemplateElement>("[data-leg-template]");
+    const basket = $<HTMLElement>("[data-basket]");
+    const empty = $<HTMLElement>("[data-empty]");
+    const clear = $<HTMLButtonElement>("[data-clear]");
+    const status = $<HTMLElement>("[data-status]");
+    // The results card sits in the sidebar, outside the calculator root.
+    const results = document.querySelector<HTMLElement>("[data-results]")!;
+
+    const { toggleActive = "", toggleIdle = "", sideBuy = "", sideSell = "", sideIdle = "" } = root.dataset;
+
+    // Each step narrows the one before it; changing a step clears every step after it.
+    let exchange = "NFO";
+    let kind: "FUT" | "OPT" = "FUT";
+    let underlying: UnderlyingExpiry | null = null;
+    /** The chosen symbol-expiry's contracts: one future, or both sides of the option chain. */
+    let chain: Contract[] = [];
+    let optionType: "CE" | "PE" = "CE";
+    let selected: Contract | null = null;
+    let side: Leg["side"] = "buy";
+    let legs: Leg[] = [];
+
+    let matches: UnderlyingExpiry[] = [];
+    let active = -1;
+    let searchTimer: number | undefined;
+    let searchController: AbortController | null = null;
+    let chainController: AbortController | null = null;
+    let marginController: AbortController | null = null;
+
+    /** A segmented control: marks the pressed button and reports its value. */
+    function toggleGroup(
+      buttons: NodeListOf<HTMLButtonElement>,
+      key: string,
+      onChange: (value: string) => void,
+      classFor: (value: string) => string = () => toggleActive,
+    ) {
+      buttons.forEach((button) =>
+        button.addEventListener("click", () => {
+          const value = button.dataset[key] || "";
+          buttons.forEach((other) => {
+            const on = other === button;
+            other.setAttribute("aria-pressed", String(on));
+            other.className = on ? classFor(value) : key === "side" ? sideIdle : toggleIdle;
+          });
+          onChange(value);
+        }),
+      );
+    }
+
+    /* ---------------- Steps 1-2: exchange, futures or options ---------------- */
+
+    function resetUnderlying() {
+      underlying = null;
+      input.value = "";
+      matches = [];
+      closeList();
+      resetChain();
+    }
+
+    function resetChain() {
+      chainController?.abort();
+      chain = [];
+      selected = null;
+      fillStrikes("Select symbol first");
+      updateLotHint();
+    }
+
+    toggleGroup(exchangeButtons, "exchange", (value) => {
+      exchange = value;
+      resetUnderlying();
+    });
+
+    toggleGroup(kindButtons, "kind", (value) => {
+      kind = value === "OPT" ? "OPT" : "FUT";
+      optionFields.classList.toggle("hidden", kind !== "OPT");
+      optionFields.classList.toggle("flex", kind === "OPT");
+      resetUnderlying();
+    });
+
+    /* ---------------- Step 3: symbol - expiry (combobox) ---------------- */
+
+    function closeList() {
+      list.classList.add("hidden");
+      input.setAttribute("aria-expanded", "false");
+      input.removeAttribute("aria-activedescendant");
+      active = -1;
+    }
+
+    function highlight(index: number) {
+      active = index;
+      list.querySelectorAll<HTMLElement>("[role=option]").forEach((option, i) => {
+        const on = i === index;
+        option.setAttribute("aria-selected", String(on));
+        option.classList.toggle("bg-gray-100", on);
+        option.classList.toggle("dark:bg-[#181b25]", on);
+        if (on) {
+          input.setAttribute("aria-activedescendant", option.id);
+          option.scrollIntoView({ block: "nearest" });
+        }
+      });
+    }
+
+    function renderMatches(message?: string) {
+      list.replaceChildren();
+      if (message) {
+        const li = document.createElement("li");
+        li.className = "px-3 py-2 text-sm text-text-default opacity-70";
+        li.textContent = message;
+        list.append(li);
+      }
+      matches.forEach((match, index) => {
+        const li = document.createElement("li");
+        li.id = `margin-underlying-${index}`;
+        li.setAttribute("role", "option");
+        li.setAttribute("aria-selected", "false");
+        li.className =
+          "flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 dark:hover:bg-[#181b25]";
+
+        const name = document.createElement("span");
+        name.className = "font-semibold text-dark";
+        name.textContent = match.symbol;
+        const date = document.createElement("span");
+        date.className = "shrink-0 text-sm text-text-default opacity-70";
+        date.textContent = expiryLabel(match.expiry);
+        li.append(name, date);
+
+        // mousedown, not click: it lands before the input's blur closes the list.
+        li.addEventListener("mousedown", (event) => {
+          event.preventDefault();
+          chooseUnderlying(match);
+        });
+        list.append(li);
+      });
+      list.classList.remove("hidden");
+      input.setAttribute("aria-expanded", "true");
+      active = -1;
+    }
+
+    async function search(term: string) {
+      searchController?.abort();
+      searchController = new AbortController();
+      const params = new URLSearchParams({ exchange, kind, q: term });
+      try {
+        const response = await fetch(`/api/margin-contracts?${params}`, { signal: searchController.signal });
+        const body = (await response.json()) as { results?: UnderlyingExpiry[] };
+        matches = body.results || [];
+        renderMatches(matches.length ? undefined : "No symbols found. Check the exchange and product.");
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          matches = [];
+          renderMatches("Search is unavailable right now. Please try again.");
+        }
+      }
+    }
+
+    input.addEventListener("input", () => {
+      if (underlying) resetChain();
+      underlying = null;
+      window.clearTimeout(searchTimer);
+      const term = input.value.trim();
+      if (!term) {
+        searchController?.abort();
+        closeList();
+        return;
+      }
+      searchTimer = window.setTimeout(() => search(term), 250);
+    });
+
+    input.addEventListener("keydown", (event) => {
+      const open = !list.classList.contains("hidden") && matches.length > 0;
+      if (event.key === "ArrowDown" && open) {
+        event.preventDefault();
+        highlight((active + 1) % matches.length);
+      } else if (event.key === "ArrowUp" && open) {
+        event.preventDefault();
+        highlight((active - 1 + matches.length) % matches.length);
+      } else if (event.key === "Enter" && open) {
+        // Picking from the list must not also submit the form.
+        event.preventDefault();
+        chooseUnderlying(matches[Math.max(active, 0)]);
+      } else if (event.key === "Escape") {
+        closeList();
+      }
+    });
+
+    input.addEventListener("blur", closeList);
+
+    async function chooseUnderlying(match: UnderlyingExpiry) {
+      underlying = match;
+      input.value = `${match.symbol} - ${expiryLabel(match.expiry)}`;
+      closeList();
+      resetChain();
+
+      chainController = new AbortController();
+      fillStrikes("Loading strikes…");
+      const params = new URLSearchParams({ exchange, kind, symbol: match.symbol, expiry: match.expiry });
+      try {
+        const response = await fetch(`/api/margin-contracts?${params}`, { signal: chainController.signal });
+        const body = (await response.json()) as { contracts?: Contract[] };
+        chain = body.contracts || [];
+      } catch (error) {
+        if ((error as Error).name === "AbortError") return;
+        chain = [];
+      }
+
+      if (!chain.length) {
+        fillStrikes("No contracts found");
+        status.textContent = "This contract could not be loaded. Please choose again.";
+        return;
+      }
+      status.textContent = "";
+      // A future is a single contract, so the choice is complete; an option
+      // still needs its type and strike.
+      if (kind === "FUT") {
+        selected = chain[0];
+        lotsInput.focus();
+        lotsInput.select();
+      } else {
+        fillStrikes();
+        strikeToggle.focus();
+      }
+      updateLotHint();
+    }
+
+    /* ---------------- Options only: option type and strike ---------------- */
+
+    /** The current option type's side of the chain - what the strike list offers. */
+    let strikes: Contract[] = [];
+    let strikeActive = -1;
+
+    /** Rebuilds the strike list for the current option type, keeping the strike if it exists on that side too. */
+    function fillStrikes(placeholder?: string) {
+      const keep = selected?.strike ?? null;
+      closeStrikes();
+      strikes = placeholder ? [] : chain.filter((contract) => contract.optionType === optionType);
+      selected = strikes.find((contract) => contract.strike === keep) ?? null;
+      strikeToggle.disabled = Boolean(placeholder);
+
+      strikeList.replaceChildren(
+        ...strikes.map((contract, index) => {
+          const li = document.createElement("li");
+          li.id = `margin-strike-${index}`;
+          li.setAttribute("role", "option");
+          li.setAttribute("aria-selected", String(contract === selected));
+          li.className =
+            "cursor-pointer rounded-lg px-3 py-2 text-sm font-semibold text-dark hover:bg-gray-100 dark:hover:bg-[#181b25]";
+          li.textContent = (contract.strike ?? 0).toLocaleString("en-IN");
+          li.addEventListener("click", () => chooseStrike(index));
+          return li;
+        }),
+      );
+      strikeValue.textContent = placeholder ?? (selected ? strikeLabel(selected) : "Select strike");
+    }
+
+    const strikeLabel = (contract: Contract) => (contract.strike ?? 0).toLocaleString("en-IN");
+
+    function highlightStrike(index: number) {
+      strikeActive = index;
+      strikeList.querySelectorAll<HTMLElement>("[role=option]").forEach((option, i) => {
+        const on = i === index;
+        option.classList.toggle("bg-gray-100", on);
+        option.classList.toggle("dark:bg-[#181b25]", on);
+        if (on) {
+          strikeList.setAttribute("aria-activedescendant", option.id);
+          option.scrollIntoView({ block: "nearest" });
+        }
+      });
+    }
+
+    function openStrikes() {
+      if (strikeToggle.disabled || !strikes.length) return;
+      strikeList.classList.remove("hidden");
+      strikeToggle.setAttribute("aria-expanded", "true");
+      strikeList.focus();
+
+      const current = selected ? strikes.indexOf(selected) : -1;
+      if (current >= 0) {
+        highlightStrike(current);
+        strikeList.children[current]?.scrollIntoView({ block: "center" });
+      } else {
+        // No strike yet: open at the middle of the chain, which sits near
+        // the money, rather than at the deep in-the-money top.
+        strikeActive = -1;
+        strikeList.scrollTop = (strikeList.scrollHeight - strikeList.clientHeight) / 2;
+      }
+    }
+
+    function closeStrikes() {
+      strikeList.classList.add("hidden");
+      strikeToggle.setAttribute("aria-expanded", "false");
+      strikeList.removeAttribute("aria-activedescendant");
+    }
+
+    function chooseStrike(index: number) {
+      selected = strikes[index] ?? null;
+      if (!selected) return;
+      strikeValue.textContent = strikeLabel(selected);
+      strikeList
+        .querySelectorAll("[role=option]")
+        .forEach((option, i) => option.setAttribute("aria-selected", String(i === index)));
+      closeStrikes();
+      strikeToggle.focus();
+      updateLotHint();
+    }
+
+    strikeToggle.addEventListener("click", () =>
+      strikeList.classList.contains("hidden") ? openStrikes() : closeStrikes(),
+    );
+
+    strikeToggle.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        openStrikes();
+      }
+    });
+
+    strikeList.addEventListener("keydown", (event) => {
+      const last = strikes.length - 1;
+      // With nothing highlighted, the arrows start from the middle the list opened at.
+      const from = strikeActive >= 0 ? strikeActive : Math.floor(last / 2);
+      if (event.key === "ArrowDown") highlightStrike(Math.min(from + (strikeActive >= 0 ? 1 : 0), last));
+      else if (event.key === "ArrowUp") highlightStrike(Math.max(from - (strikeActive >= 0 ? 1 : 0), 0));
+      else if (event.key === "Home") highlightStrike(0);
+      else if (event.key === "End") highlightStrike(last);
+      else if ((event.key === "Enter" || event.key === " ") && strikeActive >= 0) chooseStrike(strikeActive);
+      else if (event.key === "Escape" || event.key === "Tab") {
+        closeStrikes();
+        if (event.key === "Escape") strikeToggle.focus();
+        return;
+      } else return;
+      event.preventDefault();
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!strikeBox.contains(event.target as Node)) closeStrikes();
+    });
+
+    toggleGroup(optionTypeButtons, "optionType", (value) => {
+      optionType = value === "PE" ? "PE" : "CE";
+      if (chain.length) fillStrikes();
+    });
+
+    /* ---------------- Lots and side ---------------- */
+
+    toggleGroup(
+      sideButtons,
+      "side",
+      (value) => {
+        side = value === "sell" ? "sell" : "buy";
+      },
+      (value) => (value === "sell" ? sideSell : sideBuy),
+    );
+
+    const lotsValue = () => {
+      const lots = Number(lotsInput.value);
+      return Number.isInteger(lots) && lots > 0 ? lots : 0;
+    };
+
+    function updateLotHint() {
+      // Every contract in a chain shares one lot size, so it shows before a strike is picked.
+      const lotSize = selected?.lotSize ?? chain[0]?.lotSize;
+      if (!lotSize) {
+        lotHint.textContent = "Choose a symbol and expiry to see the lot size.";
+        return;
+      }
+      const qty = (lotsValue() * lotSize).toLocaleString("en-IN");
+      lotHint.textContent = `1 lot = ${lotSize} qty · Total qty ${qty}`;
+    }
+
+    lotsInput.addEventListener("input", updateLotHint);
+
+    /* ---------------- Basket ---------------- */
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!underlying || !chain.length) {
+        status.textContent = "Choose a symbol and expiry from the list first.";
+        input.focus();
+        return;
+      }
+      if (!selected) {
+        status.textContent = "Choose a strike price.";
+        strikeToggle.focus();
+        return;
+      }
+      const lots = lotsValue();
+      if (!lots) {
+        status.textContent = "Enter a whole number of lots, 1 or more.";
+        lotsInput.focus();
+        return;
+      }
+      if (legs.length >= MAX_LEGS) {
+        status.textContent = `A basket can hold up to ${MAX_LEGS} positions.`;
+        return;
+      }
+
+      // The form keeps its choices, so the next leg of a spread is one strike change away.
+      legs.push({ ...selected, side, lots });
+      renderLegs();
+      calculate();
+    });
+
+    function renderLegs() {
+      legsBody.replaceChildren();
+      legs.forEach((leg, index) => {
+        const row = template.content.firstElementChild!.cloneNode(true) as HTMLTableRowElement;
+        const cell = (name: string) => row.querySelector<HTMLElement>(`[data-cell="${name}"]`)!;
+
+        cell("name").textContent = leg.name;
+        cell("exchange").textContent = `${leg.exchange} · ${leg.tradingSymbol}`;
+        const sideBadge = cell("side");
+        sideBadge.textContent = leg.side === "buy" ? "BUY" : "SELL";
+        sideBadge.classList.add(
+          ...(leg.side === "buy"
+            ? ["bg-emerald-50", "text-emerald-700", "dark:bg-emerald-950/40", "dark:text-emerald-400"]
+            : ["bg-red-50", "text-red-700", "dark:bg-red-950/40", "dark:text-red-400"]),
+        );
+        cell("qty").textContent = `${leg.lots} (${(leg.lots * leg.lotSize).toLocaleString("en-IN")})`;
+
+        const remove = row.querySelector<HTMLButtonElement>("[data-remove]")!;
+        remove.setAttribute("aria-label", `Remove ${leg.name}`);
+        remove.addEventListener("click", () => {
+          legs.splice(index, 1);
+          renderLegs();
+          calculate();
+        });
+        legsBody.append(row);
+      });
+
+      const hasLegs = legs.length > 0;
+      basket.classList.toggle("hidden", !hasLegs);
+      empty.classList.toggle("hidden", hasLegs);
+      clear.classList.toggle("hidden", !hasLegs);
+    }
+
+    clear.addEventListener("click", () => {
+      legs = [];
+      renderLegs();
+      calculate();
+    });
+
+    /* ---------------- Margin ---------------- */
+
+    function showFigures(result: MarginResponse | null) {
+      const out = (name: string, value: number) => {
+        results.querySelector<HTMLElement>(`[data-out="${name}"]`)!.textContent = rupees.format(value);
+      };
+      out("total", result?.total ?? 0);
+      out("span", result?.span ?? 0);
+      out("exposure", result?.exposure ?? 0);
+      out("benefit", result?.benefit ?? 0);
+      legsBody.querySelectorAll<HTMLElement>('[data-cell="margin"]').forEach((cell, i) => {
+        const leg = result?.legs[i];
+        cell.textContent = leg ? rupees.format(leg.total) : "—";
+      });
+    }
+
+    async function calculate() {
+      marginController?.abort();
+      if (legs.length === 0) {
+        showFigures(null);
+        status.textContent = "";
+        return;
+      }
+
+      // Latest wins: a basket edited mid-request supersedes the older answer.
+      const controller = new AbortController();
+      marginController = controller;
+      results.setAttribute("aria-busy", "true");
+      status.textContent = "Calculating margin…";
+      try {
+        const response = await fetch("/api/span-margin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            // NRML: the margin to carry the position, which is what a calculator is for.
+            product: "M",
+            positions: legs.map((leg) => ({
+              trading_symbol: leg.tradingSymbol,
+              exchange: leg.exchange,
+              side: leg.side,
+              quantity: leg.lots * leg.lotSize,
+            })),
+          }),
+        });
+        const body = (await response.json()) as MarginResponse;
+        if (!response.ok) throw new Error(body.error || "Margin could not be calculated.");
+        showFigures(body);
+        status.textContent = "";
+      } catch (error) {
+        if ((error as Error).name === "AbortError") return;
+        showFigures(null);
+        status.textContent = (error as Error).message || "Margin could not be calculated. Please try again.";
+      } finally {
+        if (marginController === controller) results.removeAttribute("aria-busy");
+      }
+    }
+  }
+</script>

@@ -19,6 +19,7 @@ import Shield from "@lucide/astro/icons/shield";
 import Smartphone from "@lucide/astro/icons/smartphone";
 import SquareCheckBig from "@lucide/astro/icons/square-check-big";
 import TrendingUp from "@lucide/astro/icons/trending-up";
+import UserPlus from "@lucide/astro/icons/user-plus";
 import UserX from "@lucide/astro/icons/user-x";
 import Zap from "@lucide/astro/icons/zap";
 
@@ -120,6 +121,7 @@ export const calculatorLinks: NavPageLink[] = [
   { title: "PPF Calculator", href: "/ppf-calculator" },
   { title: "EPF Calculator", href: "/epf-calculator" },
   { title: "EMI Calculator", href: "/emi-calculator" },
+  { title: "Margin Calculator", href: "/margin-calculator" },
 ];
 
 /** Sign In mega-menu, top grid: the platforms a customer logs in to. */
@@ -223,6 +225,12 @@ export const signInRekycServices: MegaMenuEntry[] = [
     title: "Reactivation",
     description: "Reactivate a dormant or deactivated account.",
     href: "https://re-kyc.gopocket.in/v1/company/gopocket/reactivation/login",
+  },
+  {
+    icon: UserPlus,
+    title: "Nominee Addition",
+    description: "Add or update the nominees on your account.",
+    href: "https://re-kyc.gopocket.in/v1/company/gopocket/nominee_modification/login",
   },
   {
     icon: UserX,

@@ -9,7 +9,18 @@
  */
 
 export type CalculatorId =
-  "sip" | "lumpsum" | "swp" | "xirr" | "cagr" | "mf-returns" | "emi" | "car-loan" | "ppf" | "epf" | "brokerage";
+  | "sip"
+  | "lumpsum"
+  | "swp"
+  | "xirr"
+  | "cagr"
+  | "mf-returns"
+  | "emi"
+  | "car-loan"
+  | "ppf"
+  | "epf"
+  | "margin"
+  | "brokerage";
 
 export interface CalculatorLink {
   id: CalculatorId;
@@ -34,4 +45,5 @@ export const calculators: CalculatorLink[] = [
   { id: "car-loan", label: "Car Loan EMI Calculator", href: "/car-loan-emi-calculator", ownPage: true },
   { id: "ppf", label: "PPF Calculator", href: "/ppf-calculator", ownPage: true },
   { id: "epf", label: "EPF Calculator", href: "/epf-calculator", ownPage: true },
+  { id: "margin", label: "Margin Calculator", href: "/margin-calculator", ownPage: true },
 ];

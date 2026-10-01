@@ -700,6 +700,65 @@ async function loadStockPage(
   }
 }
 
+/**
+ * Every NSE share in one index - the heatmap's tiles.
+ *
+ * Membership is Contract Master's `indices` child table (doctype Stock Index
+ * Item), so the filter names that doctype: Frappe joins it and keeps the
+ * parents with a matching row. A share belongs to dozens of indices, which is
+ * why it is a table and not a field. Kept like the stock list: membership
+ * changes at an index rebalance, not during a session.
+ */
+export async function indexMembers(
+  index: string,
+  waitUntil?: (promise: Promise<unknown>) => void,
+): Promise<StockRow[] | null> {
+  return swr(`index-members:${index}`, () => loadIndexMembers(index), {
+    freshSeconds: STOCK_LIST_FRESH_S,
+    staleSeconds: STOCK_LIST_STALE_S,
+    keep: (rows) => rows.length > 0,
+    waitUntil,
+  });
+}
+
+async function loadIndexMembers(index: string): Promise<StockRow[] | null> {
+  const params = new URLSearchParams({
+    fields: STOCK_FIELDS,
+    filters: JSON.stringify([
+      ["exchange", "=", "NSE"],
+      ["Stock Index Item", "index", "=", index],
+    ]),
+    order_by: "market_cap desc, symbol asc",
+    // The widest of the heatmap's indices has 150 members.
+    limit_page_length: "500",
+  });
+
+  try {
+    const response = await fetch(`${getFrappeUrl()}/api/resource/Contract Master?${params}`, {
+      headers: { Authorization: `token ${getFrappeToken()}` },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!response.ok) return null;
+    const { data = [] } = (await response.json()) as { data?: StockListRow[] };
+
+    return data.flatMap((row): StockRow[] => {
+      const contract = toContract(row);
+      if (!contract) return [];
+      return [
+        {
+          ...contract,
+          sector: row.sector || "",
+          industry: row.industry || "",
+          capBand: row.cap_band || "",
+          marketCap: row.market_cap ? row.market_cap : null,
+        },
+      ];
+    });
+  } catch {
+    return null;
+  }
+}
+
 export type StockCountField = "sector" | "industry" | "cap_band";
 
 /**

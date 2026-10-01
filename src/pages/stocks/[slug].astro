@@ -17,6 +17,7 @@ import { stockFor } from "@/data/stocks";
 import { canonicalStockSlug, findContractBySlug } from "@/lib/contracts";
 import { fetchQuote } from "@/lib/feed/quote";
 import { fetchCandles, fetchLatestSession, rangeById, sessionWindow } from "@/lib/feed/candles";
+import { sessionAt } from "@/lib/feed/session";
 import PriceChart from "@/components/stocks/PriceChart.astro";
 import StockOverview from "@/components/stocks/StockOverview.astro";
 
@@ -56,13 +57,46 @@ const hasDepth = contract.exchange !== "INDICES";
 // own timeout, so it never becomes the slowest. A 1D chart is the latest
 // session - today's, or the last one that traded - which every range fetches,
 // since it also carries the previous close to measure the day's change from.
-const [feedQuote, latest, rangeCandles, shareholding] = await Promise.all([
+const [hubQuote, latest, rangeCandles, shareholding] = await Promise.all([
   fetchQuote(token),
   fetchLatestSession(token),
   range.id === "1D" ? null : fetchCandles(token, range, contract.tradingSymbol),
   hasDepth ? fetchShareholding(contract.symbol) : null,
 ]);
 const candles = rangeCandles ?? latest.candles;
+
+/*
+ * The hub answers /quote from its cache, and for a share nobody is watching
+ * live that cache still holds the previous session's last tick - 17 hours old
+ * at mid-morning; asking over HTTP doesn't refresh it, only a socket
+ * subscription does. Rendered as it is, the page opened on yesterday's price
+ * and change, coloured to match, and flipped a second later when the socket's
+ * first tick arrived - green to red, coming from a heatmap that already said
+ * red.
+ *
+ * Today's one-minute candles are current, so a tick older than today's open
+ * is rebuilt from them: the last candle is the price, and the stale tick's own
+ * price - the previous session's last, which the feed settles to its close -
+ * is what today's change is measured from.
+ */
+const open = sessionAt(Date.now() / 1000, contract.exchange).start;
+const today = latest.candles.filter((candle) => candle.t >= open);
+const hubTime = hubQuote?.ft ? Number(hubQuote.ft) : null;
+const stale = hubQuote?.lp && today.length > 0 && hubTime !== null && hubTime < open;
+const feedQuote =
+  stale && hubQuote
+    ? {
+        ...hubQuote,
+        lp: today[today.length - 1].c.toFixed(2),
+        c: hubQuote.lp,
+        pc: (((today[today.length - 1].c - Number(hubQuote.lp)) / Number(hubQuote.lp)) * 100).toFixed(2),
+        o: today[0].o.toFixed(2),
+        h: Math.max(...today.map((candle) => candle.h)).toFixed(2),
+        l: Math.min(...today.map((candle) => candle.l)).toFixed(2),
+        v: String(today.reduce((sum, candle) => sum + candle.v, 0)),
+        ft: String(today[today.length - 1].t),
+      }
+    : hubQuote;
 
 /*
  * Between sessions the feed has already rolled its previous close forward to
@@ -177,6 +211,7 @@ const faqSchema =
           heldClose={heldClose}
           rangeStart={rangeStart}
           rangeLabel={range.label}
+          tradedSince={today.length > 0 ? open : null}
         />
 
         <PriceChart
@@ -309,7 +344,7 @@ const faqSchema =
 </Layout>
 
 <script>
-  import { holdPreviousClose, register, subscribe } from "@/lib/feed/client";
+  import { holdPreviousClose, ignoreBefore, register, subscribe } from "@/lib/feed/client";
   import type { Tick } from "@/lib/feed/types";
 
   const header = document.querySelector<HTMLElement>("[data-price-header]");
@@ -318,8 +353,11 @@ const faqSchema =
   if (header && token) {
     // Before anything subscribes: the first snapshot must already be measured
     // from the session before, not from the feed's rolled-forward close.
-    const { heldClose, heldPrice } = header.dataset;
+    const { heldClose, heldPrice, tradedSince } = header.dataset;
     if (heldClose && heldPrice) holdPreviousClose(token, Number(heldClose), Number(heldPrice));
+    // The page already shows today's trading, so the hub's replay of an older
+    // tick on subscribing would only flash yesterday's figures (see client.ts).
+    if (tradedSince) ignoreBefore(token, Number(tradedSince));
 
     const root = header.closest("main") ?? document.body;
     const fields = new Map<string, HTMLElement>();

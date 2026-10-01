@@ -14,9 +14,21 @@ interface Props {
   rangeStart?: number | null;
   /** The chart range's label ("5Y"), shown beside a range change so it isn't read as the day's. */
   rangeLabel?: string;
+  /** Today's open, when the page rendered today's trading - older live ticks are then ignored. */
+  tradedSince?: number | null;
 }
 
-const { heading, symbol, exchange, token, quote, heldClose = null, rangeStart = null, rangeLabel = "" } = Astro.props;
+const {
+  heading,
+  symbol,
+  exchange,
+  token,
+  quote,
+  heldClose = null,
+  rangeStart = null,
+  rangeLabel = "",
+  tradedSince = null,
+} = Astro.props;
 
 /**
  * `pc` is the percent change and `c` the previous close, so the rupee change is
@@ -46,6 +58,7 @@ const signed = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
   data-held-close={heldClose ?? undefined}
   data-held-price={heldClose !== null ? quote?.lp : undefined}
   data-range-start={rangeStart ?? undefined}
+  data-traded-since={tradedSince ?? undefined}
 >
   <p class="text-text-default flex items-center gap-2 text-sm">
     <span class="font-semibold">{symbol}</span>

@@ -1,0 +1,409 @@
+---
+/**
+ * /markets/heatmap - an index's shares as a treemap, by sector and market cap,
+ * coloured by the day's change.
+ *
+ * The index chips are links carrying ?index=, each a full server render, and
+ * all canonicalise to the bare path: one page filtered six ways. With JS the
+ * chips swap the map in place. The prices are those of the request - the map
+ * doesn't poll; a reload or another index brings the latest.
+ */
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import FAQSection from "@/components/FAQSection.astro";
+import HeatmapTreemap from "@/components/heatmap/HeatmapTreemap.astro";
+import { HEATMAP_COPY as copy } from "@/components/heatmap/heatmap-data";
+import { HEAT_STEPS, HEATMAP_INDICES, indexByParam, loadHeatmap } from "@/lib/heatmap";
+
+const index = indexByParam(Astro.url.searchParams.get("index"));
+const waitUntil = Astro.locals.runtime?.ctx?.waitUntil?.bind(Astro.locals.runtime.ctx);
+const map = await loadHeatmap(index, waitUntil);
+
+const priced = map.tiles.filter((tile) => tile.quote !== null);
+// A move inside a paisa's rounding either way counts as unchanged.
+const advancing = priced.filter((tile) => tile.quote!.pct > 0.005).length;
+const declining = priced.filter((tile) => tile.quote!.pct < -0.005).length;
+const unchanged = priced.length - advancing - declining;
+
+const hrefFor = (param: string) => (param === HEATMAP_INDICES[0].param ? copy.path : `${copy.path}?index=${param}`);
+
+const sessionLabel = map.sessionDate
+  ? new Date(`${map.sessionDate}T00:00:00Z`).toLocaleDateString("en-IN", {
+      timeZone: "UTC",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    })
+  : null;
+const updated = new Date().toLocaleTimeString("en-IN", {
+  timeZone: "Asia/Kolkata",
+  hour: "numeric",
+  minute: "2-digit",
+});
+
+/*
+ * What the hover card needs, once per share rather than on each tile: the two
+ * layouts would otherwise carry every chart twice. [name, sector, ltp, change,
+ * pct, previous close, first close's time, closes].
+ */
+const cardData = Object.fromEntries(
+  priced.map((tile) => {
+    const quote = tile.quote!;
+    return [
+      tile.symbol,
+      [
+        tile.name,
+        tile.sector,
+        quote.ltp,
+        quote.change,
+        quote.pct,
+        quote.prevClose,
+        quote.start,
+        quote.closes.map((close) => Math.round(close * 100) / 100),
+      ],
+    ];
+  }),
+);
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: copy.faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: { "@type": "Answer", text: faq.answer },
+  })),
+};
+---
+
+<Layout title={copy.title} description={copy.description} canonical={copy.path}>
+  <Header currentPath={copy.path} />
+
+  <main class="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-8 px-4 py-10 md:px-8 lg:gap-10 lg:py-14">
+    <header class="flex max-w-3xl flex-col gap-3">
+      <h1 class="text-h3 text-dark lg:text-h2 font-semibold tracking-tight">{copy.heading}</h1>
+      <p class="text-text-default text-base leading-relaxed">{copy.intro}</p>
+    </header>
+
+    <section class="flex flex-col gap-5" aria-labelledby="heatmap-heading" data-heat-root>
+      <h2 id="heatmap-heading" class="sr-only">{index.label} heatmap</h2>
+
+      {/* Scrolls sideways on a phone rather than wrapping, like the movers' index tabs. */}
+      <nav aria-label="Index" class="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
+        <ul class="flex w-max gap-2">
+          {
+            HEATMAP_INDICES.map((option) => (
+              <li>
+                <a
+                  href={hrefFor(option.param)}
+                  aria-current={option.param === index.param ? "page" : undefined}
+                  class="border-border-light text-text-default hover:border-primary hover:text-primary aria-[current=page]:border-primary aria-[current=page]:bg-primary inline-block rounded-full border px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-300 aria-[current=page]:text-white!"
+                  data-heat-index={option.param}
+                >
+                  {option.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      {
+        /*
+        Everything the index changes. The script swaps it in
+        place; the chips and the hover card sit outside it and stay put.
+      */
+      }
+      <div class="flex flex-col gap-4 transition-opacity duration-200" data-heat-view data-index={index.param}>
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <p class="text-text-default flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+            <span class="text-dark font-semibold">{index.label}</span>
+            {
+              map.marketOpen ? (
+                <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                  <span class="relative flex h-2 w-2" aria-hidden="true">
+                    <span class="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 motion-safe:animate-ping" />
+                    <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  </span>
+                  Market open · prices as of {updated}
+                </span>
+              ) : (
+                sessionLabel && <span>Market closed · {sessionLabel} close</span>
+              )
+            }
+          </p>
+
+          {
+            priced.length > 0 && (
+              <div class="flex items-center gap-3 text-xs">
+                <span class="font-semibold text-emerald-600 tabular-nums dark:text-emerald-400">
+                  {advancing} advancing
+                </span>
+                {/* Breadth as a split bar: the share of the index up, flat and down. */}
+                <span class="bg-theme-light flex h-1.5 w-28 overflow-hidden rounded-full sm:w-40" aria-hidden="true">
+                  <span class="bg-emerald-500" style={`width:${(advancing / priced.length) * 100}%`} />
+                  <span class="bg-slate-400" style={`width:${(unchanged / priced.length) * 100}%`} />
+                  <span class="bg-red-500" style={`width:${(declining / priced.length) * 100}%`} />
+                </span>
+                <span class="font-semibold text-red-600 tabular-nums dark:text-red-400">{declining} declining</span>
+              </div>
+            )
+          }
+        </div>
+
+        {
+          map.tiles.length > 0 ? (
+            <>
+              <HeatmapTreemap tiles={map.tiles} width={1200} height={660} step={map.step} class="hidden md:block" />
+              <HeatmapTreemap tiles={map.tiles} width={360} height={600} step={map.step} class="md:hidden" />
+            </>
+          ) : (
+            <div class="border-border-light text-text-default rounded-2xl border px-6 py-20 text-center text-sm">
+              The heatmap is unavailable right now. Please try again in a minute.
+            </div>
+          )
+        }
+
+        <script type="application/json" data-heat-data set:html={JSON.stringify(cardData)} />
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <p class="text-text-default/75 text-xs">Size: market cap · Colour: change today</p>
+        <ol class="flex overflow-hidden rounded-md text-[11px] font-semibold text-white" aria-label="Colour legend">
+          {
+            HEAT_STEPS.map((step) => (
+              <li class="w-11 py-1 text-center tabular-nums" style={`background:${step.color}`}>
+                {step.label}
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+
+      {
+        /*
+        The hover card: one element for the whole map, filled from the
+        page's JSON as the pointer moves. Outside the swapped view, so it
+        outlives an index switch.
+      */
+      }
+      <div
+        class="border-border-light pointer-events-none fixed top-0 left-0 z-50 hidden w-64 rounded-xl border bg-white p-3 shadow-xl dark:bg-[#1c202e]"
+        role="tooltip"
+        data-heat-card
+      >
+        <p class="text-dark truncate text-sm font-semibold" data-card-name></p>
+        <p class="text-text-default/80 truncate text-xs" data-card-sub></p>
+        <p class="mt-2 flex items-baseline justify-between gap-2">
+          <span class="text-dark text-lg font-semibold tabular-nums" data-card-ltp></span>
+          <span class="text-xs font-semibold tabular-nums" data-card-change></span>
+        </p>
+        <svg viewBox="0 0 240 72" class="mt-2 h-[72px] w-full overflow-visible" aria-hidden="true" data-card-chart>
+          <line x1="0" x2="240" stroke="currentColor" stroke-dasharray="3 3" class="text-text-default/40" data-card-base
+          ></line>
+          <path fill="none" stroke-width="1.75" stroke-linejoin="round" data-card-line></path>
+        </svg>
+        <p class="text-text-default/60 mt-1 flex justify-between text-[10px]">
+          <span>9:15 AM</span><span>3:30 PM</span>
+        </p>
+      </div>
+    </section>
+
+    <section class="grid gap-6 md:grid-cols-3" aria-label="About the heatmap">
+      {
+        copy.about.map((block) => (
+          <div class="flex flex-col gap-2">
+            <h2 class="text-h6! text-dark font-semibold">{block.heading}</h2>
+            <p class="text-text-default text-sm leading-relaxed">{block.body}</p>
+          </div>
+        ))
+      }
+    </section>
+
+    <p class="text-text-default/75 text-xs leading-relaxed">
+      Prices are sourced from NSE and shown for information only. They may be delayed and should not be relied on for
+      trading decisions. Investments in securities are subject to market risk; read all related documents carefully
+      before investing.
+    </p>
+  </main>
+
+  <FAQSection
+    eyebrow="Heatmap FAQs"
+    title="Stock heatmap FAQs"
+    description="Common questions about reading the stock market heatmap."
+    faqs={copy.faqs}
+  />
+
+  <Footer />
+
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+</Layout>
+
+<script>
+  import { sessionAt } from "@/lib/feed/session";
+
+  const root = document.querySelector<HTMLElement>("[data-heat-root]");
+  const card = root?.querySelector<HTMLElement>("[data-heat-card]");
+
+  if (root && card) {
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+    const view = () => root.querySelector<HTMLElement>("[data-heat-view]");
+
+    /* --- Hover card --------------------------------------------------- */
+
+    type Entry = [string, string, number, number, number, number, number | null, number[]];
+    // Parsed once per view; a swap brings a new JSON block and so a new parse.
+    let data: Record<string, Entry> = {};
+    let parsedFrom: Element | null = null;
+    const entryFor = (symbol: string) => {
+      const source = root.querySelector("[data-heat-data]");
+      if (source !== parsedFrom) {
+        parsedFrom = source;
+        try {
+          data = JSON.parse(source?.textContent || "{}");
+        } catch {
+          data = {};
+        }
+      }
+      return data[symbol];
+    };
+
+    const field = (name: string) => card.querySelector<HTMLElement>(`[data-card-${name}]`);
+    const money = (value: number) =>
+      `₹${value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const signed = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
+    const STEP = 300;
+
+    let shown = "";
+    const fill = (symbol: string) => {
+      if (symbol === shown) return true;
+      const entry = entryFor(symbol);
+      if (!entry) return false;
+      shown = symbol;
+      const [name, sector, ltp, change, pct, prevClose, start, closes] = entry;
+      const up = pct >= 0;
+      field("name")!.textContent = name;
+      field("sub")!.textContent = `${symbol} · ${sector}`;
+      field("ltp")!.textContent = money(ltp);
+      const changeEl = field("change")!;
+      changeEl.textContent = `${signed(change)} (${signed(pct)}%)`;
+      changeEl.className = `text-xs font-semibold tabular-nums ${up ? "text-emerald-600" : "text-red-600"}`;
+
+      // The session so far on the 9:15-3:30 axis, against the previous close.
+      const line = card.querySelector<SVGPathElement>("[data-card-line]")!;
+      const base = card.querySelector<SVGLineElement>("[data-card-base]")!;
+      const chart = card.querySelector<SVGSVGElement>("[data-card-chart]")!;
+      chart.style.display = start !== null && closes.length > 1 ? "" : "none";
+      if (start !== null && closes.length > 1) {
+        const session = sessionAt(start);
+        const low = Math.min(prevClose, ...closes);
+        const high = Math.max(prevClose, ...closes);
+        const y = (value: number) => 68 - ((value - low) / (high - low || 1)) * 64;
+        const x = (i: number) => ((start + i * STEP - session.start) / (session.end - session.start)) * 240;
+        line.setAttribute("d", `M${closes.map((close, i) => `${x(i).toFixed(1)},${y(close).toFixed(1)}`).join(" L")}`);
+        line.setAttribute("stroke", up ? "#059669" : "#dc2626");
+        base.setAttribute("y1", y(prevClose).toFixed(1));
+        base.setAttribute("y2", y(prevClose).toFixed(1));
+      }
+      return true;
+    };
+
+    // Beside the pointer, flipped to whichever side has room.
+    const place = (event: PointerEvent) => {
+      const gap = 16;
+      const width = card.offsetWidth;
+      const height = card.offsetHeight;
+      const left =
+        event.clientX + gap + width <= window.innerWidth - 8 ? event.clientX + gap : event.clientX - gap - width;
+      const top = Math.min(Math.max(event.clientY - height / 2, 8), window.innerHeight - height - 8);
+      card.style.transform = `translate(${Math.max(8, left)}px, ${top}px)`;
+    };
+
+    root.addEventListener("pointermove", (event) => {
+      // Touch goes straight to the stock page; the card is for a mouse.
+      if (event.pointerType !== "mouse") return;
+      const tile = (event.target as Element).closest<HTMLElement>("[data-heat-tile]");
+      if (!tile || !fill(tile.dataset.heatTile!)) {
+        card.classList.add("hidden");
+        return;
+      }
+      card.classList.remove("hidden");
+      place(event);
+    });
+    root.addEventListener("pointerleave", () => card.classList.add("hidden"));
+
+    /* --- Index switch -------------------------------------------------- */
+
+    const chips = [...root.querySelectorAll<HTMLAnchorElement>("[data-heat-index]")];
+    let request: AbortController | null = null;
+
+    /**
+     * Fetch the page at `url` and swap its view in: the map dims, then its
+     * sectors settle in one after another. Prices are as fresh as that fetch -
+     * the map doesn't update itself while it is open.
+     */
+    const load = async (url: string, push: boolean) => {
+      const current = view();
+      if (!current) return;
+      request?.abort();
+      const controller = (request = new AbortController());
+      current.style.opacity = "0.45";
+
+      let next: HTMLElement | null = null;
+      try {
+        const response = await fetch(url, { signal: controller.signal });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const fresh = new DOMParser().parseFromString(await response.text(), "text/html");
+        next = fresh.querySelector<HTMLElement>("[data-heat-view]");
+      } catch {
+        // Handled below.
+      }
+      if (controller.signal.aborted) return;
+      request = null;
+      if (!next) {
+        location.href = url;
+        return;
+      }
+
+      if (push) history.pushState(null, "", url);
+      current.replaceWith(next);
+      shown = "";
+      card.classList.add("hidden");
+
+      // Back and Forward change the index without a click, so the chips follow the view.
+      for (const chip of chips) {
+        if (chip.dataset.heatIndex === next.dataset.index) chip.setAttribute("aria-current", "page");
+        else chip.removeAttribute("aria-current");
+      }
+
+      if (calm.matches) return;
+      next.querySelectorAll<HTMLElement>("[data-heat-map]").forEach((map) => {
+        if (map.offsetParent === null) return;
+        map.querySelectorAll<HTMLElement>("[data-heat-sector]").forEach((sector, i) => {
+          sector.animate(
+            [
+              { opacity: 0, transform: "scale(0.94)" },
+              { opacity: 1, transform: "none" },
+            ],
+            { duration: 450, delay: Math.min(i * 35, 420), easing: EASE, fill: "backwards" },
+          );
+        });
+      });
+    };
+
+    root.addEventListener("click", (event) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const chip = (event.target as Element).closest<HTMLAnchorElement>("[data-heat-index]");
+      if (!chip) return;
+      event.preventDefault();
+      if (chip.getAttribute("aria-current") === "page") return;
+      for (const other of chips) other.removeAttribute("aria-current");
+      chip.setAttribute("aria-current", "page");
+      void load(chip.pathname + chip.search, true);
+    });
+
+    window.addEventListener("popstate", () => void load(location.pathname + location.search, false));
+  }
+</script>

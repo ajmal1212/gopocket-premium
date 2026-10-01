@@ -103,6 +103,7 @@ export interface NavPageLink {
 export const pageLinks: NavPageLink[] = [
   { title: "IPO", href: "/ipo" },
   { title: "Market News", href: "/news" },
+  { title: "Stock Heatmap", href: "/markets/heatmap" },
   { title: "FII DII Activity", href: "/fii-dii-activity" },
   { title: "Courses", href: "/courses" },
   { title: "Downloads", href: "/downloads" },

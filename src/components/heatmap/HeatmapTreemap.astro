@@ -1,0 +1,135 @@
+---
+/**
+ * One treemap of an index: sectors sized by their combined market cap, shares
+ * inside them by their own, each tile coloured by its change on the day.
+ *
+ * Laid out on the server at a reference size and drawn at that aspect ratio,
+ * so positions are plain percentages and the map is complete in the HTML -
+ * no layout script, no shift as it loads. A phone gets its own, taller layout
+ * (see the page) rather than this one squeezed, where every tile would be a
+ * sliver.
+ */
+import { sessionAt } from "@/lib/feed/session";
+import { heatColor, layoutHeatmap, type HeatTile, type Tier } from "@/lib/heatmap";
+
+interface Props {
+  tiles: HeatTile[];
+  /** Reference size the layout is computed at; the map keeps this aspect ratio. */
+  width: number;
+  height: number;
+  /** Seconds between the chart's closes. */
+  step: number;
+  class?: string;
+}
+
+const { tiles, width, height, step, class: className = "" } = Astro.props;
+const sectors = layoutHeatmap(tiles, width, height);
+
+const pos = (box: { x: number; y: number; w: number; h: number }) =>
+  `left:${box.x.toFixed(3)}%;top:${box.y.toFixed(3)}%;width:${box.w.toFixed(3)}%;height:${box.h.toFixed(3)}%`;
+
+const signed = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+const rupees = (value: number) =>
+  `₹${value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+/**
+ * The day's path as a faint line across a large tile. Placed on the session's
+ * time axis, so at noon it stops halfway - the tile reads as the day so far,
+ * not a full day.
+ */
+function spark(tile: HeatTile): string | null {
+  const quote = tile.quote;
+  if (!quote || quote.start === null || quote.closes.length < 2) return null;
+  const session = sessionAt(quote.start);
+  const span = session.end - session.start;
+  const low = Math.min(...quote.closes);
+  const range = Math.max(...quote.closes) - low || 1;
+  return quote.closes
+    .map((close, i) => {
+      const x = Math.min(100, Math.max(0, ((quote.start! + i * step - session.start) / span) * 100));
+      const y = 38 - ((close - low) / range) * 36;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
+
+const symbolSize: Record<Tier, string> = {
+  xl: "text-lg lg:text-2xl",
+  lg: "text-sm",
+  md: "text-[11px]",
+  sm: "text-[9px]",
+  xs: "",
+};
+const pctSize: Record<Tier, string> = { xl: "text-sm lg:text-base", lg: "text-xs", md: "text-[10px]", sm: "", xs: "" };
+---
+
+<div
+  class:list={["relative w-full overflow-hidden rounded-2xl bg-white", className]}
+  style={`aspect-ratio:${width}/${height}`}
+  data-heat-map
+>
+  {
+    sectors.map((sector) => (
+      <div class="absolute p-[2px]" style={pos(sector)} data-heat-sector>
+        <div class="bg-theme-light flex h-full w-full flex-col overflow-hidden rounded-lg">
+          {sector.header && (
+            <p class="text-dark flex h-5 shrink-0 items-center truncate px-1.5 text-[11px] font-semibold">
+              <span class="truncate">{sector.name}</span>
+            </p>
+          )}
+          <div class="relative min-h-0 flex-1">
+            {sector.tiles.map((cell) => {
+              const quote = cell.tile.quote;
+              const line = cell.tier === "xl" || cell.tier === "lg" ? spark(cell.tile) : null;
+              return (
+                <a
+                  href={cell.tile.href}
+                  class="group absolute p-px outline-none"
+                  style={pos(cell)}
+                  aria-label={`${cell.tile.name} (${cell.tile.symbol})${quote ? `, ${rupees(quote.ltp)}, ${signed(quote.pct)}` : ""}`}
+                  data-heat-tile={cell.tile.symbol}
+                >
+                  <span
+                    class="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[4px] text-center leading-tight text-white! transition-[filter,box-shadow] duration-150 group-hover:brightness-115 group-focus-visible:ring-2 group-focus-visible:ring-white group-focus-visible:ring-inset"
+                    style={`background:${heatColor(quote?.pct ?? null)}`}
+                  >
+                    {line && (
+                      <svg
+                        viewBox="0 0 100 40"
+                        preserveAspectRatio="none"
+                        class="absolute inset-x-0 bottom-0 h-1/2 w-full opacity-30"
+                        aria-hidden="true"
+                      >
+                        <polyline
+                          points={line}
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linejoin="round"
+                          vector-effect="non-scaling-stroke"
+                        />
+                      </svg>
+                    )}
+                    {cell.tier !== "xs" && (
+                      <span class:list={["relative max-w-full truncate px-0.5 font-semibold", symbolSize[cell.tier]]}>
+                        {cell.tile.symbol}
+                      </span>
+                    )}
+                    {quote && cell.tier !== "xs" && cell.tier !== "sm" && (
+                      <span class:list={["relative tabular-nums opacity-95", pctSize[cell.tier]]}>
+                        {signed(quote.pct)}
+                      </span>
+                    )}
+                    {quote && cell.tier === "xl" && (
+                      <span class="relative mt-0.5 text-xs tabular-nums opacity-75">{rupees(quote.ltp)}</span>
+                    )}
+                  </span>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    ))
+  }
+</div>

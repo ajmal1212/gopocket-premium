@@ -118,6 +118,27 @@ function measured(tick: Tick): Tick {
   return { ...tick, c: hold.close.toFixed(2), pc: (((last - hold.close) / hold.close) * 100).toFixed(2) };
 }
 
+/**
+ * token -> epoch seconds before which a tick is out of date. On subscribing,
+ * the hub first replays the last tick it holds, and for a share nobody else
+ * was watching that is the previous session's - yesterday's price and change,
+ * mid-morning. A page that has already rendered today's trading says so here,
+ * and that replay is dropped instead of flashing yesterday's colours until the
+ * live tick lands a moment later. Nothing sets this on a page that hasn't seen
+ * today trade, so on a holiday the replay - then the latest price - still shows.
+ */
+const floors = new Map<string, number>();
+
+export function ignoreBefore(token: string, epoch: number) {
+  if (Number.isFinite(epoch)) floors.set(token, epoch);
+}
+
+function outdated(tick: Tick): boolean {
+  const floor = floors.get(tick.k);
+  const time = tick.ft ? Number(tick.ft) : Number.NaN;
+  return floor !== undefined && Number.isFinite(time) && time < floor;
+}
+
 /** Everything the page has registered, as one message each for prices and depth. */
 function subscribeAll() {
   const tokens = union();
@@ -153,6 +174,7 @@ function connect() {
 
     if (message.type === "snap") {
       for (const raw of Object.values(message.ticks) as Tick[]) {
+        if (outdated(raw)) continue;
         const tick = measured(raw);
         cache.set(tick.k, tick);
         pending.set(tick.k, tick);
@@ -162,6 +184,7 @@ function connect() {
     }
 
     if (message.type === "tick") {
+      if (outdated(message.tick as Tick)) return;
       const tick = measured(message.tick as Tick);
       cache.set(tick.k, tick);
       pending.set(tick.k, tick);

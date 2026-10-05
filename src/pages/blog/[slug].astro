@@ -149,15 +149,19 @@ const faqSchema = post.faqs.length
           }
         </div>
 
-        <!-- Main Featured Image -->
+        <!-- Main Featured Image: the page's LCP element, so eager + high priority -->
         {
           post.mainImage ? (
             <div class="max-w-7xl mx-auto mt-8 md:mt-12 rounded-3xl overflow-hidden border border-border-light shadow-lg aspect-[1150/500] w-full bg-white">
               <img
                 src={post.mainImage}
                 alt={post.title}
+                width="1150"
+                height="500"
                 class="w-full h-full object-cover rounded-3xl"
                 loading="eager"
+                decoding="async"
+                fetchpriority="high"
               />
             </div>
           ) : (

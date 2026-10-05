@@ -130,15 +130,25 @@ const faqSchema = post.faqs.length
           }
         </div>
 
-        {/* Real cover image when the record has one; the generated cover otherwise. */}
+        {
+          /*
+          Real cover image when the record has one; the generated cover otherwise.
+          The cover is the page's LCP element, so it loads eagerly at high priority.
+          width/height only supply the 23:10 ratio; the box sizes it.
+        */
+        }
         {
           post.mainImage ? (
             <div class="max-w-7xl mx-auto mt-8 md:mt-12 rounded-3xl overflow-hidden border border-border-light shadow-lg aspect-[1150/500] w-full bg-white">
               <img
                 src={post.mainImage}
                 alt={post.title}
+                width="1150"
+                height="500"
                 class="w-full h-full object-cover rounded-3xl"
                 loading="eager"
+                decoding="async"
+                fetchpriority="high"
               />
             </div>
           ) : (

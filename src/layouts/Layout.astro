@@ -241,11 +241,23 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
 
     {
       /*
-      Google Analytics 4. gtag.js loads async so it never blocks rendering; the
-      inline stub only queues calls on dataLayer until the library arrives.
+      Analytics: Google Analytics 4, Meta Pixel and Microsoft Clarity.
+
+      The stubs below run immediately and only queue calls (dataLayer, fbq.queue,
+      clarity.q), so the PageView and config calls are recorded at parse time.
+      The libraries themselves - ~420 KB of third-party JS - are injected only
+      after the window load event, once the browser is idle. Fetched from <head>
+      they competed with the LCP image for bandwidth on slow mobile connections
+      and ran long main-thread tasks during load; PageSpeed put mobile LCP at 5 s
+      largely because of them. Each library drains its queue when it arrives.
+
+      Trade-off: a visitor who leaves before the page finishes loading is not
+      counted by GA, Meta or Clarity.
+
+      The Meta Pixel <noscript> fallback lives at the top of <body>: an <img> is
+      invalid inside <head>, and the parser would close the head early on it.
     */
     }
-    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-B29DRPPSRM"></script>
     <script is:inline>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
@@ -253,51 +265,46 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
       }
       gtag("js", new Date());
       gtag("config", "G-B29DRPPSRM");
-    </script>
 
-    {
-      /*
-      Meta Pixel. The snippet injects fbevents.js as an async script, so like
-      gtag it never blocks rendering. Its <noscript> fallback lives at the top of
-      <body>: an <img> is invalid inside <head>, and the parser would close the
-      head early on reaching it.
-    */
-    }
-    <script is:inline>
-      !(function (f, b, e, v, n, t, s) {
+      !(function (f) {
         if (f.fbq) return;
-        n = f.fbq = function () {
+        var n = (f.fbq = function () {
           n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-        };
+        });
         if (!f._fbq) f._fbq = n;
         n.push = n;
         n.loaded = !0;
         n.version = "2.0";
         n.queue = [];
-        t = b.createElement(e);
-        t.async = !0;
-        t.src = v;
-        s = b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t, s);
-      })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+      })(window);
       fbq("init", "1821596408552361");
       fbq("track", "PageView");
-    </script>
 
-    {/* Microsoft Clarity. Same pattern again: the stub queues calls and injects the tag async. */}
-    <script is:inline>
-      (function (c, l, a, r, i, t, y) {
-        c[a] =
-          c[a] ||
-          function () {
-            (c[a].q = c[a].q || []).push(arguments);
-          };
-        t = l.createElement(r);
-        t.async = 1;
-        t.src = "https://www.clarity.ms/tag/" + i;
-        y = l.getElementsByTagName(r)[0];
-        y.parentNode.insertBefore(t, y);
-      })(window, document, "clarity", "script", "ypcj6dvlxn");
+      window.clarity =
+        window.clarity ||
+        function () {
+          (window.clarity.q = window.clarity.q || []).push(arguments);
+        };
+
+      (function () {
+        function inject(src) {
+          var s = document.createElement("script");
+          s.async = true;
+          s.src = src;
+          document.head.appendChild(s);
+        }
+        function loadAnalytics() {
+          inject("https://www.googletagmanager.com/gtag/js?id=G-B29DRPPSRM");
+          inject("https://connect.facebook.net/en_US/fbevents.js");
+          inject("https://www.clarity.ms/tag/ypcj6dvlxn");
+        }
+        function whenIdle() {
+          if ("requestIdleCallback" in window) requestIdleCallback(loadAnalytics, { timeout: 3000 });
+          else setTimeout(loadAnalytics, 1);
+        }
+        if (document.readyState === "complete") whenIdle();
+        else window.addEventListener("load", whenIdle, { once: true });
+      })();
     </script>
 
     <!-- Per-page head extras (article meta, JSON-LD, etc.) -->

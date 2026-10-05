@@ -106,6 +106,8 @@ const faqSchema = post.faqs.length
   ogType="article"
 >
   <Fragment slot="head">
+    {/* The cover is the LCP image; preload it from <head> - see news/[slug].astro. */}
+    {post.mainImage && <link rel="preload" as="image" href={post.mainImage} fetchpriority="high" />}
     <meta property="article:published_time" content={post.publishedISO} />
     <meta property="article:modified_time" content={post.modifiedISO || post.publishedISO} />
     <meta property="article:publisher" content={`${SITE}/`} />

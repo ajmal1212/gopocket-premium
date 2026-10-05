@@ -9,11 +9,12 @@ import BlogMeta from "@/components/blog/BlogMeta.astro";
 import BlogReadMore from "@/components/blog/BlogReadMore.astro";
 import { getNewsList } from "../lib/frappe";
 
-// Newest article leads, the next three stack beside it, and the rest fill the
-// grid - the same shape as /blog, with generated covers instead of images.
+// The four newest articles fill a 2x2 "Recent News" grid of large cards, and
+// the rest a two-column "More News" grid. Every card shows the article's 23:10
+// main image (the generated cover when there is none) with its text underneath.
+// Only the first image is eager: it is the LCP element on every viewport.
 const articles = await getNewsList(20, true);
-const leadArticle = articles[0] ?? null;
-const sideArticles = articles.slice(1, 4);
+const recentArticles = articles.slice(0, 4);
 const gridArticles = articles.slice(4);
 
 const SITE = Astro.site?.origin ?? Astro.url.origin;
@@ -78,95 +79,50 @@ const newsBreadcrumbSchema = {
     }
 
     {
-      leadArticle && (
+      recentArticles.length > 0 && (
         <section class="container pt-0!">
           <div class="mx-auto max-w-6xl">
             <h2 class="text-black! dark:text-white! text-h4 font-bold tracking-tight md:text-h3">Recent News</h2>
-            <div class="mt-8 grid gap-10 md:mt-10 lg:grid-cols-2 lg:gap-16 xl:gap-20">
-              <article class="flex flex-col">
-                {leadArticle.mainImage ? (
-                  <BlogThumb
-                    href={`/news/${leadArticle.slug}`}
-                    src={leadArticle.mainImage}
-                    category={leadArticle.category}
-                    width={1150}
-                    height={500}
-                    eager
-                    class="aspect-[23/10] rounded-3xl"
+            <div class="mt-8 grid gap-x-16 gap-y-14 md:mt-10 lg:grid-cols-2 xl:gap-x-20">
+              {recentArticles.map((article, index) => (
+                <article class="flex flex-col">
+                  {article.mainImage ? (
+                    <BlogThumb
+                      href={`/news/${article.slug}`}
+                      src={article.mainImage}
+                      width={1150}
+                      height={500}
+                      eager={index === 0}
+                      class="aspect-[23/10] rounded-3xl"
+                    />
+                  ) : (
+                    <NewsCover
+                      href={`/news/${article.slug}`}
+                      slug={article.slug}
+                      size="lg"
+                      class="aspect-[23/10] rounded-3xl"
+                    />
+                  )}
+                  <h3 class="text-black! dark:text-white! mt-6 line-clamp-2 text-[26px]! leading-snug font-bold tracking-tight md:text-[32px]!">
+                    <a href={`/news/${article.slug}`} class="text-inherit! hover:text-primary! transition-colors">
+                      {article.title}
+                    </a>
+                  </h3>
+                  <BlogMeta
+                    class="mt-4"
+                    author="GoPocket"
+                    date={article.formattedDate}
+                    datetime={article.publishedISO}
+                    readingMinutes={article.readingMinutes}
                   />
-                ) : (
-                  <NewsCover
-                    href={`/news/${leadArticle.slug}`}
-                    category={leadArticle.category}
-                    slug={leadArticle.slug}
-                    size="lg"
-                    class="aspect-[23/10] rounded-3xl"
+                  <BlogReadMore
+                    class="mt-7 self-start"
+                    variant="solid"
+                    href={`/news/${article.slug}`}
+                    title={article.title}
                   />
-                )}
-                <h2 class="text-black! dark:text-white! mt-6 text-[26px]! leading-tight font-bold tracking-tight md:text-[36px]!">
-                  <a href={`/news/${leadArticle.slug}`} class="text-inherit! hover:text-primary! transition-colors">
-                    {leadArticle.title}
-                  </a>
-                </h2>
-                <BlogMeta
-                  class="mt-4"
-                  author="GoPocket"
-                  date={leadArticle.formattedDate}
-                  datetime={leadArticle.publishedISO}
-                  readingMinutes={leadArticle.readingMinutes}
-                />
-                <BlogReadMore
-                  class="mt-7 self-start"
-                  variant="solid"
-                  href={`/news/${leadArticle.slug}`}
-                  title={leadArticle.title}
-                />
-              </article>
-
-              {sideArticles.length > 0 && (
-                <div class="flex flex-col gap-8 lg:gap-10">
-                  {sideArticles.map((article) => (
-                    <article class="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] items-start gap-4 sm:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] sm:gap-7">
-                      {article.thumbnailImage ? (
-                        <BlogThumb
-                          href={`/news/${article.slug}`}
-                          src={article.thumbnailImage}
-                          category={article.category}
-                          width={640}
-                          height={550}
-                          class="aspect-[4/3] rounded-2xl"
-                        />
-                      ) : (
-                        <NewsCover
-                          href={`/news/${article.slug}`}
-                          category={article.category}
-                          slug={article.slug}
-                          size="sm"
-                          class="aspect-[4/3] rounded-2xl"
-                        />
-                      )}
-                      <div class="flex flex-col">
-                        <h2 class="text-black! dark:text-white! line-clamp-3 text-xl! leading-snug font-bold tracking-tight sm:text-2xl! xl:text-[28px]!">
-                          <a href={`/news/${article.slug}`} class="text-inherit! hover:text-primary! transition-colors">
-                            {article.title}
-                          </a>
-                        </h2>
-                        <BlogMeta
-                          class="mt-3 sm:mt-4"
-                          date={article.formattedDate}
-                          datetime={article.publishedISO}
-                          readingMinutes={article.readingMinutes}
-                        />
-                        <BlogReadMore
-                          class="mt-4 self-start sm:mt-6"
-                          href={`/news/${article.slug}`}
-                          title={article.title}
-                        />
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              )}
+                </article>
+              ))}
             </div>
           </div>
         </section>
@@ -178,25 +134,19 @@ const newsBreadcrumbSchema = {
         <section class="container mt-16 md:mt-24">
           <div class="mx-auto max-w-6xl">
             <h2 class="text-black! dark:text-white! text-h4 font-bold tracking-tight md:text-h3">More News</h2>
-            <div class="mt-8 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:gap-x-12 lg:gap-y-16 lg:grid-cols-3 md:mt-10">
+            <div class="mt-8 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:gap-x-16 lg:gap-y-16 md:mt-10">
               {gridArticles.map((article) => (
                 <article class="flex flex-col">
-                  {article.thumbnailImage ? (
+                  {article.mainImage ? (
                     <BlogThumb
                       href={`/news/${article.slug}`}
-                      src={article.thumbnailImage}
-                      category={article.category}
-                      width={640}
-                      height={550}
-                      class="aspect-[7/5] rounded-2xl"
+                      src={article.mainImage}
+                      width={1150}
+                      height={500}
+                      class="aspect-[23/10] rounded-2xl"
                     />
                   ) : (
-                    <NewsCover
-                      href={`/news/${article.slug}`}
-                      category={article.category}
-                      slug={article.slug}
-                      class="aspect-[7/5] rounded-2xl"
-                    />
+                    <NewsCover href={`/news/${article.slug}`} slug={article.slug} class="aspect-[23/10] rounded-2xl" />
                   )}
                   <h3 class="text-black! dark:text-white! mt-4 line-clamp-2 text-[26px]! leading-snug md:text-[32px]! font-bold tracking-tight">
                     <a href={`/news/${article.slug}`} class="text-inherit! hover:text-primary! transition-colors">

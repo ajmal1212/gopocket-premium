@@ -1340,11 +1340,10 @@ export async function createLead(params: CreateLeadParams): Promise<CreateLeadRe
    NEWS
    ============================================================================
    The News doctype mirrors Blog: same meta_tittle / meta_description / slug /
-   category1-3 / post_body / faq shape. It currently ships no image fields, so
-   `mainImage` / `thumbnailImage` come back empty and the pages fall back to the
-   generated cover (NewsCover.astro). Should main_image / thumbnail_image be
-   added to the doctype later, they are picked up here with no further change
-   and the pages show the real image instead.
+   category1-3 / post_body / faq shape, including main_image / thumbnail_image.
+   The news pages use only `mainImage` (one 23:10 cover per article, shown in
+   every card); a record without one falls back to the generated cover
+   (NewsCover.astro).
    ========================================================================== */
 
 export interface NewsDoc {

@@ -272,6 +272,12 @@
 </style>
 
 <script>
+  /* `?url` imports only the stylesheet's hashed URL. A plain
+     `import("@n8n/chat/style.css")` - even a dynamic one - is collected by
+     Astro as page CSS and linked render-blocking in the <head> of every page,
+     which defeated the lazy loading below. */
+  import chatStyleUrl from "@n8n/chat/style.css?url";
+
   const WEBHOOK_URL = "https://n8n.gopocket.in/webhook/ea143194-39cd-4653-a83b-a1b36e81e7fb/chat";
 
   /* The n8n bundle is ~500 KB over the wire, comfortably the largest single
@@ -291,9 +297,23 @@
 
   let chatModule: Promise<typeof import("@n8n/chat")> | null = null;
 
+  // Inserted ahead of the site's own stylesheets, where the build used to put
+  // it, so the #n8n-chat overrides in this component still win the cascade.
+  const loadChatStyle = () =>
+    new Promise<void>((resolve, reject) => {
+      const existing = document.querySelector<HTMLLinkElement>(`link[href="${chatStyleUrl}"]`);
+      if (existing) existing.remove();
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = chatStyleUrl;
+      link.onload = () => resolve();
+      link.onerror = () => reject(new Error("chat stylesheet failed to load"));
+      document.head.insertBefore(link, document.head.querySelector('link[rel="stylesheet"]'));
+    });
+
   const warm = () => {
     if (!chatModule) {
-      chatModule = import("@n8n/chat/style.css").then(() => import("@n8n/chat"));
+      chatModule = Promise.all([loadChatStyle(), import("@n8n/chat")]).then(([, mod]) => mod);
       // A failed fetch - offline, or a deploy mid-visit renaming the chunk -
       // is forgotten, so the next hover or click tries again.
       chatModule.catch(() => (chatModule = null));

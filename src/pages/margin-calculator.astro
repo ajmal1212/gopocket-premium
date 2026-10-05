@@ -103,13 +103,7 @@ const fieldInputClass =
 
   <main class="pt-8 pb-16 md:pt-14">
     <div class="container max-w-[1400px] space-y-12 px-4 sm:px-6">
-      <div class="mb-8 space-y-2">
-        <h1 class="h3 font-bold tracking-tight text-dark">Margin Calculator</h1>
-        <p class="max-w-3xl text-base text-text-default opacity-80 sm:text-lg">
-          Calculate the SPAN and exposure margin for Nifty, Bank Nifty, Sensex, stock futures and options, and MCX
-          commodities before you trade - and see how much a hedge saves.
-        </p>
-      </div>
+      <h1 class="h3 mb-8 font-bold tracking-tight text-dark">Margin Calculator</h1>
 
       <div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
         <div class="space-y-8 lg:col-span-8">
@@ -563,6 +557,8 @@ const fieldInputClass =
 </style>
 
 <script>
+  import { toast } from "@/lib/toast";
+
   interface Contract {
     tradingSymbol: string;
     name: string;
@@ -1035,6 +1031,21 @@ const fieldInputClass =
       }
       if (legs.length >= MAX_LEGS) {
         status.textContent = `A basket can hold up to ${MAX_LEGS} positions.`;
+        return;
+      }
+      // One leg per contract, whichever side: a buy and a sell of the same
+      // contract net off, and the margin API prices them as two positions.
+      const chosen = selected;
+      const existing = legs.find(
+        (leg) => leg.tradingSymbol === chosen.tradingSymbol && leg.exchange === chosen.exchange,
+      );
+      if (existing) {
+        status.textContent = "";
+        toast({
+          title: `${chosen.name} is already in your basket (${existing.side === "buy" ? "Buy" : "Sell"}).`,
+          message: "Remove it first to add it again.",
+          variant: "warning",
+        });
         return;
       }
 

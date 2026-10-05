@@ -29,10 +29,15 @@ const json = (body: unknown, status = 200) =>
 function parsePositions(value: unknown): MarginPosition[] | null {
   if (!Array.isArray(value) || value.length === 0 || value.length > MAX_POSITIONS) return null;
   const positions: MarginPosition[] = [];
+  // One position per contract - the calculator never sends a contract twice.
+  const seen = new Set<string>();
   for (const item of value as Record<string, unknown>[]) {
     const { trading_symbol, exchange, side, quantity } = item ?? {};
     if (typeof trading_symbol !== "string" || !SYMBOL.test(trading_symbol)) return null;
     if (!MARGIN_EXCHANGES.includes(exchange as never)) return null;
+    const key = `${exchange}|${trading_symbol.toUpperCase()}`;
+    if (seen.has(key)) return null;
+    seen.add(key);
     if (side !== "buy" && side !== "sell") return null;
     if (!Number.isInteger(quantity) || (quantity as number) <= 0 || (quantity as number) > MAX_QUANTITY) return null;
     positions.push({

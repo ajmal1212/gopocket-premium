@@ -10,6 +10,7 @@ import X from "@lucide/astro/icons/x";
 import Layers from "@lucide/astro/icons/layers";
 import ChevronDown from "@lucide/astro/icons/chevron-down";
 import { components, faqItems, guides, steps } from "@/components/margin/margin-content";
+import { getBannedSecurities } from "@/lib/frappe";
 
 /*
  * F&O margin calculator. The visitor builds a basket of futures and options
@@ -37,6 +38,10 @@ const kinds = [
   { value: "FUT", label: "Futures" },
   { value: "OPT", label: "Options" },
 ];
+
+// The exchange's daily F&O ban list, maintained by hand in the "Banned
+// Securities" doctype. Fetched on every render since the list changes daily.
+const bannedSecurities = await getBannedSecurities();
 
 const faqCategories = [{ id: "margin-faqs", label: "FAQs for Margin", items: faqItems }];
 
@@ -116,162 +121,180 @@ const fieldInputClass =
             data-toggle-active={toggleActive}
             data-toggle-idle={toggleIdle}
           >
-            {/* Left: the fields, stacked. Right: the margin breakdown chart. */}
-            <div class="grid grid-cols-1 items-start gap-8 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-              <form class="space-y-5" data-margin-form novalidate>
-                <h2 class="h4 text-base font-bold text-dark sm:text-lg">Add positions to your basket</h2>
+            {
+              /*
+              Left: the fields, stacked. Right: the margin breakdown chart.
+              From md up both columns share three rows through subgrid - fields
+              and chart, then the Add button beside the banned symbols, then the
+              lot hint - so the symbols stay level with Add however tall the
+              chart or the form grows.
+            */
+            }
+            <div
+              class="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:grid-rows-[1fr_auto_auto] md:gap-y-5"
+            >
+              <form class="flex flex-col gap-5 md:row-span-3 md:grid md:grid-rows-subgrid" data-margin-form novalidate>
+                <div class="space-y-5">
+                  <h2 class="h4 text-base font-bold text-dark sm:text-lg">Add positions to your basket</h2>
 
-                {/* Narrows Contract Master step by step: exchange, futures or options, then symbol and expiry. */}
-                <div class="space-y-2">
-                  <span id="margin-exchange-label" class="block text-sm font-semibold text-dark sm:text-base"
-                    >Exchange</span
-                  >
-                  <div class={toggleGroupClass} role="group" aria-labelledby="margin-exchange-label">
-                    {
-                      exchanges.map((exchange, index) => (
-                        <button
-                          type="button"
-                          data-exchange={exchange.value}
-                          title={exchange.title}
-                          aria-pressed={index === 0 ? "true" : "false"}
-                          class={index === 0 ? toggleActive : toggleIdle}
-                        >
-                          {exchange.label}
-                        </button>
-                      ))
-                    }
-                  </div>
-                </div>
-
-                <div class="space-y-2">
-                  <span id="margin-kind-label" class="block text-sm font-semibold text-dark sm:text-base">Product</span>
-                  <div class={toggleGroupClass} role="group" aria-labelledby="margin-kind-label">
-                    {
-                      kinds.map((kind, index) => (
-                        <button
-                          type="button"
-                          data-kind={kind.value}
-                          aria-pressed={index === 0 ? "true" : "false"}
-                          class={index === 0 ? toggleActive : toggleIdle}
-                        >
-                          {kind.label}
-                        </button>
-                      ))
-                    }
-                  </div>
-                </div>
-
-                <div class="relative space-y-2">
-                  <label for="margin-underlying" class="block text-sm font-semibold text-dark sm:text-base">
-                    Symbol - Expiry
-                  </label>
-                  <div class={fieldBoxClass}>
-                    <Search class="h-4 w-4 shrink-0 text-text-default opacity-60" stroke-width={2} aria-hidden="true" />
-                    <input
-                      type="text"
-                      id="margin-underlying"
-                      data-underlying-input
-                      role="combobox"
-                      aria-autocomplete="list"
-                      aria-expanded="false"
-                      aria-controls="margin-underlying-list"
-                      autocomplete="off"
-                      spellcheck="false"
-                      placeholder="Search e.g. NIFTY, RELIANCE"
-                      class={fieldInputClass}
-                    />
-                  </div>
-                  <ul
-                    id="margin-underlying-list"
-                    role="listbox"
-                    aria-label="Symbols and expiries"
-                    data-underlying-list
-                    class="absolute right-0 left-0 z-40 mt-2 hidden max-h-80 overflow-y-auto rounded-xl border border-border-light bg-white p-1 shadow-xl"
-                  >
-                  </ul>
-                </div>
-
-                {/* Options only: the option's side and strike. */}
-                <div data-option-fields class="hidden grid-cols-[7rem_minmax(0,1fr)] items-end gap-4">
+                  {/* Narrows Contract Master step by step: exchange, futures or options, then symbol and expiry. */}
                   <div class="space-y-2">
-                    <span id="margin-option-type-label" class="block text-sm font-semibold text-dark sm:text-base">
-                      Option type
-                    </span>
-                    <div class={toggleGroupClass} role="group" aria-labelledby="margin-option-type-label">
-                      <button type="button" data-option-type="CE" aria-pressed="true" class={toggleActive}>CE</button>
-                      <button type="button" data-option-type="PE" aria-pressed="false" class={toggleIdle}>PE</button>
+                    <span id="margin-exchange-label" class="block text-sm font-semibold text-dark sm:text-base"
+                      >Exchange</span
+                    >
+                    <div class={toggleGroupClass} role="group" aria-labelledby="margin-exchange-label">
+                      {
+                        exchanges.map((exchange, index) => (
+                          <button
+                            type="button"
+                            data-exchange={exchange.value}
+                            title={exchange.title}
+                            aria-pressed={index === 0 ? "true" : "false"}
+                            class={index === 0 ? toggleActive : toggleIdle}
+                          >
+                            {exchange.label}
+                          </button>
+                        ))
+                      }
                     </div>
                   </div>
-                  {
-                    /* A custom listbox, not a <select>: a native list opens wherever the
-                      OS puts it, at any height. This one always drops below the
-                      field and scrolls inside a fixed height. */
-                  }
-                  <div class="relative flex flex-col gap-2" data-strike>
-                    <label for="margin-strike" class="block text-sm font-semibold text-dark sm:text-base"
-                      >Strike price</label
+
+                  <div class="space-y-2">
+                    <span id="margin-kind-label" class="block text-sm font-semibold text-dark sm:text-base"
+                      >Product</span
                     >
-                    <button
-                      type="button"
-                      id="margin-strike"
-                      data-strike-toggle
-                      aria-haspopup="listbox"
-                      aria-expanded="false"
-                      aria-controls="margin-strike-list"
-                      disabled
-                      class={`${fieldBoxClass} w-full justify-between text-left disabled:cursor-not-allowed disabled:opacity-60`}
-                    >
-                      <span data-strike-value class="truncate text-base font-semibold text-dark">
-                        Select symbol first
-                      </span>
-                      <ChevronDown
+                    <div class={toggleGroupClass} role="group" aria-labelledby="margin-kind-label">
+                      {
+                        kinds.map((kind, index) => (
+                          <button
+                            type="button"
+                            data-kind={kind.value}
+                            aria-pressed={index === 0 ? "true" : "false"}
+                            class={index === 0 ? toggleActive : toggleIdle}
+                          >
+                            {kind.label}
+                          </button>
+                        ))
+                      }
+                    </div>
+                  </div>
+
+                  <div class="relative space-y-2">
+                    <label for="margin-underlying" class="block text-sm font-semibold text-dark sm:text-base">
+                      Symbol - Expiry
+                    </label>
+                    <div class={fieldBoxClass}>
+                      <Search
                         class="h-4 w-4 shrink-0 text-text-default opacity-60"
                         stroke-width={2}
                         aria-hidden="true"
                       />
-                    </button>
+                      <input
+                        type="text"
+                        id="margin-underlying"
+                        data-underlying-input
+                        role="combobox"
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        aria-controls="margin-underlying-list"
+                        autocomplete="off"
+                        spellcheck="false"
+                        placeholder="Search e.g. NIFTY, RELIANCE"
+                        class={fieldInputClass}
+                      />
+                    </div>
                     <ul
-                      id="margin-strike-list"
+                      id="margin-underlying-list"
                       role="listbox"
-                      tabindex="-1"
-                      aria-label="Strike prices"
-                      data-strike-list
-                      class="absolute top-full right-0 left-0 z-40 mt-2 hidden max-h-64 overflow-y-auto rounded-xl border border-border-light bg-white p-1 shadow-xl focus:outline-none"
+                      aria-label="Symbols and expiries"
+                      data-underlying-list
+                      class="absolute right-0 left-0 z-40 mt-2 hidden max-h-80 overflow-y-auto rounded-xl border border-border-light bg-white p-1 shadow-xl"
                     >
                     </ul>
                   </div>
-                </div>
 
-                <div class="grid grid-cols-[6rem_minmax(0,1fr)] items-end gap-4">
-                  <div class="space-y-2">
-                    <label for="margin-lots" class="block text-sm font-semibold text-dark sm:text-base">Lots</label>
-                    <div class={fieldBoxClass}>
-                      <input
-                        type="number"
-                        id="margin-lots"
-                        data-lots-input
-                        value="1"
-                        min="1"
-                        step="1"
-                        inputmode="numeric"
-                        aria-describedby="margin-lot-hint"
-                        class={`${fieldInputClass} text-right`}
-                      />
+                  {/* Options only: the option's side and strike. */}
+                  <div data-option-fields class="hidden grid-cols-[7rem_minmax(0,1fr)] items-end gap-4">
+                    <div class="space-y-2">
+                      <span id="margin-option-type-label" class="block text-sm font-semibold text-dark sm:text-base">
+                        Option type
+                      </span>
+                      <div class={toggleGroupClass} role="group" aria-labelledby="margin-option-type-label">
+                        <button type="button" data-option-type="CE" aria-pressed="true" class={toggleActive}>CE</button>
+                        <button type="button" data-option-type="PE" aria-pressed="false" class={toggleIdle}>PE</button>
+                      </div>
+                    </div>
+                    {
+                      /* A custom listbox, not a <select>: a native list opens wherever the
+                      OS puts it, at any height. This one always drops below the
+                      field and scrolls inside a fixed height. */
+                    }
+                    <div class="relative flex flex-col gap-2" data-strike>
+                      <label for="margin-strike" class="block text-sm font-semibold text-dark sm:text-base"
+                        >Strike price</label
+                      >
+                      <button
+                        type="button"
+                        id="margin-strike"
+                        data-strike-toggle
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-controls="margin-strike-list"
+                        disabled
+                        class={`${fieldBoxClass} w-full justify-between text-left disabled:cursor-not-allowed disabled:opacity-60`}
+                      >
+                        <span data-strike-value class="truncate text-base font-semibold text-dark">
+                          Select symbol first
+                        </span>
+                        <ChevronDown
+                          class="h-4 w-4 shrink-0 text-text-default opacity-60"
+                          stroke-width={2}
+                          aria-hidden="true"
+                        />
+                      </button>
+                      <ul
+                        id="margin-strike-list"
+                        role="listbox"
+                        tabindex="-1"
+                        aria-label="Strike prices"
+                        data-strike-list
+                        class="absolute top-full right-0 left-0 z-40 mt-2 hidden max-h-64 overflow-y-auto rounded-xl border border-border-light bg-white p-1 shadow-xl focus:outline-none"
+                      >
+                      </ul>
                     </div>
                   </div>
 
-                  <div class="space-y-2">
-                    <span id="margin-side-label" class="block text-sm font-semibold text-dark sm:text-base"
-                      >Buy / Sell</span
-                    >
-                    <div class={toggleGroupClass} role="group" aria-labelledby="margin-side-label">
-                      <button type="button" data-side="buy" aria-pressed="true" class={sideActive.buy}>Buy</button>
-                      <button type="button" data-side="sell" aria-pressed="false" class={sideIdle}>Sell</button>
+                  <div class="grid grid-cols-[6rem_minmax(0,1fr)] items-end gap-4">
+                    <div class="space-y-2">
+                      <label for="margin-lots" class="block text-sm font-semibold text-dark sm:text-base">Lots</label>
+                      <div class={fieldBoxClass}>
+                        <input
+                          type="number"
+                          id="margin-lots"
+                          data-lots-input
+                          value="1"
+                          min="1"
+                          step="1"
+                          inputmode="numeric"
+                          aria-describedby="margin-lot-hint"
+                          class={`${fieldInputClass} text-right`}
+                        />
+                      </div>
+                    </div>
+
+                    <div class="space-y-2">
+                      <span id="margin-side-label" class="block text-sm font-semibold text-dark sm:text-base"
+                        >Buy / Sell</span
+                      >
+                      <div class={toggleGroupClass} role="group" aria-labelledby="margin-side-label">
+                        <button type="button" data-side="buy" aria-pressed="true" class={sideActive.buy}>Buy</button>
+                        <button type="button" data-side="sell" aria-pressed="false" class={sideIdle}>Sell</button>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <Button label="Add" type="submit" glow={false} data-add-button class="w-full" />
+                <Button label="Add" type="submit" glow={false} data-add-button class="w-full md:self-center" />
                 <p id="margin-lot-hint" data-lot-hint class="text-xs text-text-default opacity-70 sm:text-sm">
                   Choose a symbol and expiry to see the lot size.
                 </p>
@@ -286,59 +309,82 @@ const fieldInputClass =
               */
               }
               <section
-                class="margin-chart flex flex-col items-center gap-5 md:pt-10"
+                class="margin-chart flex flex-col items-center gap-5 md:row-span-3 md:grid md:grid-rows-subgrid md:items-stretch"
                 aria-label="Margin breakdown"
                 data-chart
               >
-                <div class="relative w-full max-w-[260px]" data-chart-ring>
-                  <svg viewBox="0 0 200 200" class="block w-full" role="img" data-chart-svg>
-                    <title data-chart-summary>Margin breakdown: add a position to see it.</title>
-                    <circle class="chart-track" cx="100" cy="100" r={DONUT_R} fill="none" stroke-width="28"></circle>
+                <div class="flex w-full flex-col items-center gap-5 md:pt-10">
+                  <div class="relative w-full max-w-[260px]" data-chart-ring>
+                    <svg viewBox="0 0 200 200" class="block w-full" role="img" data-chart-svg>
+                      <title data-chart-summary>Margin breakdown: add a position to see it.</title>
+                      <circle class="chart-track" cx="100" cy="100" r={DONUT_R} fill="none" stroke-width="28"></circle>
+                      {
+                        chartSegments.map((segment) => (
+                          <circle
+                            class="chart-slice"
+                            data-segment={segment.key}
+                            data-label={segment.label}
+                            cx="100"
+                            cy="100"
+                            r={DONUT_R}
+                            fill="none"
+                            stroke-width="28"
+                            pathLength="100"
+                            stroke-dasharray="0 100"
+                            transform="rotate(-90 100 100)"
+                            style={`stroke: var(--series-${segment.slot})`}
+                          />
+                        ))
+                      }
+                    </svg>
+                    <p
+                      data-chart-empty
+                      class="pointer-events-none absolute inset-0 flex items-center justify-center px-14 text-center text-xs text-text-default opacity-60 sm:text-sm"
+                    >
+                      Add a position to see the breakdown
+                    </p>
+                    <div
+                      data-chart-tooltip
+                      class="pointer-events-none absolute hidden -translate-x-1/2 -translate-y-full rounded-lg border border-border-light bg-white px-3 py-2 text-xs whitespace-nowrap text-dark shadow-lg"
+                    >
+                    </div>
+                  </div>
+
+                  <ul
+                    class="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-text-default sm:text-sm"
+                    aria-hidden="true"
+                  >
                     {
                       chartSegments.map((segment) => (
-                        <circle
-                          class="chart-slice"
-                          data-segment={segment.key}
-                          data-label={segment.label}
-                          cx="100"
-                          cy="100"
-                          r={DONUT_R}
-                          fill="none"
-                          stroke-width="28"
-                          pathLength="100"
-                          stroke-dasharray="0 100"
-                          transform="rotate(-90 100 100)"
-                          style={`stroke: var(--series-${segment.slot})`}
-                        />
+                        <li class="flex items-center gap-2">
+                          <span class="h-2.5 w-2.5 rounded-sm" style={`background: var(--series-${segment.slot})`} />
+                          {segment.label}
+                        </li>
                       ))
                     }
-                  </svg>
-                  <p
-                    data-chart-empty
-                    class="pointer-events-none absolute inset-0 flex items-center justify-center px-14 text-center text-xs text-text-default opacity-60 sm:text-sm"
-                  >
-                    Add a position to see the breakdown
-                  </p>
-                  <div
-                    data-chart-tooltip
-                    class="pointer-events-none absolute hidden -translate-x-1/2 -translate-y-full rounded-lg border border-border-light bg-white px-3 py-2 text-xs whitespace-nowrap text-dark shadow-lg"
-                  >
-                  </div>
-                </div>
+                  </ul>
 
-                <ul
-                  class="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-text-default sm:text-sm"
-                  aria-hidden="true"
-                >
-                  {
-                    chartSegments.map((segment) => (
-                      <li class="flex items-center gap-2">
-                        <span class="h-2.5 w-2.5 rounded-sm" style={`background: var(--series-${segment.slot})`} />
-                        {segment.label}
-                      </li>
-                    ))
-                  }
-                </ul>
+                  <p
+                    class="mt-auto w-full border-t border-border-light pt-4 text-center text-xs font-bold tracking-wide text-red-600 uppercase sm:text-sm dark:text-red-400"
+                  >
+                    Securities under F&O ban
+                  </p>
+                </div>
+                {
+                  bannedSecurities.length > 0 ? (
+                    <ul class="flex flex-wrap justify-center gap-2 self-center">
+                      {bannedSecurities.map((symbol) => (
+                        <li class="rounded-md border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600 sm:text-sm dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
+                          {symbol}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p class="self-center text-center text-xs text-text-default opacity-60 sm:text-sm">
+                      No securities in the ban period today
+                    </p>
+                  )
+                }
               </section>
             </div>
 

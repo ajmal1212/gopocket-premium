@@ -1260,6 +1260,30 @@ export async function getBlogPostBySlugOrId(identifier: string): Promise<Formatt
 }
 
 /* ============================================================================
+   BANNED SECURITIES (F&O ban period list, shown on the margin calculator)
+   ============================================================================ */
+
+/**
+ * Symbols currently in the F&O ban period, from the "Banned Securities" Single
+ * doctype. Its one field, `banned_securities`, is free text, so the list is
+ * split on commas, whitespace and newlines - whichever way the desk pastes it -
+ * then upper-cased and de-duplicated. Returns [] when the field is empty or
+ * Frappe can't be reached: an absent list must never block the calculator.
+ */
+export async function getBannedSecurities(): Promise<string[]> {
+  const doc = await frappeResourceGet<{ banned_securities?: string | null }>(
+    `${getFrappeUrl()}/api/resource/Banned%20Securities/Banned%20Securities`,
+    "getBannedSecurities",
+  );
+
+  const symbols = (doc?.banned_securities || "")
+    .split(/[\s,;]+/)
+    .map((symbol) => symbol.trim().toUpperCase())
+    .filter(Boolean);
+  return [...new Set(symbols)];
+}
+
+/* ============================================================================
    LEAD CREATION (open-account call-back form)
    ============================================================================ */
 

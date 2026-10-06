@@ -42,7 +42,11 @@ const num = (value: string | undefined): number | null => {
 
 const last = num(quote?.lp);
 const reference = rangeStart ?? num(quote?.c);
-const percent = rangeStart !== null && last !== null ? ((last - rangeStart) / rangeStart) * 100 : num(quote?.pc);
+// Derived from the same two figures as the rupee change, so the two can never
+// disagree. The feed's own `pc` is only a fallback: it has been seen sending
+// 0.00 alongside a correct previous close (+326.00 printed as +0.00%).
+const percent =
+  last !== null && reference !== null && reference !== 0 ? ((last - reference) / reference) * 100 : num(quote?.pc);
 const change = last !== null && reference !== null ? last - reference : null;
 const isUp = (percent ?? 0) >= 0;
 

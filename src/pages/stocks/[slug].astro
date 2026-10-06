@@ -389,7 +389,9 @@ const faqSchema =
     const render = (tick: Tick) => {
       const last = num(tick.lp);
       const reference = rangeStart ?? num(tick.c);
-      const percent = rangeStart !== null && last !== null ? ((last - rangeStart) / rangeStart) * 100 : num(tick.pc);
+      // As in PriceHeader: from the same figures as the rupee change, `pc` only as a fallback.
+      const percent =
+        last !== null && reference !== null && reference !== 0 ? ((last - reference) / reference) * 100 : num(tick.pc);
 
       if (last !== null) setText("lp", money(last));
 

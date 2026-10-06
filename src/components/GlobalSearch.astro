@@ -283,8 +283,12 @@ import { SEARCH_SEGMENTS } from "@/lib/contracts";
 
     function paint(li: HTMLElement, tick: Tick) {
       const last = num(tick.lp);
-      const percent = num(tick.pc);
       const previousClose = num(tick.c);
+      // As in PriceHeader: from the same figures as the rupee change, `pc` only as a fallback.
+      const percent =
+        last !== null && previousClose !== null && previousClose !== 0
+          ? ((last - previousClose) / previousClose) * 100
+          : num(tick.pc);
 
       const price = li.querySelector<HTMLElement>("[data-gs-price]");
       if (price && last !== null) setText(price, money(last));

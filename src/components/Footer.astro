@@ -4,6 +4,14 @@ import { calculators } from "./calculators/calculators-data";
 // One link per calculator page; the SIP calculator's Lumpsum and Mutual Fund
 // Returns tabs would only repeat its URL.
 const footerCalculators = calculators.filter((calc) => calc.ownPage);
+
+// SEBI investor-awareness messages ("Samajh Se Investing Simple").
+const investorAwarenessPoints = [
+  "Understand Before You Invest",
+  "Choose Regulated Investment Products",
+  "Start Early, Stay Invested",
+  "Beware of Investment Frauds",
+];
 ---
 
 <footer class="relative has-call-to-action">
@@ -469,6 +477,14 @@ const footerCalculators = calculators.filter((calc) => calc.ownPage);
         Investments in securities market are subject to market risks; read all the related documents carefully before
         investing.
       </p>
+
+      <div>
+        <p class="font-semibold text-dark">Project Jagrook - Investor Awareness</p>
+        <p>SEBI presents Samajh Se Investing Simple:</p>
+        <ul class="mt-1 list-disc space-y-0.5 ps-5">
+          {investorAwarenessPoints.map((point) => <li>{point}</li>)}
+        </ul>
+      </div>
 
       <p>
         Disclaimer: Ensure that no unauthorized transactions occur in your account. Kindly update your mobile number

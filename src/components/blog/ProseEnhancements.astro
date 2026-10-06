@@ -49,6 +49,8 @@
 
     // Ensure all <img> tags have full domain URL and proper styles
     editor.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
+      // A YouTube facade's poster is styled by its own markup.
+      if (img.closest("[data-youtube-id]")) return;
       const src = img.getAttribute("src");
       if (src && (src.startsWith("/files/") || src.startsWith("/private/files/"))) {
         img.src = `https://hrms.gopocket.in${src}`;
@@ -156,6 +158,29 @@
     }
     syncScrollState();
   }
+
+  /**
+   * YouTube embeds arrive as a poster + play button (see embedYouTubeParagraphs
+   * in src/lib/frappe.ts) so the player's ~850 KB stays off page load. A click
+   * swaps in the real iframe, autoplaying so one click still starts the video.
+   * Delegated from document because formatProseImagesInDOM re-creates the
+   * article body's nodes.
+   */
+  document.addEventListener("click", (event) => {
+    const button = (event.target as Element | null)?.closest<HTMLButtonElement>(".ql-editor [data-youtube-id]");
+    if (!button) return;
+
+    const iframe = document.createElement("iframe");
+    iframe.src = `https://www.youtube-nocookie.com/embed/${button.dataset.youtubeId}?autoplay=1&rel=0`;
+    iframe.title = "YouTube video player";
+    iframe.className = "h-full w-full";
+    iframe.allow =
+      "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+    iframe.referrerPolicy = "strict-origin-when-cross-origin";
+    iframe.allowFullscreen = true;
+    button.replaceWith(iframe);
+    iframe.focus();
+  });
 
   function enhanceProseContent() {
     formatProseImagesInDOM();

@@ -941,9 +941,17 @@ const YOUTUBE_ID =
  * YouTube URL is replaced with a player. Editors can paste either one on its
  * own line. A YouTube link inside a sentence is left alone.
  *
- * Only the 11-character video ID is carried over; the iframe is rebuilt here
+ * Only the 11-character video ID is carried over; the player is rebuilt here
  * rather than un-escaping the pasted markup, so a post body can never inject
  * arbitrary HTML this way.
+ *
+ * The player is a facade: the video's poster image and a play button. A real
+ * YouTube iframe pulls ~850 KB of player JS and ~2 s of main-thread work into
+ * page load even with loading="lazy" (an embed near the top of a post is
+ * inside the lazy-load margin), which put mobile LCP at 7 s on posts carrying
+ * one. ProseEnhancements.astro swaps the button for the autoplaying iframe on
+ * click. The play glyph is Lucide's "play" path, inlined because this markup
+ * is built as a string rather than rendered by Astro.
  */
 function embedYouTubeParagraphs(html: string): string {
   return html.replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, (paragraph, inner: string) => {
@@ -963,9 +971,14 @@ function embedYouTubeParagraphs(html: string): string {
 
     return (
       `<div class="my-6 aspect-video w-full overflow-hidden rounded-2xl border border-border-light bg-black shadow-lg">` +
-      `<iframe src="https://www.youtube-nocookie.com/embed/${id}" title="YouTube video player" class="h-full w-full" loading="lazy" ` +
-      `allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ` +
-      `referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`
+      `<button type="button" data-youtube-id="${id}" aria-label="Play YouTube video" ` +
+      `class="group relative block h-full w-full cursor-pointer">` +
+      `<img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="" width="480" height="360" loading="lazy" decoding="async" ` +
+      `class="m-0! h-full w-full border-0! object-cover shadow-none! opacity-90 transition-opacity group-hover:opacity-100" />` +
+      `<span aria-hidden="true" class="absolute top-1/2 left-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#ff0000] text-white shadow-lg transition-transform group-hover:scale-110 motion-reduce:transition-none">` +
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="ml-1 h-7 w-7">` +
+      `<path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg>` +
+      `</span></button></div>`
     );
   });
 }

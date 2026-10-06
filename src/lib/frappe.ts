@@ -984,13 +984,17 @@ function embedYouTubeParagraphs(html: string): string {
 }
 
 /**
- * Frappe stores timestamps as "YYYY-MM-DD HH:MM:SS.ffffff" with no timezone, so
- * they are parsed in the server's local zone before being emitted as ISO-8601
- * for schema.org and OpenGraph `article:*` tags.
+ * Frappe stores timestamps as "YYYY-MM-DD HH:MM:SS.ffffff" in the site's zone
+ * (IST) but without an offset. Parsed bare, they were read in the runtime's
+ * zone - UTC on Cloudflare Workers - so every sitemap lastmod and schema.org /
+ * OpenGraph `article:*` time came out 5h30m in the future. The explicit +05:30
+ * pins them to IST wherever this runs; toISOString() then emits true UTC.
  */
 export function toIsoDate(value?: string | null): string {
   if (!value) return "";
-  const dt = new Date(value.replace(" ", "T"));
+  const local = value.trim().replace(" ", "T");
+  // A bare date takes no offset ("2026-10-06+05:30" is invalid), so give it a midnight.
+  const dt = new Date((local.includes("T") ? local : `${local}T00:00:00`) + "+05:30");
   return isNaN(dt.getTime()) ? "" : dt.toISOString();
 }
 

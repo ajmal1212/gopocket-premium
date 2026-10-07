@@ -93,7 +93,13 @@ function cardDateTime(item: FormattedSeminar) {
 
                     <div class="flex flex-1 flex-col gap-4 p-5 md:p-6">
                       <div class="space-y-2">
-                        <h3 class="line-clamp-2 text-lg font-bold leading-snug text-dark md:text-xl">{item.title}</h3>
+                        {/* Language after the title, unless the title already names it. */}
+                        <h3 class="line-clamp-2 text-lg font-bold leading-snug text-dark md:text-xl">
+                          {item.title}
+                          {item.language && !item.title.toLowerCase().includes(item.language.toLowerCase()) && (
+                            <span> ({item.language})</span>
+                          )}
+                        </h3>
                         {/* Several Seminar docs repeat the title in `description`; showing
                           both would just print the same line twice under the heading. */}
                         {item.description && item.description.trim() !== item.title.trim() && (

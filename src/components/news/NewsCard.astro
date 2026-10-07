@@ -1,0 +1,44 @@
+---
+/**
+ * One article in the /news grid, shared by the first listing page and the
+ * paginated ones. `as` sets the title's heading level: it sits under a section
+ * h2 on /news, but directly under the page's h1 on /news/page/N.
+ */
+import BlogThumb from "@/components/blog/BlogThumb.astro";
+import NewsCover from "@/components/news/NewsCover.astro";
+import BlogMeta from "@/components/blog/BlogMeta.astro";
+import BlogReadMore from "@/components/blog/BlogReadMore.astro";
+import type { FormattedNews } from "@/lib/frappe";
+
+interface Props {
+  article: FormattedNews;
+  as?: "h2" | "h3";
+}
+
+const { article, as: Heading = "h3" } = Astro.props;
+const href = `/news/${article.slug}`;
+---
+
+<article class="flex flex-col">
+  {
+    article.mainImage ? (
+      <BlogThumb href={href} src={article.mainImage} width={1150} height={500} class="aspect-[23/10] rounded-2xl" />
+    ) : (
+      <NewsCover href={href} slug={article.slug} class="aspect-[23/10] rounded-2xl" />
+    )
+  }
+  <Heading
+    class="text-black! dark:text-white! mt-4 line-clamp-2 text-[26px]! leading-snug md:text-[32px]! font-bold tracking-tight"
+  >
+    <a href={href} class="text-inherit! hover:text-primary! transition-colors">
+      {article.title}
+    </a>
+  </Heading>
+  <BlogMeta
+    class="mt-3"
+    date={article.formattedDate}
+    datetime={article.publishedISO}
+    readingMinutes={article.readingMinutes}
+  />
+  <BlogReadMore class="mt-5 self-start" href={href} title={article.title} />
+</article>

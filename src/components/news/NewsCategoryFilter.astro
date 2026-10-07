@@ -1,0 +1,91 @@
+---
+/**
+ * Category filter for the /news listing, beside its heading. A <details>
+ * dropdown of plain links rather than a <select>: it opens and closes with no
+ * script, every option is a real address (/news?category=IPO), and choosing one
+ * always lands on page 1 of that category.
+ *
+ * The options are the Blog Category doctype (getNewsCategories), so a category
+ * created in Frappe appears here straight away, with no code change.
+ *
+ * The panel hangs off the button's right edge, since the button sits at the
+ * right of the heading row.
+ *
+ * <details> only closes from its own summary, so the script below also closes
+ * it on a click elsewhere or on Escape - as the /stocks filter dropdowns do.
+ */
+import ChevronDown from "@lucide/astro/icons/chevron-down";
+import Check from "@lucide/astro/icons/check";
+import type { NewsCategory } from "@/lib/frappe";
+import { newsPageHref } from "@/components/news/news-pages";
+
+interface Props {
+  categories: NewsCategory[];
+  selected: string | null;
+  class?: string;
+}
+
+const { categories, selected, class: className = "" } = Astro.props;
+
+const options = [{ name: null, label: "All news" }, ...categories.map(({ name }) => ({ name, label: name }))];
+const optionClass = "flex items-center justify-between gap-3 rounded-md px-3 py-2 text-sm transition-colors";
+---
+
+{
+  categories.length > 0 && (
+    <details class:list={["group relative", className]} data-news-category-filter>
+      <summary
+        class:list={[
+          "flex h-10 cursor-pointer list-none items-center gap-2 rounded-full border bg-white px-4 text-sm font-medium whitespace-nowrap transition-colors [&::-webkit-details-marker]:hidden",
+          selected ? "border-primary text-primary" : "border-border-light text-dark hover:border-dark",
+        ]}
+      >
+        <span class="sr-only">Filter by category: </span>
+        {selected ?? "All categories"}
+        <ChevronDown class="h-4 w-4 transition-transform group-open:rotate-180" stroke-width={2} aria-hidden="true" />
+      </summary>
+
+      <ul class="border-border-light absolute top-full right-0 z-30 mt-2 flex max-h-80 w-60 flex-col gap-0.5 overflow-y-auto rounded-2xl border bg-white p-2 shadow-lg">
+        {options.map((option) => {
+          const active = option.name === selected;
+          return (
+            <li>
+              <a
+                href={newsPageHref(1, option.name)}
+                aria-current={active ? "page" : undefined}
+                class:list={[
+                  optionClass,
+                  active ? "bg-theme-light text-primary font-semibold" : "text-dark hover:bg-theme-light",
+                ]}
+              >
+                {option.label}
+                {active && <Check class="h-4 w-4 shrink-0" stroke-width={2} aria-hidden="true" />}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </details>
+  )
+}
+
+<script>
+  const dropdowns = [...document.querySelectorAll<HTMLDetailsElement>("[data-news-category-filter]")];
+
+  if (dropdowns.length > 0) {
+    document.addEventListener("click", (event) => {
+      for (const dropdown of dropdowns) {
+        if (dropdown.open && !dropdown.contains(event.target as Node)) dropdown.open = false;
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      for (const dropdown of dropdowns) {
+        if (!dropdown.open) continue;
+        dropdown.open = false;
+        // Back to the button, so a keyboard user isn't left on a hidden link.
+        dropdown.querySelector("summary")?.focus();
+      }
+    });
+  }
+</script>

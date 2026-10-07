@@ -1144,29 +1144,35 @@ export async function getBlogPosts(limit = 20, withReadingTime = false, start = 
 }
 
 /**
- * Total number of blog posts, for the listing's page numbers. Null when Frappe
- * can't be reached, so the caller can hide pagination rather than show wrong
- * page counts.
+ * Total number of records in a doctype, for a listing's page numbers. Null when
+ * Frappe can't be reached, so the caller can hide pagination rather than show
+ * wrong page counts.
  */
-export async function getBlogCount(): Promise<number | null> {
+async function getDoctypeCount(doctype: string): Promise<number | null> {
   try {
-    const res = await fetch(`${getFrappeUrl()}/api/method/frappe.client.get_count?doctype=Blog`, {
-      headers: {
-        Authorization: `token ${getFrappeToken()}`,
-        "Content-Type": "application/json",
+    const res = await fetch(
+      `${getFrappeUrl()}/api/method/frappe.client.get_count?doctype=${encodeURIComponent(doctype)}`,
+      {
+        headers: {
+          Authorization: `token ${getFrappeToken()}`,
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
     if (!res.ok) {
-      console.warn(`Frappe getBlogCount responded ${res.status}`);
+      console.warn(`Frappe get_count for ${doctype} responded ${res.status}`);
       return null;
     }
     const json = await res.json();
     return typeof json?.message === "number" ? json.message : null;
   } catch (error) {
-    console.error("Frappe getBlogCount request failed:", error);
+    console.error(`Frappe get_count for ${doctype} failed:`, error);
     return null;
   }
 }
+
+export const getBlogCount = () => getDoctypeCount("Blog");
+export const getNewsCount = () => getDoctypeCount("News");
 
 /**
  * Shared authenticated GET against the Frappe REST API.
@@ -1421,11 +1427,61 @@ function formatNewsListItem(doc: NewsDoc): FormattedNews {
   };
 }
 
+const NEWS_CATEGORY_FIELDS = ["category1", "category2", "category3"] as const;
+
+/** Matches an article tagged `category` in any of its three category fields. */
+const newsCategoryFilters = (category: string) => NEWS_CATEGORY_FIELDS.map((field) => [field, "=", category]);
+
+export interface NewsCategory {
+  name: string;
+  /** Articles tagged with it - which is also the filtered listing's total, for its page numbers. */
+  count: number;
+}
+
+/**
+ * Every category in the Blog Category doctype, A-Z, with how many news articles
+ * carry it. The doctype is the source of truth, so a category created in Frappe
+ * is offered straight away - with a count of 0 until an article is tagged.
+ *
+ * The counts come from one narrow request over every article's three category
+ * fields, rather than a get_count per category.
+ */
+export async function getNewsCategories(): Promise<NewsCategory[]> {
+  const base = getFrappeUrl();
+  const [categoryRows, newsRows] = await Promise.all([
+    frappeResourceGet<{ name: string }[]>(
+      `${base}/api/resource/Blog%20Category?fields=${encodeURIComponent(JSON.stringify(["name"]))}&limit_page_length=0`,
+      "getNewsCategories (Blog Category)",
+    ),
+    frappeResourceGet<Pick<NewsDoc, (typeof NEWS_CATEGORY_FIELDS)[number]>[]>(
+      `${base}/api/resource/News?fields=${encodeURIComponent(JSON.stringify(NEWS_CATEGORY_FIELDS))}&limit_page_length=0`,
+      "getNewsCategories (News)",
+    ),
+  ]);
+  if (!Array.isArray(categoryRows)) return [];
+
+  const counts = new Map<string, number>();
+  for (const row of Array.isArray(newsRows) ? newsRows : []) {
+    // A Set, so an article tagged the same category twice counts once.
+    const tags = new Set(NEWS_CATEGORY_FIELDS.map((field) => row[field]?.trim()).filter(Boolean) as string[]);
+    for (const tag of tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+  }
+  return categoryRows
+    .map(({ name }) => ({ name, count: counts.get(name) ?? 0 }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 /**
  * Fetches the news collection, newest first, without post bodies.
- * `withReadingTime` behaves as it does for getBlogPosts.
+ * `withReadingTime` and `start` behave as they do for getBlogPosts; `category`
+ * keeps only articles tagged with it in any of their three category fields.
  */
-export async function getNewsList(limit = 20, withReadingTime = false): Promise<FormattedNews[]> {
+export async function getNewsList(
+  limit = 20,
+  withReadingTime = false,
+  start = 0,
+  category: string | null = null,
+): Promise<FormattedNews[]> {
   // The listing already needs the body for its reading time, so it asks for the
   // whole document: that way image fields added to the doctype later are picked
   // up without touching this list. Naming them explicitly would instead make
@@ -1451,6 +1507,8 @@ export async function getNewsList(limit = 20, withReadingTime = false): Promise<
     const docs = await db.getDocList<NewsDoc>("News", {
       fields: fields as any,
       limit,
+      limit_start: start,
+      ...(category ? { orFilters: newsCategoryFilters(category) as any } : {}),
       orderBy: { field: "creation", order: "desc" },
     });
 
@@ -1465,7 +1523,9 @@ export async function getNewsList(limit = 20, withReadingTime = false): Promise<
   try {
     const url = `${getFrappeUrl()}/api/resource/News?fields=${encodeURIComponent(
       JSON.stringify(fields),
-    )}&limit_page_length=${limit}&order_by=creation desc`;
+    )}&limit_page_length=${limit}&limit_start=${start}&order_by=creation desc${
+      category ? `&or_filters=${encodeURIComponent(JSON.stringify(newsCategoryFilters(category)))}` : ""
+    }`;
 
     const rows = await frappeResourceGet<NewsDoc[]>(url, "getNewsList");
     if (Array.isArray(rows) && rows.length > 0) {

@@ -1,0 +1,98 @@
+---
+/**
+ * /news/page/N - the older articles, as a plain grid. Page 1 is /news itself,
+ * with the "Recent News" layout, so /news/page/1 permanently redirects there
+ * rather than serving the same articles at a second address.
+ *
+ * Each page canonicalises to itself, not to /news: the articles listed here are
+ * different, and pointing them all at page 1 would hide them from crawlers.
+ */
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import FinalCTA from "@/components/FinalCTA.astro";
+import NewsCard from "@/components/news/NewsCard.astro";
+import NewsCategoryFilter from "@/components/news/NewsCategoryFilter.astro";
+import Pagination from "@/components/Pagination.astro";
+import { PAGE_SIZE, newsPageCount, newsPageHref, newsPageStart } from "@/components/news/news-pages";
+import { getNewsCategories, getNewsCount, getNewsList } from "@/lib/frappe";
+
+const raw = Astro.params.page ?? "";
+const page = /^\d+$/.test(raw) ? Number(raw) : NaN;
+// The ?category filter, as on /news - see the note there.
+const requested = Astro.url.searchParams.get("category");
+
+if (page === 1) {
+  return Astro.redirect(newsPageHref(1, requested), 301);
+}
+if (!Number.isInteger(page) || page < 1 || String(page) !== raw) {
+  return new Response(null, { status: 404, statusText: "Page not found" });
+}
+
+const categories = await getNewsCategories();
+const activeCategory = requested ? (categories.find((c) => c.name === requested) ?? null) : null;
+if (requested !== null && !activeCategory) {
+  return Astro.redirect(newsPageHref(page), 302);
+}
+const category = activeCategory?.name ?? null;
+const pageHref = (n: number) => newsPageHref(n, category);
+
+const [articles, totalArticles] = await Promise.all([
+  getNewsList(PAGE_SIZE, true, newsPageStart(page), category),
+  activeCategory ? Promise.resolve(activeCategory.count) : getNewsCount(),
+]);
+
+// Past the last page there is nothing to list. If the count is unavailable the
+// page is still served as long as it has articles, just without later page links.
+if (articles.length === 0) {
+  return new Response(null, { status: 404, statusText: "Page not found" });
+}
+
+const pageCount = totalArticles === null ? page : Math.max(page, newsPageCount(totalArticles));
+const pageTitle = `Stock Market News - Page ${page}`;
+
+const SITE = Astro.site?.origin ?? Astro.url.origin;
+const newsUrl = `${SITE}/news`;
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
+    { "@type": "ListItem", position: 2, name: "News", item: newsUrl },
+    { "@type": "ListItem", position: 3, name: `Page ${page}`, item: `${SITE}${newsPageHref(page)}` },
+  ],
+};
+---
+
+<Layout
+  title={`${pageTitle} | GoPocket`}
+  description={`Page ${page} of GoPocket news: IPO updates, market moves and regulatory changes, explained simply for Indian investors.`}
+  canonical={newsPageHref(page)}
+  noindex={category !== null}
+>
+  <Fragment slot="head">
+    <link rel="prev" href={`${SITE}${pageHref(page - 1)}`} />
+    {page < pageCount && <link rel="next" href={`${SITE}${pageHref(page + 1)}`} />}
+    <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  </Fragment>
+  <Header currentPath="/news" />
+  <main class="has-section-spacing-lg pt-8 md:pt-16">
+    <section class="container pt-0!">
+      <div class="mx-auto max-w-6xl">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <h1 class="text-black! dark:text-white! text-h4 font-bold tracking-tight md:text-h3">All News</h1>
+          <NewsCategoryFilter categories={categories} selected={category} />
+        </div>
+        <div class="mt-8 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:gap-x-16 lg:gap-y-16 md:mt-10">
+          {articles.map((article) => <NewsCard article={article} as="h2" />)}
+        </div>
+        <Pagination class="mt-16 md:mt-24" current={page} total={pageCount} hrefFor={pageHref} label="News pages" />
+      </div>
+    </section>
+
+    <!-- Final Call to Action -->
+    <FinalCTA />
+  </main>
+  <Footer />
+</Layout>

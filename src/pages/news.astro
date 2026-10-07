@@ -7,13 +7,37 @@ import NewsCover from "@/components/news/NewsCover.astro";
 import BlogThumb from "@/components/blog/BlogThumb.astro";
 import BlogMeta from "@/components/blog/BlogMeta.astro";
 import BlogReadMore from "@/components/blog/BlogReadMore.astro";
-import { getNewsList } from "../lib/frappe";
+import NewsCard from "@/components/news/NewsCard.astro";
+import NewsCategoryFilter from "@/components/news/NewsCategoryFilter.astro";
+import Pagination from "@/components/Pagination.astro";
+import { FIRST_PAGE_SIZE, newsPageCount, newsPageHref } from "@/components/news/news-pages";
+import { getNewsCategories, getNewsCount, getNewsList } from "../lib/frappe";
 
 // The four newest articles fill a 2x2 "Recent News" grid of large cards, and
 // the rest a two-column "More News" grid. Every card shows the article's 23:10
 // main image (the generated cover when there is none) with its text underneath.
 // Only the first image is eager: it is the LCP element on every viewport.
-const articles = await getNewsList(20, true);
+// Older articles continue at /news/page/2 onwards.
+//
+// ?category=IPO narrows the listing to one category, from the Blog Category
+// doctype. The categories are read first so an unknown or stale value (an old
+// link to a category since renamed or deleted) redirects to the unfiltered
+// listing. A
+// filtered view is noindex: it only repeats articles the unfiltered pages list.
+const categories = await getNewsCategories();
+const requested = Astro.url.searchParams.get("category");
+const activeCategory = requested ? (categories.find((c) => c.name === requested) ?? null) : null;
+if (requested !== null && !activeCategory) {
+  return Astro.redirect("/news", 302);
+}
+const category = activeCategory?.name ?? null;
+
+const [articles, totalArticles] = await Promise.all([
+  getNewsList(FIRST_PAGE_SIZE, true, 0, category),
+  activeCategory ? Promise.resolve(activeCategory.count) : getNewsCount(),
+]);
+const pageCount = totalArticles === null ? 1 : newsPageCount(totalArticles);
+const pageHref = (page: number) => newsPageHref(page, category);
 const recentArticles = articles.slice(0, 4);
 const gridArticles = articles.slice(4);
 
@@ -58,17 +82,19 @@ const newsBreadcrumbSchema = {
   title="Stock Market News Today - IPO, Market & Regulatory Updates | GoPocket"
   description="Today's stock market news for Indian investors: IPO price bands and GMP, listing updates, market moves and regulatory changes, explained simply by GoPocket."
   canonical="/news"
+  noindex={category !== null}
 >
   <Fragment slot="head">
     <script type="application/ld+json" set:html={JSON.stringify(newsSchema)} />
     <script type="application/ld+json" set:html={JSON.stringify(newsBreadcrumbSchema)} />
+    {pageCount > 1 && <link rel="next" href={`${SITE}${pageHref(2)}`} />}
   </Fragment>
   <Header currentPath="/news" />
   <main class="has-section-spacing-lg pt-8 md:pt-16">
     <h1 class="sr-only">GoPocket News - IPO, Market &amp; Regulatory Updates</h1>
 
     {
-      articles.length === 0 && (
+      articles.length === 0 && category === null && (
         <section class="container pt-0!">
           <div class="bg-theme-light border-border-light rounded-3xl border py-16 text-center text-gray-500">
             <p class="text-lg font-medium">No news articles found at the moment.</p>
@@ -78,11 +104,36 @@ const newsBreadcrumbSchema = {
       )
     }
 
+    {/* A Blog Category can exist before any article is tagged with it; keep the filter so the visitor can switch. */}
+    {
+      articles.length === 0 && category !== null && (
+        <section class="container pt-0!">
+          <div class="mx-auto max-w-6xl">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <h2 class="text-black! dark:text-white! text-h4 font-bold tracking-tight md:text-h3">Recent News</h2>
+              <NewsCategoryFilter categories={categories} selected={category} />
+            </div>
+            <div class="bg-theme-light border-border-light mt-8 rounded-3xl border py-16 text-center text-gray-500 md:mt-10">
+              <p class="text-lg font-medium">No {category} news yet.</p>
+              <p class="mt-1 text-sm">
+                <a href="/news" class="text-primary! font-semibold hover:underline">
+                  See all news
+                </a>
+              </p>
+            </div>
+          </div>
+        </section>
+      )
+    }
+
     {
       recentArticles.length > 0 && (
         <section class="container pt-0!">
           <div class="mx-auto max-w-6xl">
-            <h2 class="text-black! dark:text-white! text-h4 font-bold tracking-tight md:text-h3">Recent News</h2>
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <h2 class="text-black! dark:text-white! text-h4 font-bold tracking-tight md:text-h3">Recent News</h2>
+              <NewsCategoryFilter categories={categories} selected={category} />
+            </div>
             <div class="mt-8 grid gap-x-16 gap-y-14 md:mt-10 lg:grid-cols-2 xl:gap-x-20">
               {recentArticles.map((article, index) => (
                 <article class="flex flex-col">
@@ -136,34 +187,18 @@ const newsBreadcrumbSchema = {
             <h2 class="text-black! dark:text-white! text-h4 font-bold tracking-tight md:text-h3">More News</h2>
             <div class="mt-8 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:gap-x-16 lg:gap-y-16 md:mt-10">
               {gridArticles.map((article) => (
-                <article class="flex flex-col">
-                  {article.mainImage ? (
-                    <BlogThumb
-                      href={`/news/${article.slug}`}
-                      src={article.mainImage}
-                      width={1150}
-                      height={500}
-                      class="aspect-[23/10] rounded-2xl"
-                    />
-                  ) : (
-                    <NewsCover href={`/news/${article.slug}`} slug={article.slug} class="aspect-[23/10] rounded-2xl" />
-                  )}
-                  <h3 class="text-black! dark:text-white! mt-4 line-clamp-2 text-[26px]! leading-snug md:text-[32px]! font-bold tracking-tight">
-                    <a href={`/news/${article.slug}`} class="text-inherit! hover:text-primary! transition-colors">
-                      {article.title}
-                    </a>
-                  </h3>
-                  <BlogMeta
-                    class="mt-3"
-                    date={article.formattedDate}
-                    datetime={article.publishedISO}
-                    readingMinutes={article.readingMinutes}
-                  />
-                  <BlogReadMore class="mt-5 self-start" href={`/news/${article.slug}`} title={article.title} />
-                </article>
+                <NewsCard article={article} />
               ))}
             </div>
           </div>
+        </section>
+      )
+    }
+
+    {
+      pageCount > 1 && (
+        <section class="container mt-16 md:mt-24">
+          <Pagination current={1} total={pageCount} hrefFor={pageHref} label="News pages" />
         </section>
       )
     }

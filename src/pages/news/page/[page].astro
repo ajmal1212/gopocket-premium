@@ -70,8 +70,11 @@ const breadcrumbSchema = {
   description={`Page ${page} of GoPocket news: IPO updates, market moves and regulatory changes, explained simply for Indian investors.`}
   canonical={newsPageHref(page)}
   noindex={category !== null}
+  largeImagePreview
 >
   <Fragment slot="head">
+    {/* The news RSS feed, for Discover's Follow button and feed readers. */}
+    <link rel="alternate" type="application/rss+xml" title="GoPocket News" href={`${SITE}/news/rss.xml`} />
     <link rel="prev" href={`${SITE}${pageHref(page - 1)}`} />
     {page < pageCount && <link rel="next" href={`${SITE}${pageHref(page + 1)}`} />}
     <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />

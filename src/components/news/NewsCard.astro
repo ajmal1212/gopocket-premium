@@ -1,8 +1,18 @@
 ---
 /**
- * One article in the /news grid, shared by the first listing page and the
- * paginated ones. `as` sets the title's heading level: it sits under a section
- * h2 on /news, but directly under the page's h1 on /news/page/N.
+ * One article card on the /news listing - the large "Recent News" cards
+ * (`featured`) and the grid below them - shared by the first listing page and
+ * the paginated ones. `as` sets the title's heading level: it sits under a
+ * section h2 on /news, but directly under the page's h1 on /news/page/N.
+ *
+ * As on the article page, the headline sits over the lower edge of the 16:9
+ * image on a dark gradient from md up, and drops below the image on a phone,
+ * where a long headline over a small image is unreadable. It is one heading
+ * either way. The gradient covers only the bottom half so the picture above
+ * keeps its full brightness.
+ *
+ * The image's own link (BlogThumb / NewsCover) is out of the tab order; the
+ * headline link sits above it (z-30) so it stays clickable over the image.
  */
 import BlogThumb from "@/components/blog/BlogThumb.astro";
 import NewsCover from "@/components/news/NewsCover.astro";
@@ -13,32 +23,68 @@ import type { FormattedNews } from "@/lib/frappe";
 interface Props {
   article: FormattedNews;
   as?: "h2" | "h3";
+  /** The large "Recent News" card: rounder corners, byline, solid "Read more". */
+  featured?: boolean;
+  /** The first card's image is the page's LCP element, so it must not be lazy. */
+  eager?: boolean;
 }
 
-const { article, as: Heading = "h3" } = Astro.props;
+const { article, as: Heading = "h3", featured = false, eager = false } = Astro.props;
 const href = `/news/${article.slug}`;
+const rounded = featured ? "rounded-3xl" : "rounded-2xl";
 ---
 
 <article class="flex flex-col">
-  {
-    article.mainImage ? (
-      <BlogThumb href={href} src={article.mainImage} width={1150} height={500} class="aspect-[23/10] rounded-2xl" />
-    ) : (
-      <NewsCover href={href} slug={article.slug} class="aspect-[23/10] rounded-2xl" />
-    )
-  }
-  <Heading
-    class="text-black! dark:text-white! mt-4 line-clamp-2 text-[26px]! leading-snug md:text-[32px]! font-bold tracking-tight"
-  >
-    <a href={href} class="text-inherit! hover:text-primary! transition-colors">
-      {article.title}
-    </a>
-  </Heading>
+  <div class="relative">
+    {
+      article.mainImage ? (
+        <BlogThumb
+          href={href}
+          src={article.mainImage}
+          width={1280}
+          height={720}
+          eager={eager}
+          class:list={["aspect-video", rounded]}
+        />
+      ) : (
+        <NewsCover
+          href={href}
+          slug={article.slug}
+          size={featured ? "lg" : "md"}
+          class:list={["aspect-video", rounded]}
+        />
+      )
+    }
+    <span
+      class:list={[
+        "pointer-events-none absolute inset-x-0 bottom-0 z-20 hidden h-1/2 bg-gradient-to-t from-black/95 via-black/60 to-transparent md:block",
+        featured ? "rounded-b-3xl" : "rounded-b-2xl",
+      ]}
+      aria-hidden="true"></span>
+
+    <Heading
+      class="text-black! dark:text-white! md:text-white! mt-4 line-clamp-2 text-[24px]! leading-snug! font-bold tracking-tight md:absolute md:inset-x-0 md:bottom-0 md:z-30 md:mt-0 md:p-6 md:pb-4 md:text-[24px]! lg:p-7 lg:pb-5 lg:text-[28px]! md:[text-shadow:0_2px_10px_rgb(0_0_0/0.45)]"
+    >
+      <a
+        href={href}
+        class="text-inherit! transition-colors max-md:hover:text-primary! md:underline-offset-4 md:hover:underline"
+      >
+        {article.title}
+      </a>
+    </Heading>
+  </div>
+
   <BlogMeta
-    class="mt-3"
+    class={featured ? "mt-4" : "mt-3"}
+    author={featured ? "GoPocket" : undefined}
     date={article.formattedDate}
     datetime={article.publishedISO}
     readingMinutes={article.readingMinutes}
   />
-  <BlogReadMore class="mt-5 self-start" href={href} title={article.title} />
+  <BlogReadMore
+    class={featured ? "mt-6 self-start" : "mt-5 self-start"}
+    variant={featured ? "solid" : undefined}
+    href={href}
+    title={article.title}
+  />
 </article>

@@ -1,0 +1,47 @@
+---
+/**
+ * The "Add us on Google" card in the news article sidebar, after the box news
+ * sites show there. The button makes GoPocket a preferred source on Google, so
+ * the reader sees more GoPocket stories in Top Stories and AI results - see
+ * lib/preferred-source.ts for how the link becomes Google's popup.
+ */
+import Button from "@/components/Button.astro";
+import GoogleLogo from "@/components/news/GoogleLogo.astro";
+import { preferredSourceUrl } from "@/lib/preferred-source";
+
+const href = preferredSourceUrl(Astro.site ?? Astro.url);
+---
+
+<div class="border-border-light flex flex-col items-center gap-4 rounded-3xl border bg-white p-6 text-center">
+  <div class="flex items-center gap-3">
+    <GoogleLogo class="h-7 w-7" />
+    <span class="bg-border-light h-6 w-px" aria-hidden="true"></span>
+    <img
+      src="/gopocket-logo.svg"
+      alt="GoPocket"
+      width="134"
+      height="32"
+      class="h-6 w-auto"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+  <p class="text-text-default text-sm">See more GoPocket stories on Google.</p>
+  <Button
+    label="Add us on Google"
+    href={href}
+    variant="primary"
+    glow={false}
+    class="w-full px-3! text-sm"
+    target="_blank"
+    rel="noopener noreferrer"
+    data-preferred-source
+    aria-label="Add GoPocket as a preferred source on Google"
+  />
+</div>
+
+<script>
+  import { bindPreferredSourceLinks } from "@/lib/preferred-source";
+
+  bindPreferredSourceLinks();
+</script>

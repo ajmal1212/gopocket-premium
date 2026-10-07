@@ -25,6 +25,13 @@ interface Props {
   ogType?: string;
   /** Keep the page out of search results. Links on it are still followed. */
   noindex?: boolean;
+  /**
+   * Let Google show the page's image at full width in Discover and search,
+   * via `max-image-preview:large`. Without it Google may fall back to a small
+   * thumbnail, which Discover - an image-led feed - rarely surfaces. Opt-in per
+   * page; for now only /news uses it.
+   */
+  largeImagePreview?: boolean;
 }
 
 // Site-wide share card. 512x512 - square rather than the 1200x630 that Facebook
@@ -42,6 +49,7 @@ const {
   ogImageAlt = "GoPocket - online trading and demat account app",
   ogType = "website",
   noindex = false,
+  largeImagePreview = false,
 } = Astro.props;
 
 /**
@@ -104,7 +112,10 @@ const isDefaultOgImage = ogImage === DEFAULT_OG_IMAGE;
     <meta name="description" content={description} />
     <meta name="keywords" content={keywords} />
     <meta name="author" content="GoPocket" />
-    <meta name="robots" content={noindex ? "noindex, follow" : "index, follow"} />
+    <meta
+      name="robots"
+      content={noindex ? "noindex, follow" : `index, follow${largeImagePreview ? ", max-image-preview:large" : ""}`}
+    />
     <link rel="canonical" href={canonicalUrl} item-prop="url" />
     <link rel="alternate" hreflang="en" href={canonicalUrl} />
     {/* Replaced by the theme script below once the resolved theme is known. */}

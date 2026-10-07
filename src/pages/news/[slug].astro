@@ -7,6 +7,9 @@ import FAQSection2 from "../../components/FAQSection2.astro";
 import ArticleCtaSidebar from "@/components/blog/ArticleCtaSidebar.astro";
 import ProseEnhancements from "@/components/blog/ProseEnhancements.astro";
 import NewsCover from "@/components/news/NewsCover.astro";
+import ListIcon from "@lucide/astro/icons/list";
+import ShareButtons from "@/components/news/ShareButtons.astro";
+import PreferredSourceCard from "@/components/news/PreferredSourceCard.astro";
 import { getNewsBySlugOrId } from "../../lib/frappe";
 
 const { slug } = Astro.params;
@@ -34,6 +37,42 @@ const faqCategories = post.faqs.length
 const SITE = Astro.site?.origin ?? Astro.url.origin;
 const postUrl = `${SITE}/news/${post.slug}`;
 
+/*
+ * Google Discover is image-led: it wants one large image (1200px+ wide - the
+ * CMS standard is 1280x720) declared as the article's image in three places
+ * that all agree - og:image, the NewsArticle schema's `image`, and the cover on
+ * the page. Built through URL so a CMS filename with spaces is percent-encoded.
+ * Articles without a main image fall back to the site card, which Discover
+ * will not show; the fix for those is an image in Frappe.
+ */
+const imageUrl = post.mainImage ? new URL(post.mainImage, SITE).href : null;
+
+/*
+ * The byline's timestamps, to the minute and in IST like a newsroom's, rather
+ * than the listing's date alone. "Updated" only shows when the record changed
+ * more than an hour after it went out, so publishing-day touch-ups don't read
+ * as a revision.
+ */
+const istFormat = new Intl.DateTimeFormat("en-US", {
+  timeZone: "Asia/Kolkata",
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
+const stamp = (iso: string) => {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? null : `${istFormat.format(date)} IST`;
+};
+const publishedStamp = post.publishedISO ? stamp(post.publishedISO) : null;
+const HOUR = 60 * 60 * 1000;
+const updatedStamp =
+  post.modifiedISO && post.publishedISO && Date.parse(post.modifiedISO) - Date.parse(post.publishedISO) > HOUR
+    ? stamp(post.modifiedISO)
+    : null;
+const publisher = { "@type": "Organization", name: "GoPocket", url: `${SITE}/` };
+
 const articleSchema = {
   "@context": "https://schema.org",
   "@type": "NewsArticle",
@@ -46,13 +85,9 @@ const articleSchema = {
   articleSection: post.categories,
   keywords: post.categories.join(", "),
   inLanguage: "en",
-  author: { "@type": "Organization", name: "GoPocket", url: `${SITE}/` },
-  publisher: {
-    "@type": "Organization",
-    name: "GoPocket",
-    url: `${SITE}/`,
-    logo: { "@type": "ImageObject", url: `${SITE}/gopocket-logo.svg` },
-  },
+  ...(imageUrl ? { image: [imageUrl] } : {}),
+  author: { ...publisher, url: `${SITE}/about-us` },
+  publisher: { ...publisher, logo: { "@type": "ImageObject", url: `${SITE}/gopocket-logo.svg` } },
 };
 
 const breadcrumbSchema = {
@@ -85,8 +120,13 @@ const faqSchema = post.faqs.length
   description={post.description || post.summary}
   canonical={`/news/${post.slug}`}
   ogType="article"
+  ogImage={imageUrl ?? undefined}
+  ogImageAlt={imageUrl ? post.title : undefined}
+  largeImagePreview
 >
   <Fragment slot="head">
+    {/* The news RSS feed, for Discover's Follow button and feed readers. */}
+    <link rel="alternate" type="application/rss+xml" title="GoPocket News" href={`${SITE}/news/rss.xml`} />
     {
       /*
       The cover is the LCP element and lives on the CMS origin. Preloading it
@@ -94,7 +134,7 @@ const faqSchema = post.faqs.length
       of waiting for the parser to reach the <img> in the body.
     */
     }
-    {post.mainImage && <link rel="preload" as="image" href={post.mainImage} fetchpriority="high" />}
+    {imageUrl && <link rel="preload" as="image" href={imageUrl} fetchpriority="high" />}
     <meta property="article:published_time" content={post.publishedISO} />
     <meta property="article:modified_time" content={post.modifiedISO || post.publishedISO} />
     <meta property="article:publisher" content={`${SITE}/`} />
@@ -106,68 +146,48 @@ const faqSchema = post.faqs.length
   </Fragment>
   <Header currentPath="/news" />
 
-  <main class="has-section-spacing-lg pt-8 md:pt-16">
-    <!-- Article Header -->
-    <section class="relative z-10 py-8 md:py-14">
+  <main class="has-section-spacing-lg pt-6 md:pt-10">
+    {
+      /*
+      Hero, after the news-site pattern Google Discover favours: the 16:9 cover
+      at the full content width, the headline over its lower edge on a dark
+      gradient. On a phone a long headline over a small image is unreadable, so
+      the same <h1> drops below the image there and only overlays from md up.
+      The cover is the LCP element, so it loads eagerly at high priority;
+      width/height supply the 1280x720 ratio and the box sizes it.
+    */
+    }
+    <section class="relative z-10 pt-0!">
       <div class="container max-w-7xl">
-        <div class="max-w-4xl mx-auto text-center space-y-5">
-          <div
-            class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold tracking-wide uppercase"
-          >
+        <div class="relative">
+          <div class="relative aspect-video overflow-hidden rounded-2xl bg-dark shadow-lg md:rounded-3xl">
             {
-              post.categories.map((category) => (
-                <>
-                  <span>{category}</span>
-                  <span class="opacity-40">•</span>
-                </>
-              ))
+              imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={post.title}
+                  width="1280"
+                  height="720"
+                  class="h-full w-full object-cover"
+                  loading="eager"
+                  decoding="async"
+                  fetchpriority="high"
+                />
+              ) : (
+                <NewsCover slug={post.slug} size="lg" class="h-full w-full border-0" />
+              )
             }
-            <span>{post.formattedDate}</span>
+            <span
+              class="pointer-events-none absolute inset-x-0 bottom-0 hidden h-1/2 bg-gradient-to-t from-black/95 via-black/60 to-transparent md:block"
+              aria-hidden="true"></span>
           </div>
 
-          <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-dark tracking-tight leading-tight">
+          <h1
+            class="text-black! dark:text-white! md:text-white! mt-5 text-[28px]! leading-tight! font-bold tracking-tight sm:text-[34px]! md:absolute md:inset-x-0 md:bottom-0 md:mt-0 md:p-8 md:text-[40px]! lg:p-12 lg:text-[52px]! md:[text-shadow:0_2px_12px_rgb(0_0_0/0.45)]"
+          >
             {post.title}
           </h1>
-
-          {
-            post.description && (
-              <p class="text-lg md:text-xl text-text-default opacity-80 max-w-3xl mx-auto leading-relaxed">
-                {post.description}
-              </p>
-            )
-          }
         </div>
-
-        {
-          /*
-          Real cover image when the record has one; the generated cover otherwise.
-          The cover is the page's LCP element, so it loads eagerly at high priority.
-          width/height only supply the 23:10 ratio; the box sizes it.
-        */
-        }
-        {
-          post.mainImage ? (
-            <div class="max-w-7xl mx-auto mt-8 md:mt-12 rounded-3xl overflow-hidden border border-border-light shadow-lg aspect-[1150/500] w-full bg-white">
-              <img
-                src={post.mainImage}
-                alt={post.title}
-                width="1150"
-                height="500"
-                class="w-full h-full object-cover rounded-3xl"
-                loading="eager"
-                decoding="async"
-                fetchpriority="high"
-              />
-            </div>
-          ) : (
-            <NewsCover
-              category={post.categories[0] || "News"}
-              slug={post.slug}
-              size="lg"
-              class="mx-auto mt-8 aspect-[23/10] w-full max-w-7xl rounded-3xl shadow-lg md:mt-12"
-            />
-          )
-        }
       </div>
     </section>
 
@@ -175,46 +195,141 @@ const faqSchema = post.faqs.length
     <section class="py-6 md:py-10">
       <div class="container max-w-7xl">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-          <!-- LEFT COLUMN: Expanded Post Content Body (9 Columns) -->
-          <article
-            class="lg:col-span-9 bg-theme-light px-3 py-6 sm:px-5 sm:py-10 md:px-7 md:py-12 rounded-3xl border border-border-light shadow-xs w-full overflow-hidden"
-          >
-            {
-              post.postBody ? (
-                <div class="ql-editor read-mode w-full" set:html={post.postBody} />
-              ) : (
-                <div class="text-center py-12 text-gray-500">
-                  <p>No content available for this article.</p>
-                </div>
-              )
-            }
-
-            <!-- Back to Blog Button -->
-            <div class="pt-8 mt-10 border-t border-border-light/80 flex items-center justify-between">
-              <a href="/news" class="btn btn-outline text-flip-hover-anim btn-sm cursor-pointer">
-                <span class="text-flip-inner" data-content="← Back to All News">← Back to All News</span>
-                <span
-                  class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
-                >
-                  <svg
-                    class="gradient-shape"
-                    width="150"
-                    height="28"
-                    viewBox="0 0 147 11"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
-                      stroke="currentColor"
-                      stroke-width="8"></path>
-                  </svg>
-                </span>
-              </a>
+          <!-- LEFT COLUMN: Byline, summary and post body (9 columns) -->
+          <div class="lg:col-span-9 w-full space-y-8">
+            {/* A visible byline: Discover weighs who wrote a story, not only the schema's author. */}
+            <div class="flex items-start gap-4">
+              <span
+                class="border-border-light flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-white md:h-14 md:w-14"
+              >
+                <img
+                  src="/favicon.png"
+                  alt=""
+                  width="256"
+                  height="256"
+                  class="h-8 w-8 md:h-9 md:w-9"
+                  aria-hidden="true"
+                />
+              </span>
+              <div class="min-w-0">
+                <p class="text-text-default flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                  <span class="text-dark font-semibold">
+                    By <a href="/about-us" class="text-dark! underline underline-offset-2 hover:text-primary!"
+                      >GoPocket</a
+                    >
+                  </span>
+                  {
+                    post.categories[0] && (
+                      <span class="bg-primary/10 text-primary rounded-full px-2.5 py-0.5 text-xs font-semibold">
+                        {post.categories[0]}
+                      </span>
+                    )
+                  }
+                  {
+                    publishedStamp && (
+                      <>
+                        <span class="opacity-40" aria-hidden="true">
+                          —
+                        </span>
+                        <span class="font-medium">
+                          Published <time datetime={post.publishedISO}>{publishedStamp}</time>
+                        </span>
+                      </>
+                    )
+                  }
+                  {
+                    updatedStamp && (
+                      <span>
+                        · Updated <time datetime={post.modifiedISO}>{updatedStamp}</time>
+                      </span>
+                    )
+                  }
+                  {post.readingMinutes > 0 && <span>· {post.readingMinutes} min read</span>}
+                </p>
+                <p class="text-text-default mt-1 line-clamp-2 text-xs opacity-80 md:text-sm">
+                  GoPocket's newsroom explains Indian market news - company updates, quarterly results, IPOs and the
+                  economy - for investors and traders.
+                </p>
+              </div>
             </div>
-          </article>
 
-          <ArticleCtaSidebar tag="News" />
+            {/* Below 1440px there's no margin to hang the rail in, so the share buttons sit in a row here. */}
+            <ShareButtons url={postUrl} title={post.title} variant="row" class="min-[1440px]:hidden" />
+
+            {
+              /*
+              From 1440px the share rail hangs in the page margin to the left of
+              this column - absolutely positioned, so it takes no width from the
+              summary and body. The wrapper spans the column's full height, so
+              the sticky rail inside it stays in view all the way down.
+            */
+            }
+            <div class="relative">
+              <div class="absolute top-0 right-full bottom-0 mr-8 hidden min-[1440px]:block min-[1600px]:mr-12">
+                <ShareButtons url={postUrl} title={post.title} variant="rail" />
+              </div>
+              <div class="space-y-8">
+                {
+                  post.description && (
+                    <section aria-labelledby="article-summary">
+                      <h2
+                        id="article-summary"
+                        class="text-dark! flex items-center gap-2 text-base! font-bold tracking-wide uppercase"
+                      >
+                        <ListIcon class="text-primary h-5 w-5" stroke-width={2} aria-hidden="true" />
+                        Summary
+                      </h2>
+                      <div class="bg-theme-light border-primary mt-3 rounded-2xl border-l-4 p-5 md:p-6">
+                        <p class="text-dark text-base leading-relaxed font-semibold md:text-lg">{post.description}</p>
+                      </div>
+                    </section>
+                  )
+                }
+
+                <article
+                  class="bg-theme-light px-3 py-6 sm:px-5 sm:py-10 md:px-7 md:py-12 rounded-3xl border border-border-light shadow-xs w-full overflow-hidden"
+                >
+                  {
+                    post.postBody ? (
+                      <div class="ql-editor read-mode w-full" set:html={post.postBody} />
+                    ) : (
+                      <div class="text-center py-12 text-gray-500">
+                        <p>No content available for this article.</p>
+                      </div>
+                    )
+                  }
+
+                  <!-- Back to Blog Button -->
+                  <div class="pt-8 mt-10 border-t border-border-light/80 flex items-center justify-between">
+                    <a href="/news" class="btn btn-outline text-flip-hover-anim btn-sm cursor-pointer">
+                      <span class="text-flip-inner" data-content="← Back to All News">← Back to All News</span>
+                      <span
+                        class="translate-x-centered absolute -bottom-2 block h-7 w-36 transform-[matrix(1,0,0,1,0,0)] blur-[10px]"
+                      >
+                        <svg
+                          class="gradient-shape"
+                          width="150"
+                          height="28"
+                          viewBox="0 0 147 11"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M1.34766 30.8857L49.449 3.11433L97.5504 30.8857L145.652 3.11433"
+                            stroke="currentColor"
+                            stroke-width="8"></path>
+                        </svg>
+                      </span>
+                    </a>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+
+          <ArticleCtaSidebar tag="News">
+            <PreferredSourceCard />
+          </ArticleCtaSidebar>
         </div>
       </div>
     </section>

@@ -3,10 +3,6 @@ import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import FinalCTA from "../components/FinalCTA.astro";
-import NewsCover from "@/components/news/NewsCover.astro";
-import BlogThumb from "@/components/blog/BlogThumb.astro";
-import BlogMeta from "@/components/blog/BlogMeta.astro";
-import BlogReadMore from "@/components/blog/BlogReadMore.astro";
 import NewsCard from "@/components/news/NewsCard.astro";
 import NewsCategoryFilter from "@/components/news/NewsCategoryFilter.astro";
 import Pagination from "@/components/Pagination.astro";
@@ -14,8 +10,9 @@ import { FIRST_PAGE_SIZE, newsPageCount, newsPageHref } from "@/components/news/
 import { getNewsCategories, getNewsCount, getNewsList } from "../lib/frappe";
 
 // The four newest articles fill a 2x2 "Recent News" grid of large cards, and
-// the rest a two-column "More News" grid. Every card shows the article's 23:10
-// main image (the generated cover when there is none) with its text underneath.
+// the rest a two-column "More News" grid. Every card shows the article's 16:9
+// main image - the CMS's 1280x720 standard - (the generated cover when there is
+// none) with its text underneath.
 // Only the first image is eager: it is the LCP element on every viewport.
 // Older articles continue at /news/page/2 onwards.
 //
@@ -40,6 +37,8 @@ const pageCount = totalArticles === null ? 1 : newsPageCount(totalArticles);
 const pageHref = (page: number) => newsPageHref(page, category);
 const recentArticles = articles.slice(0, 4);
 const gridArticles = articles.slice(4);
+// The newest article's image is the listing's share card, as on /blog.
+const leadImage = recentArticles[0]?.mainImage ? new URL(recentArticles[0].mainImage, Astro.url.origin).href : null;
 
 const SITE = Astro.site?.origin ?? Astro.url.origin;
 const newsUrl = `${SITE}/news`;
@@ -83,8 +82,13 @@ const newsBreadcrumbSchema = {
   description="Today's stock market news for Indian investors: IPO price bands and GMP, listing updates, market moves and regulatory changes, explained simply by GoPocket."
   canonical="/news"
   noindex={category !== null}
+  ogImage={leadImage ?? undefined}
+  ogImageAlt={leadImage ? recentArticles[0]?.title : undefined}
+  largeImagePreview
 >
   <Fragment slot="head">
+    {/* The news RSS feed, for Discover's Follow button and feed readers. */}
+    <link rel="alternate" type="application/rss+xml" title="GoPocket News" href={`${SITE}/news/rss.xml`} />
     <script type="application/ld+json" set:html={JSON.stringify(newsSchema)} />
     <script type="application/ld+json" set:html={JSON.stringify(newsBreadcrumbSchema)} />
     {pageCount > 1 && <link rel="next" href={`${SITE}${pageHref(2)}`} />}
@@ -136,43 +140,7 @@ const newsBreadcrumbSchema = {
             </div>
             <div class="mt-8 grid gap-x-16 gap-y-14 md:mt-10 lg:grid-cols-2 xl:gap-x-20">
               {recentArticles.map((article, index) => (
-                <article class="flex flex-col">
-                  {article.mainImage ? (
-                    <BlogThumb
-                      href={`/news/${article.slug}`}
-                      src={article.mainImage}
-                      width={1150}
-                      height={500}
-                      eager={index === 0}
-                      class="aspect-[23/10] rounded-3xl"
-                    />
-                  ) : (
-                    <NewsCover
-                      href={`/news/${article.slug}`}
-                      slug={article.slug}
-                      size="lg"
-                      class="aspect-[23/10] rounded-3xl"
-                    />
-                  )}
-                  <h3 class="text-black! dark:text-white! mt-6 line-clamp-2 text-[26px]! leading-snug font-bold tracking-tight md:text-[32px]!">
-                    <a href={`/news/${article.slug}`} class="text-inherit! hover:text-primary! transition-colors">
-                      {article.title}
-                    </a>
-                  </h3>
-                  <BlogMeta
-                    class="mt-4"
-                    author="GoPocket"
-                    date={article.formattedDate}
-                    datetime={article.publishedISO}
-                    readingMinutes={article.readingMinutes}
-                  />
-                  <BlogReadMore
-                    class="mt-7 self-start"
-                    variant="solid"
-                    href={`/news/${article.slug}`}
-                    title={article.title}
-                  />
-                </article>
+                <NewsCard article={article} featured eager={index === 0} />
               ))}
             </div>
           </div>

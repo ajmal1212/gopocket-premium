@@ -122,6 +122,7 @@ const faqSchema = post.faqs.length
   ogType="article"
   ogImage={imageUrl ?? undefined}
   ogImageAlt={imageUrl ? post.title : undefined}
+  ogImageSize={imageUrl ? { width: 1280, height: 720 } : undefined}
   largeImagePreview
 >
   <Fragment slot="head">

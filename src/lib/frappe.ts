@@ -838,11 +838,20 @@ export interface BlogDoc {
   category2?: string | null;
   category3?: string | null;
   faq?: BlogFaqRow[];
+  /** Select field, "Draft" | "Publish"; only "Publish" posts reach the site. */
+  status?: string | null;
   owner?: string;
   creation?: string;
   modified?: string;
   docstatus?: number;
 }
+
+/**
+ * The Blog doctype's `status` defaults to "Draft", so every list, count and
+ * detail lookup filters on it - a draft must never render, be counted into the
+ * pagination, or be listed in the sitemap.
+ */
+const PUBLISHED_BLOG_FILTERS = [["status", "=", "Publish"]];
 
 export interface BlogFaq {
   id: string;
@@ -1107,6 +1116,7 @@ export async function getBlogPosts(limit = 20, withReadingTime = false, start = 
       fields: fields as any,
       limit,
       limit_start: start,
+      filters: PUBLISHED_BLOG_FILTERS as any,
       orderBy: { field: "creation", order: "desc" },
     });
 
@@ -1121,7 +1131,7 @@ export async function getBlogPosts(limit = 20, withReadingTime = false, start = 
   try {
     const baseUrl = getFrappeUrl();
     const token = getFrappeToken();
-    const url = `${baseUrl}/api/resource/Blog?fields=${encodeURIComponent(JSON.stringify(fields))}&limit_page_length=${limit}&limit_start=${start}&order_by=creation desc`;
+    const url = `${baseUrl}/api/resource/Blog?fields=${encodeURIComponent(JSON.stringify(fields))}&limit_page_length=${limit}&limit_start=${start}&order_by=creation desc&filters=${encodeURIComponent(JSON.stringify(PUBLISHED_BLOG_FILTERS))}`;
 
     const res = await fetch(url, {
       headers: {
@@ -1148,10 +1158,11 @@ export async function getBlogPosts(limit = 20, withReadingTime = false, start = 
  * Frappe can't be reached, so the caller can hide pagination rather than show
  * wrong page counts.
  */
-async function getDoctypeCount(doctype: string): Promise<number | null> {
+async function getDoctypeCount(doctype: string, filters?: unknown[]): Promise<number | null> {
+  const filterParam = filters ? `&filters=${encodeURIComponent(JSON.stringify(filters))}` : "";
   try {
     const res = await fetch(
-      `${getFrappeUrl()}/api/method/frappe.client.get_count?doctype=${encodeURIComponent(doctype)}`,
+      `${getFrappeUrl()}/api/method/frappe.client.get_count?doctype=${encodeURIComponent(doctype)}${filterParam}`,
       {
         headers: {
           Authorization: `token ${getFrappeToken()}`,
@@ -1171,7 +1182,7 @@ async function getDoctypeCount(doctype: string): Promise<number | null> {
   }
 }
 
-export const getBlogCount = () => getDoctypeCount("Blog");
+export const getBlogCount = () => getDoctypeCount("Blog", PUBLISHED_BLOG_FILTERS);
 export const getNewsCount = () => getDoctypeCount("News");
 
 /**
@@ -1243,22 +1254,29 @@ export async function getBlogPostBySlugOrId(identifier: string): Promise<Formatt
   const id = (identifier || "").trim();
   if (!id) return null;
 
+  // The single-resource endpoint takes no filters, so a draft is turned away
+  // here instead; the page then treats it exactly like a post that doesn't exist.
+  const publishedDoc = async (name: string) => {
+    const doc = await getBlogDocByName(name);
+    return doc?.status === "Publish" ? doc : null;
+  };
+
   // 1. Numeric identifiers are record ids - fetch the document directly.
   if (/^\d+$/.test(id)) {
-    const doc = await getBlogDocByName(id);
+    const doc = await publishedDoc(id);
     if (doc) return formatBlog(doc);
   }
 
   // 2. Otherwise resolve the slug to a record id, then fetch that document.
   const nameFromSlug = await getBlogNameBySlug(id);
   if (nameFromSlug) {
-    const doc = await getBlogDocByName(nameFromSlug);
+    const doc = await publishedDoc(nameFromSlug);
     if (doc) return formatBlog(doc);
   }
 
   // 3. Last resort: the identifier may itself be a non-numeric record name.
   if (!/^\d+$/.test(id)) {
-    const doc = await getBlogDocByName(id);
+    const doc = await publishedDoc(id);
     if (doc) return formatBlog(doc);
   }
 

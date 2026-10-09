@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { SITEMAP_CHUNK_SIZE, listSitemapSlugs } from "@/lib/contracts";
-import { originFor, renderSitemapIndex, xmlResponse } from "@/lib/sitemap";
+import { originFor, renderSitemapIndex, unavailable, xmlResponse } from "@/lib/sitemap";
 
 /**
  * The sitemap index, and the one address robots.txt advertises.
@@ -14,21 +14,21 @@ import { originFor, renderSitemapIndex, xmlResponse } from "@/lib/sitemap";
  * robots.txt or Search Console - /sitemap.xml still resolves and still leads
  * to every URL the site wants indexed.
  */
-export const GET: APIRoute = async ({ site, url }) => {
+export const GET: APIRoute = async ({ site, url, locals }) => {
   const SITE = originFor(site, url);
-  const children = [`${SITE}/sitemap-pages.xml`];
+  const waitUntil = locals.runtime?.ctx?.waitUntil?.bind(locals.runtime.ctx);
 
-  // Guarded like every other data source here: if Contract Master is
-  // unreachable the index still ships with the editorial sitemap rather than
-  // 500ing and taking the whole thing down with it.
-  try {
-    const slugs = await listSitemapSlugs();
-    const chunks = Math.ceil(slugs.length / SITEMAP_CHUNK_SIZE);
-    for (let page = 1; page <= chunks; page += 1) {
-      children.push(`${SITE}/sitemap-stocks-${page}.xml`);
-    }
-  } catch (error) {
-    console.error("sitemap: could not enumerate stock pages", error);
+  // No complete stock list anywhere - only on a cold cache while Contract
+  // Master is down. An index without the stock sitemaps would tell Search
+  // Console those ~7,000 URLs are gone; a 503 tells it to keep what it has and
+  // retry. (listSitemapSlugs serves the last good list whenever there is one.)
+  const slugs = await listSitemapSlugs(waitUntil);
+  if (!slugs) return unavailable();
+
+  const children = [`${SITE}/sitemap-pages.xml`];
+  const chunks = Math.ceil(slugs.length / SITEMAP_CHUNK_SIZE);
+  for (let page = 1; page <= chunks; page += 1) {
+    children.push(`${SITE}/sitemap-stocks-${page}.xml`);
   }
 
   return xmlResponse(renderSitemapIndex(children));

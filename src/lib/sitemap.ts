@@ -66,6 +66,18 @@ export function xmlResponse(body: string, status = 200): Response {
 }
 
 /**
+ * A temporary failure: crawlers retry a 503 and keep the copy they already
+ * have, where an empty or shortened sitemap would read as URLs removed. Not
+ * cached, so the next request tries again.
+ */
+export function unavailable(): Response {
+  return new Response("Sitemap temporarily unavailable", {
+    status: 503,
+    headers: { "Retry-After": "600", "Cache-Control": "no-store" },
+  });
+}
+
+/**
  * The origin to build absolute URLs from: the `site` value in astro.config.mjs,
  * falling back to the request origin only when no `site` is configured. Pinned
  * deliberately, so a staging deploy never publishes its own hostname.

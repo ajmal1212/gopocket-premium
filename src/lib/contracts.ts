@@ -204,17 +204,22 @@ const FIELDS = JSON.stringify([
   "order",
 ]);
 
+/** One Contract Master request. Throws on a timeout or a non-2xx response. */
+async function queryOrThrow(params: URLSearchParams, timeoutMs = TIMEOUT_MS): Promise<Contract[]> {
+  const response = await fetch(`${getFrappeUrl()}/api/resource/Contract Master?${params}`, {
+    headers: { Authorization: `token ${getFrappeToken()}` },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!response.ok) throw new Error(`Contract Master responded ${response.status}`);
+  const body = (await response.json()) as { data?: ContractRow[] };
+  return (body.data || []).map(toContract).filter((c): c is Contract => c !== null);
+}
+
 async function query(params: URLSearchParams): Promise<Contract[]> {
   // A caller must always get a list back: a page still renders without a price,
   // and a search box that throws is worse than one that finds nothing.
   try {
-    const response = await fetch(`${getFrappeUrl()}/api/resource/Contract Master?${params}`, {
-      headers: { Authorization: `token ${getFrappeToken()}` },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
-    if (!response.ok) return [];
-    const body = (await response.json()) as { data?: ContractRow[] };
-    return (body.data || []).map(toContract).filter((c): c is Contract => c !== null);
+    return await queryOrThrow(params);
   } catch {
     return [];
   }
@@ -350,28 +355,57 @@ const SITEMAP_FETCH_PAGE = 5000;
  */
 export const SITEMAP_CHUNK_SIZE = 5000;
 
-const SITEMAP_TTL_MS = 60 * 60 * 1000;
-let sitemapCache: { at: number; slugs: string[] } | null = null;
+/**
+ * A 5,000-row page takes Frappe around 10 s - longer than the 8 s every other
+ * query gets. This walk runs rarely and mostly in the background (see below),
+ * so it can afford to wait.
+ */
+const SITEMAP_FETCH_TIMEOUT_MS = 30_000;
+
+/** The list changes when shares list or delist, not by the hour. */
+const SITEMAP_FRESH_S = 6 * 60 * 60;
+/** How long the last good list keeps being served while Frappe can't produce a new one. */
+const SITEMAP_STALE_S = 7 * 24 * 60 * 60;
 
 /**
- * Every distinct /stocks/<slug> address worth advertising, sorted.
+ * Every distinct /stocks/<slug> address worth advertising, sorted; null only
+ * when no complete list has ever been loaded and loading one fails now.
  *
  * Walks all 22,885 cash-market rows and keeps the ~9,600 that are actually
  * equity (see the series notes above), which dedupe to roughly 7,500 addresses.
- * This is the one query on the site that reads the whole contract master, so
- * the result is held per isolate for an hour and the responses built from it
- * are cached for the same - a crawler working through the chunks pays for the
- * walk once rather than once per file.
+ *
+ * The walk is all-or-nothing. It used to stop quietly at the first failed page
+ * and publish whatever it had - and since a page took longer than the query
+ * timeout, that happened often. Each isolate then held its own partial list
+ * for an hour, so Search Console saw the index flip between one stock sitemap
+ * and two (~5,600 vs ~7,800 URLs) and got 404s for sitemap-stocks-2.xml from
+ * the isolates whose list was short. Now a failed walk publishes nothing, and
+ * the last complete list - shared by every isolate through the edge cache, so
+ * /sitemap.xml and each chunk agree - is served instead.
  */
-export async function listSitemapSlugs(): Promise<string[]> {
-  if (sitemapCache && Date.now() - sitemapCache.at < SITEMAP_TTL_MS) return sitemapCache.slugs;
+export async function listSitemapSlugs(waitUntil?: (promise: Promise<unknown>) => void): Promise<string[] | null> {
+  return swr(
+    "sitemap-slugs:v2",
+    async () => {
+      try {
+        return await loadSitemapSlugs();
+      } catch (error) {
+        console.error("sitemap: contract walk failed, keeping the last complete list", error);
+        return null;
+      }
+    },
+    { freshSeconds: SITEMAP_FRESH_S, staleSeconds: SITEMAP_STALE_S, keep: (slugs) => slugs.length > 0, waitUntil },
+  );
+}
 
+/** Throws if any page of the walk fails, so a partial list is never returned. */
+async function loadSitemapSlugs(): Promise<string[]> {
   /** Walks one exchange's rows, a page at a time. Offsets must be sequential. */
   async function walk(exchange: string): Promise<Contract[]> {
     const rows: Contract[] = [];
 
     for (let start = 0; ; start += SITEMAP_FETCH_PAGE) {
-      const page = await query(
+      const page = await queryOrThrow(
         new URLSearchParams({
           fields: FIELDS,
           filters: JSON.stringify([["exchange", "=", exchange]]),
@@ -379,12 +413,12 @@ export async function listSitemapSlugs(): Promise<string[]> {
           limit_start: String(start),
           order_by: "symbol asc",
         }),
+        SITEMAP_FETCH_TIMEOUT_MS,
       );
 
       rows.push(...page);
 
-      // A short page is the last one. A failed query returns [] and also ends
-      // the walk, which yields a partial sitemap rather than none at all.
+      // A short page is the last one.
       if (page.length < SITEMAP_FETCH_PAGE) break;
     }
 
@@ -416,9 +450,7 @@ export async function listSitemapSlugs(): Promise<string[]> {
     }
   }
 
-  const sorted = [...slugs].sort();
-  sitemapCache = { at: Date.now(), slugs: sorted };
-  return sorted;
+  return [...slugs].sort();
 }
 
 /**

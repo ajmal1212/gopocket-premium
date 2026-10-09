@@ -11,11 +11,20 @@ import ListIcon from "@lucide/astro/icons/list";
 import ShareButtons from "@/components/news/ShareButtons.astro";
 import PreferredSourceCard from "@/components/news/PreferredSourceCard.astro";
 import { getNewsBySlugOrId } from "../../lib/frappe";
+import { swr } from "@/lib/edge-cache";
 
 const { slug } = Astro.params;
 
-// Fetch the individual news article from Frappe with fields=["*"]
-const post = slug ? await getNewsBySlugOrId(slug) : null;
+// The lookup is two sequential CMS round trips (slug -> id, then the record),
+// which put the page's first byte at 1-2 s. That delay is what a WhatsApp share
+// waits on: the preview card is built from this HTML, and a slow response gets
+// the small thumbnail - or no image - instead of the large banner. Cached
+// stale-while-revalidate, an edit shows up within a minute; an unpublished
+// article can linger for up to the stale hour.
+const waitUntil = Astro.locals.runtime?.ctx?.waitUntil?.bind(Astro.locals.runtime.ctx);
+const post = slug
+  ? await swr(`news:${slug}`, () => getNewsBySlugOrId(slug), { freshSeconds: 60, staleSeconds: 3600, waitUntil })
+  : null;
 
 if (!post) {
   return Astro.redirect("/news");

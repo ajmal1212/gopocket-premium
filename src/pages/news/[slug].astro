@@ -207,17 +207,24 @@ const faqSchema = post.faqs.length
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           <!-- LEFT COLUMN: Byline, summary and post body (9 columns) -->
           <div class="lg:col-span-9 w-full space-y-8">
-            {/* A visible byline: Discover weighs who wrote a story, not only the schema's author. */}
-            <div class="flex items-start gap-4">
+            {
+              /*
+              A visible byline: Discover weighs who wrote a story, not only the schema's author.
+              On phones the date line drops to its own row (the dash only separates it on one
+              line) and the newsroom blurb is hidden, so the byline stays two short lines
+              instead of five ragged ones above the summary.
+            */
+            }
+            <div class="flex items-start gap-3 md:gap-4">
               <span
-                class="border-border-light flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-white md:h-14 md:w-14"
+                class="border-border-light flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-white md:h-14 md:w-14"
               >
                 <img
                   src="/favicon.png"
                   alt=""
                   width="256"
                   height="256"
-                  class="h-8 w-8 md:h-9 md:w-9"
+                  class="h-6 w-6 md:h-9 md:w-9"
                   aria-hidden="true"
                 />
               </span>
@@ -235,28 +242,30 @@ const faqSchema = post.faqs.length
                       </span>
                     )
                   }
-                  {
-                    publishedStamp && (
-                      <>
-                        <span class="opacity-40" aria-hidden="true">
-                          —
+                  <span class="flex basis-full flex-wrap items-center gap-x-2 text-xs md:basis-auto md:text-sm">
+                    {
+                      publishedStamp && (
+                        <>
+                          <span class="hidden opacity-40 md:inline" aria-hidden="true">
+                            —
+                          </span>
+                          <span class="font-medium">
+                            Published <time datetime={post.publishedISO}>{publishedStamp}</time>
+                          </span>
+                        </>
+                      )
+                    }
+                    {
+                      updatedStamp && (
+                        <span>
+                          · Updated <time datetime={post.modifiedISO}>{updatedStamp}</time>
                         </span>
-                        <span class="font-medium">
-                          Published <time datetime={post.publishedISO}>{publishedStamp}</time>
-                        </span>
-                      </>
-                    )
-                  }
-                  {
-                    updatedStamp && (
-                      <span>
-                        · Updated <time datetime={post.modifiedISO}>{updatedStamp}</time>
-                      </span>
-                    )
-                  }
-                  {post.readingMinutes > 0 && <span>· {post.readingMinutes} min read</span>}
+                      )
+                    }
+                    {post.readingMinutes > 0 && <span>· {post.readingMinutes} min read</span>}
+                  </span>
                 </p>
-                <p class="text-text-default mt-1 line-clamp-2 text-xs opacity-80 md:text-sm">
+                <p class="text-text-default mt-1 line-clamp-2 hidden text-xs opacity-80 md:block md:text-sm">
                   GoPocket's newsroom explains Indian market news - company updates, quarterly results, IPOs and the
                   economy - for investors and traders.
                 </p>

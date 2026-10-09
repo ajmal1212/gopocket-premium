@@ -76,9 +76,11 @@ const networks = [
 
 const isRail = variant === "rail";
 // The round button. Its white fill sits over the rail's connecting line.
-// The rail's buttons are a size up from the row's, which has to fit a phone.
-const circleSize = isRail ? "h-11 w-11" : "h-10 w-10";
-const iconSize = isRail ? "h-5 w-5" : "h-[18px] w-[18px]";
+// The rail's buttons are a size up from the row's, which has to fit a phone:
+// on one there, eight 36px buttons make a single line across a 375px screen
+// rather than wrapping into two rows that push the article down.
+const circleSize = isRail ? "h-11 w-11" : "h-9 w-9 sm:h-10 sm:w-10";
+const iconSize = isRail ? "h-5 w-5" : "h-4 w-4 sm:h-[18px] sm:w-[18px]";
 const circle =
   "border-border-light relative z-10 flex shrink-0 items-center justify-center rounded-full border bg-white transition-transform duration-200 group-hover:scale-110 group-hover:shadow-md motion-reduce:transition-none motion-reduce:group-hover:scale-100";
 const item = isRail
@@ -99,9 +101,17 @@ const label = isRail
   data-share-url={url}
   data-share-title={title}
 >
-  {!isRail && <span class="text-text-default text-sm font-medium">Share</span>}
+  {!isRail && <span class="text-text-default hidden text-sm font-medium sm:inline">Share</span>}
 
-  <ul class:list={["relative", isRail ? "flex flex-col gap-6" : "flex flex-wrap items-center gap-2.5"]}>
+  {/* Below sm the row never wraps; on the narrowest phones it scrolls a few pixels instead. */}
+  <ul
+    class:list={[
+      "relative",
+      isRail
+        ? "flex flex-col gap-6"
+        : "-m-1 flex min-w-0 flex-nowrap items-center gap-1.5 overflow-x-auto p-1 [scrollbar-width:none] sm:m-0 sm:flex-wrap sm:gap-2.5 sm:overflow-visible sm:p-0",
+    ]}
+  >
     {
       isRail && (
         <span

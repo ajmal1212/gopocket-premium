@@ -1,14 +1,27 @@
 ---
 import { getBlogPosts } from "../lib/frappe";
+import { swr } from "../lib/edge-cache";
 import NewsCover from "@/components/news/NewsCover.astro";
 
-// Latest three published blogs (limit_page_length = 3, newest first)
-const posts = await getBlogPosts(3);
+// Latest three published blogs (limit_page_length = 3, newest first).
+//
+// Every route is SSR, so without a cache each homepage visit waited on a
+// round trip to the CMS before the first byte went out - most of the ~0.7 s
+// server response PageSpeed flagged. A newly published or unpublished post now
+// shows up within five minutes instead of instantly.
+const waitUntil = Astro.locals.runtime?.ctx?.waitUntil?.bind(Astro.locals.runtime.ctx);
+const posts =
+  (await swr("latest-insights:3", () => getBlogPosts(3), {
+    freshSeconds: 300,
+    staleSeconds: 86400,
+    keep: (list) => list.length > 0,
+    waitUntil,
+  })) ?? [];
 ---
 
 {
   posts.length > 0 && (
-    <section>
+    <section class="[content-visibility:auto] [contain-intrinsic-size:auto_273px] md:[contain-intrinsic-size:auto_737px] [overflow-clip-margin:3rem]">
       <div class="container space-y-10 md:space-y-16">
         <div class="mx-auto max-w-2xl text-center">
           <h2 class="has-italic-text capitalize">

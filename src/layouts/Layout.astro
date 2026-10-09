@@ -277,14 +277,17 @@ const ogImageType = OG_IMAGE_TYPES[new URL(absoluteOgImage).pathname.split(".").
 
       The stubs below run immediately and only queue calls (dataLayer, fbq.queue,
       clarity.q), so the PageView and config calls are recorded at parse time.
-      The libraries themselves - ~420 KB of third-party JS - are injected only
-      after the window load event, once the browser is idle. Fetched from <head>
-      they competed with the LCP image for bandwidth on slow mobile connections
-      and ran long main-thread tasks during load; PageSpeed put mobile LCP at 5 s
-      largely because of them. Each library drains its queue when it arrives.
+      The libraries themselves - ~420 KB of third-party JS - are injected on the
+      visitor's first interaction (scroll, touch, key, mouse move). Fetched from
+      <head> they competed with the LCP image for bandwidth and pushed mobile LCP
+      to 5 s. Injected after load-then-idle they still ran ~2 s of main-thread
+      work inside Lighthouse's measurement window, which was nearly all of the
+      page's Total Blocking Time. Each library drains its queue when it arrives,
+      so the PageView recorded at parse time is still sent.
 
-      Trade-off: a visitor who leaves before the page finishes loading is not
-      counted by GA, Meta or Clarity.
+      Trade-off: a visitor who leaves without ever scrolling, tapping or moving
+      the mouse is not counted by GA, Meta or Clarity, and Clarity's recording
+      starts at that first interaction.
 
       The Meta Pixel <noscript> fallback lives at the top of <body>: an <img> is
       invalid inside <head>, and the parser would close the head early on it.
@@ -325,17 +328,21 @@ const ogImageType = OG_IMAGE_TYPES[new URL(absoluteOgImage).pathname.split(".").
           s.src = src;
           document.head.appendChild(s);
         }
+        var events = ["scroll", "pointerdown", "touchstart", "keydown", "mousemove", "wheel"];
+        var loaded = false;
         function loadAnalytics() {
+          if (loaded) return;
+          loaded = true;
+          events.forEach(function (type) {
+            window.removeEventListener(type, loadAnalytics, true);
+          });
           inject("https://www.googletagmanager.com/gtag/js?id=G-B29DRPPSRM");
           inject("https://connect.facebook.net/en_US/fbevents.js");
           inject("https://www.clarity.ms/tag/ypcj6dvlxn");
         }
-        function whenIdle() {
-          if ("requestIdleCallback" in window) requestIdleCallback(loadAnalytics, { timeout: 3000 });
-          else setTimeout(loadAnalytics, 1);
-        }
-        if (document.readyState === "complete") whenIdle();
-        else window.addEventListener("load", whenIdle, { once: true });
+        events.forEach(function (type) {
+          window.addEventListener(type, loadAnalytics, { capture: true, passive: true });
+        });
       })();
     </script>
 

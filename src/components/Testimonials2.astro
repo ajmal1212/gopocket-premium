@@ -89,7 +89,30 @@ const rows = [
 ];
 ---
 
-<section class="testimonial-section overflow-hidden py-10">
+{
+  /*
+  content-visibility: auto lets the browser skip style, layout and paint for
+  this section until it nears the viewport. The intrinsic size is the measured
+  content height (padding excluded - contain-intrinsic-size sizes the content
+  box), so the scrollbar doesn't jump when it renders; `auto` makes the
+  browser remember the real height after that. Pricing, FAQ, Latest Insights,
+  the final CTA and the footer do the same - all sit at the foot of the page.
+*/
+}
+<section
+  class="testimonial-section overflow-hidden py-10 [content-visibility:auto] [contain-intrinsic-size:auto_881px] md:[contain-intrinsic-size:auto_857px]"
+>
+  {
+    /* Drawn once and referenced by every card: the five stars were inline SVG
+      paths repeated 90 times on the homepage, ~40 KB of HTML. */
+  }
+  <svg class="hidden" aria-hidden="true">
+    <symbol id="testimonial-star" viewBox="0 0 20 20">
+      <path
+        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+      ></path>
+    </symbol>
+  </svg>
   <div class="container mb-10">
     <div class="flex flex-wrap items-end justify-between gap-y-6">
       <h2
@@ -156,8 +179,8 @@ const rows = [
                           aria-label="Rated 5 out of 5"
                         >
                           {Array.from({ length: 5 }).map(() => (
-                            <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            <svg class="h-5 w-5 fill-current" aria-hidden="true">
+                              <use href="#testimonial-star" />
                             </svg>
                           ))}
                         </div>
@@ -196,17 +219,19 @@ const rows = [
   </div>
 
   <script type="module" is:inline={true}>
+    // Scoped to this section, and run in a frame rather than mid-parse: read
+    // synchronously, scrollWidth forced a layout of the whole half-parsed page,
+    // and the unscoped selector re-measured the hero's logo marquee too.
     function setupMarqueeWidth() {
-      document.querySelectorAll(".marquee-element-width-auto").forEach((container) => {
-        const totalWidth = container.scrollWidth;
-        container.style.setProperty("--total-width", `${totalWidth / 2}px`);
-      });
+      const tracks = document.querySelectorAll(".testimonial-section .marquee-element-width-auto");
+      const widths = Array.from(tracks, (track) => track.scrollWidth);
+      tracks.forEach((track, i) => track.style.setProperty("--total-width", `${widths[i] / 2}px`));
     }
     let resizeTimer;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(setupMarqueeWidth, 100);
     });
-    setupMarqueeWidth();
+    requestAnimationFrame(setupMarqueeWidth);
   </script>
 </section>

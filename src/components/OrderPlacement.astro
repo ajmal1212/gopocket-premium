@@ -211,14 +211,18 @@ const steps: Step[] = [
                     </div>
 
                     {/* The list layout has no phone column, so each card carries
-                      its own screenshot in the same mockup. Same URLs as the
-                      stage, so the browser fetches each file once whichever
-                      layout is live. */}
+                      its own screenshot in the same mockup. Only one layout is
+                      ever displayed, and lazy images that aren't displayed
+                      aren't fetched, so each step still costs one download.
+                      The mockup is 180px wide here and 306px on the stage,
+                      hence the different `sizes`. */}
                     <div class="ofh-mock ofh-inline">
                       <div class="ofh-screen">
                         <img
                           class="ofh-shot is-only"
                           src={`${step.img}-840.webp`}
+                          srcset={`${step.img}-420.webp 420w, ${step.img}-840.webp 840w`}
+                          sizes="180px"
                           alt={step.alt}
                           width="540"
                           height="1084"
@@ -263,6 +267,8 @@ const steps: Step[] = [
                       data-op-shot={i}
                       style={`--i:${i}`}
                       src={`${step.img}-840.webp`}
+                      srcset={`${step.img}-420.webp 420w, ${step.img}-840.webp 840w`}
+                      sizes="306px"
                       alt={step.alt}
                       width="540"
                       height="1084"

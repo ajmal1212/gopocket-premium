@@ -57,6 +57,24 @@
     // keeps below-the-fold sections appearing on the way back up the page.
     window.addEventListener("load", () => AOS.refresh(), { once: true });
 
+    // The same goes for the content-visibility: auto sections at the foot of the
+    // page (FAQ, pricing, footer...): each holds an estimated height until it
+    // first renders, then takes its real one, moving everything below it. The
+    // event doesn't bubble, hence the capture listener; one refresh per frame.
+    let aosRefreshQueued = false;
+    document.addEventListener(
+      "contentvisibilityautostatechange",
+      (event) => {
+        if ((event as Event & { skipped?: boolean }).skipped || aosRefreshQueued) return;
+        aosRefreshQueued = true;
+        requestAnimationFrame(() => {
+          aosRefreshQueued = false;
+          AOS.refresh();
+        });
+      },
+      { capture: true },
+    );
+
     // Smooth wheel scrolling, started only after AOS so that a failure here can
     // never leave the [data-aos] sections stuck invisible.
     //

@@ -80,7 +80,13 @@ const faqs: Faq[] = (faqsProp ?? defaultFaqs).map((faq, index) => ({
 }));
 ---
 
-<section class="relative py-16 md:py-24 overflow-hidden bg-theme-light/60" data-aos="fade-up">
+{
+  /* content-visibility: see Testimonials2.astro. Height is the homepage FAQ's; other pages' differ, and `auto` corrects it once rendered. */
+}
+<section
+  class="relative py-16 md:py-24 overflow-hidden bg-theme-light/60 [content-visibility:auto] [contain-intrinsic-size:auto_1239px] md:[contain-intrinsic-size:auto_1013px]"
+  data-aos="fade-up"
+>
   <div class="container mx-auto px-4 max-w-5xl">
     <!-- Header -->
     <div class="text-center max-w-3xl mx-auto mb-12">

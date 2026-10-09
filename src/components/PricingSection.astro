@@ -18,7 +18,16 @@ const showPlanToggle = false;
 const showEnterprisePlan = false;
 ---
 
-<section>
+{
+  /*
+  content-visibility: see Testimonials2.astro. Its paint containment would clip
+  the cards' shadows and button glows at the section edge, so overflow-clip-margin
+  extends the clip far enough to keep them.
+*/
+}
+<section
+  class="[content-visibility:auto] [contain-intrinsic-size:auto_1807px] lg:[contain-intrinsic-size:auto_1019px] [overflow-clip-margin:3rem]"
+>
   <div class="container space-y-12 md:space-y-16 px-6 sm:px-10 md:px-16 lg:px-24 xl:px-32">
     <div class="flex flex-wrap items-center justify-center gap-y-4 md:justify-between">
       <div class="text-center md:max-w-sm md:text-start">

@@ -30,14 +30,18 @@
         class="bg-theme-light flex flex-col justify-between rounded-4xl sm:col-span-3 aos-init aos-animate"
       >
         {
-          /* One file, no srcset. The six `realtime-report-*` variants were not
-            one picture at six sizes: only -4 was the GoPocket market-data
-            artwork, and the other five were still the template's payments
-            graphic — so every width but exactly 805w served the wrong image.
-            The five have been deleted rather than regenerated. */
+          /* The -640 files here and on the scalper below are the same artwork
+            resized, for phones: the full file was ~2x what a 412px screen
+            paints. `sizes` is the measured rendered width - full width less
+            the card padding on phones, a share of the grid above 768px.
+            (The older `realtime-report-*` set was dropped because five of its
+            six "sizes" were a different picture - check any new variant is
+            the same image.) */
         }
         <img
           src="/assets/images/gopocket/home-strategy-builder.webp"
+          srcset="/assets/images/gopocket/home-strategy-builder-640.webp 640w, /assets/images/gopocket/home-strategy-builder.webp 1030w"
+          sizes="(min-width: 768px) 42vw, calc(100vw - 5rem)"
           alt="Strategy builder with option legs, prebuilt strategies and a payoff graph showing max profit, max loss and breakeven"
           loading="lazy"
           decoding="async"
@@ -112,6 +116,8 @@
       >
         <img
           src="/assets/images/gopocket/home-scalper.webp"
+          srcset="/assets/images/gopocket/home-scalper-640.webp 640w, /assets/images/gopocket/home-scalper.webp 1036w"
+          sizes="(min-width: 1024px) 26vw, (min-width: 768px) 40vw, calc(100vw - 5rem)"
           alt="Scalper screen with call, spot and put charts and one-tap Buy, Sell and Exit all buttons"
           loading="lazy"
           decoding="async"

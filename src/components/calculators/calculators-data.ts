@@ -17,6 +17,7 @@ export type CalculatorId =
   | "mf-returns"
   | "emi"
   | "car-loan"
+  | "home-loan"
   | "ppf"
   | "epf"
   | "margin"
@@ -44,6 +45,7 @@ export const calculators: CalculatorLink[] = [
   { id: "mf-returns", label: "Mutual Fund Returns Calculator", href: "/sip-calculator", ownPage: false },
   { id: "emi", label: "EMI Calculator", href: "/emi-calculator", ownPage: true },
   { id: "car-loan", label: "Car Loan EMI Calculator", href: "/car-loan-emi-calculator", ownPage: true },
+  { id: "home-loan", label: "Home Loan EMI Calculator", href: "/home-loan-emi-calculator", ownPage: true },
   { id: "ppf", label: "PPF Calculator", href: "/ppf-calculator", ownPage: true },
   { id: "epf", label: "EPF Calculator", href: "/epf-calculator", ownPage: true },
 ];

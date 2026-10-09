@@ -1,0 +1,1362 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import FAQSection2 from "../components/FAQSection2.astro";
+import CalculatorSidebar from "../components/calculators/CalculatorSidebar.astro";
+
+/*
+ * Home loan EMI calculator - an SEO landing page for "home loan emi calculator"
+ * and its long tail ("50 lakh home loan emi", "home loan emi per lakh"). The
+ * URL carried search impressions from the old site while it 404'd, so it is
+ * rebuilt at the same address rather than redirected to /emi-calculator.
+ *
+ * What makes it home-specific: property value and down payment (the loan is
+ * the difference), RBI's loan-to-value caps checked live against the loan,
+ * tenures up to 30 years, and the tax-benefit section. Every table is computed
+ * here from the same formula the calculator uses, so their figures cannot
+ * drift from it.
+ */
+
+function monthlyEmi(principal: number, ratePa: number, years: number): number {
+  const r = ratePa / 12 / 100;
+  const n = years * 12;
+  const growth = Math.pow(1 + r, n);
+  return (principal * r * growth) / (growth - 1);
+}
+
+const rupees = (value: number) =>
+  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(
+    Math.round(value),
+  );
+
+const lakhs = (value: number) => (value >= 10000000 ? `₹${value / 10000000} Crore` : `₹${value / 100000} Lakh`);
+
+const defaults = {
+  price: { min: 500000, max: 100000000, step: 50000, value: 6000000 },
+  down: 1200000,
+  rate: { min: 6, max: 15, step: 0.05, value: 8.5 },
+  tenure: { min: 1, max: 30, step: 1, value: 20 },
+};
+
+const defaultLoan = defaults.price.value - defaults.down;
+const defaultEmi = monthlyEmi(defaultLoan, defaults.rate.value, defaults.tenure.value);
+const defaultTotal = defaultEmi * defaults.tenure.value * 12;
+
+// Reference tables.
+const perLakhRates = [8, 8.5, 9, 9.5, 10, 11];
+const perLakhTenures = [10, 15, 20, 25, 30];
+const perLakhRows = perLakhRates.map((rate) => ({
+  rate,
+  emis: perLakhTenures.map((years) => rupees(monthlyEmi(100000, rate, years))),
+}));
+
+const example = { loan: 5000000, rate: 8.5, years: 20 };
+const exampleEmi = monthlyEmi(example.loan, example.rate, example.years);
+const exampleTotal = exampleEmi * example.years * 12;
+
+const tenureRows = [10, 15, 20, 25, 30].map((years) => {
+  const emi = monthlyEmi(example.loan, example.rate, years);
+  return { years, emi: rupees(emi), interest: rupees(emi * years * 12 - example.loan) };
+});
+
+// "N lakh home loan EMI" is a large share of the query's long tail (Semrush
+// India: 20/30/50 lakh ~4.4k searches a month each), so the common sizes are
+// spelled out rather than left to the per-lakh table.
+const amountTenures = [10, 15, 20, 30];
+const amountRows = [
+  1000000, 1500000, 2000000, 2500000, 3000000, 3500000, 4000000, 4500000, 5000000, 6000000, 7000000, 8000000, 10000000,
+].map((loan) => ({
+  loan: lakhs(loan),
+  emis: amountTenures.map((years) => rupees(monthlyEmi(loan, example.rate, years))),
+}));
+
+/*
+ * "Home loan eligibility calculator" is the largest related query after the
+ * calculator itself. Lenders cap all EMIs at a share of take-home pay (FOIR);
+ * 50% with no other EMIs is the usual midpoint, and the loan is whatever that
+ * EMI repays over 20 years at the example rate.
+ */
+const FOIR = 0.5;
+const eligibilityRows = [30000, 50000, 75000, 100000, 150000, 200000].map((income) => {
+  const maxEmi = income * FOIR;
+  return {
+    income: rupees(income),
+    maxEmi: rupees(maxEmi),
+    loan: rupees(maxEmi / monthlyEmi(1, example.rate, 20)),
+  };
+});
+
+/*
+ * Prepayment: walks the example loan month by month with extra payments and
+ * reports when it closes and the interest paid, so the savings shown are exact
+ * for the example rather than rules of thumb.
+ */
+function simulate(loan: number, ratePa: number, emi: number, extraFor: (month: number) => number) {
+  const r = ratePa / 12 / 100;
+  let balance = loan;
+  let interest = 0;
+  let months = 0;
+  while (balance > 0.5 && months < 600) {
+    months += 1;
+    const monthInterest = balance * r;
+    interest += monthInterest;
+    balance = balance + monthInterest - emi - extraFor(months);
+  }
+  return { months, interest };
+}
+
+const baseline = simulate(example.loan, example.rate, exampleEmi, () => 0);
+const lumpSum = 500000;
+const lumpPlan = simulate(example.loan, example.rate, exampleEmi, (month) => (month === 12 ? lumpSum : 0));
+const extraEmiPlan = simulate(example.loan, example.rate, exampleEmi, (month) => (month % 12 === 0 ? exampleEmi : 0));
+// Reduce-EMI option: the balance after month 12 and the lump sum, re-spread
+// over the remaining 19 years.
+const balanceAfterYear = (() => {
+  const r = example.rate / 12 / 100;
+  let balance = example.loan;
+  for (let m = 0; m < 12; m++) balance = balance * (1 + r) - exampleEmi;
+  return balance - lumpSum;
+})();
+const reducedEmi = monthlyEmi(balanceAfterYear, example.rate, example.years - 1);
+const reducedEmiInterest = exampleEmi * 12 + reducedEmi * (example.years - 1) * 12 + lumpSum - example.loan;
+
+const yearsMonths = (months: number) => {
+  const years = Math.floor(months / 12);
+  const rest = months % 12;
+  return rest ? `${years} yr ${rest} mo` : `${years} yr`;
+};
+
+const prepaymentRows = [
+  {
+    plan: "No prepayment",
+    emi: rupees(exampleEmi),
+    tenure: yearsMonths(baseline.months),
+    interest: rupees(baseline.interest),
+    saved: "-",
+  },
+  {
+    plan: `${lakhs(lumpSum)} after year 1, keep EMI (shorter tenure)`,
+    emi: rupees(exampleEmi),
+    tenure: yearsMonths(lumpPlan.months),
+    interest: rupees(lumpPlan.interest),
+    saved: rupees(baseline.interest - lumpPlan.interest),
+  },
+  {
+    plan: `${lakhs(lumpSum)} after year 1, keep tenure (lower EMI)`,
+    emi: rupees(reducedEmi),
+    tenure: yearsMonths(baseline.months),
+    interest: rupees(reducedEmiInterest),
+    saved: rupees(baseline.interest - reducedEmiInterest),
+  },
+  {
+    plan: "One extra EMI every year",
+    emi: rupees(exampleEmi),
+    tenure: yearsMonths(extraEmiPlan.months),
+    interest: rupees(extraEmiPlan.interest),
+    saved: rupees(baseline.interest - extraEmiPlan.interest),
+  },
+];
+
+// Bank-name searches ("sbi home loan emi calculator", "hdfc home loan emi
+// calculator", ...) add up to more volume than any single generic variant. The
+// formula is the same at every lender, so the page says so plainly and lists
+// them; rates are deliberately not quoted, since they change too often to keep
+// accurate here.
+const lenders = [
+  "SBI",
+  "HDFC Bank",
+  "ICICI Bank",
+  "Axis Bank",
+  "Punjab National Bank",
+  "Bank of Baroda",
+  "Canara Bank",
+  "LIC Housing Finance",
+  "Union Bank of India",
+  "Bank of India",
+  "Indian Bank",
+  "Bank of Maharashtra",
+  "Indian Overseas Bank",
+  "UCO Bank",
+  "Kotak Mahindra Bank",
+  "IDFC FIRST Bank",
+];
+
+// RBI caps the loan at a share of the property's value, by loan size.
+const ltvLimits = [
+  { loan: "Up to ₹30 lakh", maxLtv: "90%", minDown: "10%" },
+  { loan: "₹30 lakh to ₹75 lakh", maxLtv: "80%", minDown: "20%" },
+  { loan: "Above ₹75 lakh", maxLtv: "75%", minDown: "25%" },
+];
+
+const fixedVsFloating = [
+  {
+    feature: "Interest rate",
+    fixed: "Stays the same for the fixed period",
+    floating: "Moves with the lender's benchmark",
+  },
+  { feature: "Starting rate", fixed: "Usually 1-2.5% higher", floating: "Lower" },
+  { feature: "EMI", fixed: "Predictable", floating: "Can rise or fall (or the tenure changes)" },
+  { feature: "Prepayment charges", fixed: "Lenders may charge", floating: "Nil for individual borrowers" },
+  { feature: "Suits", fixed: "Borrowers who expect rates to rise", floating: "Most long-tenure home loans" },
+];
+
+const taxBenefits = [
+  {
+    section: "Section 24(b)",
+    title: "Interest paid",
+    description:
+      "Deduction of up to ₹2 lakh a year on home loan interest for a self-occupied house. For a let-out property the interest is fully deductible, with the overall house-property loss set-off capped at ₹2 lakh.",
+  },
+  {
+    section: "Section 80C",
+    title: "Principal repaid",
+    description:
+      "Principal repayment, stamp duty and registration charges count towards the ₹1.5 lakh 80C limit, shared with PPF, ELSS, EPF and the rest.",
+  },
+  {
+    section: "Joint loan",
+    title: "Both co-owners claim",
+    description:
+      "When co-owners are also co-borrowers, each can claim the 24(b) and 80C deductions separately on their share.",
+  },
+];
+
+const eligibility = [
+  {
+    title: "Age",
+    description: "Usually 21 to 60-65 at loan maturity; your age caps the tenure you are offered.",
+  },
+  {
+    title: "Income",
+    description: "Lenders keep all your EMIs, this one included, to about 40-60% of your take-home income.",
+  },
+  {
+    title: "Credit score",
+    description: "A CIBIL score of 750 or more gets faster approval and the best rates.",
+  },
+  {
+    title: "Property",
+    description: "Clear title and approved plans - the lender verifies the property legally and technically.",
+  },
+];
+
+const documents = [
+  "Identity proof - PAN card, Aadhaar, passport or voter ID",
+  "Address proof - Aadhaar, utility bill, passport or rent agreement",
+  "Income proof - latest salary slips and Form 16, or 2-3 years of ITRs for the self-employed",
+  "Bank statements for the last 6 months",
+  "Property papers - sale agreement, title deed, approved plan and NOC from the builder or society",
+  "Passport-size photographs and a filled application form",
+];
+
+const tips = [
+  {
+    title: "Make a bigger down payment",
+    description: "Every rupee paid upfront saves years of interest on it - and keeps you well inside RBI's LTV limits.",
+  },
+  {
+    title: "Improve your credit score",
+    description: "A score above 750 can lower your rate by enough to save lakhs over a 20-year loan.",
+  },
+  {
+    title: "Prepay early",
+    description:
+      "Interest is front-loaded, so part-prepayments in the first years cut the most interest. Floating-rate loans carry no prepayment charge.",
+  },
+  {
+    title: "Add a co-borrower",
+    description: "An earning spouse or parent as co-applicant raises eligibility, and both can claim tax benefits.",
+  },
+  {
+    title: "Consider a balance transfer",
+    description:
+      "If another lender offers a meaningfully lower rate, moving the loan can cut your EMI - weigh it against fees.",
+  },
+  {
+    title: "Pick the shortest tenure you can afford",
+    description: "A longer tenure lowers the EMI but raises total interest sharply - see the tenure table above.",
+  },
+];
+
+const faqItems = [
+  {
+    question: "How is home loan EMI calculated?",
+    answer:
+      "Home loan EMI is calculated with the formula EMI = P × r × (1 + r)^n / ((1 + r)^n − 1), where P is the loan amount (property value minus down payment), r is the monthly interest rate and n is the tenure in months. The GoPocket home loan EMI calculator applies it instantly as you move the sliders.",
+  },
+  {
+    question: "What is the EMI for a ₹20 lakh home loan?",
+    answer: `At 8.5% interest, a ₹20 lakh home loan costs about ${rupees(monthlyEmi(2000000, 8.5, 10))} a month over 10 years, ${rupees(monthlyEmi(2000000, 8.5, 20))} over 20 years, or ${rupees(monthlyEmi(2000000, 8.5, 30))} over 30 years.`,
+  },
+  {
+    question: "What is the EMI for a ₹30 lakh home loan?",
+    answer: `At 8.5% interest, a ₹30 lakh home loan costs about ${rupees(monthlyEmi(3000000, 8.5, 20))} a month over 20 years, or ${rupees(monthlyEmi(3000000, 8.5, 30))} over 30 years.`,
+  },
+  {
+    question: "What is the EMI for a ₹50 lakh home loan?",
+    answer: `At 8.5% interest, a ₹50 lakh home loan costs about ${rupees(monthlyEmi(5000000, 8.5, 20))} a month over 20 years, or ${rupees(monthlyEmi(5000000, 8.5, 30))} over 30 years. Use the calculator for your exact rate and tenure.`,
+  },
+  {
+    question: "What is the EMI for a ₹1 crore home loan?",
+    answer: `At 8.5% interest, a ₹1 crore home loan costs about ${rupees(monthlyEmi(10000000, 8.5, 20))} a month over 20 years, or ${rupees(monthlyEmi(10000000, 8.5, 30))} over 30 years.`,
+  },
+  {
+    question: "Can I use this as an SBI or HDFC home loan EMI calculator?",
+    answer:
+      "Yes. SBI, HDFC Bank, ICICI Bank, Axis Bank, PNB, LIC Housing Finance and every other lender use the same EMI formula. Enter the interest rate and tenure your bank quotes and the result matches its EMI, apart from small differences from fees or insurance added to the loan.",
+  },
+  {
+    question: "What is pre-EMI in a home loan?",
+    answer:
+      "Pre-EMI is interest-only payment on the amount disbursed so far, charged while an under-construction property is being built and the loan is released in stages. Full EMIs, which repay principal too, start once the loan is fully disbursed - or earlier if you choose full EMIs from the start.",
+  },
+  {
+    question: "When does home loan EMI start?",
+    answer:
+      "For a ready property, the first EMI is usually due in the month after the loan is disbursed. For an under-construction property you pay pre-EMI interest until the final disbursement, then full EMIs begin.",
+  },
+  {
+    question: "Can I pay more than my EMI on a home loan?",
+    answer:
+      "Yes. Paying extra, either as a lump sum or as one additional EMI a year, is a part-prepayment that goes straight to principal. On a floating-rate loan there is no charge for it, and it can cut years off the tenure - see the prepayment table above.",
+  },
+  {
+    question: "How much down payment is needed for a home loan?",
+    answer:
+      "RBI caps the loan at 90% of the property value for loans up to ₹30 lakh, 80% for ₹30-75 lakh and 75% above ₹75 lakh - so the minimum down payment is 10%, 20% or 25%. Stamp duty and registration are usually paid on top, from your own funds.",
+  },
+  {
+    question: "What is the maximum tenure for a home loan?",
+    answer:
+      "Most lenders offer up to 30 years, limited by your age at maturity - usually 60 for salaried and 65-70 for self-employed borrowers.",
+  },
+  {
+    question: "Should I choose a fixed or floating rate home loan?",
+    answer:
+      "Most home loans in India are floating-rate: they start cheaper, have no prepayment charges for individuals, and fall when rates fall. A fixed rate gives a predictable EMI but usually costs more and often reverts to floating after a few years.",
+  },
+  {
+    question: "Does the EMI change when interest rates change?",
+    answer:
+      "On a floating-rate loan, yes. When the lender's benchmark moves, most banks change the tenure first and keep the EMI the same; you can ask them to change the EMI instead.",
+  },
+  {
+    question: "What tax benefits are available on a home loan?",
+    answer:
+      "Under the old tax regime you can deduct up to ₹2 lakh of interest a year under Section 24(b) and up to ₹1.5 lakh of principal under Section 80C. The new tax regime allows neither deduction for a self-occupied house.",
+  },
+  {
+    question: "Does the home loan EMI calculator work for all banks?",
+    answer:
+      "Yes. The EMI formula is the same at every bank and housing finance company. Enter the rate and tenure your lender quotes; the actual EMI can differ slightly if processing fees or insurance are added to the loan.",
+  },
+];
+
+const faqCategories = [{ id: "home-loan-faqs", label: "Home Loan FAQs", items: faqItems }];
+
+const structuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "Home Loan EMI Calculator",
+    url: "https://www.gopocket.in/home-loan-emi-calculator",
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Any",
+    description:
+      "Free online home loan EMI calculator. Calculate monthly EMI, total interest, loan-to-value and a year-by-year repayment schedule from property value, down payment, interest rate and tenure.",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+    provider: { "@type": "Organization", name: "GoPocket", url: "https://www.gopocket.in" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  },
+];
+---
+
+<Layout
+  title="Home Loan EMI Calculator - Home Loan Calculator Online | GoPocket"
+  description="Free home loan EMI calculator for SBI, HDFC, ICICI and all banks. Get your monthly EMI, total interest, prepayment savings, loan eligibility and year-by-year repayment schedule."
+  keywords="home loan emi calculator, home loan calculator, emi calculator for home loan, emi calculator home loan, sbi home loan emi calculator, hdfc home loan emi calculator, home loan eligibility calculator, home loan prepayment calculator, home loan interest calculator, 50 lakh home loan emi, 30 lakh home loan emi, 20 lakh home loan emi"
+  canonical="/home-loan-emi-calculator"
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+
+  <Header currentPath="/home-loan-emi-calculator" />
+
+  <main class="pt-8 md:pt-14 pb-16">
+    <div class="container max-w-[1400px] px-4 sm:px-6 space-y-12">
+      <div class="mb-8 space-y-2">
+        <h1 class="h3 font-bold text-dark tracking-tight">Home Loan EMI Calculator</h1>
+        <p class="text-base sm:text-lg text-text-default opacity-80 max-w-3xl">
+          Calculate your home loan EMI in seconds. Enter the property value, down payment, interest rate and tenure to
+          see your monthly EMI, total interest and a year-by-year repayment schedule - for any bank, including SBI, HDFC
+          and ICICI.
+        </p>
+      </div>
+
+      <!-- Main Grid Container (8 Cols Left + 4 Cols Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- LEFT COLUMN: Calculator Card (8 Cols) -->
+        <div class="lg:col-span-8 space-y-8">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-8"
+          >
+            <!-- TOP GRID: Sliders (7 Cols) & Chart (5 Cols) -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center">
+              <div class="md:col-span-7 space-y-8">
+                <!-- 1. Property value -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="price-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Property value
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                      <input
+                        type="number"
+                        id="price-input"
+                        value={defaults.price.value}
+                        min={defaults.price.min}
+                        max={defaults.price.max}
+                        step={defaults.price.step}
+                        class="w-32 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="price-slider"
+                    aria-label="Property value"
+                    min={defaults.price.min}
+                    max={defaults.price.max}
+                    step={defaults.price.step}
+                    value={defaults.price.value}
+                    class="home-minimal-slider"
+                  />
+                </div>
+
+                <!-- 2. Down payment -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="down-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Down payment <span id="down-percent" class="font-medium opacity-70">(20%)</span>
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <span class="text-sm sm:text-base font-bold text-primary mr-1">₹</span>
+                      <input
+                        type="number"
+                        id="down-input"
+                        value={defaults.down}
+                        min="0"
+                        max={defaults.price.value - 100000}
+                        step="50000"
+                        class="w-32 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="down-slider"
+                    aria-label="Down payment"
+                    min="0"
+                    max={defaults.price.value - 100000}
+                    step="50000"
+                    value={defaults.down}
+                    class="home-minimal-slider"
+                  />
+                  <p
+                    id="ltv-warning"
+                    class="hidden text-xs sm:text-sm font-semibold text-amber-600 dark:text-amber-400"
+                  >
+                  </p>
+                </div>
+
+                <!-- 3. Interest rate -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="rate-input" class="text-sm sm:text-base font-semibold text-dark">
+                      Interest rate (p.a)
+                    </label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <input
+                        type="number"
+                        id="rate-input"
+                        value={defaults.rate.value}
+                        min={defaults.rate.min}
+                        max={defaults.rate.max}
+                        step={defaults.rate.step}
+                        class="w-20 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                      <span class="text-sm sm:text-base font-bold text-primary ml-1">%</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="rate-slider"
+                    aria-label="Interest rate per annum"
+                    min={defaults.rate.min}
+                    max={defaults.rate.max}
+                    step={defaults.rate.step}
+                    value={defaults.rate.value}
+                    class="home-minimal-slider"
+                  />
+                </div>
+
+                <!-- 4. Tenure -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between gap-4">
+                    <label for="tenure-input" class="text-sm sm:text-base font-semibold text-dark">Loan tenure</label>
+                    <div
+                      class="flex items-center bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl px-4 py-1.5"
+                    >
+                      <input
+                        type="number"
+                        id="tenure-input"
+                        value={defaults.tenure.value}
+                        min={defaults.tenure.min}
+                        max={defaults.tenure.max}
+                        step={defaults.tenure.step}
+                        class="w-20 text-right font-extrabold text-primary text-base sm:text-lg bg-transparent focus:outline-none"
+                      />
+                      <span class="text-sm sm:text-base font-bold text-primary ml-1">Yr</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    id="tenure-slider"
+                    aria-label="Loan tenure in years"
+                    min={defaults.tenure.min}
+                    max={defaults.tenure.max}
+                    step={defaults.tenure.step}
+                    value={defaults.tenure.value}
+                    class="home-minimal-slider"
+                  />
+                </div>
+              </div>
+
+              <!-- EMI & CHART (5 Cols) -->
+              <div class="md:col-span-5 flex flex-col items-center justify-center space-y-4">
+                <div class="flex items-center justify-center gap-6 text-xs sm:text-sm text-text-default font-semibold">
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary/20 inline-block"></span>
+                    <span class="opacity-80">Loan amount</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="w-3.5 h-2 rounded-full bg-primary inline-block"></span>
+                    <span class="opacity-80">Total interest</span>
+                  </div>
+                </div>
+
+                <div class="relative w-52 h-52 sm:w-64 sm:h-64 flex items-center justify-center">
+                  <canvas id="home-chart" width="240" height="240" aria-hidden="true"></canvas>
+                  <!-- The headline EMI sits in the doughnut's hole. -->
+                  <div
+                    class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center"
+                  >
+                    <span class="text-xs sm:text-sm font-semibold text-text-default opacity-70">Monthly EMI</span>
+                    <span id="output-emi" class="text-2xl sm:text-3xl font-black text-primary" aria-live="polite"
+                      >{rupees(defaultEmi)}</span
+                    >
+                    <span id="output-emi-note" class="text-xs text-text-default opacity-60"
+                      >for {defaults.tenure.value * 12} months</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Summary stats -->
+            <div
+              class="pt-8 border-t border-gray-100 dark:border-[#262938] grid grid-cols-1 md:grid-cols-12 gap-6 items-end"
+            >
+              <div class="md:col-span-7 space-y-3.5 text-sm sm:text-base">
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Loan amount</span>
+                  <span id="output-loan" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >{rupees(defaultLoan)}</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Loan-to-value (LTV)</span>
+                  <span id="output-ltv" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >{Math.round((defaultLoan / defaults.price.value) * 100)}%</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Total interest</span>
+                  <span id="output-interest" class="font-extrabold text-primary text-base sm:text-lg text-right"
+                    >{rupees(defaultTotal - defaultLoan)}</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                  <span class="text-text-default opacity-70 font-semibold">Total loan repayment</span>
+                  <span id="output-repayment" class="font-extrabold text-dark text-base sm:text-lg text-right"
+                    >{rupees(defaultTotal)}</span
+                  >
+                </div>
+                <div class="flex items-center justify-between gap-4 pt-1">
+                  <span class="text-text-default opacity-70 font-semibold">Total cost of home</span>
+                  <span id="output-cost" class="font-black text-dark text-lg sm:text-xl text-right"
+                    >{rupees(defaultTotal + defaults.down)}</span
+                  >
+                </div>
+                <p class="text-xs sm:text-sm text-text-default opacity-60">
+                  Total cost of home = down payment + total loan repayment (excludes stamp duty and registration).
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <CalculatorSidebar current="home-loan" tag="Home Loan EMI Calculator" />
+      </div>
+
+      <!-- RICH SEO CONTENT SECTION -->
+      <section class="mt-16 space-y-12 border-t border-gray-200 dark:border-[#262938] pt-12">
+        <div class="space-y-6">
+          <div class="max-w-4xl space-y-4">
+            <h2 class="h3 font-bold text-dark tracking-tight">What is a Home Loan EMI Calculator?</h2>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              A <strong>home loan EMI calculator</strong> is a free online tool that shows the Equated Monthly Instalment
+              you will pay on a housing loan before you apply. Enter the property value, your down payment, the interest rate
+              and the loan tenure, and it instantly tells you your monthly EMI, the total interest and how your loan is repaid
+              year by year.
+            </p>
+            <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+              It works for home loans from any bank or housing finance company - just use the rate and tenure your
+              lender quotes. It also checks your loan against RBI's <strong>loan-to-value limits</strong>, so you know
+              the minimum down payment before you start house-hunting.
+            </p>
+          </div>
+
+          <!-- Year-by-year repayment schedule -->
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5"
+          >
+            <div class="flex items-center justify-between gap-4">
+              <h3 class="h4 text-lg sm:text-xl font-bold text-dark">Home Loan Repayment Schedule</h3>
+              <span class="text-sm text-text-default opacity-70 font-semibold">Year by Year</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-[#262938]">
+              <table class="w-full text-left text-base sm:text-lg">
+                <thead
+                  class="bg-gray-50 dark:bg-[#1c202e] font-bold text-text-default border-b border-gray-100 dark:border-[#262938]"
+                >
+                  <tr>
+                    <th class="px-5 py-4">Year</th>
+                    <th class="px-5 py-4">Principal Paid</th>
+                    <th class="px-5 py-4">Interest Paid</th>
+                    <th class="px-5 py-4 text-right">Outstanding Balance</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="home-schedule-body"
+                  class="divide-y divide-gray-100 dark:divide-[#262938] text-dark font-medium"
+                >
+                  {/* Filled by the script below. */}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- How it works & example -->
+        <div
+          class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 md:p-10 space-y-6"
+        >
+          <h2 class="h3 font-bold text-dark tracking-tight">How is Home Loan EMI Calculated?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal">
+            Your loan amount is the property value minus your down payment. The EMI on that amount is worked out with
+            the standard reducing-balance formula used by every bank:
+          </p>
+
+          <div
+            class="bg-gray-50 dark:bg-[#181b25] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 text-center font-mono text-lg sm:text-2xl font-black text-primary overflow-x-auto"
+          >
+            EMI = P × r × (1 + r)^n / [ (1 + r)^n - 1 ]
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm sm:text-base">
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">P (Loan Amount)</strong>
+              <span class="opacity-80">Property value minus down payment.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">r (Monthly Rate)</strong>
+              <span class="opacity-80">Annual interest rate / 12 / 100.</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+              <strong class="text-primary block text-base sm:text-lg font-bold mb-1">n (Number of EMIs)</strong>
+              <span class="opacity-80">Loan tenure in years × 12.</span>
+            </div>
+          </div>
+
+          <div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-6 space-y-4">
+            <h3 class="h4 text-base sm:text-lg font-bold text-primary">Home Loan EMI Example:</h3>
+            <p class="text-base sm:text-lg text-text-default font-medium leading-relaxed">
+              You borrow <strong>{rupees(example.loan)}</strong> at <strong>{example.rate}% p.a.</strong> for
+              <strong>{example.years} years</strong>:
+            </p>
+            <ul class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm sm:text-base pt-2">
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Monthly EMI:</span>
+                <span class="font-extrabold text-primary text-lg sm:text-xl">{rupees(exampleEmi)}</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Total Interest:</span>
+                <span class="font-extrabold text-dark text-lg sm:text-xl">{rupees(exampleTotal - example.loan)}</span>
+              </li>
+              <li
+                class="bg-white dark:bg-[#1c202e] border border-gray-200 dark:border-[#262938] rounded-xl p-4 space-y-1"
+              >
+                <span class="block text-text-default opacity-70 font-semibold text-xs sm:text-sm">Total Repayment:</span
+                >
+                <span class="font-black text-dark text-xl sm:text-2xl">{rupees(exampleTotal)}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Every lender -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">
+            Home Loan EMI Calculator for SBI, HDFC, ICICI & All Banks
+          </h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal max-w-4xl">
+            Every bank and housing finance company calculates EMI with the same reducing-balance formula, so this one
+            home loan calculator gives the same EMI as your lender's own. Enter the interest rate and tenure from your
+            sanction letter or the lender's website and it works as an SBI home loan EMI calculator, an HDFC home loan
+            EMI calculator, or one for any of the lenders below.
+          </p>
+          <ul class="flex flex-wrap gap-2.5 text-sm sm:text-base">
+            {
+              lenders.map((lender) => (
+                <li class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-full px-4 py-1.5 font-semibold text-dark">
+                  {lender}
+                </li>
+              ))
+            }
+          </ul>
+          <p class="text-sm text-text-default opacity-70">
+            Your actual EMI can differ by a few rupees if the lender adds processing fees or insurance to the loan, or
+            charges interest from the disbursement date before EMIs start (pre-EMI).
+          </p>
+        </div>
+
+        <!-- EMI by loan amount -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">Home Loan EMI for ₹10 Lakh to ₹1 Crore</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal max-w-4xl">
+            Monthly EMI at {example.rate}% interest for the most common loan sizes - from a ₹20 lakh, ₹30 lakh or ₹50
+            lakh home loan up to ₹1 crore - over 10, 15, 20 and 30 years.
+          </p>
+
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5">Loan Amount</th>
+                  {amountTenures.map((years) => <th class="px-6 py-4.5 text-right">{years} Years</th>)}
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  amountRows.map((row, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4 font-bold text-dark">{row.loan} home loan</td>
+                      {row.emis.map((emi) => (
+                        <td class="px-6 py-4 text-right opacity-90">{emi}</td>
+                      ))}
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- EMI per lakh -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">Home Loan EMI per ₹1 Lakh</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal max-w-4xl">
+            A quick way to estimate your EMI: find your interest rate and tenure below, then multiply by your loan
+            amount in lakhs. For a ₹45 lakh loan, multiply the figure by 45.
+          </p>
+
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5">Interest Rate</th>
+                  {perLakhTenures.map((years) => <th class="px-6 py-4.5 text-right">{years} Years</th>)}
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  perLakhRows.map((row, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4 font-bold text-primary">{row.rate}%</td>
+                      {row.emis.map((emi) => (
+                        <td class="px-6 py-4 text-right opacity-90">{emi}</td>
+                      ))}
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tenure comparison -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">How Loan Tenure Changes Your Home Loan EMI</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal max-w-4xl">
+            For a {rupees(example.loan)} home loan at {example.rate}%: a longer tenure makes each EMI smaller, but over
+            30 years you can pay back more in interest than you borrowed.
+          </p>
+
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5">Tenure</th>
+                  <th class="px-6 py-4.5 text-right">Monthly EMI</th>
+                  <th class="px-6 py-4.5 text-right">Total Interest</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  tenureRows.map((row, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4 font-bold text-dark">{row.years} Years</td>
+                      <td class="px-6 py-4 text-right font-bold text-primary">{row.emi}</td>
+                      <td class="px-6 py-4 text-right opacity-90">{row.interest}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Prepayment -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">Home Loan Prepayment: Reduce EMI or Tenure?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal max-w-4xl">
+            For a {rupees(example.loan)} home loan at {example.rate}% over {example.years} years. A prepayment goes straight
+            to the principal, and keeping the EMI unchanged so the tenure shrinks saves the most interest. Floating-rate home
+            loans carry no prepayment charges for individual borrowers.
+          </p>
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5 min-w-[240px]">Plan</th>
+                  <th class="px-6 py-4.5 text-right">Monthly EMI</th>
+                  <th class="px-6 py-4.5 text-right">Tenure</th>
+                  <th class="px-6 py-4.5 text-right">Total Interest</th>
+                  <th class="px-6 py-4.5 text-right">Interest Saved</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  prepaymentRows.map((row, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4 font-bold text-dark">{row.plan}</td>
+                      <td class="px-6 py-4 text-right opacity-90">{row.emi}</td>
+                      <td class="px-6 py-4 text-right opacity-90">{row.tenure}</td>
+                      <td class="px-6 py-4 text-right opacity-90">{row.interest}</td>
+                      <td class="px-6 py-4 text-right font-bold text-primary">{row.saved}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Eligibility by income -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">Home Loan Eligibility: How Much Loan Can I Get?</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal max-w-4xl">
+            Lenders usually let your EMIs take up to about half of your take-home pay. Assuming no other loans, this is
+            roughly how much home loan each monthly income supports at {example.rate}% over 20 years. Existing EMIs
+            reduce it rupee for rupee; a co-borrower's income adds to it.
+          </p>
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5">Monthly Net Income</th>
+                  <th class="px-6 py-4.5 text-right">Affordable EMI (50%)</th>
+                  <th class="px-6 py-4.5 text-right">Approximate Loan Eligibility</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  eligibilityRows.map((row, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4 font-bold text-dark">{row.income}</td>
+                      <td class="px-6 py-4 text-right opacity-90">{row.maxEmi}</td>
+                      <td class="px-6 py-4 text-right font-bold text-primary">{row.loan}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="text-sm text-text-default opacity-70">
+            An estimate only - lenders also weigh your age, credit score, job stability and the property's value.
+          </p>
+        </div>
+
+        <!-- LTV limits -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">Home Loan Down Payment: RBI Loan-to-Value Limits</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal max-w-4xl">
+            Banks cannot lend the full price of a home. RBI caps the loan at a share of the property's value, which sets
+            the smallest down payment you can make. The calculator above warns you when your loan crosses the limit.
+          </p>
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5">Loan Amount</th>
+                  <th class="px-6 py-4.5 text-right">Maximum Loan (LTV)</th>
+                  <th class="px-6 py-4.5 text-right">Minimum Down Payment</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  ltvLimits.map((row, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4 font-bold text-dark">{row.loan}</td>
+                      <td class="px-6 py-4 text-right font-bold text-primary">{row.maxLtv}</td>
+                      <td class="px-6 py-4 text-right opacity-90">{row.minDown}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="text-sm text-text-default opacity-70">
+            Stamp duty and registration charges are generally not financed and are paid from your own funds on top of
+            the down payment.
+          </p>
+        </div>
+
+        <!-- Fixed vs floating -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">Fixed vs Floating Rate Home Loan</h2>
+          <div
+            class="overflow-x-auto bg-white dark:bg-[#14161f] border border-purple-100 dark:border-[#262938] rounded-2xl shadow-xs"
+          >
+            <table class="w-full text-left border-collapse text-sm sm:text-base">
+              <thead
+                class="bg-[#edf0ff] dark:bg-[#1f2336] text-dark font-bold border-b border-purple-100 dark:border-[#262938]"
+              >
+                <tr>
+                  <th class="px-6 py-4.5 w-48">Feature</th>
+                  <th class="px-6 py-4.5 min-w-[220px]">Fixed Rate</th>
+                  <th class="px-6 py-4.5 min-w-[240px]">Floating Rate</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-[#262938] text-dark">
+                {
+                  fixedVsFloating.map((row, index) => (
+                    <tr
+                      class={`${index % 2 === 1 ? "bg-gray-50/40 dark:bg-[#181b25]/50 " : ""}hover:bg-purple-50/50 dark:hover:bg-[#181b25] transition`}
+                    >
+                      <td class="px-6 py-4 font-bold text-dark">{row.feature}</td>
+                      <td class="px-6 py-4 opacity-85">{row.fixed}</td>
+                      <td class="px-6 py-4 opacity-85">{row.floating}</td>
+                    </tr>
+                  ))
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="text-sm text-text-default opacity-70">
+            Typical market terms; exact rates and charges vary by lender and your profile.
+          </p>
+        </div>
+
+        <!-- Tax benefits -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">Home Loan Tax Benefits</h2>
+          <p class="text-lg sm:text-xl text-text-default opacity-85 leading-relaxed font-normal max-w-4xl">
+            Under the <strong>old tax regime</strong>, a home loan lowers your taxable income in two ways. The new tax
+            regime does not allow these deductions for a self-occupied house.
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-sm sm:text-base">
+            {
+              taxBenefits.map((benefit) => (
+                <div class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-5 space-y-2">
+                  <span class="bg-primary/10 text-primary inline-flex rounded-full px-3 py-1 text-xs font-bold">
+                    {benefit.section}
+                  </span>
+                  <h3 class="h4 text-base sm:text-lg font-bold text-dark">{benefit.title}</h3>
+                  <p class="opacity-80">{benefit.description}</p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+
+        <!-- Eligibility & documents -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5"
+          >
+            <h2 class="h3 font-bold text-dark tracking-tight">Home Loan Eligibility</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base">
+              {
+                eligibility.map((item) => (
+                  <div class="bg-gray-50 dark:bg-[#1c202e] border border-gray-100 dark:border-[#262938] rounded-xl p-4">
+                    <strong class="text-primary block text-base sm:text-lg font-bold mb-1">{item.title}</strong>
+                    <span class="opacity-80">{item.description}</span>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+          <div
+            class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-6 sm:p-8 space-y-5"
+          >
+            <h2 class="h3 font-bold text-dark tracking-tight">Documents Required for a Home Loan</h2>
+            <ul class="space-y-3 text-base sm:text-lg text-text-default">
+              {
+                documents.map((doc) => (
+                  <li class="flex gap-3">
+                    <span class="text-primary font-bold" aria-hidden="true">
+                      ✓
+                    </span>
+                    <span class="opacity-85">{doc}</span>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="space-y-5">
+          <h2 class="h3 font-bold text-dark tracking-tight">6 Ways to Reduce Your Home Loan EMI</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 text-sm sm:text-base">
+            {
+              tips.map((tip, index) => (
+                <div class="bg-white dark:bg-[#14161f] border border-gray-200 dark:border-[#262938] rounded-2xl p-5 space-y-2">
+                  <span class="bg-primary/10 text-primary inline-flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold">
+                    {index + 1}
+                  </span>
+                  <h3 class="h4 text-base sm:text-lg font-bold text-dark">{tip.title}</h3>
+                  <p class="opacity-80">{tip.description}</p>
+                </div>
+              ))
+            }
+          </div>
+          <p class="text-base text-text-default opacity-80">
+            Comparing loans? Try the general
+            <a href="/emi-calculator" class="text-primary font-semibold underline">EMI calculator</a> or the
+            <a href="/car-loan-emi-calculator" class="text-primary font-semibold underline">car loan EMI calculator</a>.
+          </p>
+        </div>
+      </section>
+
+      <FAQSection2 title="asked questions" titleBold="Frequently" categories={faqCategories} />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .home-minimal-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    outline: none;
+    cursor: pointer;
+  }
+  .home-minimal-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2.5px solid #6b1aff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .home-minimal-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.25);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .home-minimal-slider::-webkit-slider-thumb {
+      transition: none;
+    }
+  }
+</style>
+
+<!-- Chart.js, loaded the same way as on the other calculator pages. -->
+<script is:inline src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  // The loan must be at least this much, so the down payment can never reach
+  // the full price.
+  const MIN_LOAN = 100000;
+
+  let chartInstance: any = null;
+
+  const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null;
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(
+      Math.round(val),
+    );
+
+  function updateSliderTrack(slider: HTMLInputElement | null) {
+    if (!slider) return;
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 100;
+    const val = parseFloat(slider.value) || 0;
+    const pct = Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
+    const trackBg = document.documentElement.classList.contains("dark") ? "#262938" : "#e2e8f0";
+    slider.style.background = `linear-gradient(to right, #6b1aff 0%, #6b1aff ${pct}%, ${trackBg} ${pct}%, ${trackBg} 100%)`;
+  }
+
+  // Reads an input clamped to its own min/max.
+  function read(id: string): number {
+    const input = byId<HTMLInputElement>(`${id}-input`);
+    if (!input) return 0;
+    const min = parseFloat(input.min) || 0;
+    const max = parseFloat(input.max) || Infinity;
+    const value = parseFloat(input.value);
+    return Math.min(max, Math.max(min, Number.isFinite(value) ? value : min));
+  }
+
+  function monthlyEmi(principal: number, ratePa: number, months: number): number {
+    const r = ratePa / 12 / 100;
+    if (r === 0) return principal / months;
+    const growth = Math.pow(1 + r, months);
+    return (principal * r * growth) / (growth - 1);
+  }
+
+  // RBI's LTV cap depends on the loan size: 90% up to ₹30 lakh, 80% up to
+  // ₹75 lakh, 75% above.
+  function maxLtvFor(loan: number): number {
+    if (loan <= 3000000) return 90;
+    if (loan <= 7500000) return 80;
+    return 75;
+  }
+
+  // The down payment's ceiling follows the price, so a cheaper home can never
+  // be left with a down payment larger than itself.
+  function syncDownPaymentLimit() {
+    const price = read("price");
+    const cap = Math.max(0, price - MIN_LOAN);
+    ["down-input", "down-slider"].forEach((id) => {
+      const el = byId<HTMLInputElement>(id);
+      if (!el) return;
+      el.max = String(cap);
+      if (parseFloat(el.value) > cap) el.value = String(cap);
+    });
+  }
+
+  function calculate() {
+    syncDownPaymentLimit();
+
+    const price = read("price");
+    const down = read("down");
+    const rate = read("rate");
+    const years = Math.round(read("tenure"));
+    const months = years * 12;
+
+    const loan = Math.max(0, price - down);
+    const emi = monthlyEmi(loan, rate, months);
+    const repayment = emi * months;
+    const interest = Math.max(0, repayment - loan);
+    const ltv = (loan / price) * 100;
+    const maxLtv = maxLtvFor(loan);
+
+    const set = (id: string, text: string) => {
+      const el = byId(id);
+      if (el) el.innerText = text;
+    };
+    set("output-emi", formatCurrency(emi));
+    set("output-emi-note", `for ${months} months`);
+    set("output-loan", formatCurrency(loan));
+    set("output-ltv", `${Math.round(ltv)}%`);
+    set("output-interest", formatCurrency(interest));
+    set("output-repayment", formatCurrency(repayment));
+    set("output-cost", formatCurrency(repayment + down));
+    set("down-percent", `(${Math.round((down / price) * 100)}%)`);
+
+    const warning = byId("ltv-warning");
+    if (warning) {
+      const over = ltv > maxLtv + 0.001;
+      warning.classList.toggle("hidden", !over);
+      if (over) {
+        warning.innerText = `RBI allows at most ${maxLtv}% LTV on this loan size - lenders will need a down payment of about ${formatCurrency(price * (1 - maxLtv / 100))} or more.`;
+      }
+    }
+
+    ["price", "down", "rate", "tenure"].forEach((id) => updateSliderTrack(byId<HTMLInputElement>(`${id}-slider`)));
+    updateChart(loan, interest);
+    updateSchedule(loan, rate, years, emi);
+  }
+
+  function updateChart(loan: number, interest: number) {
+    const canvas = byId<HTMLCanvasElement>("home-chart");
+    if (!canvas) return;
+    if (chartInstance) {
+      chartInstance.data.datasets[0].data = [loan, interest];
+      chartInstance.update();
+      return;
+    }
+    const Chart = (window as any).Chart;
+    if (!Chart) return;
+    chartInstance = new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Loan amount", "Total interest"],
+        datasets: [
+          {
+            data: [loan, interest],
+            backgroundColor: ["rgba(107, 26, 255, 0.2)", "#6b1aff"],
+            borderWidth: 0,
+            hoverOffset: 5,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "80%",
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: (context: any) => ` ${context.label}: ${formatCurrency(context.parsed || 0)}` },
+          },
+        },
+        animation: { duration: 400, easing: "easeOutQuart" },
+      },
+    });
+  }
+
+  // Walks the loan month by month and rolls the split up per year.
+  function updateSchedule(loan: number, rate: number, years: number, emi: number) {
+    const tbody = byId("home-schedule-body");
+    if (!tbody) return;
+    const r = rate / 12 / 100;
+    let balance = loan;
+    let rows = "";
+    for (let yr = 1; yr <= years; yr++) {
+      let principalPaid = 0;
+      let interestPaid = 0;
+      for (let m = 0; m < 12; m++) {
+        const interest = balance * r;
+        const towardsPrincipal = Math.min(balance, emi - interest);
+        interestPaid += interest;
+        principalPaid += towardsPrincipal;
+        balance -= towardsPrincipal;
+      }
+      // Floating-point drift leaves a few paise on the last row; show zero.
+      const shownBalance = yr === years ? 0 : Math.max(0, balance);
+      rows += `
+        <tr class="hover:bg-gray-50 dark:hover:bg-[#181b25] transition">
+          <td class="px-5 py-3.5 font-semibold">${yr} ${yr === 1 ? "Year" : "Years"}</td>
+          <td class="px-5 py-3.5">${formatCurrency(principalPaid)}</td>
+          <td class="px-5 py-3.5 text-primary font-semibold">${formatCurrency(interestPaid)}</td>
+          <td class="px-5 py-3.5 text-right font-bold text-dark">${formatCurrency(shownBalance)}</td>
+        </tr>
+      `;
+    }
+    tbody.innerHTML = rows;
+  }
+
+  function setupEventListeners() {
+    // Each number box and its slider mirror one another.
+    ["price", "down", "rate", "tenure"].forEach((id) => {
+      const input = byId<HTMLInputElement>(`${id}-input`);
+      const slider = byId<HTMLInputElement>(`${id}-slider`);
+      input?.addEventListener("input", () => {
+        if (slider) slider.value = input.value;
+        calculate();
+      });
+      slider?.addEventListener("input", () => {
+        if (input) input.value = slider.value;
+        calculate();
+      });
+    });
+  }
+
+  function initCalculator() {
+    setupEventListeners();
+    calculate();
+  }
+
+  if (document.readyState !== "loading") {
+    initCalculator();
+  } else {
+    document.addEventListener("DOMContentLoaded", initCalculator);
+  }
+</script>

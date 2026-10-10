@@ -25,7 +25,7 @@ export const GET: APIRoute = async ({ site, url, locals }) => {
   const slugs = await listSitemapSlugs(waitUntil);
   if (!slugs) return unavailable();
 
-  const children = [`${SITE}/sitemap-pages.xml`];
+  const children = [`${SITE}/sitemap-pages.xml`, `${SITE}/sitemap-news.xml`];
   const chunks = Math.ceil(slugs.length / SITEMAP_CHUNK_SIZE);
   for (let page = 1; page <= chunks; page += 1) {
     children.push(`${SITE}/sitemap-stocks-${page}.xml`);

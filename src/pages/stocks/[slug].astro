@@ -16,7 +16,7 @@ import { buildStockOverview } from "@/lib/stock-overview";
 import { stockFor } from "@/data/stocks";
 import { canonicalStockSlug, findContractBySlug } from "@/lib/contracts";
 import { fetchQuote } from "@/lib/feed/quote";
-import { fetchCandles, fetchLatestSession, rangeById, sessionWindow } from "@/lib/feed/candles";
+import { fetchCandles, fetchLatestSession, rangeById, sessionWindow, type Range } from "@/lib/feed/candles";
 import { sessionAt } from "@/lib/feed/session";
 import PriceChart from "@/components/stocks/PriceChart.astro";
 import StockOverview from "@/components/stocks/StockOverview.astro";
@@ -105,8 +105,32 @@ const feedQuote =
  * session before instead - as every broker shows it - and the page tells the
  * feed client to keep doing so until the price moves again (see client.ts).
  */
+// Five days of one-minute candles reach back over a weekend with a holiday beside it.
+const PREVIOUS_SESSIONS: Range = { id: "previous", label: "", interval: 1, lookback: 5 * 24 * 60 * 60 };
 const feedPrice = feedQuote?.lp ? Number.parseFloat(feedQuote.lp) : null;
-const heldClose = feedPrice !== null ? latest.previousClose : null;
+
+/*
+ * After the close the feed rolls an index's previous close forward too, on the
+ * trading day itself: NIFTY 50 arrives with `c` equal to `lp` while `pc` still
+ * carries the day's +1.30%, so the change read "+0.00 (+0.00%)" all evening.
+ * Shares keep their real previous close; indices don't. When the two disagree
+ * like that, the close is the previous session's last one-minute candle - the
+ * index's closing print, to the paisa - and held like the between-sessions
+ * close above. The daily candles can't stand in: that upstream has none for
+ * indices. Only then is the extra request made, so a normal view waits on
+ * nothing new.
+ */
+const rolledForward =
+  latest.previousClose === null &&
+  feedPrice !== null &&
+  feedQuote?.c !== undefined &&
+  Number.parseFloat(feedQuote.c) === feedPrice &&
+  Number.parseFloat(feedQuote.pc ?? "0") !== 0;
+const officialClose =
+  rolledForward && latest.candles[0]
+    ? ((await fetchCandles(token, PREVIOUS_SESSIONS)).findLast((candle) => candle.t < latest.candles[0].t)?.c ?? null)
+    : null;
+const heldClose = feedPrice !== null ? (latest.previousClose ?? officialClose) : null;
 const quote =
   feedQuote && feedPrice !== null && heldClose !== null
     ? { ...feedQuote, c: heldClose.toFixed(2), pc: (((feedPrice - heldClose) / heldClose) * 100).toFixed(2) }

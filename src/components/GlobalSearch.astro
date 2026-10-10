@@ -281,9 +281,57 @@ import { SEARCH_SEGMENTS } from "@/lib/contracts";
       if (el.textContent !== text) el.textContent = text;
     };
 
+    /**
+     * token -> the close before the latest session, from /api/previous-close;
+     * null once asked and told the feed's own close stands (a trading day).
+     */
+    const heldCloses = new Map<string, number | null>();
+    /** Each row's last tick, to repaint it when its held close arrives. */
+    const lastTicks = new WeakMap<HTMLElement, Tick>();
+    const wanted = new Set<string>();
+    let askTimer: ReturnType<typeof setTimeout> | null = null;
+
+    /** Batches the rows' first ticks into one request, then repaints them. */
+    function askForClose(token: string) {
+      heldCloses.set(token, null);
+      wanted.add(token);
+      if (askTimer) return;
+      askTimer = setTimeout(async () => {
+        askTimer = null;
+        const tokens = [...wanted];
+        wanted.clear();
+        try {
+          const response = await fetch("/api/previous-close?tokens=" + encodeURIComponent(tokens.join(",")));
+          const { closes } = (await response.json()) as { closes: Record<string, number> };
+          for (const [token, close] of Object.entries(closes)) heldCloses.set(token, close);
+        } catch {
+          // Without it the row keeps the feed's own figures.
+        }
+        for (const li of shownRows()) {
+          const tick = lastTicks.get(li);
+          if (tick && li.dataset.token && tokens.includes(li.dataset.token)) paint(li, tick);
+        }
+      }, 50);
+    }
+
     function paint(li: HTMLElement, tick: Tick) {
+      lastTicks.set(li, tick);
+      const token = li.dataset.token ?? "";
       const last = num(tick.lp);
-      const previousClose = num(tick.c);
+      const fedClose = num(tick.c);
+      const fedPercent = num(tick.pc);
+      // The feed rolls `c` forward to the last close in two cases, both of
+      // which read as +0.00:
+      // - after the close, an index's on the trading day itself, while `pc`
+      //   keeps the day's move - so the previous close is rebuilt from `pc`, to
+      //   the paisa or so, which a search row can live with;
+      // - between sessions, every instrument's, with `pc` zeroed too - so the
+      //   close before is asked for (see /api/previous-close), as the stock
+      //   page does on the server.
+      const rolled = last !== null && fedClose === last;
+      const held = heldCloses.get(token);
+      if (rolled && !fedPercent && held === undefined) askForClose(token);
+      const previousClose = rolled && fedPercent ? last / (1 + fedPercent / 100) : rolled && held ? held : fedClose;
       // As in PriceHeader: from the same figures as the rupee change, `pc` only as a fallback.
       const percent =
         last !== null && previousClose !== null && previousClose !== 0

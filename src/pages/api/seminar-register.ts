@@ -52,18 +52,26 @@ export const POST: APIRoute = async ({ request, locals }) => {
   }
 
   const seminar = asText(payload.seminar);
-  const fullName = asText(payload.fullName);
+  // Letters and spaces only: digits, punctuation and emoji are dropped rather
+  // than rejected, so "B. Kesavamoorthy" goes through as "B Kesavamoorthy".
+  // \p{L} keeps names written in Tamil, Hindi and other scripts intact.
+  const fullName = asText(payload.fullName)
+    .replace(/[^\p{L}\p{M}\s]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
   const city = asText(payload.city);
   const clientCode = asText(payload.clientCode);
   // Both come straight from a shareable URL, so cap them rather than store
   // whatever length someone pastes in.
   const refer = asText(payload.refer).slice(0, 40);
   const mode = asText(payload.mode).slice(0, 40);
-  // Strip spaces, dashes and a +91 prefix before validating, so a correctly
-  // typed number is not rejected over formatting.
-  const mobile = asText(payload.mobile)
-    .replace(/[\s-]/g, "")
-    .replace(/^\+?91/, "");
+  // Reduce to digits and drop a +91 / 0 prefix before validating, so a
+  // correctly typed number is not rejected over formatting. The prefix strip is
+  // guarded on length: an unconditional `^\+?91` ate the first two digits of a
+  // valid number that starts 91 (9176011407 -> 76011407) and rejected it.
+  let mobile = asText(payload.mobile).replace(/\D/g, "");
+  if (mobile.length > 10 && mobile.startsWith("91")) mobile = mobile.slice(2);
+  if (mobile.length > 10 && mobile.startsWith("0")) mobile = mobile.slice(1);
 
   if (!seminar) {
     return json(

@@ -569,7 +569,11 @@ const tabs = [
       const data = new FormData(form);
       const payload = {
         seminar: data.get("seminar") || "",
-        fullName: data.get("fullName") || "",
+        // Same rule the endpoint applies: letters and spaces only.
+        fullName: String(data.get("fullName") || "")
+          .replace(/[^\p{L}\p{M}\s]/gu, "")
+          .replace(/\s+/g, " ")
+          .trim(),
         mobile: data.get("mobile") || "",
         city: data.get("city") || "",
         clientCode: data.get("clientCode") || "",
